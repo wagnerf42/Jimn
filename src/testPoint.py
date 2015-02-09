@@ -1,10 +1,16 @@
 import point
 
-p2 = point.Point2D(1,2)
-print("x =", p2.x, "y =", p2.y)
-p3 = point.Point3D(1,2,3)
-print("x =", p3.x, "y =", p3.y, "z =", p3.z)
 p2 = point.Point2D();
-print("x =", p2.x, "y =", p2.y)
+print(str(p2))
+p2 = point.Point2D(1.0, 2.0)
+print(str(p2))
+q2 = point.Point2D(3.0, 4.0)
+print(str(q2))
+
+s2 = point.Segment(p2, q2)
+
 p3 = point.Point3D();
-print("x =", p3.x, "y =", p3.y, "z =", p3.z)
+print(str(p3))
+p3 = point.Point3D(1.0, 2.0, 3.0)
+print(str(p3))
+
