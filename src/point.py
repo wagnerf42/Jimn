@@ -1,12 +1,12 @@
 class Point2D:
-    def __init__(self, x = 0, y = 0):
+    def __init__(self, x = 0.0, y = 0.0):
         self.x = x
         self.y = y
     def __str__(self):
         return "x = {}, y = {}".format(str(self.x), str(self.y))
 
 class Point3D(Point2D):
-    def __init__(self, x = 0, y = 0, z = 0):
+    def __init__(self, x = 0.0, y = 0.0, z = 0.0):
         Point2D.__init__(self, x, y)
         self.z = z
     def __str__(self):
