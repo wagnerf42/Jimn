@@ -26,7 +26,7 @@ class Triangle(Segment):
     def __str__(self):
         return Segment.__str__(self)[:-1] + " ; {}]".format(str(self.p3))
 
-def parseFacet(fileName):
+def parseStl(fileName):
 	f = open(fileName, "r")
 	s = f.read()
 	l = s.split()
@@ -37,17 +37,22 @@ def parseFacet(fileName):
 	i = parseBeginSolid(l, i)
 
 	while l[i] == "facet":
-		i = parseBeginFacet(l, i)
-		i = parseBeginLoop(l, i)
-		i, t = parseTriangle(l, i)
+		i, t = parseFacet(l, i)
 		listTriangle.append(t)
-		i = parseEndLoop(l, i)
-		i = parseEndFacet(l, i)
 
 	i = parseEndSolid(l, i)
 	f.close()
 
 	return listTriangle
+
+def parseFacet(l, i):
+		i = parseBeginFacet(l, i)
+		i = parseBeginLoop(l, i)
+		i, t = parseTriangle(l, i)
+		i = parseEndLoop(l, i)
+		i = parseEndFacet(l, i)
+
+		return i, t
 
 def parse(l, i, string):
 	if(l[i] != string):
