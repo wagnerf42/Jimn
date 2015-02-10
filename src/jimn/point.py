@@ -1,3 +1,5 @@
+# vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
+
 class point:
     def __init__(self, *arg):
         l = []
@@ -9,6 +11,7 @@ class point:
         s += "("
         for x in self.coord:
             s += str(x) + ", "
-        s = s[:-2]
+        if len(self.coord) > 0:
+            s = s[:-2]
         s += ")"
         return s
