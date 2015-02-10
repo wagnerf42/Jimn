@@ -24,3 +24,21 @@ print(str(q3))
 
 s3 = point.Segment(p3, q3)
 print(str(s3))
+
+s = "ceci est une\nligne de texte"
+l = s.split()
+for x in l: 
+	print(x)
+
+mot = "bonjour"
+if mot == "bonjour":
+	print("ok == str")
+if mot != "Bonjour":
+	print("ok == str")
+
+listTr = point.parseStl("solid.stl")
+print(str(listTr[0]))
+print(str(listTr[1]))
+
+t = point.Triangle()
+print(str(t))
