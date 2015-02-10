@@ -31,7 +31,7 @@ def parse_facet(l, i):
 
 def parse(l, i, string):
 	if(l[i] != string):
-		print("ERREUR : mot {} non reconnu").format(string)
+		print("ERREUR : mot {} non reconnu".format(string))
 	i += 1
 	return i
 
@@ -69,19 +69,15 @@ def parse_end_loop(l, i):
 	return i
 	
 def parse_point(l, i):
-	i = parse(l, i, "vertex")
-	p = point3d()
-	p.x = float(l[i])
-	i += 1
-	p.y = float(l[i])
-	i += 1
-	p.z = float(l[i])
-	i += 1
-	return i, p
+        i = parse(l, i, "vertex")
+        p = point()
+        for j in range(1,4):
+            p.coord.append(float(l[i]))
+            i += 1
+        return i, p
 
 def parse_triangle(l, i):
-	t = triangle()
-	i, t.p1 = parse_point(l, i)
-	i, t.p2 = parse_point(l, i)
-	i, t.p3 = parse_point(l, i)
-	return i, t
+        t = triangle()
+        for j in range(0, 3):
+            i, t.sommets[j] = parse_point(l, i)
+        return i, t
