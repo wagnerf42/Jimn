@@ -1,6 +1,6 @@
-from point import *
-from segment import *
-from triangle import *
+from jimn.point import *
+from jimn.segment import *
+from jimn.triangle import *
 
 def parse_stl(fileName):
 	f = open(fileName, "r")

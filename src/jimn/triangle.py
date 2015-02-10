@@ -1,5 +1,5 @@
-from point import *
-from segment import *
+from jimn.point import *
+from jimn.segment import *
 
 class triangle(segment):
     def __init__(self, p1 = point3d(), p2 = point3d(), p3 = point3d()):
