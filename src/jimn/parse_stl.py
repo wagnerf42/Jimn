@@ -23,13 +23,13 @@ def parse_stl(fileName):
 	return listtriangle
 
 def parse_facet(l, i):
-		i = parse_begin_facet(l, i)
-		i = parse_begin_loop(l, i)
-		i, t = parse_triangle(l, i)
-		i = parse_end_loop(l, i)
-		i = parse_end_facet(l, i)
+	i = parse_begin_facet(l, i)
+	i = parse_begin_loop(l, i)
+	i, t = parse_triangle(l, i)
+	i = parse_end_loop(l, i)
+	i = parse_end_facet(l, i)
 
-		return i, t
+	return i, t
 
 def parse(l, i, string):
 	if(l[i] != string):
@@ -71,15 +71,15 @@ def parse_end_loop(l, i):
 	return i
 
 def parse_point(l, i):
-        i = parse(l, i, "vertex")
-        p = point()
-        for j in range(1,4):
-            p.coord.append(float(l[i]))
-            i += 1
-        return i, p
+    i = parse(l, i, "vertex")
+    p = point()
+    for j in range(1,4):
+        p.coord.append(float(l[i]))
+        i += 1
+    return i, p
 
 def parse_triangle(l, i):
-        t = triangle()
-        for j in range(0, 3):
-            i, t.sommets[j] = parse_point(l, i)
-        return i, t
+    t = triangle()
+    for j in range(0, 3):
+        i, t.sommets[j] = parse_point(l, i)
+    return i, t
