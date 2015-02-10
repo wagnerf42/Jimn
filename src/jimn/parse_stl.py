@@ -8,7 +8,7 @@ def parse_stl(fileName):
 	f = open(fileName, "r")
 	s = f.read()
 	l = s.split()
-	
+
 	listtriangle = []
 	i = 0
 	i = parse_begin_solid(l, i)
@@ -46,11 +46,11 @@ def parse_end_solid(l, i):
 	i = parse(l, i, "endsolid")
 	i += 1
 	return i
-	
+
 def parse_end_loop(l, i):
 	i = parse(l, i, "endloop")
 	return i
-	
+
 def parse_begin_facet(l, i):
 	i = parse(l, i, "facet")
 	i = parse(l, i, "normal")
@@ -69,7 +69,7 @@ def parse_begin_loop(l, i):
 def parse_end_loop(l, i):
 	i = parse(l, i, "endloop")
 	return i
-	
+
 def parse_point(l, i):
         i = parse(l, i, "vertex")
         p = point()
