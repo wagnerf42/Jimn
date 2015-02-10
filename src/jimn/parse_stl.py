@@ -4,6 +4,11 @@ from jimn.point import *
 from jimn.segment import *
 from jimn.triangle import *
 
+class stl:
+    def __init__(self, fileName):
+        self.triangles = parse_stl(fileName)
+
+
 def parse_stl(fileName):
 	f = open(fileName, "r")
 	s = f.read()

@@ -29,7 +29,7 @@ print(str(s3))
 
 s = "ceci est une\nligne de texte"
 l = s.split()
-for x in l: 
+for x in l:
 	print(x)
 
 mot = "bonjour"
@@ -38,9 +38,9 @@ if mot == "bonjour":
 if mot != "Bonjour":
 	print("ok == str")
 
-listTr = parse_stl("solid.stl")
-print(str(listTr[0]))
-print(str(listTr[1]))
+data = stl("solid.stl")
+print(str(data.triangles[0]))
+print(str(data.triangles[1]))
 
 t = triangle()
 print(str(t))
