@@ -16,8 +16,12 @@ class Segment:
     def __init__(self, p1, p2):
         self.p1 = p1
         self.p2 = p2
+    def __str__(self):
+        return "[{} ; {}]".format(str(self.p1), str(self.p2))
 
 class Triangle(Segment):
     def __init__(self, p1, p2, p3):
         Segment.__init__(self, p1, p2)
         self.p3 = p3
+    def __str__(self):
+        return Segment.__str__(self)[:-1] + " ; {}]".format(str(self.p3))
