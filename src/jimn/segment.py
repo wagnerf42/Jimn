@@ -1,3 +1,5 @@
+# vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
+
 class segment:
     def __init__(self, p1, p2):
         self.sommets = [p1, p2]

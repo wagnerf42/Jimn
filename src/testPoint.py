@@ -1,3 +1,5 @@
+# vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
+
 from jimn.parse_stl import *
 
 p2 = point();
