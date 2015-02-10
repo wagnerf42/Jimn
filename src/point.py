@@ -30,7 +30,6 @@ def parseStl(fileName):
 	f = open(fileName, "r")
 	s = f.read()
 	l = s.split()
-	print("{} {} {} {}".format(l[0], l[1], l[2], l[3]))
 	
 	listTriangle = []
 	i = 0
@@ -96,13 +95,10 @@ def parseEndLoop(l, i):
 def parsePoint(l, i):
 	i = parse(l, i, "vertex")
 	p = Point3D()
-	print(i)
 	p.x = float(l[i])
 	i += 1
-	print(i)
 	p.y = float(l[i])
 	i += 1
-	print(i)
 	p.z = float(l[i])
 	i += 1
 	return i, p
