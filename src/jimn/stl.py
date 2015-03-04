@@ -9,6 +9,12 @@ class stl:
     def __init__(self, file_name):
         self.facets = parse_stl(file_name)
 
+    def project_half_space_intersection(self, h):
+        segments = []
+        for t in self.facets:
+            segments.extend(t.intersect(h))
+        return segments
+
 
 def parse_stl(file_name):
     if binary_stl_header(file_name):
@@ -38,7 +44,6 @@ def parse_binary_stl(file_name):
             return False
         s = struct.Struct('I')
         size = s.unpack(packed_size)[0]
-        #TODO
         facets = []
         for i in range(size):
             facets.append(facet(f))
@@ -112,16 +117,18 @@ def parse_end_facet(l, i):
 
 
 def parse_begin_loop(l, i):
-    i = parse(l, i, "outerloop")
+    i = parse(l, i, "outer")
+    i = parse(l, i, "loop")
     return i
 
 
 def parse_point(l, i):
     i = parse(l, i, "vertex")
-    p = point()
+    coordinates = []
     for j in range(1, 4):
-        p.coord.append(float(l[i]))
+        coordinates.append(float(l[i]))
         i += 1
+    p = point(coordinates)
     return i, p
 
 
