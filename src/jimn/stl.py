@@ -8,6 +8,13 @@ class stl:
     def __init__(self, fileName):
         self.triangles = parse_stl(fileName)
 
+    def project_half_space_intersection(self, h):
+        biglsegment = [];
+        for t in self.triangles:
+            lsegment = t.intersect(h);
+            biglsegment.extend(lsegment);
+        return biglsegment;
+
 
 def parse_stl(fileName):
 	f = open(fileName, "r")
@@ -79,12 +86,13 @@ def parse_point(l, i):
     i = parse(l, i, "vertex")
     p = point()
     for j in range(1,4):
-        p.coord.append(float(l[i]))
+        p.coordinates.append(float(l[i]))
         i += 1
     return i, p
 
 def parse_triangle(l, i):
     t = triangle()
     for j in range(0, 3):
-        i, t.sommets[j] = parse_point(l, i)
+        i, t.endpoints[j] = parse_point(l, i)
     return i, t
+

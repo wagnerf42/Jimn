@@ -3,7 +3,7 @@
 class point:
 
     def __init__(self, *arg):
-        self.coordinates = arg
+        self.coordinates = [x for x in arg]
 
     def __str__(self):
         return "({})".format(','.join(map(lambda x: str(x), self.coordinates)))
