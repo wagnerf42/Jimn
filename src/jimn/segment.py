@@ -25,3 +25,19 @@ class segment:
         svg_coordinates = [ c for point in self.endpoints for c in display.convert_coordinates(point.get_coordinates()) ]
         display.write("<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" stroke-width=\"3\" stroke=\"{color_arg}\"/>\n".format(*svg_coordinates, color_arg=color))
 
+    def intersect(self, h):
+        p1 = self.endpoints[0]
+        x1 = p1.coordinates[0]
+        y1 = p1.coordinates[1]
+        z1 = p1.coordinates[2]
+
+        p2 = self.endpoints[1]
+        x2 = p2.coordinates[0]
+        y2 = p2.coordinates[1]
+        z2 = p2.coordinates[2]
+
+        z = h;
+        x = x1 + (z - z1)/(z2 - z1)*(x2 - x1);
+        y = y1 + (z - z1)/(z2 - z1)*(y2 - y1);
+
+        return x, y, z;

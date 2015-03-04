@@ -18,4 +18,3 @@ class point:
     def save_svg_content(self, display, color):
         svg_coordinates = display.convert_coordinates(self.coordinates)
         display.write("<circle cx=\"{}\" cy=\"{}\" r=\"5\" fill=\"{color_arg}\"/>\n".format(*svg_coordinates, color_arg=color))
-
