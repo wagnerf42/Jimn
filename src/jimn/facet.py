@@ -21,13 +21,13 @@ class facet:
 
     def is_above(self, h):
         for p in self.points:
-            if p.get_z() < h:
+            if p.get_z() > h:
                 return False
         return True
 
     def is_below(self, h):
         for p in self.points:
-            if p.get_z() > h:
+            if p.get_z() < h:
                 return False
         return True
 
