@@ -22,9 +22,6 @@ class segment:
         return (min_coordinates, max_coordinates)
 
     def save_svg_content(self, display, color):
-        svg_coordinates = []
-        for point in self.endpoints:
-            for c in display.convert_coordinates(point.get_coordinates()):
-                svg_coordinates.append(c)
+        svg_coordinates = [ c for point in self.endpoints for c in display.convert_coordinates(point.get_coordinates()) ]
         display.write("<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" stroke-width=\"3\" stroke=\"{color_arg}\"/>\n".format(*svg_coordinates, color_arg=color))
 

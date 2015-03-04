@@ -29,11 +29,11 @@ class displayed_thing(object):
                 self.max_coordinates[c] = max_coordinates[c]
 
     def calibrate(self):
-        dimensions = list(map(lambda c: self.max_coordinates[c] - self.min_coordinates[c], (0,1)))
-        real_dimensions = list(map(lambda d: d-2*margin, svg_dimensions))
-        stretches = list(map(lambda c: real_dimensions[c] / dimensions[c], (0,1)))
+        dimensions = [ a - b for a, b in zip(self.max_coordinates, self.min_coordinates) ]
+        real_dimensions = [ d-2*margin for d in svg_dimensions]
+        stretches = [a / b for a, b in zip(real_dimensions, dimensions) ]
         self.stretch = min(stretches)
-        self.margins = list(map(lambda c: (svg_dimensions[c] - dimensions[c] * self.stretch) / 2, (0,1)))
+        self.margins = [ (a-b*self.stretch)/2 for a, b in zip(svg_dimensions, dimensions) ]
 
     def open_svg(self, filename):
         self.fd = open(filename, 'w')
@@ -49,8 +49,8 @@ class displayed_thing(object):
         return self.stretch
 
     def convert_coordinates(self, coordinates):
-        relative_coordinates = list(map(lambda c: coordinates[c] - self.min_coordinates[c], (0,1)))
-        return list(map(lambda c: self.margins[c] + relative_coordinates[c]*self.stretch, (0,1)))
+        relative_coordinates = [ a - b for a, b in zip(coordinates, self.min_coordinates) ]
+        return [ a+b*self.stretch for a, b in zip(self.margins, relative_coordinates) ]
 
     def write(self, string):
         self.fd.write(string)
