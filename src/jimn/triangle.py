@@ -37,14 +37,9 @@ class triangle:
 
     def intersect(self, h):
         if self.higher(h):
-            p1 = self.endpoints[0];
-            p2 = self.endpoints[1];
-            p3 = self.endpoints[2];
-            lseg = [];
-            lseg.append(segment(p1, p2));
-            lseg.append(segment(p1, p3));
-            lseg.append(segment(p2, p3));
-            return lseg;
+            p1, p2, p3 = self.endpoints
+            return [ segment(p1, p2), segment(p1, p3), segment(p2, p3) ];
+
         if self.lower(h):
             return [];
 

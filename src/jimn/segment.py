@@ -1,6 +1,7 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 import sys
 import operator
+from jimn.point import point
 
 class segment:
     def __init__(self, p1, p2):
@@ -37,7 +38,7 @@ class segment:
         z2 = p2.coordinates[2]
 
         z = h;
-        x = x1 + (z - z1)/(z2 - z1)*(x2 - x1);
-        y = y1 + (z - z1)/(z2 - z1)*(y2 - y1);
+        x = x1 + (z - z1)/(z2 - z1)*(x2 - x1)
+        y = y1 + (z - z1)/(z2 - z1)*(y2 - y1)
 
-        return x, y, z;
+        return point(x, y, z)

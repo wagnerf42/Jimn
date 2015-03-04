@@ -75,7 +75,8 @@ def parse_end_facet(l, i):
 	return i
 
 def parse_begin_loop(l, i):
-	i = parse(l, i, "outerloop")
+	i = parse(l, i, "outer")
+	i = parse(l, i, "loop")
 	return i
 
 def parse_end_loop(l, i):
