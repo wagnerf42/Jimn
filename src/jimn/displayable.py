@@ -3,7 +3,7 @@ import os
 import getpass
 import sys
 
-svg_dimensions = (800, 600)
+svg_dimensions = (1024, 768)
 margin = 20
 
 svg_colors = tuple('red green blue purple orange saddlebrown mediumseagreen darkolivegreen darkred dimgray mediumpurple midnightblue olive chartreuse darkorchid hotpink lightskyblue peru goldenrod mediumslateblue orangered darkmagenta darkgoldenrod mediumslateblue firebrick palegreen royalblue tan tomato springgreen pink orchid saddlebrown moccasin mistyrose  cornflowerblue darkgrey'.split())
