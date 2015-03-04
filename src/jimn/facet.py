@@ -13,20 +13,20 @@ class facet:
         return "[{}]".format(';'.join(map(lambda p: str(p), self.points)))
 
     def segments(self):
-        p1, p2, p3 = self.endpoints
+        p1, p2, p3 = self.points
         return [segment(p1, p2), segment(p1, p3), segment(p2, p3)]
 
     def add_point(self, p):
         self.points.append(p)
 
     def is_above(self, h):
-        for p in self.endpoints:
+        for p in self.points:
             if p.get_z() < h:
                 return False
         return True
 
     def is_below(self, h):
-        for p in self.endpoints:
+        for p in self.points:
             if p.get_z() > h:
                 return False
         return True
@@ -34,7 +34,7 @@ class facet:
     def separate(self, h):
         inf_equal = []
         sup = []
-        for p in self.endpoints:
+        for p in self.points:
             if p.get_z() <= h:
                 inf_equal.append(p)  # TODO: inf_equal or sup_equal ?
             else:
@@ -57,23 +57,25 @@ class facet:
         traversing_segments = [segment(p, isolated_point) for p in together_points]
         intersections = [s.intersect(h) for s in traversing_segments]
 
-        above_segments = [segment(intersections)]
+        above_segments = [segment(*intersections)]
         z1 = together_points[0].get_z()
         if z1 <= h:
             above_segments.extend([segment(i, isolated_point) for i in intersections])
         else:
-            above_segments.extend([segment(i, p) for i, p in zip(intersections, traversing_segments)])
-            above_segments.append(segment(together_points))
+            above_segments.extend([segment(i, p) for i, p in zip(intersections, together_points)])
+            above_segments.append(segment(*together_points))
         return above_segments
 
 
-def svg_facet(fd):
+def binary_facet(fd):
+    points = []
     for point_index in range(4):
         packed_coordinates = fd.read(3*4)
         if not packed_coordinates:
             raise IOError
-        if point_index == 0:
-            next  # discard normal
-        s = struct.Struct('f3')
-        point(s.unpack(packed_coordinates))
+        if point_index != 0:
+            s = struct.Struct('3f')
+            coordinates = s.unpack(packed_coordinates)
+            points.append(point(*coordinates))
     fd.read(2)  # discard this field
+    return facet(*points)

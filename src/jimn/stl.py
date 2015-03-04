@@ -1,7 +1,7 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
 from jimn.point import point
-from jimn.facet import facet
+from jimn.facet import facet, binary_facet
 import struct
 
 
@@ -18,9 +18,9 @@ class stl:
 
 def parse_stl(file_name):
     if binary_stl_header(file_name):
-        return parse_ascii_stl(file_name)
-    else:
         return parse_binary_stl(file_name)
+    else:
+        return parse_ascii_stl(file_name)
 
 
 def binary_stl_header(file_name):
@@ -31,7 +31,7 @@ def binary_stl_header(file_name):
         s = struct.Struct('80c')
         zeroes = s.unpack(zeroes_head)
         for h in zeroes:
-            if h != 0:
+            if h != b'\x00':
                 return False
         return True
 
@@ -46,27 +46,27 @@ def parse_binary_stl(file_name):
         size = s.unpack(packed_size)[0]
         facets = []
         for i in range(size):
-            facets.append(facet(f))
+            facets.append(binary_facet(f))
         return facets
 
 
 def parse_ascii_stl(file_name):
-    f = open(file_name, "r")
-    s = f.read()
+    fd = open(file_name, "r")
+    s = fd.read()
+    fd.close()
     l = s.split()
 
-    listtriangle = []
+    facets = []
     i = 0
     i = parse_begin_solid(l, i)
 
     while l[i] == "facet":
-        i, t = parse_facet(l, i)
-        listtriangle.append(t)
+        i, f = parse_facet(l, i)
+        facets.append(f)
 
     i = parse_end_solid(l, i)
-    f.close()
 
-    return listtriangle
+    return facets
 
 
 def parse_facet(l, i):
@@ -82,6 +82,7 @@ def parse_facet(l, i):
 def parse(l, i, string):
     if(l[i] != string):
         print("ERREUR : mot {} non reconnu".format(string))
+        raise IOError
     i += 1
     return i
 
@@ -128,7 +129,7 @@ def parse_point(l, i):
     for j in range(1, 4):
         coordinates.append(float(l[i]))
         i += 1
-    p = point(coordinates)
+    p = point(*coordinates)
     return i, p
 
 
@@ -136,5 +137,5 @@ def parse_facet_content(l, i):
     f = facet()
     for j in range(3):
         i, p = parse_point(l, i)
-    f.add_point(p)
+        f.add_point(p)
     return i, f

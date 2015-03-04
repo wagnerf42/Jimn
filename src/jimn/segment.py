@@ -4,17 +4,17 @@ from jimn.point import point
 
 
 class segment:
-    def __init__(self, p1, p2):
-        self.endpoints = [p1, p2]
+    def __init__(self, *points):
+        self.endpoints = [p for p in points]
 
     def __str__(self):
-        return "[{} ; {}]".format(str(self.endpoints[0]), str(self.endpoints[1]))
+        return "[{}]".format(';'.join(map(lambda p: str(p), self.endpoints)))
 
     def get_bounding_box(self):
         min_coordinates = [sys.float_info.max for i in self.endpoints[0].get_coordinates()]
         max_coordinates = [-sys.float_info.max for i in self.endpoints[0].get_coordinates()]
         for p in self.endpoints:
-            coordinates = p .get_coordinates()
+            coordinates = p.get_coordinates()
             for coordinate_index, coordinate in enumerate(coordinates):
                 if coordinate < min_coordinates[coordinate_index]:
                     min_coordinates[coordinate_index] = coordinate
@@ -27,7 +27,9 @@ class segment:
         display.write("<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" stroke-width=\"3\" stroke=\"{color_arg}\"/>\n".format(*svg_coordinates, color_arg=color))
 
     def intersect(self, h):
-        x1, y1, z1, x2, y2, z2 = map(lambda p: p.get_coordinates, self.endpoints)
+        p1, p2 = self.endpoints
+        x1, y1, z1 = p1.get_coordinates()
+        x2, y2, z2 = p2.get_coordinates()
 
         z = h
         x = x1 + (z - z1)/(z2 - z1)*(x2 - x1)

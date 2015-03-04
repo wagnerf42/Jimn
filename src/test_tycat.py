@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 #vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
-from jimn.stl import *
+from jimn.point import *
+from jimn.segment import *
 from jimn.displayable import *
 
 p2 = point(1.0, 2.0)
