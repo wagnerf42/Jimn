@@ -19,13 +19,13 @@ class facet:
     def add_point(self, p):
         self.points.append(p)
 
-    def is_above(self, h):
+    def is_below(self, h):
         for p in self.points:
             if p.get_z() > h:
                 return False
         return True
 
-    def is_below(self, h):
+    def is_above(self, h):
         for p in self.points:
             if p.get_z() < h:
                 return False
@@ -45,10 +45,10 @@ class facet:
             return sup, inf_equal[0]
 
     def intersect(self, h):
-        if self.is_below(h):
+        if self.is_above(h):
             return self.segments()
 
-        if self.is_above(h):
+        if self.is_below(h):
             return []
 
         # separate points above and below, alone or not
