@@ -5,7 +5,7 @@ from jimn.stl import stl
 from jimn.displayable import tycat
 
 scene = stl('../test_files/Box0.stl')
-tycat(scene.project_half_space_intersection(0.5))
+tycat(scene.horizontal_intersection(0.5))
 
 scene2 = stl('../test_files/cordoba.stl')
-tycat(scene2.project_half_space_intersection(0.8))
+tycat(scene2.horizontal_intersection(0.8))

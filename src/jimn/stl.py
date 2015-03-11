@@ -9,7 +9,7 @@ class stl:
     def __init__(self, file_name):
         self.facets = parse_stl(file_name)
 
-    def project_half_space_intersection(self, h):
+    def horizontal_intersection(self, h):
         segments = []
         for t in self.facets:
             segments.extend(t.intersect(h))
