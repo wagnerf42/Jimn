@@ -21,15 +21,35 @@ class facet:
 
     def is_below(self, h):
         for p in self.points:
-            if p.get_z() > h:
+            if p.get_z() >= h:
                 return False
         return True
 
     def is_above(self, h):
         for p in self.points:
-            if p.get_z() < h:
+            if p.get_z() <= h:
                 return False
         return True
+
+    def is_included(self, h):
+        for p in self.points:
+            if p.get_z() != h:
+                return False
+        return True
+
+    def single_point_intersection(self, h):
+        above, included, below = 0, 0, 0
+        for p in self.points:
+            if p.get_z() > h:
+                above += 1
+            if p.get_z() < h:
+                below += 1
+            if p.get_z() == h:
+                included += 1
+        if included == 1 and (above == 2 or below == 2):
+            return True
+        else:
+            return False
 
     def separate(self, h):
         inf_equal = []
@@ -46,25 +66,25 @@ class facet:
 
     def intersect(self, h):
         if self.is_above(h):
-            return self.segments()
+            return []
 
         if self.is_below(h):
+            return []
+
+        if self.is_included(h):
+            return []
+
+        if self.single_point_intersection(h):
             return []
 
         # separate points above and below, alone or not
         together_points, isolated_point = self.separate(h)
 
         traversing_segments = [segment(p, isolated_point) for p in together_points]
-        intersections = [s.intersect(h) for s in traversing_segments]
+        intersection_points = [s.intersect(h) for s in traversing_segments]
 
-        above_segments = [segment(*intersections)]
-        z1 = together_points[0].get_z()
-        if z1 <= h:
-            above_segments.extend([segment(i, isolated_point) for i in intersections])
-        else:
-            above_segments.extend([segment(i, p) for i, p in zip(intersections, together_points)])
-            above_segments.append(segment(*together_points))
-        return above_segments
+        intersection_segment = [segment(*intersection_points)]
+        return intersection_segment
 
 
 def binary_facet(fd):
