@@ -36,3 +36,7 @@ class segment:
         y = y1 + (z - z1)/(z2 - z1)*(y2 - y1)
 
         return point(x, y, z)
+
+    def projection2d(self):
+        p1, p2 = self.endpoints
+        return segment(p1.projection2d(), p2.projection2d())

@@ -16,6 +16,9 @@ class stl:
         return segments
 
 
+def projection2d(segments_set):
+    return [s.projection2d() for s in segments_set]
+
 def parse_stl(file_name):
     if binary_stl_header(file_name):
         return parse_binary_stl(file_name)
