@@ -57,6 +57,7 @@ class displayed_thing(object):
 
 file_count = 0
 def tycat(*things):
+    global file_count
     user = getpass.getuser()
     directory = "/tmp/{}".format(user)
     if not os.path.exists(directory):
