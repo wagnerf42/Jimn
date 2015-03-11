@@ -22,18 +22,18 @@ class displayed_thing(object):
 
     def add_to_bounding_box(self, thing):
         (min_coordinates, max_coordinates) = thing.get_bounding_box()
-        for c in (0,1):
+        for c in (0, 1):
             if min_coordinates[c] < self.min_coordinates[c]:
                 self.min_coordinates[c] = min_coordinates[c]
             if max_coordinates[c] > self.max_coordinates[c]:
                 self.max_coordinates[c] = max_coordinates[c]
 
     def calibrate(self):
-        dimensions = [ a - b for a, b in zip(self.max_coordinates, self.min_coordinates) ]
-        real_dimensions = [ d-2*margin for d in svg_dimensions]
-        stretches = [a / b for a, b in zip(real_dimensions, dimensions) ]
+        dimensions = [a - b for a, b in zip(self.max_coordinates, self.min_coordinates)]
+        real_dimensions = [d-2*margin for d in svg_dimensions]
+        stretches = [a / b for a, b in zip(real_dimensions, dimensions)]
         self.stretch = min(stretches)
-        self.margins = [ (a-b*self.stretch)/2 for a, b in zip(svg_dimensions, dimensions) ]
+        self.margins = [(a-b*self.stretch)/2 for a, b in zip(svg_dimensions, dimensions)]
 
     def open_svg(self, filename):
         self.fd = open(filename, 'w')
@@ -82,4 +82,5 @@ def tycat(*things):
 
     os.system("convert {} {}.jpg".format(filename, filename))
     os.system("tycat {}.jpg".format(filename))
+    file_count = file_count + 1
 
