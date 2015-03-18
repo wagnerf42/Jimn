@@ -45,12 +45,14 @@ def sort_lseg(lseg):
     return sorted(lseg, key=lambda seg: left_high(seg))
 
 # en cours
-def build_poly(beg_seg, dico):
+def build_poly(beg_seg, dico, marked):
     poly = []
     sorted_points = sort_points(beg_seg)
     beg_point = sorted_points[0]
+    poly.append(beg_point)
     prec_point = beg_point
     cour_point = sorted_points[1]
+    marked[segment(prec_point, cour_point)] = True
     while cour_point != beg_point:
         poly.append(cour_point)
         lneighbors = dico[cour_point]
@@ -60,13 +62,14 @@ def build_poly(beg_seg, dico):
         next_point = lneighbors[next_index]
         prec_point = cour_point
         cour_point = next_point
+        marked[segment(prec_point, cour_point)] = True
+    return poly
 
 # en cours
-def build_lpoly(sorted_lseg, dico):
+def build_lpoly(sorted_lseg, sorted_dico):
     marked = {}
     lpoly = []
     for seg in sorted_lseg:
         if not(seg in marked):
-            lpoly.append(build_poly(seg, dico))
-            marked[seg] = True
+            lpoly.append(build_poly(seg, sorted_dico, marked))
     return lpoly
