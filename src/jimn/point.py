@@ -12,6 +12,12 @@ class point:
     def get_coordinates(self):
         return self.coordinates
 
+    def get_x(self):
+        return self.coordinates[0]
+
+    def get_y(self):
+        return self.coordinates[1]
+
     def get_z(self):
         return self.coordinates[2]
 
@@ -26,3 +32,12 @@ class point:
     def projection2d(self):
         x, y = self.coordinates[0:2]
         return point(x, y)
+
+    def __key(self):
+        return tuple(self.coordinates)
+
+    def __eq__(x, y):
+        return x.__key() == y.__key()
+
+    def __hash__(self):
+        return hash(self.__key())

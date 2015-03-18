@@ -40,3 +40,15 @@ class segment:
     def projection2d(self):
         p1, p2 = self.endpoints
         return segment(p1.projection2d(), p2.projection2d())
+
+    def get_endpoints(self):
+        return self.endpoints
+
+    def __key(self):
+        return tuple(self.endpoints)
+
+    def __eq__(x, y):
+        return x.__key() == y.__key()
+
+    def __hash__(self):
+        return hash(self.__key())
