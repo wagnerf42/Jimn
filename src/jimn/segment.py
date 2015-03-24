@@ -44,12 +44,12 @@ class segment:
     def get_endpoints(self):
         return self.endpoints
 
-    def symmetrize(self):
-        sorted_endpoints = sorted(self.endpoints, key=lambda p:(p.get_x(), p.get_y()))
+    def sort_endpoints(self):
+        sorted_endpoints = sorted(self.endpoints, key=lambda p: (p.get_x(), p.get_y()))
         return segment(*sorted_endpoints)
 
     def __key(self):
-        return tuple(self.symmetrize().get_endpoints())
+        return tuple(self.sort_endpoints().get_endpoints())
 
     def __eq__(x, y):
         return x.__key() == y.__key()

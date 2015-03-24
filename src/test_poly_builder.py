@@ -17,7 +17,7 @@ p3 = point(1,-1)
 dico_test = {p1 : [p2, p3]}
 for p in (dico_test[p1]):
     print(p)
-sort_dico(dico_test)
+sort_segments_of_points(dico_test)
 for p in (dico_test[p1]):
     print(p)
 
@@ -32,7 +32,7 @@ for seg in sorted_lseg:
     print(seg)
 
 dico = hash_points(lseg)
-sort_dico(dico)
+sort_segments_of_points(dico)
 lpoly = build_lpoly(sorted_lseg, dico)
 poly = lpoly[0]
 for p in poly:
