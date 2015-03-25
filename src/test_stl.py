@@ -9,4 +9,4 @@ scene = stl('../test_files/Box0.stl')
 tycat(projection2d(scene.horizontal_intersection(0.5)))
 
 scene2 = stl('../test_files/cordoba.stl')
-tycat(projection2d(scene2.horizontal_intersection(0.8)))
+tycat(projection2d(scene2.horizontal_intersection(1)))

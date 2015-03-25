@@ -52,17 +52,20 @@ class facet:
             return False
 
     def separate(self, h):
-        inf_equal = []
-        sup = []
+        lower = []
+        higher = []
+        same = []
         for p in self.points:
-            if p.get_z() <= h:
-                inf_equal.append(p)  # TODO: inf_equal or sup_equal ?
+            if p.get_z() < h:
+                lower.append(p)  # TODO: inf_equal or sup_equal ?
+            elif p.get_z() > h:
+                higher.append(p)
             else:
-                sup.append(p)
-        if len(inf_equal) == 2:
-            return inf_equal, sup[0]
+                same.append(p)
+        if len(higher) == 1:
+            return lower+same, higher[0]
         else:
-            return sup, inf_equal[0]
+            return higher+same, lower[0]
 
     def intersect(self, h):
         if self.is_above(h):
