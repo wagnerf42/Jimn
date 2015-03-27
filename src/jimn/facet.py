@@ -19,69 +19,22 @@ class facet:
     def add_point(self, p):
         self.points.append(p)
 
-    def is_below(self, h):
+    def find_points_above_and_below(self, h):
+        points = [[], []]
         for p in self.points:
-            if p.get_z() >= h:
-                return False
-        return True
-
-    def is_above(self, h):
-        for p in self.points:
-            if p.get_z() <= h:
-                return False
-        return True
-
-    def is_included(self, h):
-        for p in self.points:
-            if p.get_z() != h:
-                return False
-        return True
-
-    def single_point_intersection(self, h):
-        above, included, below = 0, 0, 0
-        for p in self.points:
-            if p.get_z() > h:
-                above += 1
-            if p.get_z() < h:
-                below += 1
-            if p.get_z() == h:
-                included += 1
-        if included == 1 and (above == 2 or below == 2):
-            return True
-        else:
-            return False
-
-    def separate(self, h):
-        lower = []
-        higher = []
-        same = []
-        for p in self.points:
-            if p.get_z() < h:
-                lower.append(p)  # TODO: inf_equal or sup_equal ?
-            elif p.get_z() > h:
-                higher.append(p)
-            else:
-                same.append(p)
-        if len(higher) == 1:
-            return lower+same, higher[0]
-        else:
-            return higher+same, lower[0]
+            points[p.is_above(h)].append(p)
+        return points
 
     def intersect(self, h):
-        if self.is_above(h):
+        lower_points, higher_points = self.find_points_above_and_below(h)
+        if len(lower_points) == 2:
+            together_points = lower_points
+            isolated_point = higher_points[0]
+        elif len(higher_points) == 2:
+            together_points = higher_points
+            isolated_point = lower_points[0]
+        else:
             return []
-
-        if self.is_below(h):
-            return []
-
-        if self.is_included(h):
-            return []
-
-        if self.single_point_intersection(h):
-            return []
-
-        # separate points above and below, alone or not
-        together_points, isolated_point = self.separate(h)
 
         traversing_segments = [segment(p, isolated_point) for p in together_points]
         intersection_points = [s.intersect(h) for s in traversing_segments]

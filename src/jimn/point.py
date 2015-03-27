@@ -21,13 +21,16 @@ class point:
     def get_z(self):
         return self.coordinates[2]
 
+    def is_above(self, height):
+        return self.coordinates[2] > height
+
     def get_bounding_box(self):
         return [self.coordinates, self.coordinates]
 
     # careful : only works on 2d points
     def save_svg_content(self, display, color):
         svg_coordinates = display.convert_coordinates(self.coordinates)
-        display.write("<circle cx=\"{}\" cy=\"{}\" r=\"5\" fill=\"{color_arg}\"/>\n".format(*svg_coordinates, color_arg=color))
+        display.write("<circle cx=\"{}\" cy=\"{}\" r=\"5\" fill=\"{color_arg}\"/> opacity=\"0.5\"\n".format(*svg_coordinates, color_arg=color))
 
     def projection2d(self):
         x, y = self.coordinates[0:2]
