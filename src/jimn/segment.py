@@ -24,7 +24,11 @@ class segment:
 
     def save_svg_content(self, display, color):
         svg_coordinates = [c for point in self.endpoints for c in display.convert_coordinates(point.get_coordinates())]
-        display.write("<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" stroke-width=\"3\" stroke=\"{color_arg}\" opacity=\"0.5\"/>\n".format(*svg_coordinates, color_arg=color))
+        display.write("<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"".format(*svg_coordinates))
+        display.write("stroke-width=\"3\" stroke=\"{}\" opacity=\"0.5\"/>\n".format(color))
+
+    def smallest_point(self):
+        return min(*self.endpoints)
 
     def intersect(self, h):
         p1, p2 = self.endpoints

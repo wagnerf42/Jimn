@@ -26,23 +26,16 @@ def sort_segments_of_points(segments_by_points):
         segments_by_points[point] = sorted_neighbors
 
 
-def left_high(seg):
-    endpoints = seg.get_endpoints()
-    sorted_endpoints = sorted(endpoints, key=lambda endpoint: endpoint.get_x())
-    return(sorted_endpoints[0].get_x(), sorted_endpoints[1].get_y())
-
-
 def sort_points(seg):
     endpoints = seg.get_endpoints()
     sorted_endpoints = sorted(endpoints, key=lambda endpoint: endpoint.get_x())
     return sorted_endpoints
 
 
-def sort_lseg(lseg):
-    return sorted(lseg, key=lambda seg: left_high(seg))
+def sort_lseg(segments):
+    return sorted(segments, key=lambda s: s.smallest_point())
 
 
-# en cours
 def build_poly(beg_seg, dico, marked):
     poly = []
     sorted_points = sort_points(beg_seg)
@@ -64,7 +57,6 @@ def build_poly(beg_seg, dico, marked):
     return poly
 
 
-# en cours
 def build_lpoly(sorted_lseg, sorted_dico):
     marked = {}
     lpoly = []
