@@ -1,5 +1,7 @@
 from jimn.segment import segment
+from jimn.displayable import tycat
 from math import atan2
+import time
 
 
 def hash_points(segments):
@@ -11,6 +13,8 @@ def hash_points(segments):
                 segments_by_points[p1].append(p2)
             else:
                 segments_by_points[p1] = [p2]
+            tycat(segments, *segments_by_points[p1])
+
     return segments_by_points
 
 
@@ -43,7 +47,7 @@ def sort_lseg(lseg):
 
 
 # en cours
-def build_poly(beg_seg, dico, marked):
+def build_poly(beg_seg, dico, marked, background):
     poly = []
     sorted_points = sort_points(beg_seg)
     beg_point = sorted_points[0]
@@ -51,24 +55,37 @@ def build_poly(beg_seg, dico, marked):
     prec_point = beg_point
     cour_point = sorted_points[1]
     marked[segment(prec_point, cour_point)] = True
+    print(cour_point)
+    print(prec_point)
+    print("\n")
+    tycat(background, poly, cour_point)
     while cour_point != beg_point:
         poly.append(cour_point)
         lneighbors = dico[cour_point]
+        print(cour_point)
+        print(prec_point)
+        print("\n")
+        tycat(background, poly, cour_point, *lneighbors)
+        time.sleep(0.5)
         length = len(lneighbors)
+        print(length)
         index = lneighbors.index(prec_point)
+        print(str(index) + "\n")
         next_index = (index+1) % length
         next_point = lneighbors[next_index]
         prec_point = cour_point
         cour_point = next_point
+        print(str(next_point) + "\n")
         marked[segment(prec_point, cour_point)] = True
-    return poly
+#    return poly
+    raise SystemExit(1)
 
 
 # en cours
-def build_lpoly(sorted_lseg, sorted_dico):
+def build_lpoly(sorted_lseg, sorted_dico, background):
     marked = {}
     lpoly = []
     for seg in sorted_lseg:
         if not(seg in marked):
-            lpoly.append(build_poly(seg, sorted_dico, marked))
+            lpoly.append(build_poly(seg, sorted_dico, marked, background))
     return lpoly
