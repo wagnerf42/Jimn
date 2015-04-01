@@ -1,7 +1,7 @@
 from jimn.segment import segment
 from jimn.displayable import tycat
 from math import atan2
-import time
+# import time
 
 
 def hash_points(segments):
@@ -30,24 +30,17 @@ def sort_segments_of_points(segments_by_points):
         segments_by_points[point] = sorted_neighbors
 
 
-def left_high(seg):
-    endpoints = seg.get_endpoints()
-    sorted_endpoints = sorted(endpoints, key=lambda endpoint: endpoint.get_x())
-    return(sorted_endpoints[0].get_x(), sorted_endpoints[1].get_y())
-
-
 def sort_points(seg):
     endpoints = seg.get_endpoints()
     sorted_endpoints = sorted(endpoints, key=lambda endpoint: endpoint.get_x())
     return sorted_endpoints
 
 
-def sort_lseg(lseg):
-    return sorted(lseg, key=lambda seg: left_high(seg))
+def sort_lseg(segments):
+    return sorted(segments, key=lambda s: s.smallest_point())
 
 
-# en cours
-def build_poly(beg_seg, dico, marked, background):
+def build_poly(beg_seg, dico, marked):
     poly = []
     sorted_points = sort_points(beg_seg)
     beg_point = sorted_points[0]
@@ -55,37 +48,36 @@ def build_poly(beg_seg, dico, marked, background):
     prec_point = beg_point
     cour_point = sorted_points[1]
     marked[segment(prec_point, cour_point)] = True
-    print(cour_point)
-    print(prec_point)
-    print("\n")
-    tycat(background, poly, cour_point)
+    # print(cour_point)
+    # print(prec_point)
+    # print("\n")
+    # tycat(background, poly, cour_point)
     while cour_point != beg_point:
         poly.append(cour_point)
         lneighbors = dico[cour_point]
-        print(cour_point)
-        print(prec_point)
-        print("\n")
-        tycat(background, poly, cour_point, *lneighbors)
-        time.sleep(0.5)
+        # print(cour_point)
+        # print(prec_point)
+        # print("\n")
+        # tycat(background, poly, cour_point, *lneighbors)
+        # time.sleep(0.5)
         length = len(lneighbors)
-        print(length)
+        # print(length)
         index = lneighbors.index(prec_point)
-        print(str(index) + "\n")
+        # print(str(index) + "\n")
         next_index = (index+1) % length
         next_point = lneighbors[next_index]
         prec_point = cour_point
         cour_point = next_point
-        print(str(next_point) + "\n")
+        # print(str(next_point) + "\n")
         marked[segment(prec_point, cour_point)] = True
-#    return poly
-    raise SystemExit(1)
+    return poly
+    # raise SystemExit(1)
 
 
-# en cours
-def build_lpoly(sorted_lseg, sorted_dico, background):
+def build_lpoly(sorted_lseg, sorted_dico):
     marked = {}
     lpoly = []
     for seg in sorted_lseg:
         if not(seg in marked):
-            lpoly.append(build_poly(seg, sorted_dico, marked, background))
+            lpoly.append(build_poly(seg, sorted_dico, marked))
     return lpoly

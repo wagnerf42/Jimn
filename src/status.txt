@@ -1,0 +1,5 @@
+./jimn/facet.py => commit 047ae245f5bfa0dd6ed11300c00502bb870b52f5
+./jimn/segment.py => commit cea30fffd031ef3c439b0f9fd5f035cda48d79e4
+./jimn/displayable.py => commit af7076fd4b546e512b6cd11d50980603eaf64205
+./test_stl.py => commit 9bec0674830f6e624ea8cd6f6ba6ca7a76381b9a
+./jimn/point.py => commit cea30fffd031ef3c439b0f9fd5f035cda48d79e4
