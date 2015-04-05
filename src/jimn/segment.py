@@ -4,6 +4,8 @@ from jimn.point import point
 
 
 class segment:
+    """A segment is defined as a set of points (usually two)."""
+
     def __init__(self, *points):
         self.endpoints = [p for p in points]
 
