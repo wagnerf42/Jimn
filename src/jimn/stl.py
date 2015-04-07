@@ -3,6 +3,7 @@
 from jimn.point import point
 from jimn.facet import facet, binary_facet
 import struct
+import re
 
 
 class stl:
@@ -18,6 +19,7 @@ class stl:
 
 def projection2d(segments_set):
     return [s.projection2d() for s in segments_set]
+
 
 def parse_stl(file_name):
     if binary_stl_header(file_name):
@@ -57,88 +59,19 @@ def parse_ascii_stl(file_name):
     fd = open(file_name, "r")
     s = fd.read()
     fd.close()
-    l = s.split()
-
+    head, *facets_strings = s.split('facet normal')
+    if not re.search('^solid\s+\S*', head):
+        raise IOError
     facets = []
-    i = 0
-    i = parse_begin_solid(l, i)
+    for facet_string in facets_strings:
+        normal, *points_strings = facet_string.split('vertex')
+        if len(points_strings) != 3:
+            raise IOError
+        points = []
+        for point_string in points_strings:
+            m = re.search('^\s*(-?\d+(\.\d+)?)\s+(-?\d+(\.\d+)?)\s+(-?\d+(\.\d+)?)', point_string)
+            points.append(point(float(m.group(1)), float(m.group(3)), float(m.group(5))))
 
-    while l[i] == "facet":
-        i, f = parse_facet(l, i)
-        facets.append(f)
-
-    i = parse_end_solid(l, i)
+        facets.append(facet(*points))
 
     return facets
-
-
-def parse_facet(l, i):
-    i = parse_begin_facet(l, i)
-    i = parse_begin_loop(l, i)
-    i, t = parse_facet_content(l, i)
-    i = parse_end_loop(l, i)
-    i = parse_end_facet(l, i)
-
-    return i, t
-
-
-def parse(l, i, string):
-    if(l[i] != string):
-        print("ERREUR : mot {} non reconnu".format(string))
-        raise IOError
-    i += 1
-    return i
-
-
-def parse_begin_solid(l, i):
-    i = parse(l, i, "solid")
-    i += 1
-    return i
-
-
-def parse_end_solid(l, i):
-    i = parse(l, i, "endsolid")
-    i += 1
-    return i
-
-
-def parse_end_loop(l, i):
-    i = parse(l, i, "endloop")
-    return i
-
-
-def parse_begin_facet(l, i):
-    i = parse(l, i, "facet")
-    i = parse(l, i, "normal")
-
-    i += 3
-    return i
-
-
-def parse_end_facet(l, i):
-    i = parse(l, i, "endfacet")
-    return i
-
-
-def parse_begin_loop(l, i):
-    i = parse(l, i, "outer")
-    i = parse(l, i, "loop")
-    return i
-
-
-def parse_point(l, i):
-    i = parse(l, i, "vertex")
-    coordinates = []
-    for j in range(1, 4):
-        coordinates.append(float(l[i]))
-        i += 1
-    p = point(*coordinates)
-    return i, p
-
-
-def parse_facet_content(l, i):
-    f = facet()
-    for j in range(3):
-        i, p = parse_point(l, i)
-        f.add_point(p)
-    return i, f

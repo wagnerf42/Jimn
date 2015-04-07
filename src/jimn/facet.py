@@ -7,7 +7,7 @@ import struct
 
 class facet:
     def __init__(self, *points):
-        self.points = [p for p in points]
+        self.points = list(points)
 
     def __str__(self):
         return "[{}]".format(';'.join(map(lambda p: str(p), self.points)))

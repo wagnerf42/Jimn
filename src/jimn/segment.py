@@ -7,7 +7,7 @@ class segment:
     """A segment is defined as a set of points (usually two)."""
 
     def __init__(self, *points):
-        self.endpoints = [p for p in points]
+        self.endpoints = list(points)
 
     def __str__(self):
         return "[{}]".format(';'.join(map(lambda p: str(p), self.endpoints)))
@@ -27,7 +27,7 @@ class segment:
     def save_svg_content(self, display, color):
         svg_coordinates = [c for point in self.endpoints for c in display.convert_coordinates(point.get_coordinates())]
         display.write("<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"".format(*svg_coordinates))
-        display.write("stroke-width=\"3\" stroke=\"{}\" opacity=\"0.5\"/>\n".format(color))
+        display.write(" stroke-width=\"3\" stroke=\"{}\" opacity=\"0.5\"/>\n".format(color))
 
     def smallest_point(self):
         return min(*self.endpoints)

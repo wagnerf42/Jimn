@@ -6,7 +6,7 @@ class point:
 
     def __init__(self, *arg):
         """Inits a point whose dimension is the number of arguments, and whose coordinates are the arguments."""
-        self.coordinates = [x for x in arg]
+        self.coordinates = list(arg)
 
     def __str__(self):
         """Prints "(x, y, ...)"."""
