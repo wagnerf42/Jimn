@@ -33,6 +33,8 @@ class facet:
         elif len(higher_points) == 2:
             together_points = higher_points
             isolated_point = lower_points[0]
+            if(isolated_point.get_z() == h):
+                return []
         else:
             return []
 

@@ -36,7 +36,6 @@ class point:
         return self.coordinates[2] > height
 
     def get_bounding_box(self):
-        """"""
         return [self.coordinates, self.coordinates]
 
     # careful : only works on 2d points

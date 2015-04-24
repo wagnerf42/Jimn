@@ -8,6 +8,8 @@ class segment:
 
     def __init__(self, *points):
         self.endpoints = list(points)
+        if(self.endpoints[0] == self.endpoints[1]):
+            raise Exception("Segment vide")
 
     def __str__(self):
         return "[{}]".format(';'.join(map(lambda p: str(p), self.endpoints)))
