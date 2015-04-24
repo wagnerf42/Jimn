@@ -45,16 +45,18 @@ def sort_points(seg):
 
 
 def sort_segments(segments):
-    return sorted(segments, key=lambda s: s.smallest_point())
+    return sorted(segments)
 
 
 def build_poly(beg_seg, neighbors, marked, background):
     poly = polygon()
     sorted_points = sort_points(beg_seg)
     beg_point = sorted_points[0]
+    print("beg_point:", beg_point)
     poly.append(beg_point)
     prec_point = beg_point
     cour_point = sorted_points[1]
+    print("cour_point:", cour_point)
     marked[segment(prec_point, cour_point)] = True
     print(cour_point)
     print(prec_point)

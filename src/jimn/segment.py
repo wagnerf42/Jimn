@@ -1,6 +1,7 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 import sys
 from jimn.point import point
+from math import atan2
 
 
 class segment:
@@ -64,3 +65,25 @@ class segment:
 
     def __hash__(self):
         return hash(self.__key())
+    def __lt__(a, b):
+        c = a.sort_endpoints()
+        d = b.sort_endpoints()
+        if(c.get_endpoints()[0].get_x() < d.get_endpoints()[0].get_x()):
+            return 1
+        elif(c.get_endpoints()[0].get_x() > d.get_endpoints()[0].get_x()):
+            return 0
+        else:
+            if(c.get_endpoints()[0].get_y() > d.get_endpoints()[0].get_y()):
+                return 1
+            elif(c.get_endpoints()[0].get_y() < d.get_endpoints()[0].get_y()):
+                return 0
+            else:
+                if(angle(*tuple(c.get_endpoints())) > angle(*tuple(d.get_endpoints()))):
+                    return 1
+                else:
+                    return 0
+
+
+def angle(*points):
+    (x1, y1), (x2, y2) = [p.get_coordinates() for p in points]
+    return atan2(y2 - y1, x2 - x1)

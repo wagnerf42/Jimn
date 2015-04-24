@@ -5,6 +5,7 @@ from jimn.point import point
 from jimn.segment import segment
 from jimn.displayable import tycat
 from jimn.poly_builder import build_polygons
+from jimn.poly_builder import sort_segments
 #from jimn.poly_builder import hash_points
 #from jimn.poly_builder import print_neighbors
 
