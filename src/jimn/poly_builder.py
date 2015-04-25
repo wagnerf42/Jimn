@@ -14,9 +14,10 @@ def hash_points(segments):
                 neighbors_by_points[p1].append(p2)
             else:
                 neighbors_by_points[p1] = [p2]
-            #tycat(segments, *neighbors_by_points[p1])
+            # tycat(segments, *neighbors_by_points[p1])
 
     return neighbors_by_points
+
 
 def print_neighbors(neighbors, background):
     for point, neighbors in neighbors.items():
@@ -79,7 +80,17 @@ def build_poly(beg_seg, neighbors, marked, background):
         prec_point = cour_point
         cour_point = next_point
         # print(str(next_point) + "\n")
-        marked[segment(prec_point, cour_point)] = True
+        # marked[segment(prec_point, cour_point)] = True
+
+    for p in poly.get_endpoints():
+        to_mark = True
+        for n in neighbors[p]:
+            if n not in poly.get_endpoints() and segment(p, n) not in marked:
+                to_mark = False
+        if to_mark:
+            for n in neighbors[p]:
+                marked[segment(p, n)] = True
+
     return poly
     # raise SystemExit(1)
 
