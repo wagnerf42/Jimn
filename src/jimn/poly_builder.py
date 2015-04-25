@@ -82,14 +82,34 @@ def build_poly(beg_seg, neighbors, marked, background):
         # print(str(next_point) + "\n")
         # marked[segment(prec_point, cour_point)] = True
 
-    for p in poly.get_endpoints():
-        to_mark = True
+    endpoints = poly.get_endpoints()
+    nb = len(endpoints)
+    to_mark = True
+    i = 1
+    while to_mark and i < nb:
+        p = endpoints[i]
         for n in neighbors[p]:
-            if n not in poly.get_endpoints() and segment(p, n) not in marked:
+            if n not in endpoints and segment(p, n) not in marked:
                 to_mark = False
         if to_mark:
             for n in neighbors[p]:
                 marked[segment(p, n)] = True
+        i += 1
+
+    if i == nb:
+        return poly
+
+    to_mark = True
+    i = 0
+    while to_mark:
+        p = endpoints[i]
+        for n in neighbors[p]:
+            if n not in endpoints and segment(p, n) not in marked:
+                to_mark = False
+        if to_mark:
+            for n in neighbors[p]:
+                marked[segment(p, n)] = True
+        i = (i - 1) % nb
 
     return poly
     # raise SystemExit(1)
