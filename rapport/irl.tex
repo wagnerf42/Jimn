@@ -1,0 +1,36 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+
+\title{Rapport d'IRL\\Algorithmes d'approximation pour machines outils}
+\author{Pierre Petitbon}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Analyse de l'existant}
+
+Le logiciel PyCam permet, à partir d'un fichier STL et des caractéristiques du cutter, de trouver un chemin de la fraiseuse pour usiner l'objet décrit par le fichier STL. Ce chemin est décrit par le fichier GCode de sortie.
+PyCam procède en deux grandes étapes.
+Le Path Generator s'occupe de déterminer l'ensemble des cases à fraiser, l'espace étant discrétisé par un maillage adapté aux caractéristiques du cutter.
+Le Path Processor choisit alors un chemin ("toolpath").
+
+PyCam propose plusieurs algorithmes :
+
+Slice Removal consiste à découper l'objet en tranches verticales d'épaisseur fixée, pour l'usiner tranche par tranche. Chaque tranche est partitionnée en bandes de même épaisseur que le cutter. On fait avancer le cutter le long de ces bandes jusqu'à rencontrer l'objet. Cette méthode est donc de type "PushCutter".
+
+Surface consiste à découper l'objet en bandes verticales, et de faire tomber le cutter à intervalles réguliers jusqu'à atteindre la surface de l'objet. Cet algorithme s'adapte aux variations de pente à la surface de l'objet : si la surface entre deux points n'est pas assez plane, ou si la variation de hauteur entre les points est trop importante, on fait tomber à nouveau le cutter entre ces deux points (récursivement). Cette méthode est de type "DropCutter". Pour le calcul du chemin, on procède tranche par tranche, comme dans Slice Removal.
+
+Slice Removal et Surface sont une approche simpliste du problème, mais peu coûteuse : $O(n^{2})$, $n$ étant le nombre de triangles décrits par le fichier STL. En pratique, le temps de calcul est raisonnable. Ce n'est pas le cas du temps de fraisage, qui peut exploser dès que l'objet comporte plusieurs poches : la MCN passe incessamment d'une poche à l'autre, au lieu de les traiter séparément.
+
+Contour Follow propose une approche radicalement différente par rapport aux algorithmes précédents. L'objet est intersecté par des tranches horizontales d'épaisseur fixée. Dans chaque tranche, on réalise une recherche de polynômes par une méthode de contour : on longe (conceptuellement) les polynômes de la tranche avec le cutter. L'ensemble des cases à fraiser est alors défini comme l'intérieur de ces polynômes. Path Processor ne traite plus une dimension après l'autre, il raisonne véritablement en trois dimensions.
+
+Le calcul de chemin par Contour Follow est plus fin : il tient compte du "pocketing" (présence de poches à l'intérieur de l'objet). Cependant, son coût est prohibitif : $O(n^{3})$. En pratique, pour des objets complexes, le temps de calcul peut s'étaler sur plusieurs jours.
+
+Notre problématique est donc de concilier complexité algorithmique (temps de calcul) et degré d'optimalité du chemin (temps de fraisage). Pour parvenir à ce compromis, on a recourt à des algorithmes d'approximation pour le calcul du chemin.
+
+\section{Un nouvel algorithme}
+
+\end{document}
