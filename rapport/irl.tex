@@ -33,4 +33,28 @@ Notre problématique est donc de concilier complexité algorithmique (temps de c
 
 \section{Un nouvel algorithme}
 
+Slice Removal, Surface et Contour Follow étant peu optimisables, nous avons décidé de repartir de zéro. Pour l'implémentation, nous avons choisi le langage Python, qui permet de coder lisiblement et rapidement des algorithmes complexes avec une perte minime de performance par rapport à des langages plus bas niveau.
+
+Nous allons reprendre l'idée de Contour Follow, c'est-à-dire manipuler des polygones, mais de manière plus efficace. De plus, la discrétisation dans les tranches interviendra plus tard que dans Contour Follow : dans chaque tranche, on travaillera en vectoriel aussi longtemps que possible.
+
+L'algorithme se déroule en plusieurs étapes :
+
+\subsection{Parser}
+
+On commence par parser le fichier STL (binaire ou ASCII) en entrée. On note $n$ le nombre de triangles. Cette opération coûte $O(n)$. A l'issue de cette étape, on récupère un ensemble de triangles.
+
+\subsection{Découpage en tranches}
+
+On découpe ensuite l'objet en l'intersectant par des plans horizontaux espacés régulièrement avec un pas de discrétisation adapté. Soit $m$ le nombre de niveaux. On effectue de l'ordre de $O(m.n)$ opérations. A chaque niveau, on obtient un ensemble de segments.
+
+%On effectue certains traitements sur ces segments. On supprime tout d'abord les segments apparaissant un nombre pair de fois : ils sont superflus.
+
+\subsection{Fusion des segments alignés}
+
+On peut alors optionnellement appliquer certains traitements à ces ensembles de segments. Par exemple, on peut fusionner les segments alignés (cette opération n'est pas triviale : les calculs sur flottant étant à précision limitée, l'alignement est rarement exact). Soit $k$ le nombre moyen de segments par tranche. Le coût est alors $O(m.k)$. On a $k \leq n$. En pratique, $k \ll n$.
+
+\subsection{Recherche de polygones}
+
+On passe ensuite à la recherche de polygones à l'intérieur de chaque tranche.
+
 \end{document}
