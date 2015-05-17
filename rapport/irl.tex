@@ -55,15 +55,15 @@ On peut alors optionnellement appliquer certains traitements à ces ensembles de
 
 \subsection{Recherche de polygones}
 
-On passe ensuite à la recherche de polygones dans chaque niveau. On note $s$ le nombre de segments au niveau courant. Pour les calculs de complexité, on se place dans le cas (courant) où les polygones d'un niveau ne se touchent pas.
+On passe ensuite à la recherche de polygones dans chaque niveau. On note $s$ le nombre de segments au niveau courant. Pour les calculs de complexité, on se place dans le cas (courant) où les polygones d'un niveau ne se touchent pas. (*)
 
 \subsubsection{Création de la table des voisins}
 
 A chaque niveau, on crée et on remplit une table de hachage indexée par les points d’extrémité des segments. Pour chaque point, cette table fournit la liste de ses voisins (un voisin est un point auquel on est relié par un segment).
 
-Complexité pour un niveau : $O(s) = O(n)$.
+Complexité pour un niveau : $O(s) = O(n)$ (boucle sur les $s$ segments, avec $s \leq n$).
 
-Complexité globale : $O(mn)$.
+Complexité globale : $O(mn)$ ($m$ niveaux).
 
 \subsubsection{Tri des voisins par angle}
 
@@ -72,9 +72,9 @@ Pour chaque point, on trie le tableau de ses voisins par angle (Attention : le s
 
 N.B. : Cette étape ne sert que lorsque certains polygones du niveau courant sont adjacents (cas limite que l'on peut rencontrer).
 
-Complexité pour un niveau : $O(s) =  O(n)$.
+Complexité pour un niveau : $O(s) =  O(n)$. Avec l'hypothèse (*), il y a autant de points que de segments, et chaque point a deux voisins. On a donc une boucle de taille $s \leq n$, dans laquelle on trie un tableau de taille $2$ à chaque itération. Chaque itération est donc de coût constant.
 
-Complexité globale : $O(mn)$.
+Complexité globale : $O(mn)$ ($m$ niveaux).
 
 \subsubsection{Tri de l'ensemble des segments}
 
@@ -86,9 +86,9 @@ a) $s1$ présente le point d’extrémité le plus en bas à gauche (Attention :
 
 b) $s1$ décrit l'angle le plus réduit, les angles étant calculés dans le sens trigonométrique (Attention : cohérence).
 
-Complexité pour un niveau : $O(s\log(s) = O(n\log(n)))$
+Complexité pour un niveau : $O(s\log(s) = O(n\log(n)))$ (tri d'un tableau de taille $s \leq n$).
 
-Complexité globale : $O(mn\log(n))$.
+Complexité globale : $O(mn\log(n))$ ($m$ niveaux).
 
 \subsubsection{Détection de polygones}
 
@@ -102,8 +102,16 @@ On construit les polygones comme suit :
 
 3) Marquer les segments rencontrés. Plus précisément, on marque les segments qui n'appartiennent qu'au polygone courant.
 
-Complexité pour un niveau : $O(s) = O(n)$
+Complexité pour un niveau : $O(s) = O(n)$.
+
+1) est une boucle sur les $s$ segments.
+
+2) Pour chaque polygone $P$, on applique une boucle while itérée $taille(P)$ fois. Bilan : $\sum_{polygone P} taille(P) = s$
+
+3) Pour chaque polygone $P$, on marque $taille(P)$ segments. Bilan : $s$ opérations.
 
 Complexité globale : $O(mn)$.
+
+La recherche de polygones s'effectue donc en $O(mn\log(n))$ opérations, sous l'hypothèse (*).
 
 \end{document}
