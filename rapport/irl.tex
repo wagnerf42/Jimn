@@ -57,4 +57,35 @@ On peut alors optionnellement appliquer certains traitements à ces ensembles de
 
 On passe ensuite à la recherche de polygones à l'intérieur de chaque tranche.
 
+\subsubsection{Création de la table des voisins}
+
+A chaque niveau, on crée et on remplit une table de hachage indexée par les points d’extrémité des segments. Pour chaque point, cette table fournit la liste de ses voisins (un voisin est un point auquel on est relié par un segment).
+
+\subsubsection{Tri des voisins par angle}
+
+Dans la table de hachage précédente, on effectue le traitement suivant :
+Pour chaque point, on trie le tableau de ses voisins par angle (Attention : le sens doit être cohérent avec le tri des segments qui va suivre). Nous avons choisi de trier les voisins dans le sens horaire.
+
+\subsubsection{Tri de l'ensemble des segments}
+
+On trie le tableau de segments selon la relation suivante (les critères sont indiqués par priorité décroissante) :
+
+$s1 < s2$ si et seulement si :
+
+a) $s1$ présente le point d’extrémité le plus en bas à gauche (Attention : cohérence).
+
+b) $s1$ décrit l'angle le plus réduit, les angles étant calculés dans le sens trigonométrique (Attention : cohérence).
+
+\subsubsection{Détection de polygones}
+
+On introduit une table pour marquer les segments rencontrés.
+
+On construit les polygones comme suit :
+
+1) Récupérer le premier segment ("le plus en bas à gauche") non marqué.
+
+2) A partir de ce segment, construire un polygone en utilisant la table des voisins. En pratique, on part de l'extrémité gauche du segment initial, et on récupère un voisin jusqu'à retrouver le point de départ.
+
+3) Marquer les segments rencontrés. Plus précisément, on marque les segments qui n'appartiennent qu'au polygone courant.
+
 \end{document}
