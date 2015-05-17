@@ -25,7 +25,7 @@ Surface consiste à découper l'objet en bandes verticales, et de faire tomber l
 
 Slice Removal et Surface sont une approche simpliste du problème, mais peu coûteuse : $O(n^{2})$, $n$ étant le nombre de triangles décrits par le fichier STL. En pratique, le temps de calcul est raisonnable. Ce n'est pas le cas du temps de fraisage, qui peut exploser dès que l'objet comporte plusieurs poches : la MCN passe incessamment d'une poche à l'autre, au lieu de les traiter séparément.
 
-Contour Follow propose une approche radicalement différente par rapport aux algorithmes précédents. L'objet est intersecté par des tranches horizontales d'épaisseur fixée. Dans chaque tranche, on réalise une recherche de polynômes par une méthode de contour : on longe (conceptuellement) les polynômes de la tranche avec le cutter. L'ensemble des cases à fraiser est alors défini comme l'intérieur de ces polynômes. Path Processor ne traite plus une dimension après l'autre, il raisonne véritablement en trois dimensions.
+Contour Follow propose une approche radicalement différente par rapport aux algorithmes précédents. L'objet est intersecté par des tranches horizontales d'épaisseur fixée. Dans chaque tranche, on réalise une recherche de polygones par une méthode de contour : on longe (conceptuellement) les polygones de la tranche avec le cutter. L'ensemble des cases à fraiser est alors défini comme l'intérieur de ces polynômes. Path Processor ne traite plus une dimension après l'autre, il raisonne véritablement en trois dimensions.
 
 Le calcul de chemin par Contour Follow est plus fin : il tient compte du "pocketing" (présence de poches à l'intérieur de l'objet). Cependant, son coût est prohibitif : $O(n^{3})$. En pratique, pour des objets complexes, le temps de calcul peut s'étaler sur plusieurs jours.
 
@@ -55,13 +55,13 @@ On peut alors optionnellement appliquer certains traitements à ces ensembles de
 
 \subsection{Recherche de polygones}
 
-On passe ensuite à la recherche de polygones dans chaque niveau. On note $s$ le nombre de segments au niveau courant.
+On passe ensuite à la recherche de polygones dans chaque niveau. On note $s$ le nombre de segments au niveau courant. Pour les calculs de complexité, on se place dans le cas (courant) où les polygones d'un niveau ne se touchent pas.
 
 \subsubsection{Création de la table des voisins}
 
 A chaque niveau, on crée et on remplit une table de hachage indexée par les points d’extrémité des segments. Pour chaque point, cette table fournit la liste de ses voisins (un voisin est un point auquel on est relié par un segment).
 
-Complexité pour une tranche : $O(s) = O(n)$.
+Complexité pour un niveau : $O(s) = O(n)$.
 
 Complexité globale : $O(mn)$.
 
@@ -70,9 +70,11 @@ Complexité globale : $O(mn)$.
 Dans la table de hachage précédente, on effectue le traitement suivant :
 Pour chaque point, on trie le tableau de ses voisins par angle (Attention : le sens doit être cohérent avec le tri des segments qui va suivre). Nous avons choisi de trier les voisins dans le sens horaire.
 
-Complexité pour une tranche : $O(s^{2}\log(s)) =  O(n^{2}\log(n))$.
+N.B. : Cette étape ne sert que lorsque certains polygones du niveau courant sont adjacents (cas limite que l'on peut rencontrer).
 
-Complexité globale : $O(mn^{2}\log(n))$.
+Complexité pour un niveau : $O(s) =  O(n)$.
+
+Complexité globale : $O(mn)$.
 
 \subsubsection{Tri de l'ensemble des segments}
 
@@ -84,7 +86,7 @@ a) $s1$ présente le point d’extrémité le plus en bas à gauche (Attention :
 
 b) $s1$ décrit l'angle le plus réduit, les angles étant calculés dans le sens trigonométrique (Attention : cohérence).
 
-Complexité pour une tranche : $O(s\log(s) = O(n\log(n)))$
+Complexité pour un niveau : $O(s\log(s) = O(n\log(n)))$
 
 Complexité globale : $O(mn\log(n))$.
 
@@ -100,8 +102,8 @@ On construit les polygones comme suit :
 
 3) Marquer les segments rencontrés. Plus précisément, on marque les segments qui n'appartiennent qu'au polygone courant.
 
-Complexité pour une tranche : $O(s\log(s) = O(n\log(n)))$
+Complexité pour un niveau : $O(s) = O(n)$
 
-Complexité globale : $O(mn\log(n))$.
+Complexité globale : $O(mn)$.
 
 \end{document}
