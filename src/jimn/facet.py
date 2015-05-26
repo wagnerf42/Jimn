@@ -47,6 +47,8 @@ class facet:
 
 def binary_facet(fd):
     points = []
+    max_height = float('-inf')
+    min_height = float('+inf')
     for point_index in range(4):
         packed_coordinates = fd.read(3*4)
         if not packed_coordinates:
@@ -54,6 +56,11 @@ def binary_facet(fd):
         if point_index != 0:
             s = struct.Struct('3f')
             coordinates = s.unpack(packed_coordinates)
+            height = coordinates[-1]
+            if max_height < height:
+                max_height = height
+            if min_height > height:
+                min_height = height
             points.append(point(*coordinates))
     fd.read(2)  # discard this field
-    return facet(*points)
+    return (facet(*points), min_height, max_height)
