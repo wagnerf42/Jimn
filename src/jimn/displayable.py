@@ -85,3 +85,6 @@ def tycat(*things):
     os.system("tycat {}.jpg".format(filename))
     file_count = file_count + 1
 
+def tycat_set_svg_dimensions(w, h):
+    global svg_dimensions
+    svg_dimensions = (w, h)

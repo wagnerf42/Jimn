@@ -27,6 +27,10 @@ class facet:
 
     def intersect(self, h):
         lower_points, higher_points = self.find_points_above_and_below(h)
+        if len(higher_points) == 3:  # are we reused later
+            kept_facet = None
+        else:
+            kept_facet = self
         if len(lower_points) == 2:
             together_points = lower_points
             isolated_point = higher_points[0]
@@ -34,15 +38,15 @@ class facet:
             together_points = higher_points
             isolated_point = lower_points[0]
             if(isolated_point.get_z() == h):
-                return []
+                return (kept_facet, None)
         else:
-            return []
+            return (kept_facet, None)
 
         traversing_segments = [segment(p, isolated_point) for p in together_points]
         intersection_points = [s.intersect(h) for s in traversing_segments]
 
-        intersection_segment = [segment(*intersection_points)]
-        return intersection_segment
+        intersection_segment = segment(*intersection_points)
+        return (kept_facet, intersection_segment)
 
 
 def binary_facet(fd):

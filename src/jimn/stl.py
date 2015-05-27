@@ -12,12 +12,22 @@ class stl:
         self.facets = []
         self.max_height = float('-inf')
         self.min_height = float('+inf')
+        if __debug__:
+            print('loading stl file')
         self.parse_stl(file_name)
+        if __debug__:
+            print('stl file loaded')
 
     def horizontal_intersection(self, h):
         segments = []
+        remaining_facets = []
         for t in self.facets:
-            segments.extend(t.intersect(h))
+            kept_facet, intersected_segment = t.intersect(h)
+            if kept_facet is not None:
+                remaining_facets.append(kept_facet)
+            if intersected_segment is not None:
+                segments.append(intersected_segment)
+        self.facets = remaining_facets
         return segments
 
     def compute_slices(self, slice_size):
