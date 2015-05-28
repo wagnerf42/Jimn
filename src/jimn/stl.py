@@ -52,8 +52,11 @@ class stl:
                 return False
             s = struct.Struct('I')
             size = s.unpack(packed_size)[0]
-            for i in range(size):
-                (new_facet, min_height, max_height) = binary_facet(f)
+            data = f.read(size*(4*3*4+2)) # read all file
+            #  for each facet : 4 vectors of 3 floats + 2 unused bytes
+            s = struct.Struct('12fh')
+            for fields in s.iter_unpack(data):
+                (new_facet, min_height, max_height) = binary_facet(fields)
                 self.facets.append(new_facet)
                 self.update_height_limits(min_height, max_height)
 
