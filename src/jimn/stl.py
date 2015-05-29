@@ -22,11 +22,7 @@ class stl:
         segments = []
         remaining_facets = []
         for t in self.facets:
-            kept_facet, intersected_segment = t.intersect(h)
-            if kept_facet is not None:
-                remaining_facets.append(kept_facet)
-            if intersected_segment is not None:
-                segments.append(intersected_segment)
+            t.intersect(h, segments, remaining_facets)
         self.facets = remaining_facets
         return segments
 

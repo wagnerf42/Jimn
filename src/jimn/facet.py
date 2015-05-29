@@ -24,12 +24,14 @@ class facet:
             points[p.is_above(h)].append(p)
         return points
 
-    def intersect(self, h):
+    # intersect facet at height h
+    # if intersection is a segment add it to segments list
+    # if facet is not strictly above plane add it to remaining_facets for later
+    # use
+    def intersect(self, h, segments, remaining_facets):
         lower_points, higher_points = self.find_points_above_and_below(h)
-        if len(higher_points) == 3:  # are we reused later
-            kept_facet = None
-        else:
-            kept_facet = self
+        if len(higher_points) != 3:  # are we reused later ?
+            remaining_facets.append(self)
         if len(lower_points) == 2:
             together_points = lower_points
             isolated_point = higher_points[0]
@@ -37,15 +39,15 @@ class facet:
             together_points = higher_points
             isolated_point = lower_points[0]
             if(isolated_point.get_z() == h):
-                return (kept_facet, None)
+                return
         else:
-            return (kept_facet, None)
+            return
 
         traversing_segments = [segment([p, isolated_point]) for p in together_points]
         intersection_points = [s.intersect(h) for s in traversing_segments]
 
         intersection_segment = segment(intersection_points)
-        return (kept_facet, intersection_segment)
+        segments.append(intersection_segment)
 
 
 def binary_facet(all_coordinates):
