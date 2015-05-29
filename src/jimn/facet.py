@@ -2,7 +2,6 @@
 
 from jimn.point import point
 from jimn.segment import segment
-import struct
 
 
 class facet:
@@ -50,15 +49,12 @@ class facet:
 
 
 def binary_facet(all_coordinates):
-    points = []
-    max_height = float('-inf')
-    min_height = float('+inf')
-    for point_index in range(1,4):
-        coordinates = all_coordinates[point_index*3:(point_index+1)*3]
-        height = coordinates[-1]
-        if max_height < height:
-            max_height = height
-        if min_height > height:
-            min_height = height
-        points.append(point(*coordinates))
-    return (facet(*points), min_height, max_height)
+    f = facet(
+        point(*all_coordinates[3:6]),
+        point(*all_coordinates[6:9]),
+        point(*all_coordinates[9:12])
+    )
+    heights = (all_coordinates[5], all_coordinates[8], all_coordinates[11])
+    max_height = max(heights)
+    min_height = min(heights)
+    return (f, min_height, max_height)
