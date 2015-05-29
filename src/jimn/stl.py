@@ -82,9 +82,9 @@ class stl:
                 m = re.search('^\s*(-?\d+(\.\d+)?)\s+(-?\d+(\.\d+)?)\s+(-?\d+(\.\d+)?)', point_string)
                 (x, y, z) = (float(m.group(1)), float(m.group(3)), float(m.group(5)))
                 self.update_height_limits(z, z)
-                points.append(point(x, y, z))
+                points.append(point([x, y, z]))
 
-            self.facets.append(facet(*points))
+            self.facets.append(facet(points))
 
 
 def projection2d(segments_set):

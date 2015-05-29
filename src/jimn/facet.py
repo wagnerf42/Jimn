@@ -5,15 +5,15 @@ from jimn.segment import segment
 
 
 class facet:
-    def __init__(self, *points):
-        self.points = list(points)
+    def __init__(self, points):
+        self.points = points
 
     def __str__(self):
         return "[{}]".format(';'.join(map(lambda p: str(p), self.points)))
 
     def segments(self):
         p1, p2, p3 = self.points
-        return [segment(p1, p2), segment(p1, p3), segment(p2, p3)]
+        return [segment([p1, p2]), segment([p1, p3]), segment([p2, p3])]
 
     def add_point(self, p):
         self.points.append(p)
@@ -41,18 +41,20 @@ class facet:
         else:
             return (kept_facet, None)
 
-        traversing_segments = [segment(p, isolated_point) for p in together_points]
+        traversing_segments = [segment([p, isolated_point]) for p in together_points]
         intersection_points = [s.intersect(h) for s in traversing_segments]
 
-        intersection_segment = segment(*intersection_points)
+        intersection_segment = segment(intersection_points)
         return (kept_facet, intersection_segment)
 
 
 def binary_facet(all_coordinates):
     f = facet(
-        point(*all_coordinates[3:6]),
-        point(*all_coordinates[6:9]),
-        point(*all_coordinates[9:12])
+        [
+            point(all_coordinates[3:6]),
+            point(all_coordinates[6:9]),
+            point(all_coordinates[9:12])
+        ]
     )
     heights = (all_coordinates[5], all_coordinates[8], all_coordinates[11])
     max_height = max(heights)

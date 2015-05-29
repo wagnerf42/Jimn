@@ -14,9 +14,9 @@ from jimn.poly_builder import print_neighbors
 # tycat(projection2d(scene.horizontal_intersection(0.5)))
 # lseg = projection2d(scene.horizontal_intersection(0.5))
 
-p1 = point(0, 0)
-p2 = point(1, 1)
-p3 = point(1, -1)
+p1 = point([0, 0])
+p2 = point([1, 1])
+p3 = point([1, -1])
 #dico_test = {p1: [p2, p3]}
 #for p in (dico_test[p1]):
 #    print(p)
@@ -24,9 +24,9 @@ p3 = point(1, -1)
 #for p in (dico_test[p1]):
 #    print(p)
 #
-s1 = segment(p1, p2)
-s2 = segment(p2, p3)
-s3 = segment(p1, p3)
+s1 = segment([p1, p2])
+s2 = segment([p2, p3])
+s3 = segment([p1, p3])
 lseg = [s2, s1, s3]
 #for seg in lseg:
 #    print(seg)

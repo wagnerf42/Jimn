@@ -58,7 +58,7 @@ def build_poly(beg_seg, neighbors, marked, background):
     prec_point = beg_point
     cour_point = sorted_points[1]
     print("cour_point:", cour_point)
-    marked[segment(prec_point, cour_point)] = True
+    marked[segment([prec_point, cour_point])] = True
     print(cour_point)
     print(prec_point)
     print("\n")
@@ -89,11 +89,11 @@ def build_poly(beg_seg, neighbors, marked, background):
     while to_mark and i < nb:
         p = endpoints[i]
         for n in neighbors[p]:
-            if n not in endpoints and segment(p, n) not in marked:
+            if n not in endpoints and segment([p, n]) not in marked:
                 to_mark = False
         if to_mark:
             for n in neighbors[p]:
-                marked[segment(p, n)] = True
+                marked[segment([p, n])] = True
         i += 1
 
     if i == nb:
@@ -104,11 +104,11 @@ def build_poly(beg_seg, neighbors, marked, background):
     while to_mark:
         p = endpoints[i]
         for n in neighbors[p]:
-            if n not in endpoints and segment(p, n) not in marked:
+            if n not in endpoints and segment([p, n]) not in marked:
                 to_mark = False
         if to_mark:
             for n in neighbors[p]:
-                marked[segment(p, n)] = True
+                marked[segment([p, n])] = True
         i = (i - 1) % nb
 
     return poly

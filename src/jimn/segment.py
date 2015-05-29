@@ -7,10 +7,11 @@ from math import atan2
 class segment:
     """A segment is defined as a set of points (usually two)."""
 
-    def __init__(self, *points):
-        self.endpoints = list(points)
-        if(self.endpoints[0] == self.endpoints[1]):
-            raise Exception("Segment vide")
+    def __init__(self, points):
+        self.endpoints = points
+        if __debug__:
+            if(self.endpoints[0] == self.endpoints[1]):
+                raise Exception("Segment vide")
 
     def __str__(self):
         return "[{}]".format(';'.join(map(lambda p: str(p), self.endpoints)))
@@ -44,18 +45,18 @@ class segment:
         x = x1 + (z - z1)/(z2 - z1)*(x2 - x1)
         y = y1 + (z - z1)/(z2 - z1)*(y2 - y1)
 
-        return point(x, y, z)
+        return point([x, y, z])
 
     def projection2d(self):
         p1, p2 = self.endpoints
-        return segment(p1.projection2d(), p2.projection2d())
+        return segment([p1.projection2d(), p2.projection2d()])
 
     def get_endpoints(self):
         return self.endpoints
 
     def sort_endpoints(self):
         sorted_endpoints = sorted(self.endpoints, key=lambda p: (p.get_x(), p.get_y()))
-        return segment(*sorted_endpoints)
+        return segment(sorted_endpoints)
 
     def __key(self):
         return tuple(self.sort_endpoints().get_endpoints())

@@ -4,9 +4,9 @@
 class point:
     """A point is defined as a vector of any given dimension."""
 
-    def __init__(self, *arg):
+    def __init__(self, coordinates):
         """Inits a point whose dimension is the number of arguments, and whose coordinates are the arguments."""
-        self.coordinates = list(arg)
+        self.coordinates = coordinates
 
     def __str__(self):
         """Prints "(x, y, ...)"."""
@@ -50,7 +50,7 @@ class point:
         Assumes the point has at least 2 dimensions.
         """
         x, y = self.coordinates[0:2]
-        return point(x, y)
+        return point([x, y])
 
     def __key(self):
         return tuple(self.coordinates)
