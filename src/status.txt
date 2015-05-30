@@ -1,6 +1,8 @@
-./jimn/segment.py => commit f7dfa49e81c1499f14b71eec829614f5e256bb24
-./jimn/stl.py => commit 698f33e1b0d9a088ce0622fc93668d04089e7a2c
-./test_stl.py => commit 9bec0674830f6e624ea8cd6f6ba6ca7a76381b9a
-./jimn/facet.py => commit 047ae245f5bfa0dd6ed11300c00502bb870b52f5
-./jimn/point.py => commit f7dfa49e81c1499f14b71eec829614f5e256bb24
-./jimn/displayable.py => commit 25a7efb99482441836bd36b672fed84f331f7db0
+./stl2gcode.py => 53dee1d1710c8575fbe90722057a496b71022bb1
+./jimn/point.py => af01ffaab36f6080d9cfbf7a4efcde5398b6e87e
+./jimn/polygontree.py => 53dee1d1710c8575fbe90722057a496b71022bb1
+./jimn/segment.py => af01ffaab36f6080d9cfbf7a4efcde5398b6e87e
+./jimn/displayable.py => 53dee1d1710c8575fbe90722057a496b71022bb1
+./test_stl.py => 9bec0674830f6e624ea8cd6f6ba6ca7a76381b9a
+./jimn/stl.py => 698f33e1b0d9a088ce0622fc93668d04089e7a2c
+./jimn/facet.py => e618d8b48a2afccbe7da3613448de4736539094a

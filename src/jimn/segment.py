@@ -41,6 +41,9 @@ class segment:
         x1, y1, z1 = p1.get_coordinates()
         x2, y2, z2 = p2.get_coordinates()
 
+        if __debug__:
+            if abs(z2 - z1) < 0.00001:
+                print('warning: potential precision problem', file=sys.stderr)
         z = h
         x = x1 + (z - z1)/(z2 - z1)*(x2 - x1)
         y = y1 + (z - z1)/(z2 - z1)*(y2 - y1)

@@ -23,7 +23,7 @@ sub display_stats {
 	find(sub {
 			if (/\.py$/) {
 				my $revision = revision($_);
-				return if $revision eq '';
+				return unless defined $revision;
 				if ((not defined $statuses{$File::Find::name}) or ($statuses{$File::Find::name} ne $revision)) {
 					push @python_files, $File::Find::name;
 				}
@@ -32,29 +32,42 @@ sub display_stats {
 		'.');
 
 	print "the following files lack reviews : \n";
+	my @new_files;
+	my @old_files;
 	for my $file (@python_files) {
-		print "$file --> last changed on ".revision($file);
 		if (exists $statuses{$file}) {
-			print " ; last review on $statuses{$file}\n";
+			push @old_files, $file;
 		} else {
-			print " ; never reviewed \n";
+			push @new_files, $file;
 		}
 	}
+
+	my %old_sizes;
+	for my $file (@old_files) {
+		$old_sizes{$file} = `git diff $statuses{$file}:$file $file | wc -l`;
+		chomp($old_sizes{$file});
+	}
+	my @sorted_old_files = sort {$old_sizes{$a} <=> $old_sizes{$b}} @old_files;
+	print "new files:\n";
+	print "\t$_\n" for @new_files;
+	print "\nold files:\n";
+	print "\t$_ ($old_sizes{$_})\n" for @sorted_old_files;
 	return;
 }
 
 sub revision {
 	my $file = shift;
 	my $revision = `git log $file | head -n 1`;
-	chomp($revision);
-	return $revision;
+	return if not defined $revision or $revision eq '';
+	die "file is $file ; error parsing $revision" unless $revision=~/commit\s+(\S+)/;
+	return $1;
 }
 
 sub load_statuses {
 	my $statuses = shift;
 	open(my $file, '<', 'status.txt') or die 'are you in root directory ?';
 	while(my $line = <$file>) {
-		die 'wrong status file' unless $line=~/^(\S+)\s=>\s(commit \S+)\s*$/;
+		die 'wrong status file' unless $line=~/^(\S+)\s=>\s*(\S+)\s*$/;
 		$statuses->{$1} = $2;
 	}
 	close($file);
