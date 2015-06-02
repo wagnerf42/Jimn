@@ -1,132 +1,80 @@
-from jimn.segment import segment
+# vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 from jimn.polygon import polygon
+from jimn.segment import segment
 from jimn.displayable import tycat
-from math import atan2
-import time
 
 
-def hash_points(segments):
-    neighbors_by_points = {}
-    for s in segments:
-        endpoints, reversed_endpoints = s.get_endpoints(), reversed(s.get_endpoints())
-        for (p1, p2) in (endpoints, reversed_endpoints):
-            if p1 in neighbors_by_points:
-                neighbors_by_points[p1].append(p2)
-            else:
-                neighbors_by_points[p1] = [p2]
-            # tycat(segments, *neighbors_by_points[p1])
+class polygonbuilder:
+    def __init__(self, segments):
+        # initialize various structs to hold info
+        self.points = []
+        self.polygons = []
+        self.previous_point = None
+        self.current_point = None
 
-    return neighbors_by_points
+        # start
+        self.segments = segments
+        self.marked_segments = {}  # we go only once through each (oriented) segment
 
+        # compute structures to easily enter and leave points
+        # we need to quickly find neighbours for any point
+        self.hash_points()
+        self.sort_neighbours_by_angle()
 
-def print_neighbors(neighbors, background):
-    for point, neighbors in neighbors.items():
-        print("Point : {}".format(point))
-        string = " ; ".join(tuple(map(lambda p: str(p), neighbors)))
-        print("Neighbors : {}\n".format(string))
-        tycat(background, point, polygon(*neighbors))
+    def tycat(self):
+        tycat(self.polygons, self.points, self.previous_point, self.current_point, self.segments, list(self.marked_segments.values()))
 
+    # compute for each point the list of neighbouring points
+    def hash_points(self):
+        self.points_neighbours = {}
+        for s in self.segments:
+            endpoints, reversed_endpoints = s.get_endpoints(), reversed(s.get_endpoints())
+            for (p1, p2) in (endpoints, reversed_endpoints):
+                if p1 in self.points_neighbours:
+                    self.points_neighbours[p1].append(p2)
+                else:
+                    self.points_neighbours[p1] = [p2]
 
-# angle for 2d points, relative to horizontal line
-def angle(*points):
-    (x1, y1), (x2, y2) = [p.get_coordinates() for p in points]
-    return atan2(y2 - y1, x2 - x1)
+    # sort all neighbours so that we can easily turn around a point
+    def sort_neighbours_by_angle(self):
+        for point, neighbours in self.points_neighbours.items():
+            sorted_neighbours = sorted(neighbours, key=lambda neighbour: point.angle_with(neighbour))
+            self.points_neighbours[point] = sorted_neighbours
 
+    def build_polygons(self):
+        for s in self.segments:
+            if s in self.marked_segments:
+                continue  # skip segments already used
+            p = self.build_polygon(s)
+            if p.orientation() < 0:
+                self.polygons.append(p)  # discard outer edge
+        return self.polygons
 
-def sort_neighbors_by_angle(neighbors_by_points):
-    for point, neighbors in neighbors_by_points.items():
-        sorted_neighbors = sorted(neighbors, key=lambda neighbor: angle(point, neighbor))
-        neighbors_by_points[point] = sorted_neighbors
-
-
-def sort_points(seg):
-    endpoints = seg.get_endpoints()
-    sorted_endpoints = sorted(endpoints, key=lambda endpoint: endpoint.get_x())
-    return sorted_endpoints
-
-
-def sort_segments(segments):
-    return sorted(segments)
-
-
-def build_poly(beg_seg, neighbors, marked, background):
-    poly = polygon()
-    sorted_points = sort_points(beg_seg)
-    beg_point = sorted_points[0]
-    print("beg_point:", beg_point)
-    poly.append(beg_point)
-    prec_point = beg_point
-    cour_point = sorted_points[1]
-    print("cour_point:", cour_point)
-    marked[segment([prec_point, cour_point])] = True
-    print(cour_point)
-    print(prec_point)
-    print("\n")
-    tycat(background, poly, cour_point)
-    while cour_point != beg_point:
-        poly.append(cour_point)
-        lneighbors = neighbors[cour_point]
-        print(cour_point)
-        print(prec_point)
-        print("\n")
-        tycat(background, poly, cour_point, *lneighbors)
-        time.sleep(0.5)
-        length = len(lneighbors)
-        # print(length)
-        index = lneighbors.index(prec_point)
-        # print(str(index) + "\n")
+    def find_next_point(self, current_point, previous_point):
+        neighbours = self.points_neighbours[current_point]
+        length = len(neighbours)
+        index = neighbours.index(previous_point)
         next_index = (index+1) % length
-        next_point = lneighbors[next_index]
-        prec_point = cour_point
-        cour_point = next_point
-        # print(str(next_point) + "\n")
-        # marked[segment(prec_point, cour_point)] = True
+        next_point = neighbours[next_index]
+        return next_point
 
-    endpoints = poly.get_endpoints()
-    nb = len(endpoints)
-    to_mark = True
-    i = 1
-    while to_mark and i < nb:
-        p = endpoints[i]
-        for n in neighbors[p]:
-            if n not in endpoints and segment([p, n]) not in marked:
-                to_mark = False
-        if to_mark:
-            for n in neighbors[p]:
-                marked[segment([p, n])] = True
-        i += 1
+    def build_polygon(self, start_segment):
+        self.points = []
 
-    if i == nb:
-        return poly
+        self.start_point, self.current_point = start_segment.get_endpoints()
+        self.points.append(self.start_point)
+        self.marked_segments[start_segment] = start_segment
 
-    to_mark = True
-    i = 0
-    while to_mark:
-        p = endpoints[i]
-        for n in neighbors[p]:
-            if n not in endpoints and segment([p, n]) not in marked:
-                to_mark = False
-        if to_mark:
-            for n in neighbors[p]:
-                marked[segment([p, n])] = True
-        i = (i - 1) % nb
+        self.previous_point = self.start_point
 
-    return poly
-    # raise SystemExit(1)
+        while self.current_point != self.start_point:
+            self.points.append(self.current_point)
 
+            # continue moving
+            next_point = self.find_next_point(self.current_point, self.previous_point)
+            self.previous_point = self.current_point
+            self.current_point = next_point
+            s = segment([self.previous_point, self.current_point])
+            self.marked_segments[s] = s
 
-def build_lpoly(sorted_lseg, neighbors):
-    marked = {}
-    lpoly = []
-    for seg in sorted_lseg:
-        if not(seg in marked):
-            lpoly.append(build_poly(seg, neighbors, marked, sorted_lseg))
-    return lpoly
-
-
-def build_polygons(segments):
-    neighbors = hash_points(segments)
-    sort_neighbors_by_angle(neighbors)
-    sorted_segments = sort_segments(segments)
-    polygons = build_lpoly(sorted_segments, neighbors)
-    return polygons
+        return polygon(self.points)

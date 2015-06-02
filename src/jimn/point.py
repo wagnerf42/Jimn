@@ -1,4 +1,5 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
+from math import atan2
 
 
 class point:
@@ -35,6 +36,10 @@ class point:
         """
         return self.coordinates[2] > height
 
+    def angle_with(self, other):
+        (x1, y1), (x2, y2) = [p.get_coordinates() for p in (self, other)]
+        return atan2(y2 - y1, x2 - x1)
+
     def get_bounding_box(self):
         return [self.coordinates, self.coordinates]
 
@@ -52,14 +57,11 @@ class point:
         x, y = self.coordinates[0:2]
         return point([x, y])
 
-    def __key(self):
-        return tuple(self.coordinates)
-
     def __eq__(a, b):
-        return a.__key() == b.__key()
+        return a.coordinates == b.coordinates
 
     def __hash__(self):
-        return hash(self.__key())
+        return hash(tuple(self.coordinates))
 
     def __lt__(a, b):
         """

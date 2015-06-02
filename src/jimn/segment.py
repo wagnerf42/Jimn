@@ -5,7 +5,7 @@ from math import atan2
 
 
 class segment:
-    """A segment is defined as a set of points (usually two)."""
+    """A segment is defined as a set of two points"""
 
     def __init__(self, points):
         self.endpoints = points
@@ -54,6 +54,9 @@ class segment:
         p1, p2 = self.endpoints
         return segment([p1.projection2d(), p2.projection2d()])
 
+    def get_endpoint(self, index):
+        return self.endpoints[index]
+
     def get_endpoints(self):
         return self.endpoints
 
@@ -61,33 +64,12 @@ class segment:
         sorted_endpoints = sorted(self.endpoints, key=lambda p: (p.get_x(), p.get_y()))
         return segment(sorted_endpoints)
 
-    def __key(self):
-        return tuple(self.sort_endpoints().get_endpoints())
+    def is_sorted(self):
+        sorted_self = self.sort_endpoints()
+        return sorted_self.endpoints == self.endpoints
 
-    def __eq__(x, y):
-        return x.__key() == y.__key()
+    def angle(self):
+        return self.endpoints[0].angle_with(self.endpoints[1])
 
     def __hash__(self):
-        return hash(self.__key())
-    def __lt__(a, b):
-        c = a.sort_endpoints()
-        d = b.sort_endpoints()
-        if(c.get_endpoints()[0].get_x() < d.get_endpoints()[0].get_x()):
-            return 1
-        elif(c.get_endpoints()[0].get_x() > d.get_endpoints()[0].get_x()):
-            return 0
-        else:
-            if(c.get_endpoints()[0].get_y() > d.get_endpoints()[0].get_y()):
-                return 1
-            elif(c.get_endpoints()[0].get_y() < d.get_endpoints()[0].get_y()):
-                return 0
-            else:
-                if(angle(*tuple(c.get_endpoints())) > angle(*tuple(d.get_endpoints()))):
-                    return 1
-                else:
-                    return 0
-
-
-def angle(*points):
-    (x1, y1), (x2, y2) = [p.get_coordinates() for p in points]
-    return atan2(y2 - y1, x2 - x1)
+        return hash(tuple(self.endpoints))

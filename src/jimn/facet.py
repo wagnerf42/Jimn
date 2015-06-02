@@ -47,7 +47,8 @@ class facet:
         intersection_points = [s.intersect(h) for s in traversing_segments]
 
         intersection_segment = segment(intersection_points)
-        segments.append(intersection_segment)
+        # sort endpoints for remaining algorithms
+        segments.append(intersection_segment.sort_endpoints())
 
 
 def binary_facet(all_coordinates):

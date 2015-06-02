@@ -1,22 +1,36 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 import sys
+from jimn.segment import segment
+from jimn.displayable import tycat
 
 
 class polygon:
 
-    def __init__(self, *points):
-        self.endpoints = list(points)
+    def __init__(self, points):
+        self.points = points
 
-    def append(self, point):
-        self.endpoints.append(point)
+    # TODO: have a nice iterator
+    def segments(self):
+        s = []
+        for p1, p2 in zip(self.points, self.points[1:]):
+            s.append(segment([p1, p2]))
+        s.append(segment([self.points[-1], self.points[0]]))
+        return s
+
+    def orientation(self):
+        a = 0
+        for s in self.segments():
+            (x1, y1), (x2, y2) = [p.get_coordinates() for p in s.get_endpoints()]
+            a = a + x1*y1 - x2*y1
+        return a
 
     def __str__(self):
-        return "[{}]".format(';'.join(map(lambda p: str(p), self.endpoints)))
+        return "[{}]".format(';'.join(map(lambda p: str(p), self.points)))
 
     def get_bounding_box(self):
-        min_coordinates = [sys.float_info.max for i in self.endpoints[0].get_coordinates()]
-        max_coordinates = [-sys.float_info.max for i in self.endpoints[0].get_coordinates()]
-        for p in self.endpoints:
+        min_coordinates = [sys.float_info.max for i in self.points[0].get_coordinates()]
+        max_coordinates = [-sys.float_info.max for i in self.points[0].get_coordinates()]
+        for p in self.points:
             coordinates = p.get_coordinates()
             for coordinate_index, coordinate in enumerate(coordinates):
                 if coordinate < min_coordinates[coordinate_index]:
@@ -26,20 +40,10 @@ class polygon:
         return (min_coordinates, max_coordinates)
 
     def save_svg_content(self, display, color):
-        print(self)
         svg_coordinates = []
-        for point in self.endpoints:
+        for point in self.points:
             string = "{},{}".format(*display.convert_coordinates(point.get_coordinates()))
             svg_coordinates.append(string)
-        print(svg_coordinates)
         svg_formatted = " ".join(svg_coordinates)
         display.write("<polygon points=\"{}\"".format(svg_formatted))
-        print("<polygon points=\"{}\"".format(svg_formatted))
-        #display.write(" stroke-width=\"3\" stroke=\"{}\" opacity=\"0.5\" fill=lime/>\n".format(color))
-        #print(" stroke-width=\"3\" stroke=\"{}\" opacity=\"0.5\" fill=lime/>\n".format(color))
-        display.write(" style=\"fill:{};stroke:{};stroke-width:1\" />".format(color, color))
-        print(" style=\"fill:{};stroke:{};stroke-width:1\" />".format(color, color))
-
-
-    def get_endpoints(self):
-        return self.endpoints
+        display.write(" style=\"fill:{};stroke:{};stroke-width:1;opacity:0.4\" />".format(color, color))
