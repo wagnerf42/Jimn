@@ -2,7 +2,9 @@
 import sys
 from jimn.point import point
 from math import atan2
+from jimn.coordinates_hash import coordinates_hash
 
+rounding_hash = coordinates_hash()
 
 class segment:
     """A segment is defined as a set of two points"""
@@ -10,11 +12,20 @@ class segment:
     def __init__(self, points):
         self.endpoints = points
         if __debug__:
-            if(self.endpoints[0] == self.endpoints[1]):
-                raise Exception("Segment vide")
+            if(self.squared_length() < 0.000000001):
+                print("very small segment {}".format(str(self)))
+                raise Exception("very small segment")
 
     def __str__(self):
         return "[{}]".format(';'.join(map(lambda p: str(p), self.endpoints)))
+
+    def squared_length(self):
+        coordinates = [p.get_coordinates() for p in self.endpoints]
+        distance = 0
+        for i in range(len(coordinates[0])):
+            diff = coordinates[0][i] - coordinates[1][i]
+            distance = distance + diff * diff
+        return distance
 
     def get_bounding_box(self):
         min_coordinates = [sys.float_info.max for i in self.endpoints[0].get_coordinates()]
@@ -48,7 +59,7 @@ class segment:
         x = x1 + (z - z1)/(z2 - z1)*(x2 - x1)
         y = y1 + (z - z1)/(z2 - z1)*(y2 - y1)
 
-        return point([x, y, z])
+        return rounding_hash.hash_point(point([x, y, z]))
 
     def projection2d(self):
         p1, p2 = self.endpoints

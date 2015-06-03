@@ -68,6 +68,7 @@ class polygonbuilder:
         self.previous_point = self.start_point
 
         while self.current_point != self.start_point:
+            self.tycat()
             self.points.append(self.current_point)
 
             # continue moving

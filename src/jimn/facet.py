@@ -46,6 +46,8 @@ class facet:
         traversing_segments = [segment([p, isolated_point]) for p in together_points]
         intersection_points = [s.intersect(h) for s in traversing_segments]
 
+        if intersection_points[0] == intersection_points[1]:
+            return
         intersection_segment = segment(intersection_points)
         # sort endpoints for remaining algorithms
         segments.append(intersection_segment.sort_endpoints())
