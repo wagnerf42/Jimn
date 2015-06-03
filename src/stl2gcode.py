@@ -7,7 +7,7 @@ from jimn.stl import stl
 from jimn.displayable import tycat_set_svg_dimensions
 from jimn.polygontree import polygontree
 
-tycat_set_svg_dimensions(1024, 768)
+#tycat_set_svg_dimensions(1024, 768)
 (bin_name, stl_file, slice_size) = sys.argv
 print("stl file : {}".format(stl_file))
 print("slice size : {}".format(slice_size))

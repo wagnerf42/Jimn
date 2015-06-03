@@ -71,5 +71,8 @@ class segment:
     def angle(self):
         return self.endpoints[0].angle_with(self.endpoints[1])
 
+    def __eq__(a, b):
+        return a.endpoints == b.endpoints
+
     def __hash__(self):
         return hash(tuple(self.endpoints))
