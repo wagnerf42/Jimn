@@ -13,8 +13,8 @@ class segment:
         self.endpoints = points
         if __debug__:
             if(self.squared_length() < 0.000000001):
-                print("very small segment {}".format(str(self)))
-                raise Exception("very small segment")
+                print("very small segment {}".format(str(self)), file=sys.stderr)
+                # raise Exception("very small segment")
 
     def __str__(self):
         return "[{}]".format(';'.join(map(lambda p: str(p), self.endpoints)))
@@ -59,7 +59,8 @@ class segment:
         x = x1 + (z - z1)/(z2 - z1)*(x2 - x1)
         y = y1 + (z - z1)/(z2 - z1)*(y2 - y1)
 
-        return rounding_hash.hash_point(point([x, y, z]))
+        return point([x, y, z])
+        # return rounding_hash.hash_point(point([x, y, z]))
 
     def projection2d(self):
         p1, p2 = self.endpoints

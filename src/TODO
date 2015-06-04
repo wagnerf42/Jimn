@@ -1,0 +1,19 @@
+
+- le pb actuel est clair (voir debug.txt)
+
+avec un niveau legerement en dessous de la limite, on obtient par l'intersection
+des segments et points extremements proches.
+
+lors de la construction de polygone, la fonction de hachage des points
+doit convertir les coordonnees en string mais malheureusement avec
+une precision insuffisante, ce qui fusionne des points differents dans la table
+
+deux solutions possibles :
+
+1) facile : augmenter la precision de la fonction de hachage
+2) plus difficile : arrondir les coordonnees (fait dans coordinates_hash)
+   eliminer tous les segments a un seul point
+   eliminer les segments superposes
+
+- simplifier polygons (eliminer sous segments droits)
+- matcher dans l'arbre les polygones translates

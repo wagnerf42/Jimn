@@ -2,6 +2,7 @@
 
 from jimn.point import point
 from jimn.segment import segment
+from jimn.displayable import tycat
 
 
 class facet:
