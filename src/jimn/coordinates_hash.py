@@ -30,3 +30,7 @@ class coordinates_hash:
 def coordinate_key(c):
     key = float("{0:.5f}".format(c))  # TODO: check about -0 and +0
     return key
+
+
+def is_almost(c1, c2):
+    return coordinate_key(c1) == coordinate_key(c2)

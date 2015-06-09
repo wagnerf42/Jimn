@@ -2,13 +2,18 @@
 
 from jimn.displayable import tycat
 from jimn.poly_builder import polygonbuilder
+from jimn.segment_merger import segment_merger
 
 
 class polygontree:
     def __init__(self, model, slice_size):
         self.slices = model.compute_slices(slice_size)
         for stl_slice in self.slices:
-            builder = polygonbuilder(stl_slice)
+            # due to roundings of coordinates we might have overlapping segments
+            # remove them
+            merger = segment_merger(stl_slice)
+            simpler_slice = merger.merge()
+            builder = polygonbuilder(simpler_slice)
             print('input')
             tycat(stl_slice)
             slice_polygons = builder.build_polygons()

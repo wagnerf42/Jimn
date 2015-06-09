@@ -13,6 +13,9 @@ class point:
         """Prints "(x, y, ...)"."""
         return "({})".format(','.join(map(lambda x: str(x), self.coordinates)))
 
+    def dimension(self):
+        return len(self.coordinates)
+
     def get_coordinates(self):
         """Return the coordinates' list of the point. Allow modifications."""
         return self.coordinates

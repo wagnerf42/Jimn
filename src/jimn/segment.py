@@ -3,6 +3,7 @@ import sys
 from jimn.point import point
 from math import atan2
 from jimn.coordinates_hash import coordinates_hash
+from jimn.coordinates_hash import is_almost
 
 rounding_hash = coordinates_hash()
 
@@ -11,6 +12,7 @@ class segment:
 
     def __init__(self, points):
         self.endpoints = points
+        assert self.endpoints[0].dimension() == self.endpoints[1].dimension()
         if __debug__:
             if(self.squared_length() < 0.000000001):
                 print("very small segment {}".format(str(self)), file=sys.stderr)
@@ -47,7 +49,8 @@ class segment:
     def smallest_point(self):
         return min(*self.endpoints)
 
-    def intersect(self, h):
+    def horizontal_plane_intersection(self, h):
+        assert self.dimension() == 3
         p1, p2 = self.endpoints
         x1, y1, z1 = p1.get_coordinates()
         x2, y2, z2 = p2.get_coordinates()
@@ -59,8 +62,24 @@ class segment:
         x = x1 + (z - z1)/(z2 - z1)*(x2 - x1)
         y = y1 + (z - z1)/(z2 - z1)*(y2 - y1)
 
-        return point([x, y, z])
-        # return rounding_hash.hash_point(point([x, y, z]))
+        return rounding_hash.hash_point(point([x, y, z]))
+
+    def dimension(self):
+        return self.endpoints[0].dimension()
+
+    # return unique id of line on which is segment
+    def line_hash(self, rounder):
+        assert self.dimension() == 2, 'only works on 2d points segment'
+        (x1, y1), (x2, y2) = [ p.get_coordinates() for p in self.endpoints]
+        if x1 == x2:
+            return ':{}'.format(str(x1))
+        else:
+            if __debug__:
+                if is_almost(x1, x2):
+                    print('potential precision problem')
+            a = (y2-y1)/(x2-x1) # TODO : handle precision problem
+            b = y1 - a * x1
+            return '{}:{}'.format(str(a), str(b)) # TODO: what precision ?
 
     def projection2d(self):
         p1, p2 = self.endpoints

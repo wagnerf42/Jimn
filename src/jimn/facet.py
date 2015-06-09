@@ -45,8 +45,11 @@ class facet:
             return
 
         traversing_segments = [segment([p, isolated_point]) for p in together_points]
-        intersection_points = [s.intersect(h) for s in traversing_segments]
+        intersection_points = [s.horizontal_plane_intersection(h) for s in traversing_segments]
 
+        # because we round coordinates in intersection
+        # it is possible that the two obtained points are now the same
+        # check it to avoid creating a one point segment
         if intersection_points[0] == intersection_points[1]:
             return
         intersection_segment = segment(intersection_points)

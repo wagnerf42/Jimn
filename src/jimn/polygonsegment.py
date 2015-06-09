@@ -10,8 +10,7 @@ class polygonsegment(segment):
         self.endpoints = sorted(points)
         if __debug__:
             for p in self.endpoints:
-                if len(p.get_coordinates()) != 2:
-                    raise ValueError
+                assert p.dimension() == 2, 'polygonsegment works only on 2d points'
         self.height = height
         self.polygon_id = polygon_id
 
@@ -40,14 +39,9 @@ class polygonsegment(segment):
         ya, yb = [s.vertical_intersection_at(x) for s in (a,b)]
 
         if ya == yb:
-            if __debug__:
-                if a.height == b.height:
-                    raise ValueError
+            assert a.height != b.height, 'compared segments should not intersect'
             return a.height > b.height
         else:
-            if __debug__:
-                if ya == yb:
-                    raise ValueError
                 if abs(ya - yb) < 0.00001:
                     print('warning: potential precision problem', file=sys.stderr)
             return ya < yb
