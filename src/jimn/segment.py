@@ -3,7 +3,7 @@ import sys
 from jimn.point import point
 from math import atan2
 from jimn.coordinates_hash import coordinates_hash
-from jimn.coordinates_hash import is_almost
+from jimn.precision import is_almost
 
 rounding_hash = coordinates_hash()
 

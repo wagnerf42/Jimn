@@ -7,7 +7,19 @@ from jimn.displayable import tycat
 class polygon:
 
     def __init__(self, points):
-        self.points = points
+        assert len(points) > 2, 'not enough points in polygon creation'
+        p1 = points.pop()
+        start_point = p1
+        p2 = points.pop()
+        self.points = [p1]
+        for p in reversed(points):
+            if not p1.is_aligned_with(p2, p):
+                self.points.append(p2)
+                p1 = p2
+            p2 = p
+        if not p1.is_aligned_with(p2, start_point):
+            self.points.append(p2)
+        assert len(self.points) > 2, 'flat polygon created'
 
     # TODO: have a nice iterator
     def segments(self):

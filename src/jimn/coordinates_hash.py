@@ -1,4 +1,5 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
+from jimn.precision import coordinate_key
 from jimn.point import point
 # TODO: what precision should we take ?
 
@@ -25,12 +26,3 @@ class coordinates_hash:
 
         new_point = point(new_coordinates)
         return new_point
-
-
-def coordinate_key(c):
-    key = float("{0:.5f}".format(c))  # TODO: check about -0 and +0
-    return key
-
-
-def is_almost(c1, c2):
-    return coordinate_key(c1) == coordinate_key(c2)

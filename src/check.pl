@@ -64,7 +64,7 @@ sub display_stats {
 	print "new files:\n";
 	print "\t$_\n" for @new_files;
 	print "\nold files:\n";
-	print "\t$_ ($old_sizes{$_})\n" for @sorted_old_files;
+	print "\t$_ ($old_sizes{$_}) $statuses{$_}\n" for @sorted_old_files;
 	return;
 }
 

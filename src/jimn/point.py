@@ -1,5 +1,6 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 from math import atan2
+from jimn.precision import is_almost
 
 
 class point:
@@ -51,6 +52,11 @@ class point:
         svg_coordinates = display.convert_coordinates(self.coordinates)
         display.write("<circle cx=\"{}\" cy=\"{}\"".format(*svg_coordinates))
         display.write(" r=\"5\" fill=\"{}\"/> opacity=\"0.5\"\n".format(color))
+
+    def is_aligned_with(self, p2, p3):
+        (x1, y1), (x2, y2), (x3, y3) = [p.get_coordinates() for p in (self, p2, p3)]
+        determinant = x1*y2 + y1*x3 +x2*y3 - (y2*x3 + y1*x2 + x1*y3)
+        return is_almost(determinant, 0)
 
     def projection2d(self):
         """

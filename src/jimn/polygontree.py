@@ -8,6 +8,7 @@ from jimn.segment_merger import segment_merger
 class polygontree:
     def __init__(self, model, slice_size):
         self.slices = model.compute_slices(slice_size)
+        #TODO: careful : last slice is empty
         for stl_slice in self.slices:
             # due to roundings of coordinates we might have overlapping segments
             # remove them
