@@ -1,6 +1,1 @@
-
-- precision : enlever tous les 0.00001 qui trainent partout ; verifier les TODO
-
-
-- simplifier polygons (eliminer sous segments droits)
 - matcher dans l'arbre les polygones translates

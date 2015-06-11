@@ -1,5 +1,6 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 from jimn.segment import segment
+from jimn.precision import is_almost
 import sys
 
 
@@ -21,7 +22,7 @@ class polygonsegment(segment):
             # when vertical, we return lowest coordinate
             return y1
         if __debug__:
-            if abs(x2 - x1) < 0.00001:
+            if is_almost(x1, x2):
                 print('warning: potential precision problem', file=sys.stderr)
         y = y1 + (x2-x)/(x2-x1)*(y2-y1)
         return y
@@ -42,6 +43,7 @@ class polygonsegment(segment):
             assert a.height != b.height, 'compared segments should not intersect'
             return a.height > b.height
         else:
-                if abs(ya - yb) < 0.00001:
+            if __debug__:
+                if is_almost(ya, yb):
                     print('warning: potential precision problem', file=sys.stderr)
             return ya < yb

@@ -1,7 +1,6 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
-from jimn.precision import coordinate_key
+from jimn.precision import coordinate_key, displaced_coordinate_key
 from jimn.point import point
-# TODO: what precision should we take ?
 
 
 class coordinates_hash:
@@ -13,7 +12,7 @@ class coordinates_hash:
         new_coordinates = []
         for i, c in enumerate(p.get_coordinates()):
             key = coordinate_key(c)
-            displaced_key = coordinate_key(c+0.000005)
+            displaced_key = displaced_coordinate_key(c)
             if key in self.hashes[i]:
                 c = self.hashes[i][key]
             else:
