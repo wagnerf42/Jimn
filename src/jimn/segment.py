@@ -3,7 +3,7 @@ import sys
 from jimn.point import point
 from math import atan2
 from jimn.coordinates_hash import coordinates_hash
-from jimn.precision import is_almost, squared_limit
+from jimn.precision import squared_limit, check_precision, coordinate_key
 
 rounding_hash = coordinates_hash()
 
@@ -56,8 +56,7 @@ class segment:
         x2, y2, z2 = p2.get_coordinates()
 
         if __debug__:
-            if is_almost(z1, z2):
-                print('warning: potential precision problem', file=sys.stderr)
+            check_precision(z1, z2, 'horizontal_plane_intersection')
         z = h
         x = x1 + (z - z1)/(z2 - z1)*(x2 - x1)
         y = y1 + (z - z1)/(z2 - z1)*(y2 - y1)
@@ -68,18 +67,17 @@ class segment:
         return self.endpoints[0].dimension()
 
     # return unique id of line on which is segment
-    def line_hash(self, rounder):
+    def line_hash(self):
         assert self.dimension() == 2, 'only works on 2d points segment'
         (x1, y1), (x2, y2) = [ p.get_coordinates() for p in self.endpoints]
         if x1 == x2:
-            return ':{}'.format(str(x1))
+            return ':{}'.format(coordinate_key(x1))
         else:
             if __debug__:
-                if is_almost(x1, x2):
-                    print('potential precision problem')
+                check_precision(x1, x2, 'line_hash')
             a = (y2-y1)/(x2-x1) # TODO : handle precision problem
             b = y1 - a * x1
-            return '{}:{}'.format(str(a), str(b)) # TODO: what precision ?
+            return '{}:{}'.format(coordinate_key(a), coordinate_key(b)) # TODO: what precision ?
 
     def projection2d(self):
         p1, p2 = self.endpoints

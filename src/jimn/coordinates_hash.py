@@ -6,7 +6,6 @@ from jimn.point import point
 class coordinates_hash:
     def __init__(self):
         self.hashes = [{}, {}, {}]  # TODO remove third one
-        self.displaced_hashes = [{}, {}, {}]  # TODO remove third one
 
     def hash_point(self, p):
         new_coordinates = []
@@ -16,11 +15,11 @@ class coordinates_hash:
             if key in self.hashes[i]:
                 c = self.hashes[i][key]
             else:
-                self.hashes[i][key] = c
-                if displaced_key in self.displaced_hashes[i]:
-                    c = self.displaced_hashes[i][displaced_key]
-                else:
-                    self.displaced_hashes[i][displaced_key] = c
+                if displaced_key in self.hashes[i]:
+                    c = self.hashes[i][displaced_key]
+
+            self.hashes[i][key] = c
+            self.hashes[i][displaced_key] = c
             new_coordinates.append(c)
 
         new_point = point(new_coordinates)

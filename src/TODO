@@ -1,1 +1,4 @@
+- avec une precision de 5 tout est ok
+ neanmoins des que l'on passe a 6, on tombe sur des problemes de precision
+ ---> l'alignement des coordonnees par double hash ne fonctionne pas completement
 - matcher dans l'arbre les polygones translates
