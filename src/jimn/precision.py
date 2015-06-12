@@ -1,6 +1,6 @@
 import sys
 
-precision = 6
+precision = 10
 limit = 10**-precision
 squared_limit = limit * limit
 precision_format = "{{0:.{}f}}".format(precision)
@@ -10,8 +10,13 @@ def is_almost(c1, c2):
     return abs(c2-c1) < limit
 
 
-def coordinate_key(c):
-    key = precision_format.format(c)
+def coordinate_key(c, wanted_precision=precision):
+    if wanted_precision == precision:
+        key = precision_format.format(c)
+    else:
+        wanted_format = "{{0:.{}f}}".format(wanted_precision)
+        key = wanted_format.format(c)
+
     if float(key) == 0.0: #change any eventual -0 to +0
         key = precision_format.format(0.0)
     return key

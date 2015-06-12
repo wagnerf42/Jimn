@@ -77,5 +77,4 @@ class polygonbuilder:
             s = segment([self.previous_point, self.current_point])
             self.marked_segments[s] = s
 
-        self.tycat()
         return polygon(self.points)

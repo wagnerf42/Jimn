@@ -5,7 +5,7 @@ from math import atan2
 from jimn.coordinates_hash import coordinates_hash
 from jimn.precision import squared_limit, check_precision, coordinate_key
 
-rounding_hash = coordinates_hash()
+rounding_hash = coordinates_hash(3)
 
 class segment:
     """A segment is defined as a set of two points"""
@@ -67,17 +67,20 @@ class segment:
         return self.endpoints[0].dimension()
 
     # return unique id of line on which is segment
-    def line_hash(self):
+    def line_hash(self, rounder):
         assert self.dimension() == 2, 'only works on 2d points segment'
         (x1, y1), (x2, y2) = [ p.get_coordinates() for p in self.endpoints]
         if x1 == x2:
-            return ':{}'.format(coordinate_key(x1))
+            key = rounder.hash_coordinate(0, x1)
+            return ':{}'.format(key)
         else:
             if __debug__:
                 check_precision(x1, x2, 'line_hash')
-            a = (y2-y1)/(x2-x1) # TODO : handle precision problem
+            a = (y2-y1)/(x2-x1)
             b = y1 - a * x1
-            return '{}:{}'.format(coordinate_key(a), coordinate_key(b)) # TODO: what precision ?
+            key_a = rounder.hash_coordinate(1, a)
+            key_b = rounder.hash_coordinate(1, b)
+            return '{}:{}'.format(key_a, key_b)
 
     def projection2d(self):
         p1, p2 = self.endpoints

@@ -1,25 +1,34 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
-from jimn.precision import coordinate_key, displaced_coordinate_key
+from jimn.precision import coordinate_key, displaced_coordinate_key, precision
 from jimn.point import point
 
 
 class coordinates_hash:
-    def __init__(self):
-        self.hashes = [{}, {}, {}]  # TODO remove third one
+    def __init__(self, dimension, wanted_precision=precision):
+        self.hashes = []
+        self.precision = wanted_precision
+        for d in range(dimension):
+            self.hashes.append({})
+
+    def hash_coordinate(self, index, c):
+        key = coordinate_key(c, self.precision)
+        displaced_key = displaced_coordinate_key(c)
+
+        if key in self.hashes[index]:
+            c = self.hashes[index][key]
+        else:
+            if displaced_key in self.hashes[index]:
+                c = self.hashes[index][displaced_key]
+
+        self.hashes[index][key] = c
+        self.hashes[index][displaced_key] = c
+
+        return c
 
     def hash_point(self, p):
         new_coordinates = []
         for i, c in enumerate(p.get_coordinates()):
-            key = coordinate_key(c)
-            displaced_key = displaced_coordinate_key(c)
-            if key in self.hashes[i]:
-                c = self.hashes[i][key]
-            else:
-                if displaced_key in self.hashes[i]:
-                    c = self.hashes[i][displaced_key]
-
-            self.hashes[i][key] = c
-            self.hashes[i][displaced_key] = c
+            c = self.hash_coordinate(i, c)
             new_coordinates.append(c)
 
         new_point = point(new_coordinates)

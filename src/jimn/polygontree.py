@@ -12,11 +12,11 @@ class polygontree:
         for stl_slice in self.slices:
             # due to roundings of coordinates we might have overlapping segments
             # remove them
+            print('input')
+            tycat(stl_slice)
             merger = segment_merger(stl_slice)
             simpler_slice = merger.merge()
             builder = polygonbuilder(simpler_slice)
-            print('input')
-            tycat(stl_slice)
             slice_polygons = builder.build_polygons()
             print('result')
             tycat(*slice_polygons)

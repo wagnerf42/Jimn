@@ -1,5 +1,6 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 from jimn.segment import segment
+from jimn.precision import precision
 from jimn.coordinates_hash import coordinates_hash
 from jimn.displayable import tycat
 START = 0
@@ -10,14 +11,14 @@ class segment_merger:
     def __init__(self, segments):
         self.segments = segments
         self.lines = {}
+        self.rounder = coordinates_hash(2, precision-2)
 
     def hash_segments(self):
         for s in self.segments:
-            h = s.line_hash()
+            h = s.line_hash(self.rounder)
             if h not in self.lines:
                 self.lines[h] = []
             self.lines[h].append(s)
-            print("{} segments : {}".format(h, len(self.lines[h])))
 
     def compute_points_and_counters(self, segments):
         self.points = {}
@@ -70,10 +71,7 @@ class segment_merger:
     def merge(self):
         odd_segments = []
         self.hash_segments()
-        for h in self.lines.keys():
-            print(h)
-            i = self.lines[h]
-            tycat(self.segments, i)
         for line_hash in self.lines:
-            odd_segments.extend(self.odd_segments_on_line(line_hash))
+            kept_segments = self.odd_segments_on_line(line_hash)
+            odd_segments.extend(kept_segments)
         return odd_segments
