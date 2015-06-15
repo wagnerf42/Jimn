@@ -2,7 +2,9 @@
 
 from math import ceil
 from jimn.point import point
+from jimn.segment import segment
 from jimn.facet import facet, binary_facet
+from jimn.bounding_box import bounding_box
 import struct
 import re
 
@@ -10,8 +12,7 @@ import re
 class stl:
     def __init__(self, file_name):
         self.facets = []
-        self.max_height = float('-inf')
-        self.min_height = float('+inf')
+        self.bounding_box = bounding_box.empty_box(3)
         if __debug__:
             print('loading stl file')
         self.parse_stl(file_name)
@@ -28,9 +29,10 @@ class stl:
 
     def compute_slices(self, slice_size):
         slices = []
-        slices_number = ceil((self.max_height - self.min_height)/slice_size)
+        min_height, max_height = self.bounding_box.limits(2)
+        slices_number = ceil((max_height - min_height)/slice_size)
         for slice_number in range(slices_number):
-            lower_boundary = self.max_height - (slice_number+1) * slice_size
+            lower_boundary = max_height - (slice_number+1) * slice_size
             slices.append(projection2d(self.horizontal_intersection(lower_boundary)))
         return slices
 
@@ -52,15 +54,9 @@ class stl:
             #  for each facet : 4 vectors of 3 floats + 2 unused bytes
             s = struct.Struct('12fh')
             for fields in s.iter_unpack(data):
-                (new_facet, min_height, max_height) = binary_facet(fields)
+                (new_facet, facet_bounding_box) = binary_facet(fields)
                 self.facets.append(new_facet)
-                self.update_height_limits(min_height, max_height)
-
-    def update_height_limits(self, min_height, max_height):
-        if self.min_height > min_height:
-            self.min_height = min_height
-        if self.max_height < max_height:
-            self.max_height = max_height
+                self.bounding_box.update(facet_bounding_box)
 
     def parse_ascii_stl(file_name):
         fd = open(file_name, "r")
@@ -77,10 +73,37 @@ class stl:
             for point_string in points_strings:
                 m = re.search('^\s*(-?\d+(\.\d+)?)\s+(-?\d+(\.\d+)?)\s+(-?\d+(\.\d+)?)', point_string)
                 (x, y, z) = (float(m.group(1)), float(m.group(3)), float(m.group(5)))
-                self.update_height_limits(z, z)
+                b = bounding_box([x, y, z], [x, y, z])
+                self.bounding_box.update(b)
                 points.append(point([x, y, z]))
 
             self.facets.append(facet(points))
+
+    def border_2d(self):
+        """returns list of 2d segments encompassing projection of stl"""
+        # get coordinates
+        xmin, xmax = self.bounding_box.limits(0)
+        ymin, ymax = self.bounding_box.limits(1)
+        # extend slightly border
+        xmin = xmin - 0.01
+        ymin = ymin - 0.01
+        xmax = xmax + 0.01
+        ymax = ymax + 0.01
+
+        # build four points
+        points = []
+        points.append(point([xmin, ymin]))
+        points.append(point([xmin, ymax]))
+        points.append(point([xmax, ymax]))
+        points.append(point([xmax, ymin]))
+        points.append(points[0])
+
+        # build four segments
+        border_segments = []
+        for i in range(4):
+            s = segment([points[i], points[i+1]])
+            border_segments.append(s.sort_endpoints())
+        return border_segments
 
 
 def projection2d(segments_set):
