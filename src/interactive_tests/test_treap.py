@@ -3,15 +3,38 @@
 
 from jimn.treap import treap
 
-t = treap.treap_root(0)
 
-for i in (range(1,10)):
-    print("adding {}\n".format(i))
-    t.add(i)
+class test_obj:
+    def __init__(self, value, key):
+        self.value = value
+        self.key = key
+
+    def __lt__(self, other):
+        return self.value < other.value
+
+    def __eq__(self, other):
+        return self.value == other.value
+
+    def get_type(self):
+        return self.key
+
+    def __str__(self):
+        return "{}/{}".format(self.value, self.key)
+
+t = treap.treap_root(test_obj(0, -1))
+
+for i in (range(1, 5)):
+    print("adding type 0 {}\n".format(i))
+    t.add(test_obj(i, 0))
     t.tycat()
 
-for i in (7,5,3):
+for i in (range(6, 10)):
+    print("adding type 1 {}\n".format(i))
+    t.add(test_obj(i, 1))
+    t.tycat()
+
+for i in (7, 4, 3):
     print("removing {}\n".format(i))
-    node = t.find(i)
+    node = t.find(test_obj(i, 0))
     node.remove()
     t.tycat()

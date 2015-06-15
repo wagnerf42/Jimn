@@ -13,10 +13,12 @@ class treap:
         self.father = father
         self.priority = random.random()
         self.children = [left_child, right_child]
+        # count how many nodes of each type in subtree
+        self.types = {}
 
     def treap_root(content):
         self = treap(content)
-        self.priority = 1.1 # greater than any other
+        self.priority = 1.1  # greater than any other
         return self
 
     def find(self, content):
@@ -28,6 +30,24 @@ class treap:
             current_node = current_node.children[direction]
         return None
 
+    def modify_count(self, amount, key):
+        """add 'amount' to counters related to 'key' from here to root"""
+        current_node = self
+        while current_node is not None:
+            if key not in current_node.types:
+                current_node.types[key] = 0
+            current_node.types[key] += amount
+            current_node = current_node.father
+
+    def merge_counts(self, other):
+        if other is None:
+            return
+        for key in other.types:
+            count = other.types[key]
+            if key not in self.types:
+                self.types[key] = 0
+            self.types[key] += count
+
     def add(self, content):
         father = self
         direction = father.direction_for(content)
@@ -36,7 +56,9 @@ class treap:
             direction = father.direction_for(content)
         new_node = treap(content)
         father.set_child_node(direction, new_node)
-        return new_node.balance()
+        new_node.modify_count(1, content.get_type())
+        new_node = new_node.balance()
+        return new_node
 
     # precondition: never called on root
     # be wary that since remove uses exchanges by values
@@ -44,10 +66,14 @@ class treap:
     # TODO : rebalance on removal ?
     def remove(self):
         children_number = self.children_number()
+
+        # handle each different possible case
         if children_number == 0:
+            self.father.modify_count(-1, self.content.get_type())
             incoming_direction = self.father.direction_for_node(self)
             self.father.children[incoming_direction] = None
         elif children_number == 1:
+            self.father.modify_count(-1, self.content.get_type())
             incoming_direction = self.father.direction_for_node(self)
             child = self.unique_child()
             self.father.set_child_node(incoming_direction, child)
@@ -71,6 +97,13 @@ class treap:
         moved_child = self.children[1 - incoming_direction]
         self.set_child_node(1 - incoming_direction, father)
         father.set_child_node(incoming_direction, moved_child)
+        # modify counting of nodes in subtree
+        self.types = father.types
+        father.types = {}
+        father.types[father.content.get_type()] = 1
+        father.merge_counts(self.children[incoming_direction])
+        father.merge_counts(father.children[1-incoming_direction])
+        father.merge_counts(moved_child)
 
     def set_child_node(self, direction, child):
         self.children[direction] = child
@@ -78,6 +111,10 @@ class treap:
             child.father = self
 
     def exchange(self, target):
+        target.modify_count(-1, target.content.get_type())
+        target.modify_count(1, self.content.get_type())
+        self.modify_count(-1, self.content.get_type())
+        self.modify_count(1, target.content.get_type())
         (self.content, target.content) = (target.content, self.content)
 
     def find_extreme_child(self, direction):
@@ -130,11 +167,12 @@ class treap:
         return "[{} : ({}, {})]".format(str(self.content), *strings)
 
     def save_dot(self, fd):
-        fd.write("n{} [label={}];\n".format(id(self), str(self.content)))
+        fd.write("n{} [label=\"{} ({})\"];\n".format(id(self), str(self.content), self.types))
         if self.father is not None:
             fd.write("n{} -> n{};\n".format(id(self.father), id(self)))
         for child in self.children:
             if child is not None:
+                fd.write("n{} -> n{};\n".format(id(child), id(self)))
                 child.save_dot(fd)
 
     def tycat(self):
