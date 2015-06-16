@@ -1,2 +1,9 @@
+# Ignore vim temporary files
 *~
-src/jimn/__pycache__
+*.swp
+
+# Ignore python files
+**/__pycache__/
+
+# Ignore vim-python-mode files
+**/.ropeproject/
