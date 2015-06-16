@@ -1,6 +1,7 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 from math import atan2
 from jimn.precision import is_almost
+from jimn.bounding_box import bounding_box
 
 
 class point:
@@ -45,7 +46,7 @@ class point:
         return atan2(y2 - y1, x2 - x1)
 
     def get_bounding_box(self):
-        return [self.coordinates, self.coordinates]
+        return bounding_box(self.coordinates, self.coordinates)
 
     # careful : only works on 2d points
     def save_svg_content(self, display, color):

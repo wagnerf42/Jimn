@@ -3,8 +3,8 @@
 
 class bounding_box:
     def __init__(self, min_coordinates, max_coordinates):
-        self.min_coordinates = min_coordinates
-        self.max_coordinates = max_coordinates
+        self.min_coordinates = list(min_coordinates)
+        self.max_coordinates = list(max_coordinates)
 
     @classmethod
     def empty_box(cls, dimension):
@@ -26,3 +26,9 @@ class bounding_box:
 
     def limits(self, index):
         return (self.min_coordinates[index], self.max_coordinates[index])
+
+    def get_arrays(self):
+        return (self.max_coordinates, self.min_coordinates)
+
+    def __str__(self):
+        return('[{}]-[{}]'.format(self.min_coordinates, self.max_coordinates))

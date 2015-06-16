@@ -4,6 +4,7 @@ from jimn.point import point
 from math import atan2
 from jimn.coordinates_hash import coordinates_hash
 from jimn.precision import squared_limit, check_precision, coordinate_key
+from jimn.bounding_box import bounding_box
 
 rounding_hash = coordinates_hash(3)
 
@@ -30,16 +31,9 @@ class segment:
         return distance
 
     def get_bounding_box(self):
-        min_coordinates = [sys.float_info.max for i in self.endpoints[0].get_coordinates()]
-        max_coordinates = [-sys.float_info.max for i in self.endpoints[0].get_coordinates()]
-        for p in self.endpoints:
-            coordinates = p.get_coordinates()
-            for coordinate_index, coordinate in enumerate(coordinates):
-                if coordinate < min_coordinates[coordinate_index]:
-                    min_coordinates[coordinate_index] = coordinate
-                if coordinate > max_coordinates[coordinate_index]:
-                    max_coordinates[coordinate_index] = coordinate
-        return (min_coordinates, max_coordinates)
+        boxes = [bounding_box(p.get_coordinates(), p.get_coordinates()) for p in self.endpoints]
+        boxes[0].update(boxes[1])
+        return boxes[0]
 
     def save_svg_content(self, display, color):
         svg_coordinates = [c for point in self.endpoints for c in display.convert_coordinates(point.get_coordinates())]
