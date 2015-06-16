@@ -38,3 +38,7 @@ for i in (7, 4, 3):
     node = t.find(test_obj(i, 0))
     node.remove()
     t.tycat()
+
+print('type 0 node less than 8 (should be 2):', t.find(test_obj(8, 0)).count_inferior_nodes(0))
+print('type 1 node less than 8 (should be 1):', t.find(test_obj(8, 0)).count_inferior_nodes(1))
+print('type 1 node less than 9 (should be 2):', t.find(test_obj(9, 0)).count_inferior_nodes(1))
