@@ -1,8 +1,9 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 import sys
 from jimn.segment import segment
-from jimn.displayable import tycat
 from jimn.polygonsegment import polygonsegment
+from jimn.displayable import tycat
+from jimn.bounding_box import bounding_box
 
 
 class polygon:
@@ -47,8 +48,8 @@ class polygon:
         return "[{}]".format(';'.join(map(lambda p: str(p), self.points)))
 
     def get_bounding_box(self):
-        min_coordinates = [sys.float_info.max for i in self.points[0].get_coordinates()]
-        max_coordinates = [-sys.float_info.max for i in self.points[0].get_coordinates()]
+        min_coordinates = [float('+inf') for i in self.points[0].get_coordinates()]
+        max_coordinates = [float('-inf') for i in self.points[0].get_coordinates()]
         for p in self.points:
             coordinates = p.get_coordinates()
             for coordinate_index, coordinate in enumerate(coordinates):
@@ -56,7 +57,7 @@ class polygon:
                     min_coordinates[coordinate_index] = coordinate
                 if coordinate > max_coordinates[coordinate_index]:
                     max_coordinates[coordinate_index] = coordinate
-        return (min_coordinates, max_coordinates)
+        return bounding_box(min_coordinates, max_coordinates)
 
     def save_svg_content(self, display, color):
         svg_coordinates = []

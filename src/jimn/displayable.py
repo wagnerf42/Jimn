@@ -2,6 +2,7 @@
 import os
 import getpass
 import sys
+from jimn.bounding_box import bounding_box
 
 svg_dimensions = (400, 200)
 margin = 20
@@ -11,27 +12,17 @@ svg_colors = tuple('red green blue purple orange saddlebrown mediumseagreen dark
 
 class displayed_thing(object):
     def __init__(self, things):
-        self.min_coordinates = [sys.float_info.max, sys.float_info.max]
-        self.max_coordinates = [-sys.float_info.max, -sys.float_info.max]
+        self.bounding_box = bounding_box.empty_box(2)
         for thing in things:
             if (type(thing) is list) or (type(thing) is tuple):
                 for subthing in thing:
-                    self.add_to_bounding_box(subthing)
+                    self.bounding_box.update(subthing.get_bounding_box())
             else:
-                self.add_to_bounding_box(thing)
+                self.bounding_box.update(thing.get_bounding_box())
         self.calibrate()
 
-    def add_to_bounding_box(self, thing):
-        if thing is None:
-            return
-        (min_coordinates, max_coordinates) = thing.get_bounding_box()
-        for c in (0, 1):
-            if min_coordinates[c] < self.min_coordinates[c]:
-                self.min_coordinates[c] = min_coordinates[c]
-            if max_coordinates[c] > self.max_coordinates[c]:
-                self.max_coordinates[c] = max_coordinates[c]
-
     def calibrate(self):
+        self.max_coordinates, self.min_coordinates = self.bounding_box.get_arrays()
         dimensions = [a - b for a, b in zip(self.max_coordinates, self.min_coordinates)]
         real_dimensions = [d-2*margin for d in svg_dimensions]
         stretches = [a / b for a, b in zip(real_dimensions, dimensions)]

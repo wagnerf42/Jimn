@@ -3,6 +3,7 @@
 from jimn.point import point
 from jimn.segment import segment
 from jimn.displayable import tycat
+from jimn.bounding_box import bounding_box
 
 
 class facet:
@@ -65,7 +66,12 @@ def binary_facet(all_coordinates):
             point(all_coordinates[9:12])
         ]
     )
-    heights = (all_coordinates[5], all_coordinates[8], all_coordinates[11])
-    max_height = max(heights)
-    min_height = min(heights)
-    return (f, min_height, max_height)
+    # compute bounding box
+    min_coordinates = []
+    max_coordinates = []
+    for i in range(3):
+        coordinates = [all_coordinates[j] for j in (3+i, 6+i, 9+i)]
+        min_coordinates.append(min(coordinates))
+        max_coordinates.append(max(coordinates))
+    box = bounding_box(min_coordinates, max_coordinates)
+    return (f, box)
