@@ -2,6 +2,7 @@
 import sys
 from jimn.segment import segment
 from jimn.displayable import tycat
+from jimn.polygonsegment import polygonsegment
 
 
 class polygon:
@@ -21,12 +22,18 @@ class polygon:
             self.points.append(p2)
         assert len(self.points) > 2, 'flat polygon created'
 
-    # TODO: have a nice iterator
     def segments(self):
         s = []
         for p1, p2 in zip(self.points, self.points[1:]):
             s.append(segment([p1, p2]))
         s.append(segment([self.points[-1], self.points[0]]))
+        return s
+
+    def polygonsegments(self, height):
+        s = []
+        for p1, p2 in zip(self.points, self.points[1:]):
+            s.append(polygonsegment([p1, p2], height, self.id()))
+        s.append(polygonsegment([self.points[-1], self.points[0]], height, self.id()))
         return s
 
     def orientation(self):
