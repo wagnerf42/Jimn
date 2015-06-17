@@ -25,6 +25,12 @@ class polygonsegment(segment):
         y = y1 + (x2-x)/(x2-x1)*(y2-y1)
         return y
 
+    def get_polygon_id(self):
+        return self.polygon_id
+
+    def get_height(self):
+        return self.height
+
     def __eq__(a, b):
         return a.endpoints == b.endpoints
 
@@ -44,3 +50,8 @@ class polygonsegment(segment):
             if __debug__:
                 check_precision(ya, yb, 'polygonsegment_lt')
             return ya < yb
+
+    def __hash__(self):
+        to_hash = list(self.endpoints)
+        to_hash.append(self.height)
+        return hash(tuple(to_hash))

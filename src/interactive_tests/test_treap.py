@@ -21,6 +21,7 @@ class test_obj:
     def __str__(self):
         return "{}/{}".format(self.value, self.key)
 
+
 t = treap.treap_root(test_obj(0, -1))
 
 for i in (range(1, 5)):

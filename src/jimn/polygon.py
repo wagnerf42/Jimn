@@ -33,8 +33,8 @@ class polygon:
     def polygonsegments(self, height):
         s = []
         for p1, p2 in zip(self.points, self.points[1:]):
-            s.append(polygonsegment([p1, p2], height, self.id()))
-        s.append(polygonsegment([self.points[-1], self.points[0]], height, self.id()))
+            s.append(polygonsegment([p1, p2], height, id(self)))
+        s.append(polygonsegment([self.points[-1], self.points[0]], height, id(self)))
         return s
 
     def orientation(self):
