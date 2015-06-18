@@ -68,3 +68,4 @@ tycat(poly8, poly9, poly10)
 
 # appeller plutot le constructeur de polygontree qui appellera  a son tour le constrcteur de inclusiontree_builder
 tree = create_tree(polygons)
+tree.tycat()

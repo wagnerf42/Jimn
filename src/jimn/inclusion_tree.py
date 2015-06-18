@@ -1,6 +1,11 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
 from jimn.event import event
+import os
+import getpass
+
+
+dot_count = 0
 
 
 class inclusion_tree:
@@ -31,6 +36,30 @@ class inclusion_tree:
         leaf = inclusion_tree(new_polygon, height)
         self.children.append(leaf)
 
+    def tycat(self):
+        global dot_count
+        user = getpass.getuser()
+        directory = "/tmp/{}".format(user)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        dot_file = "{}/{}.dot".format(directory, dot_count)
+        svg_file = "{}/{}.svg".format(directory, dot_count)
+        dot_count = dot_count + 1
+        dot_fd = open(dot_file, 'w')
+        dot_fd.write("digraph g {\n")
+        self.save_dot(dot_fd)
+        dot_fd.write("}")
+        dot_fd.close()
+        os.system("dot -Tsvg {} -o {}".format(dot_file, svg_file))
+        os.system("tycat {}".format(svg_file))
+
+    def save_dot(self, fd):
+        fd.write("n{} [label=\"{} {}\"];\n".format(id(self), id(self.polygon), str(self.height)))
+        for child in self.children:
+            if child is not None:
+                fd.write("n{} -> n{};\n".format(id(self), id(child)))
+                child.save_dot(fd)
+
 
 # couper le fichier en 2: juste l'arbre ; une autre classe que le construit inclusion_tree_builder
 def create_tree(polygons):
@@ -57,6 +86,7 @@ def create_tree(polygons):
             if polygon_id not in seen_polygons:
                 new_polygon = find_polygon(s, polygons)
                 tree.add_polygon(new_polygon, s.get_height(), curr_point, curr_segs)
+                seen_polygons[polygon_id] = True
     return tree
 
 
