@@ -1,7 +1,7 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 from jimn.polygon import polygon
 from jimn.segment import segment
-from jimn.displayable import tycat
+from jimn.displayable import tycat, tycat_set_svg_dimensions, tycat_set_svg_dimensions
 
 
 class polygonbuilder:
@@ -45,7 +45,14 @@ class polygonbuilder:
         for s in self.segments:
             if s in self.marked_segments:
                 continue  # skip segments already used
-            p = self.build_polygon(s)
+            try:
+                p = self.build_polygon(s)
+            except:
+                tycat_set_svg_dimensions(1024, 768)
+                self.polygons = []
+                self.tycat()
+                raise
+
             if p.orientation() < 0:
                 self.polygons.append(p)  # discard outer edge
         return self.polygons

@@ -26,7 +26,6 @@ for stl_slice in slices:
     simpler_slice = merger.merge()
     builder = polygonbuilder(simpler_slice)
     slice_polygons = builder.build_polygons()
-    tycat(*slice_polygons)
     slices_polygons.append(slice_polygons)
 
 ptree = polygontree(slices_polygons)

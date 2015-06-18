@@ -16,8 +16,8 @@ class segment:
         assert self.endpoints[0].dimension() == self.endpoints[1].dimension()
         if __debug__:
             if(self.squared_length() <= squared_limit):
-                print("very small segment {}".format(str(self)), file=sys.stderr)
-                # raise Exception("very small segment")
+                # print("very small segment {}".format(str(self)), file=sys.stderr)
+                raise Exception("very small segment")
 
     def __str__(self):
         return "[{}]".format(';'.join(map(lambda p: str(p), self.endpoints)))
