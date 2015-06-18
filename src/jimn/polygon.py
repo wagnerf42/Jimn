@@ -6,10 +6,16 @@ from jimn.displayable import tycat
 from jimn.bounding_box import bounding_box
 
 
+class invalid_polygon(Exception):
+        pass
+
+
 class polygon:
 
     def __init__(self, points):
-        assert len(points) > 2, 'not enough points in polygon creation'
+        if __debug__:
+            if len(points) <= 2:
+                raise invalid_polygon("not enough points")
         p1 = points.pop()
         start_point = p1
         p2 = points.pop()
@@ -18,10 +24,20 @@ class polygon:
             if not p1.is_aligned_with(p2, p):
                 self.points.append(p2)
                 p1 = p2
+            else:
+                try:
+                    d1 = segment([p1, p2]).squared_length()
+                    d2 = segment([p1, p]).squared_length()
+                except:
+                    raise invalid_polygon("coming back")
+                if d1 > d2:
+                    raise invalid_polygon("coming back")
             p2 = p
         if not p1.is_aligned_with(p2, start_point):
             self.points.append(p2)
-        assert len(self.points) > 2, 'flat polygon created'
+        if __debug__:
+            if len(self.points) <= 2:
+                raise invalid_polygon("not enough points after simplifying")
 
     def segments(self):
         s = []

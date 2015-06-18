@@ -78,9 +78,9 @@ def tycat(*things):
 
     display.close_svg()
 
-    #os.system("convert {} {}.jpg".format(filename, filename))
-    #os.system("tycat {}.jpg".format(filename))
-    os.system("tycat {}".format(filename))
+    os.system("convert {} {}.jpg".format(filename, filename))
+    os.system("tycat {}.jpg".format(filename))
+    #os.system("tycat {}".format(filename))
     file_count = file_count + 1
 
 
