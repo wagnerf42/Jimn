@@ -60,6 +60,18 @@ class segment:
     def dimension(self):
         return self.endpoints[0].dimension()
 
+    def is_below(self, p):
+        [a, b] = self.get_endpoints()
+        [x0, y0] = p.get_coordinates()
+        if a.get_x() == b.get_x():
+            assert(a.get_y() <= b.get_y())
+            return y0 >= a.get_y()
+        else:
+            # TODO: check precision of division
+            alpha = (b.get_y() - a.get_y()) / (b.get_x() - a.get_x())
+            beta = a.get_y() - alpha * a.get_x()
+            return y0 >= alpha * x0 + beta
+
     # return unique id of line on which is segment
     def line_hash(self, rounder):
         assert self.dimension() == 2, 'only works on 2d points segment'

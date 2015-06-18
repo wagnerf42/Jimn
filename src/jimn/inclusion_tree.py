@@ -32,28 +32,31 @@ class inclusion_tree:
         self.children.append(leaf)
 
 
+# couper le fichier en 2: juste l'arbre ; une autre classe que le construit inclusion_tree_builder
 def create_tree(polygons):
     # TODO: add polygonsegments hash function
     #       (should be symmetric)
-    unique_segments = create_unique_segments(polygons)
-    oriented_segments = [s.sort_endpoints() for s in unique_segments]
+    unique_segments = create_unique_segments(polygons) # pas besoin unicite ; appeller direct method de polygon
+    oriented_segments = [s.sort_endpoints() for s in unique_segments] # ne pas faire ici
     events = create_events(oriented_segments)
     sorted_events = sorted(events)
 
-    tree = inclusion_tree()
+    tree = inclusion_tree() # mettre les structs dans self
     curr_segs = {}
     seen_polygons = {}
-    for e in sorted_events:
+    # methode build()
+    for e in sorted_events: # appeller une fonction handle event
         curr_point = e.get_event_point()
         beg_segs, end_segs = tuple(e.get_segments(segment_type) for segment_type in [0, 1])
         for s in end_segs:
             remove_segment(s, curr_segs)
         for s in beg_segs:
             add_segment(s, curr_segs)
+        for s in beg_segs:
             polygon_id = s.get_polygon_id()
             if polygon_id not in seen_polygons:
                 new_polygon = find_polygon(s, polygons)
-                tree.add_polygon(new_polygon, curr_point, curr_segs)
+                tree.add_polygon(new_polygon, s.get_height(), curr_point, curr_segs)
     return tree
 
 
@@ -90,7 +93,7 @@ def create_unique_segments(polygons):
 
 def add_segment(s, curr_segs):
     polygon_id = s.get_polygon_id()
-    if polygon_id in curr_segs:
+    if polygon_id not in curr_segs:
         curr_segs[polygon_id] = [s]
     else:
         curr_segs[polygon_id].append(s)
