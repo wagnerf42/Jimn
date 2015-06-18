@@ -59,3 +59,8 @@ class polygonsegment(segment):
         to_hash = list(self.endpoints)
         to_hash.append(self.height)
         return hash(tuple(to_hash))
+
+    def __str__(self):
+        s = segment.__str__(self)
+        s += str(self.get_height())
+        return s

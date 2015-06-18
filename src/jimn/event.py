@@ -22,3 +22,14 @@ class event:
 
     def __lt__(a, b):
         return a.event_point < b.event_point
+
+    def __str__(self):
+        s = "event(" + str(self.event_point) + "):\n"
+        s += "beg:\n"
+        for seg in self.get_segments(0):
+            s += str(seg) + " "
+        s +="\n"
+        s += "end:\n"
+        for seg in self.get_segments(1):
+            s += str(seg) + " "
+        return s

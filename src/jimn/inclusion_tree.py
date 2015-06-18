@@ -75,8 +75,7 @@ def create_events(oriented_segments):
         for segment_type, p in enumerate(s.get_endpoints()):
             if p not in events:
                 events[p] = event(p)
-            else:
-                events[p].add_segment(segment_type, s)
+            events[p].add_segment(segment_type, s)
     return events.values()
 
 
