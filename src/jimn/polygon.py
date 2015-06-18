@@ -12,7 +12,7 @@ class invalid_polygon(Exception):
 
 class polygon:
 
-    def __init__(self, points):
+    def __init__(self, points, label=None):
         if __debug__:
             if len(points) <= 2:
                 raise invalid_polygon("not enough points")
@@ -38,6 +38,7 @@ class polygon:
         if __debug__:
             if len(self.points) <= 2:
                 raise invalid_polygon("not enough points after simplifying")
+        self.label = label
 
     def segments(self):
         s = []

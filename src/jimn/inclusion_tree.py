@@ -16,8 +16,10 @@ class inclusion_tree:
         self.children = []
 
     def add_polygon(self, new_polygon, height, curr_point, curr_segs):
+        print("id1: {}".format(id(new_polygon)))
         if self.polygon is None:
             self.polygon = new_polygon
+            self.height = height
         else:
             self.add_polygon_rec(new_polygon, height, curr_point, curr_segs)
 
@@ -54,7 +56,7 @@ class inclusion_tree:
         os.system("tycat {}".format(svg_file))
 
     def save_dot(self, fd):
-        fd.write("n{} [label=\"{} {}\"];\n".format(id(self), id(self.polygon), str(self.height)))
+        fd.write("n{} [label=\"{}, h={}\"];\n".format(id(self), str(self.polygon.label), str(self.height)))
         for child in self.children:
             if child is not None:
                 fd.write("n{} -> n{};\n".format(id(self), id(child)))
@@ -85,15 +87,23 @@ def create_tree(polygons):
             polygon_id = s.get_polygon_id()
             if polygon_id not in seen_polygons:
                 new_polygon = find_polygon(s, polygons)
+                print("adding polygon {} (h={})".format(str(new_polygon.label), str(s.get_height())))
+                print("id : {}".format(id(new_polygon)))
+                print("id0: {}".format(polygon_id))
                 tree.add_polygon(new_polygon, s.get_height(), curr_point, curr_segs)
                 seen_polygons[polygon_id] = True
+                tree.tycat()
     return tree
 
 
 def is_included(curr_point, polygon, curr_segs):
     if id(polygon) in curr_segs:
+        print("id2: {}".format(id(polygon)))
         segments = curr_segs[id(polygon)]
+        print(curr_point)
+        print([str(s) for s in segments])
         below_segments = [s for s in segments if s.is_below(curr_point)]
+        print([str(s) for s in below_segments])
         return len(below_segments) % 2 == 1
     else:
         return False
