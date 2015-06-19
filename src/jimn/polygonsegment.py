@@ -22,7 +22,8 @@ class polygonsegment(segment):
             return y1
         if __debug__:
             check_precision(x1, x2, 'vertical_intersection_at')
-        y = y1 + (x2-x)/(x2-x1)*(y2-y1)
+        a = (y2-y1)/(x2-x1)
+        y = y1 + a*(x-x1)
         return y
 
     def sort_endpoints(self):
@@ -47,9 +48,11 @@ class polygonsegment(segment):
         x = max([s.endpoints[0].get_x() for s in (a, b)])
         ya, yb = [s.vertical_intersection_at(x) for s in (a, b)]
 
-        if ya == yb:
+        if a.height < b.height:
+            return False
+        elif ya == yb:
             assert a.height != b.height, 'compared segments should not intersect'
-            return a.height > b.height
+            return a.height > b.height # toujours True...
         else:
             if __debug__:
                 check_precision(ya, yb, 'polygonsegment_lt')

@@ -15,23 +15,22 @@ class inclusion_tree:
         self.height = height
         self.children = []
 
-    def add_polygon(self, new_polygon, height, curr_point, curr_segs):
-        print("id1: {}".format(id(new_polygon)))
+    def add_polygon(self, new_polygon, seg, curr_segs):
         if self.polygon is None:
             self.polygon = new_polygon
-            self.height = height
+            self.height = seg.get_height()
         else:
-            self.add_polygon_rec(new_polygon, height, curr_point, curr_segs)
+            self.add_polygon_rec(new_polygon, seg, curr_segs)
 
-    def add_polygon_rec(self, new_polygon, height, curr_point, curr_segs):
-        if not is_included(curr_point, self.polygon, curr_segs):
+    def add_polygon_rec(self, new_polygon, seg, curr_segs):
+        if not is_included(seg, self.polygon, curr_segs):
             return False
         else:
             # TODO: check height order (if same as natural order or not)
             for c in sorted(self.children, key=lambda c: c.height):
-                if c.add_polygon_rec(new_polygon, height, curr_point, curr_segs):
+                if c.add_polygon_rec(new_polygon, seg, curr_segs):
                     return True
-            self.add_child(new_polygon, height)
+            self.add_child(new_polygon, seg.get_height())
             return True
 
     def add_child(self, new_polygon, height):
@@ -83,28 +82,26 @@ def create_tree(polygons):
             remove_segment(s, curr_segs)
         for s in beg_segs:
             add_segment(s, curr_segs)
-        for s in beg_segs:
+        for s in sorted(beg_segs, key=lambda seg: (seg.angle(), -seg.get_height())):
             polygon_id = s.get_polygon_id()
             if polygon_id not in seen_polygons:
                 new_polygon = find_polygon(s, polygons)
                 print("adding polygon {} (h={})".format(str(new_polygon.label), str(s.get_height())))
-                print("id : {}".format(id(new_polygon)))
-                print("id0: {}".format(polygon_id))
-                tree.add_polygon(new_polygon, s.get_height(), curr_point, curr_segs)
+                tree.add_polygon(new_polygon, s, curr_segs)
                 seen_polygons[polygon_id] = True
                 tree.tycat()
     return tree
 
 
-def is_included(curr_point, polygon, curr_segs):
+def is_included(seg, polygon, curr_segs):
     if id(polygon) in curr_segs:
-        print("id2: {}".format(id(polygon)))
         segments = curr_segs[id(polygon)]
-        print(curr_point)
+        print(seg)
         print([str(s) for s in segments])
-        below_segments = [s for s in segments if s.is_below(curr_point)]
-        print([str(s) for s in below_segments])
-        return len(below_segments) % 2 == 1
+        # s1 < s2 signifie s1 au-dessus de s2...
+        above_segments = [s for s in segments if s < seg]
+        print([str(s) for s in above_segments])
+        return len(above_segments) % 2 == 1
     else:
         return False
 

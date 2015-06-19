@@ -3,7 +3,7 @@ import sys
 from jimn.point import point
 from math import atan2
 from jimn.coordinates_hash import coordinates_hash
-from jimn.precision import squared_limit, check_precision, coordinate_key
+from jimn.precision import squared_limit, check_precision, coordinate_key, is_almost
 from jimn.bounding_box import bounding_box
 
 rounding_hash = coordinates_hash(3)
@@ -71,6 +71,16 @@ class segment:
             alpha = (b.get_y() - a.get_y()) / (b.get_x() - a.get_x())
             beta = a.get_y() - alpha * a.get_x()
             return y0 >= alpha * x0 + beta
+
+    # for 2d points
+    def is_vertical(self):
+        [xa, xb] = [p.get_x() for p in self.get_endpoints()]
+        if xa == xb:
+            return True
+        else:
+            if is_almost(xa, xb):
+                raise RuntimeError("Segment presque vertical rencontré")
+            return False
 
     # return unique id of line on which is segment
     def line_hash(self, rounder):
