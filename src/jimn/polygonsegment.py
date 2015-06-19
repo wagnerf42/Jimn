@@ -45,22 +45,20 @@ class polygonsegment(segment):
     # in svg
     # never compare two segments which dont have intersection ranges for x coordinates
     def __lt__(a, b):
-        x = max([s.endpoints[0].get_x() for s in (a, b)])
-        ya, yb = [s.vertical_intersection_at(x) for s in (a, b)]
+        x1max = max([s.endpoints[0].get_x() for s in (a, b)])
+        x2min = min([s.endpoints[1].get_x() for s in (a, b)])
+        common_abs = [x1max, x2min]
+        ya, yb = [[s.vertical_intersection_at(x) for x in common_abs] for s in (a, b)]
 
         if a.height < b.height:
             return False
         elif ya == yb:
-            x2 = max([s.endpoints[1].get_x() for s in (a, b)])
-            y2a, y2b = [s.vertical_intersection_at(x2) for s in (a, b)]
-            if y2a == y2b:
-                assert a.height != b.height, 'compared segments should not intersect'
-                return a.height > b.height # toujours True...
-            else:
-                return y2a < y2b
+            assert a.height != b.height, 'compared segments should not intersect'
+            return a.height > b.height # toujours True...
         else:
             if __debug__:
-                check_precision(ya, yb, 'polygonsegment_lt')
+                for yaa, ybb in zip(ya, yb):
+                    check_precision(yaa, ybb, 'polygonsegment_lt')
             return ya < yb
 
     def __hash__(self):
