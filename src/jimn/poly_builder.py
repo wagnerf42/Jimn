@@ -53,7 +53,7 @@ class polygonbuilder:
                 self.tycat()
                 raise
 
-            if p.orientation() < 0:
+            if p.orientation() > 0:
                 self.polygons.append(p)  # discard outer edge
         return self.polygons
 
