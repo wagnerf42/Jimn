@@ -38,7 +38,7 @@ class polygonbuilder:
     # sort all neighbours so that we can easily turn around a point
     def sort_neighbours_by_angle(self):
         for point, neighbours in self.points_neighbours.items():
-            sorted_neighbours = sorted(neighbours, key=lambda neighbour: point.angle_with(neighbour))
+            sorted_neighbours = sorted(neighbours, key=lambda neighbour: point.angle_with(neighbour), reverse=True)
             self.points_neighbours[point] = sorted_neighbours
 
     def build_polygons(self):

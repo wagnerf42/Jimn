@@ -43,7 +43,7 @@ class point:
 
     def angle_with(self, other):
         (x1, y1), (x2, y2) = [p.get_coordinates() for p in (self, other)]
-        return atan2(y2 - y1, x2 - x1)
+        return -atan2(y2 - y1, x2 - x1)
 
     def get_bounding_box(self):
         return bounding_box(self.coordinates, self.coordinates)

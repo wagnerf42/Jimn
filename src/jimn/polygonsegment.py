@@ -41,25 +41,24 @@ class polygonsegment(segment):
 
     # we assume segments never intersect
     # if segments overlap, use height for comparison
-    # if segments don't overlap return true if a is located above b
+    # if segments don't overlap return true if a is located above and higher than b
     # in svg
     # never compare two segments which dont have intersection ranges for x coordinates
-    def __lt__(a, b):
+    def __ge__(a, b):
         x1max = max([s.endpoints[0].get_x() for s in (a, b)])
         x2min = min([s.endpoints[1].get_x() for s in (a, b)])
         common_abs = [x1max, x2min]
         ya, yb = [[s.vertical_intersection_at(x) for x in common_abs] for s in (a, b)]
 
-        if a.height < b.height:
-            return False
-        elif ya == yb:
-            assert a.height != b.height, 'compared segments should not intersect'
-            return a.height > b.height # toujours True...
-        else:
-            if __debug__:
-                for yaa, ybb in zip(ya, yb):
+        if ya == yb:
+            assert x1max != x2min, 'comparing segments whose common absciss range is only one point'
+            assert a.height != b.height, 'overlapping segments in the same slice'
+        elif __debug__:
+            for yaa, ybb in zip(ya, yb):
+                if yaa != ybb:
                     check_precision(yaa, ybb, 'polygonsegment_lt')
-            return ya < yb
+
+        return a.height >= b.height and ya <= yb
 
     def __hash__(self):
         to_hash = list(self.endpoints)

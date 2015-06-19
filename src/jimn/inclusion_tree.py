@@ -27,7 +27,7 @@ class inclusion_tree:
             return False
         else:
             # TODO: check height order (if same as natural order or not)
-            for c in sorted(self.children, key=lambda c: -c.height):
+            for c in sorted(self.children, key=lambda c: c.height, reverse=True):
                 if c.add_polygon_rec(new_polygon, seg, curr_segs):
                     return True
             self.add_child(new_polygon, seg.get_height())
@@ -82,7 +82,7 @@ def create_tree(polygons):
             remove_segment(s, curr_segs)
         for s in beg_segs:
             add_segment(s, curr_segs)
-        for s in sorted(beg_segs, key=lambda seg: (seg.angle(), -seg.get_height())):
+        for s in sorted(beg_segs, key=lambda seg: (seg.angle(), seg.get_height()), reverse=True):
             polygon_id = s.get_polygon_id()
             if polygon_id not in seen_polygons:
                 new_polygon = find_polygon(s, polygons)
@@ -94,16 +94,13 @@ def create_tree(polygons):
 
 
 def is_included(seg, polygon, curr_segs):
-    if id(polygon) in curr_segs:
-        segments = curr_segs[id(polygon)]
-        print(seg)
-        print([str(s) for s in segments])
-        # s1 < s2 signifie s1 au-dessus de s2...
-        above_segments = [s for s in segments if s < seg]
-        print([str(s) for s in above_segments])
-        return len(above_segments) % 2 == 1
-    else:
+    if id(polygon) not in curr_segs:
         return False
+    else:
+        segments = curr_segs[id(polygon)]
+        # s1 >= s2 signifie s1 au-dessus et plus haut que s2 (au sens large)
+        above_segments = [s for s in segments if s >= seg]
+        return len(above_segments) % 2 == 1
 
 
 def create_events(oriented_segments):
