@@ -51,8 +51,13 @@ class polygonsegment(segment):
         if a.height < b.height:
             return False
         elif ya == yb:
-            assert a.height != b.height, 'compared segments should not intersect'
-            return a.height > b.height # toujours True...
+            x2 = max([s.endpoints[1].get_x() for s in (a, b)])
+            y2a, y2b = [s.vertical_intersection_at(x2) for s in (a, b)]
+            if y2a == y2b:
+                assert a.height != b.height, 'compared segments should not intersect'
+                return a.height > b.height # toujours True...
+            else:
+                return y2a < y2b
         else:
             if __debug__:
                 check_precision(ya, yb, 'polygonsegment_lt')

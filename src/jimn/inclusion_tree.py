@@ -27,7 +27,7 @@ class inclusion_tree:
             return False
         else:
             # TODO: check height order (if same as natural order or not)
-            for c in sorted(self.children, key=lambda c: c.height):
+            for c in sorted(self.children, key=lambda c: -c.height):
                 if c.add_polygon_rec(new_polygon, seg, curr_segs):
                     return True
             self.add_child(new_polygon, seg.get_height())
