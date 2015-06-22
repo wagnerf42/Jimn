@@ -6,12 +6,11 @@ class inclusion_tree_builder:
         from jimn.inclusion_tree import inclusion_tree
 
         self.polygons = polygons
-        self.tree = inclusion_tree()
-        self.current_segments = {}
-        self.seen_polygons = {}
-
         self.segments = create_segments(self.polygons)
         self.events = create_events(self.segments)
+        self.current_segments = {}
+        self.seen_polygons = {}
+        self.tree = inclusion_tree()
 
         self.build()
 
