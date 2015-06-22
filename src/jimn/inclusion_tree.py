@@ -1,6 +1,6 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
-from jimn.event import event
+from jimn.inclusion_tree_builder import is_included
 import os
 import getpass
 
@@ -11,6 +11,7 @@ dot_count = 0
 No distinction between holes and filled_spaces now
 Distinction will be made later when building final tree"""
 
+
 class inclusion_tree:
     """stores a set of polygons included one inside another"""
     def __init__(self, contained_polygon=None, height=None):
@@ -18,20 +19,20 @@ class inclusion_tree:
         self.height = height
         self.children = []
 
-    def add_polygon(self, new_polygon, seg, curr_segs):
+    def add_polygon(self, new_polygon, seg, current_segments):
         if self.polygon is None:
             self.polygon = new_polygon
             self.height = seg.get_height()
         else:
-            self.add_polygon_rec(new_polygon, seg, curr_segs)
+            self.add_polygon_rec(new_polygon, seg, current_segments)
 
-    def add_polygon_rec(self, new_polygon, seg, curr_segs):
-        if not is_included(seg, self.polygon, curr_segs):
+    def add_polygon_rec(self, new_polygon, seg, current_segments):
+        if not is_included(seg, self.polygon, current_segments):
             return False
         else:
             # TODO: explain why sorted
             for c in sorted(self.children, key=lambda c: c.height, reverse=True):
-                if c.add_polygon_rec(new_polygon, seg, curr_segs):
+                if c.add_polygon_rec(new_polygon, seg, current_segments):
                     return True
             self.add_child(new_polygon, seg.get_height())
             return True

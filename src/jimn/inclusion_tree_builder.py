@@ -1,9 +1,10 @@
-from jimn.inclusion_tree import inclusion_tree
 from jimn.event import event
 
 
 class inclusion_tree_builder:
     def __init__(self, polygons):
+        from jimn.inclusion_tree import inclusion_tree
+
         self.polygons = polygons
         self.tree = inclusion_tree()
         self.current_segments = {}
