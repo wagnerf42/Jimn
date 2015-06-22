@@ -56,7 +56,7 @@ class point:
 
     def is_aligned_with(self, p2, p3):
         (x1, y1), (x2, y2), (x3, y3) = [p.get_coordinates() for p in (self, p2, p3)]
-        determinant = x1*y2 + y1*x3 +x2*y3 - (y2*x3 + y1*x2 + x1*y3)
+        determinant = x1*y2 + y1*x3 + x2*y3 - (y2*x3 + y1*x2 + x1*y3)
         return is_almost(determinant, 0)
 
     def projection2d(self):
@@ -78,9 +78,4 @@ class point:
         Returns whether or not a < b in lexicographical order.
         Assumes a and b have the same dimension.
         """
-        for ca, cb in zip(a.coordinates, b.coordinates):
-            if ca < cb:
-                return 1
-            elif ca > cb:
-                return 0
-        return 0
+        return a.coordinates < b.coordinates

@@ -7,6 +7,9 @@ import getpass
 
 dot_count = 0
 
+"""This file is only used for polygontree creation
+No distinction between holes and filled_spaces now
+Distinction will be made later when building final tree"""
 
 class inclusion_tree:
     """stores a set of polygons included one inside another"""
@@ -26,7 +29,7 @@ class inclusion_tree:
         if not is_included(seg, self.polygon, curr_segs):
             return False
         else:
-            # TODO: check height order (if same as natural order or not)
+            # TODO: explain why sorted
             for c in sorted(self.children, key=lambda c: c.height, reverse=True):
                 if c.add_polygon_rec(new_polygon, seg, curr_segs):
                     return True
@@ -60,86 +63,3 @@ class inclusion_tree:
             if child is not None:
                 fd.write("n{} -> n{};\n".format(id(self), id(child)))
                 child.save_dot(fd)
-
-
-# couper le fichier en 2: juste l'arbre ; une autre classe que le construit inclusion_tree_builder
-def create_tree(polygons):
-    # TODO: add polygonsegments hash function
-    #       (should be symmetric)
-    unique_segments = create_unique_segments(polygons) # pas besoin unicite ; appeller direct method de polygon
-    oriented_segments = [s.sort_endpoints() for s in unique_segments] # ne pas faire ici
-    events = create_events(oriented_segments)
-    sorted_events = sorted(events)
-
-    tree = inclusion_tree() # mettre les structs dans self
-    curr_segs = {}
-    seen_polygons = {}
-    # methode build()
-    for e in sorted_events: # appeller une fonction handle event
-        curr_point = e.get_event_point()
-        beg_segs, end_segs = tuple(e.get_segments(segment_type) for segment_type in [0, 1])
-        for s in end_segs:
-            remove_segment(s, curr_segs)
-        for s in beg_segs:
-            add_segment(s, curr_segs)
-        for s in sorted(beg_segs, key=lambda seg: (seg.angle(), seg.get_height()), reverse=True):
-            polygon_id = s.get_polygon_id()
-            if polygon_id not in seen_polygons:
-                new_polygon = find_polygon(s, polygons)
-                print("adding polygon {} (h={})".format(str(new_polygon.label), str(s.get_height())))
-                tree.add_polygon(new_polygon, s, curr_segs)
-                seen_polygons[polygon_id] = True
-                tree.tycat()
-    return tree
-
-
-def is_included(seg, polygon, curr_segs):
-    if id(polygon) not in curr_segs:
-        return False
-    else:
-        segments = curr_segs[id(polygon)]
-        # s1 >= s2 signifie s1 au-dessus et plus haut que s2 (au sens large)
-        above_segments = [s for s in segments if s >= seg]
-        return len(above_segments) % 2 == 1
-
-
-def create_events(oriented_segments):
-    events = {}
-    for s in oriented_segments:
-        for segment_type, p in enumerate(s.get_endpoints()):
-            if p not in events:
-                events[p] = event(p)
-            events[p].add_segment(segment_type, s)
-    return events.values()
-
-
-def create_unique_segments(polygons):
-    unique_segments = {}
-    for height, same_level_polygons in polygons.items():
-        for polygon in same_level_polygons:
-            segments = polygon.polygonsegments(height)
-            for s in segments:
-                if s not in unique_segments:
-                    unique_segments[s] = True
-    return unique_segments.keys()
-
-
-def add_segment(s, curr_segs):
-    polygon_id = s.get_polygon_id()
-    if polygon_id not in curr_segs:
-        curr_segs[polygon_id] = [s]
-    else:
-        curr_segs[polygon_id].append(s)
-
-
-def remove_segment(s, curr_segs):
-    polygon_id = s.get_polygon_id()
-    curr_segs[polygon_id].remove(s)
-
-
-def find_polygon(segment, polygons):
-    polygon_id = segment.get_polygon_id()
-    height = segment.get_height()
-    same_level_polygons = polygons[height]
-    polygon = next(p for p in same_level_polygons if id(p) == polygon_id)
-    return polygon

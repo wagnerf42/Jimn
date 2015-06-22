@@ -109,8 +109,7 @@ class segment:
         return self.endpoints
 
     def sort_endpoints(self):
-        sorted_endpoints = sorted(self.endpoints, key=lambda p: (p.get_x(), p.get_y()))
-        return segment(sorted_endpoints)
+        return segment(sorted(self.endpoints))
 
     def is_sorted(self):
         sorted_self = self.sort_endpoints()

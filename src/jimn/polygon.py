@@ -1,8 +1,6 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
-import sys
 from jimn.segment import segment
 from jimn.polygonsegment import polygonsegment
-from jimn.displayable import tycat
 from jimn.bounding_box import bounding_box
 
 
@@ -38,7 +36,10 @@ class polygon:
         if __debug__:
             if len(self.points) <= 2:
                 raise invalid_polygon("not enough points after simplifying")
-        self.label = label
+        if label is None:
+            self.label = id(self)
+        else:
+            self.label = label
 
     def segments(self):
         s = []
@@ -47,7 +48,7 @@ class polygon:
         s.append(segment([self.points[-1], self.points[0]]))
         return s
 
-    def polygonsegments(self, height):
+    def non_vertical_segments(self, height):
         s = []
         for p1, p2 in zip(self.points, self.points[1:]):
             seg = polygonsegment([p1, p2], height, id(self))

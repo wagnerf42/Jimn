@@ -26,10 +26,6 @@ class polygonsegment(segment):
         y = y1 + a*(x-x1)
         return y
 
-    def sort_endpoints(self):
-        sorted_endpoints = sorted(self.endpoints, key=lambda p: (p.get_x(), p.get_y()))
-        return polygonsegment(sorted_endpoints, self.height, self.polygon_id)
-
     def get_polygon_id(self):
         return self.polygon_id
 
