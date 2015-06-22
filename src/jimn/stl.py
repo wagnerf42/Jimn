@@ -28,12 +28,13 @@ class stl:
         return segments
 
     def compute_slices(self, slice_size):
-        slices = []
+        slices = {}
         min_height, max_height = self.bounding_box.limits(2)
         slices_number = ceil((max_height - min_height)/slice_size)
         for slice_number in range(slices_number):
             lower_boundary = max_height - (slice_number+1) * slice_size
-            slices.append(projection2d(self.horizontal_intersection(lower_boundary)))
+            current_slice = projection2d(self.horizontal_intersection(lower_boundary))
+            slices[lower_boundary] = current_slice
         return slices
 
     def parse_stl(self, file_name):
