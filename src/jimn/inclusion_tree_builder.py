@@ -33,6 +33,15 @@ class inclusion_tree_builder:
                     self.seen_polygons[polygon_id] = True
                     self.tree.tycat()
 
+    def ascend_polygons(self):
+        from jimn.inclusion_tree import inclusion_tree
+
+        super_tree = inclusion_tree()
+        super_tree.children = [self.tree]
+        ascend_polygon_rec(self.tree, super_tree, None)
+
+        return super_tree
+
 
 def is_included(seg, polygon, current_segments):
     if id(polygon) not in current_segments:
@@ -81,3 +90,12 @@ def get_polygon(segment, polygons):
     same_level_polygons = polygons[height]
     polygon = next(p for p in same_level_polygons if id(p) == polygon_id)
     return polygon
+
+
+def ascend_polygon_rec(node, father, grandfather):
+    if not node.is_polygon:
+        grandfather.children += node.children
+        node.children = []
+    else:
+        for c in node.children:
+            ascend_polygon_rec(c, node, father)
