@@ -14,13 +14,26 @@ class polygon:
         if __debug__:
             if len(points) <= 2:
                 raise invalid_polygon("not enough points")
-        p1 = points.pop()
+        self.points = points
+        if label is None:
+            self.label = id(self)
+        else:
+            self.label = label
+        self.remove_useless_points()
+
+    """when 3 consecutive points are aligned the middle one is useless.
+    we remove here all useless points in order to decrease cost of storage and
+    computations of further operations.
+    WARNING : this operation reverses orientation
+    """
+    def remove_useless_points(self):
+        p1 = self.points.pop()
         start_point = p1
-        p2 = points.pop()
-        self.points = [p1]
-        for p in reversed(points):
+        p2 = self.points.pop()
+        remaining_points = [p1]
+        for p in reversed(self.points):
             if not p1.is_aligned_with(p2, p):
-                self.points.append(p2)
+                remaining_points.append(p2)
                 p1 = p2
             else:
                 try:
@@ -32,14 +45,12 @@ class polygon:
                     raise invalid_polygon("coming back")
             p2 = p
         if not p1.is_aligned_with(p2, start_point):
-            self.points.append(p2)
+            remaining_points.append(p2)
+
+        self.points = remaining_points
         if __debug__:
             if len(self.points) <= 2:
                 raise invalid_polygon("not enough points after simplifying")
-        if label is None:
-            self.label = id(self)
-        else:
-            self.label = label
 
     def segments(self):
         s = []
