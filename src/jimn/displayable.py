@@ -73,7 +73,6 @@ def tycat(*things):
         else:
             if thing is not None:
                 thing.save_svg_content(display, color)
-                thing.save_svg_content(display, color)
         color_index = (color_index+1) % len(svg_colors)
 
     display.close_svg()

@@ -1,7 +1,8 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 from jimn.polygon import polygon
 from jimn.segment import segment
-from jimn.displayable import tycat, tycat_set_svg_dimensions, tycat_set_svg_dimensions
+from jimn.displayable import tycat, tycat_set_svg_dimensions
+from jimn.debug import is_module_debugged
 
 
 class polygonbuilder:
@@ -53,8 +54,12 @@ class polygonbuilder:
                 self.tycat()
                 raise
 
-            if p.orientation() > 0:
-                self.polygons.append(p)  # discard outer edge
+            if p.orientation() > 0:  # discard outer edge
+                self.polygons.append(p)
+                if __debug__:
+                    if is_module_debugged(__name__):
+                        print("added polygon")
+                        self.tycat()
         return self.polygons
 
     def find_next_point(self, current_point, previous_point):
