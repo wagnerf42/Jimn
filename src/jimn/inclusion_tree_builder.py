@@ -12,6 +12,9 @@ class inclusion_tree_builder:
         self.current_segments = {}
         self.seen_polygons = {}
         self.tree = inclusion_tree()
+        # small caches to speed up search in tree
+        self.last_inserted_node = None
+        self.last_inserted_nodes_in_level = {}
 
         self.build()
 
@@ -29,7 +32,12 @@ class inclusion_tree_builder:
                 polygon_id = s.get_polygon_id()
                 if polygon_id not in self.seen_polygons:
                     new_polygon = get_polygon(s, self.polygons)
-                    self.tree.add_polygon(new_polygon, s, self.current_segments)
+                    # we try to insert without searching the whole tree
+                    if not self.last_inserted_node.try_insertion(s, self.current_segments):
+                        if not self.last_inserted_nodes_in_level[s.get_height()].try_insertion(s, self.current_segments):
+                            # we failed, search the whole tree
+                            self.tree.add_polygon(new_polygon, s, self.current_segments)
+
                     self.seen_polygons[polygon_id] = True
                     if __debug__:
                         if is_module_debugged(__name__):

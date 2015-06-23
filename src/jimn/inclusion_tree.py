@@ -25,6 +25,11 @@ class inclusion_tree:
         self.height = height
         self.children = []
 
+    def try_insertion(self, s, current_segments):
+        if is_included(seg, self.polygon, current_segments):  # TODO: mettre is_included comme methode de tree_builder
+            # TODO :
+
+
     def add_polygon(self, new_polygon, seg, current_segments):
         if self.polygon is None:
             self.__init__(new_polygon, seg.get_height())
