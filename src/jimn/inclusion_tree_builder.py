@@ -1,4 +1,5 @@
 from jimn.event import event
+from jimn.debug import is_module_debugged
 
 
 class inclusion_tree_builder:
@@ -28,10 +29,12 @@ class inclusion_tree_builder:
                 polygon_id = s.get_polygon_id()
                 if polygon_id not in self.seen_polygons:
                     new_polygon = get_polygon(s, self.polygons)
-                    print("adding polygon {} (h={})".format(str(new_polygon.label), str(s.get_height())))
                     self.tree.add_polygon(new_polygon, s, self.current_segments)
                     self.seen_polygons[polygon_id] = True
-                    self.tree.tycat()
+                    if __debug__:
+                        if is_module_debugged(__name__):
+                            print("adding polygon {} (h={})".format(str(new_polygon.label), str(s.get_height())))
+                            self.tree.tycat()
 
     def ascend_polygons(self):
         from jimn.inclusion_tree import inclusion_tree

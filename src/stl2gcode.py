@@ -10,6 +10,7 @@ from jimn.poly_builder import polygonbuilder
 from jimn.inclusion_tree_builder import inclusion_tree_builder
 from jimn.segment_merger import segment_merger
 from jimn.displayable import tycat
+from jimn.polygontree_builder import polygontree_builder
 
 # tycat_set_svg_dimensions(1024, 768)
 (bin_name, stl_file, slice_size) = sys.argv
@@ -27,8 +28,6 @@ for height, stl_slice in slices.items():
     simpler_slice = merger.merge()
     builder = polygonbuilder(simpler_slice)
     slice_polygons = builder.build_polygons()
-    print(height)
-    tycat(slice_polygons)
     slices_polygons[height] = slice_polygons
 
-itree = inclusion_tree_builder(slices_polygons)
+itree = polygontree_builder(slices_polygons)

@@ -2,6 +2,7 @@
 
 from jimn.inclusion_tree_builder import inclusion_tree_builder
 from jimn.polygontree import polygontree
+from jimn.debug import is_module_debugged
 
 
 class polygontree_builder:
@@ -14,4 +15,6 @@ class polygontree_builder:
     def build(self):
         super_tree = inclusion_tree_builder(self.polygons).ascend_polygons()
         self.tree.add_child_rec(super_tree)
-        self.tree.tycat()
+        if __debug__:
+            if is_module_debugged(__name__):
+                self.tree.tycat()
