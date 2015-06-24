@@ -2,6 +2,7 @@
 import os
 import getpass
 import random
+from collections import defaultdict
 
 
 """
@@ -173,7 +174,11 @@ class treap:
         return "[{} : ({}, {})]".format(str(self.content), *strings)
 
     def save_dot(self, fd):
-        fd.write("n{} [label=\"{} ({})\"];\n".format(id(self), str(self.content), self.types))
+        counts_strings = []
+        for key, value in self.types.items():
+            counts_strings.append("{}:{}".format(key, value))
+        count_string = ", ".join(counts_strings)
+        fd.write("n{} [label=\"{} ({})\"];\n".format(id(self), str(self.content), count_string))
         if self.father is not None:
             fd.write("n{} -> n{};\n".format(id(self.father), id(self)))
         for child in self.children:
@@ -187,14 +192,12 @@ class treap:
         self.priority = random.random()
         self.children = [left_child, right_child]
         # count how many nodes of each type in subtree
-        self.types = {}
+        self.types = defaultdict(int)
 
     def modify_count(self, amount, key):
         """add 'amount' to counters related to 'key' from here to root"""
         current_node = self
         while current_node is not None:
-            if key not in current_node.types:
-                current_node.types[key] = 0
             current_node.types[key] += amount
             current_node = current_node.father
 
