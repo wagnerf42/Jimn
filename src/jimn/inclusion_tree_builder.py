@@ -34,11 +34,13 @@ class inclusion_tree_builder:
 
     def add_polygon_in_tree(self, new_polygon, new_segment):
         # we try to insert without searching the whole tree
-        height = new_segment.get_height()
-        if not self.last_inserted_node.try_insertion(new_segment, self):
-            if not self.last_inserted_nodes_in_level[height].try_insertion(self, height):
-                # we failed, search the whole tree
-                self.tree.add_polygon(new_polygon, self, height)
+
+        # height = new_segment.get_height()
+        # if not self.last_inserted_node.try_insertion(new_segment, self):
+        #     if not self.last_inserted_nodes_in_level[height].try_insertion(self, height):
+
+        #         # we failed, search the whole tree
+        self.tree.add_polygon(new_polygon, new_segment, self.current_segments)
 
     def handle_event(self, e):
             starting_segments, ending_segments = [e.get_segments(segment_type) for segment_type in [0, 1]]
