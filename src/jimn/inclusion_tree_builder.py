@@ -37,12 +37,17 @@ class inclusion_tree_builder:
 
     def add_polygon_in_tree(self, new_polygon, new_segment):
         # we try to insert without searching the whole tree
-        height = new_segment.get_height()
-        if self.last_inserted_node is None or (self.last_inserted_node is not None and not self.fast_insert(self.last_inserted_node, new_polygon, new_segment)):
-            if height not in self.last_inserted_nodes_in_level or (height in self.last_inserted_nodes_in_level and not self.fast_insert(self.last_inserted_nodes_in_level[height], new_polygon, new_segment)):
+        if not self.add_polygon_from_cache(new_polygon, new_segment):
+            # we failed, search the whole tree
+            self.add_polygon_from_root(new_polygon, new_segment, self.current_segments)
 
-                # we failed, search the whole tree
-                self.add_polygon_from_root(new_polygon, new_segment, self.current_segments)
+    def add_polygon_from_cache(self, new_polygon, new_segment):
+        height = new_segment.get_height()
+        if self.last_inserted_node is not None and self.fast_insert(self.last_inserted_node, new_polygon, new_segment):
+            return True
+        if height in self.last_inserted_nodes_in_level and self.fast_insert(self.last_inserted_nodes_in_level[height], new_polygon, new_segment):
+            return True
+        return False
 
     def fast_insert(self, father, new_polygon, seg):
         if is_included(seg, father.get_polygon(), self.current_segments):  # TODO: mettre is_included comme methode de tree_builder
@@ -95,7 +100,6 @@ class inclusion_tree_builder:
         ascend_polygon_rec(self.tree, super_tree, None)
 
         return super_tree
-
 
 
 def is_included(new_segment, polygon, current_segments):
