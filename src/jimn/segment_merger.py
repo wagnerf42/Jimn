@@ -3,6 +3,7 @@ from jimn.segment import segment
 from jimn.precision import precision
 from jimn.coordinates_hash import coordinates_hash
 from jimn.displayable import tycat
+from collections import defaultdict
 START = 0
 END = 1
 
@@ -10,19 +11,17 @@ END = 1
 class segment_merger:
     def __init__(self, segments):
         self.segments = segments
-        self.lines = {}
+        self.lines = defaultdict(list)
         self.rounder = coordinates_hash(2, precision-2)
 
     def hash_segments(self):
         for s in self.segments:
             h = s.line_hash(self.rounder)
-            if h not in self.lines:
-                self.lines[h] = []
             self.lines[h].append(s)
 
     def compute_points_and_counters(self, segments):
         self.points = {}
-        self.counters = [{}, {}]
+        self.counters = [defaultdict(int), defaultdict(int)]
         # loop through each segment
         # we record all points
         # and for each one how many segments start here and end here
@@ -32,9 +31,7 @@ class segment_merger:
             self.points[endpoints[0]] = endpoints[0]
             self.points[endpoints[1]] = endpoints[1]
             for counter, p in zip(self.counters, endpoints):
-                if p not in counter:
-                    counter[p] = 0
-                counter[p] = counter[p] + 1
+                counter[p] += 1
 
         # now sort points
         self.sorted_points = sorted(self.points.keys())
