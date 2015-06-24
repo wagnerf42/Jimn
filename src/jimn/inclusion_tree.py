@@ -1,6 +1,5 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
-from jimn.inclusion_tree_builder import is_included
 import os
 import getpass
 
@@ -25,6 +24,21 @@ class inclusion_tree:
         self.height = height
         self.children = []
 
+    def get_polygon(self):
+        return self.polygon
+
+    def get_children(self):
+        return self.children
+
+    def remove_children(self):
+        self.children = []
+
+    def get_height(self):
+        return self.height
+
+    def is_a_polygon(self):
+        return self.is_polygon
+
 #    def try_insertion(self, builder, height):
 #        if is_included(seg, self.polygon, current_segments):  # TODO: mettre is_included comme methode de tree_builder
 #            if self.is_polygon or s.get_height() == self.height:
@@ -32,26 +46,6 @@ class inclusion_tree:
 #
 #                return True
 #        return False
-
-    def add_polygon(self, new_polygon, seg, current_segments):
-        if self.polygon is None:
-            self.__init__(new_polygon, seg.get_height())
-        else:
-            self.add_polygon_rec(new_polygon, seg, current_segments)
-
-    def add_polygon_rec(self, new_polygon, seg, current_segments):
-        if not is_included(seg, self.polygon, current_segments):
-            return False
-        else:
-            # TODO: explain why sorted
-            for c in sorted(self.children, key=lambda c: c.height, reverse=True):
-                if c.add_polygon_rec(new_polygon, seg, current_segments):
-                    return True
-            if self.is_polygon or seg.get_height() == self.height:
-                self.add_child(new_polygon, seg.get_height())
-                return True
-            else:
-                return False
 
     def add_child(self, new_polygon, height):
         leaf = inclusion_tree(new_polygon, height, self)

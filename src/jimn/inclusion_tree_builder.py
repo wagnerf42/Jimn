@@ -1,11 +1,10 @@
+from jimn.inclusion_tree import inclusion_tree
 from jimn.event import event
 from jimn.debug import is_module_debugged
 
 
 class inclusion_tree_builder:
     def __init__(self, polygons):
-        from jimn.inclusion_tree import inclusion_tree
-
         self.polygons = polygons
         self.segments = create_segments(self.polygons)
         self.events = create_events(self.segments)
@@ -40,7 +39,7 @@ class inclusion_tree_builder:
         #     if not self.last_inserted_nodes_in_level[height].try_insertion(self, height):
 
         #         # we failed, search the whole tree
-        self.tree.add_polygon(new_polygon, new_segment, self.current_segments)
+        add_polygon(self.tree, new_polygon, new_segment, self.current_segments)
 
     def handle_event(self, e):
             starting_segments, ending_segments = [e.get_segments(segment_type) for segment_type in [0, 1]]
@@ -63,13 +62,33 @@ class inclusion_tree_builder:
                             self.tree.tycat()
 
     def ascend_polygons(self):
-        from jimn.inclusion_tree import inclusion_tree
-
         super_tree = inclusion_tree()
         super_tree.children = [self.tree]
         ascend_polygon_rec(self.tree, super_tree, None)
 
         return super_tree
+
+
+def add_polygon(tree, new_polygon, seg, current_segments):
+    if tree.get_polygon() is None:
+        tree.__init__(new_polygon, seg.get_height())
+    else:
+        add_polygon_rec(tree, new_polygon, seg, current_segments)
+
+
+def add_polygon_rec(node, new_polygon, seg, current_segments):
+    if not is_included(seg, node.get_polygon(), current_segments):
+        return False
+    else:
+        # TODO: explain why sorted
+        for c in sorted(node.get_children(), key=lambda c: c.get_height(), reverse=True):
+            if add_polygon_rec(c, new_polygon, seg, current_segments):
+                return True
+        if node.is_a_polygon() or seg.get_height() == node.get_height():
+            node.add_child(new_polygon, seg.get_height())
+            return True
+        else:
+            return False
 
 
 def is_included(new_segment, polygon, current_segments):
@@ -126,9 +145,9 @@ def get_polygon(segment, polygons):
 
 
 def ascend_polygon_rec(node, father, grandfather):
-    if not node.is_polygon:
-        grandfather.children += node.children
-        node.children = []
+    if not node.is_a_polygon():
+        grandfather.get_children().extend(node.get_children())
+        node.remove_children()
     else:
-        for c in node.children:
+        for c in node.get_children():
             ascend_polygon_rec(c, node, father)
