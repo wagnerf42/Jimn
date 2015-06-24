@@ -39,17 +39,11 @@ class inclusion_tree:
     def is_a_polygon(self):
         return self.is_polygon
 
-#    def try_insertion(self, builder, height):
-#        if is_included(seg, self.polygon, current_segments):  # TODO: mettre is_included comme methode de tree_builder
-#            if self.is_polygon or s.get_height() == self.height:
-#                self.add_child(new_polygon, s.get_height())
-#
-#                return True
-#        return False
 
     def add_child(self, new_polygon, height):
         leaf = inclusion_tree(new_polygon, height, self)
         self.children.append(leaf)
+        return leaf
 
     def tycat(self):
         global dot_count

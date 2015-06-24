@@ -27,19 +27,47 @@ class inclusion_tree_builder:
         for s in starting_segments:
             add_segment(s, self.current_segments)
 
-    def cache_new_tree_node(self, node, height):
+    def cache_new_tree_node(self, node):
         self.last_inserted_node = node
-        self.last_inserted_nodes_in_level[height] = node
+        self.last_inserted_nodes_in_level[node.get_height()] = node
+
+    def add_child_cached(self, father, new_polygon, height):
+        new_node = father.add_child(new_polygon, height)
+        self.cache_new_tree_node(new_node)
 
     def add_polygon_in_tree(self, new_polygon, new_segment):
         # we try to insert without searching the whole tree
+        height = new_segment.get_height()
+        if self.last_inserted_node is None or (self.last_inserted_node is not None and not self.fast_insert(self.last_inserted_node, new_polygon, new_segment)):
+            if height not in self.last_inserted_nodes_in_level or (height in self.last_inserted_nodes_in_level and not self.fast_insert(self.last_inserted_nodes_in_level[height], new_polygon, new_segment)):
 
-        # height = new_segment.get_height()
-        # if not self.last_inserted_node.try_insertion(new_segment, self):
-        #     if not self.last_inserted_nodes_in_level[height].try_insertion(self, height):
+                # we failed, search the whole tree
+                self.add_polygon_from_root(new_polygon, new_segment, self.current_segments)
 
-        #         # we failed, search the whole tree
-        add_polygon(self.tree, new_polygon, new_segment, self.current_segments)
+    def fast_insert(self, father, new_polygon, seg):
+        if is_included(seg, father.get_polygon(), self.current_segments):  # TODO: mettre is_included comme methode de tree_builder
+            if father.is_a_polygon() or seg.get_height() == father.get_height():
+                self.add_child_cached(father, new_polygon, seg.get_height())
+                return True
+        return False
+
+    def add_polygon_from_root(self, new_polygon, seg, current_segments):
+        if self.tree.get_polygon() is None:
+            self.tree.__init__(new_polygon, seg.get_height())
+            self.cache_new_tree_node(self.tree)
+        else:
+            self.add_polygon_rec(self.tree, new_polygon, seg, current_segments)
+
+    def add_polygon_rec(self, node, new_polygon, seg, current_segments):
+        if is_included(seg, node.get_polygon(), current_segments):  # TODO: mettre is_included comme methode de tree_builder
+            # TODO: explain why sorted
+            for c in sorted(node.get_children(), key=lambda c: c.get_height(), reverse=True):
+                if self.add_polygon_rec(c, new_polygon, seg, current_segments):
+                    return True
+            if node.is_a_polygon() or seg.get_height() == node.get_height():
+                self.add_child_cached(node, new_polygon, seg.get_height())
+                return True
+        return False
 
     def handle_event(self, e):
             starting_segments, ending_segments = [e.get_segments(segment_type) for segment_type in [0, 1]]
@@ -68,27 +96,6 @@ class inclusion_tree_builder:
 
         return super_tree
 
-
-def add_polygon(tree, new_polygon, seg, current_segments):
-    if tree.get_polygon() is None:
-        tree.__init__(new_polygon, seg.get_height())
-    else:
-        add_polygon_rec(tree, new_polygon, seg, current_segments)
-
-
-def add_polygon_rec(node, new_polygon, seg, current_segments):
-    if not is_included(seg, node.get_polygon(), current_segments):
-        return False
-    else:
-        # TODO: explain why sorted
-        for c in sorted(node.get_children(), key=lambda c: c.get_height(), reverse=True):
-            if add_polygon_rec(c, new_polygon, seg, current_segments):
-                return True
-        if node.is_a_polygon() or seg.get_height() == node.get_height():
-            node.add_child(new_polygon, seg.get_height())
-            return True
-        else:
-            return False
 
 
 def is_included(new_segment, polygon, current_segments):
