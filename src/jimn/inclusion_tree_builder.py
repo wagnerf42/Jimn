@@ -22,22 +22,38 @@ class inclusion_tree_builder:
         for e in self.events:
             self.handle_event(e)
 
+    def update_live_segments(self, starting_segments, ending_segments):
+        for s in ending_segments:
+            remove_segment(s, self.current_segments)
+        for s in starting_segments:
+            add_segment(s, self.current_segments)
+
+    def cache_new_tree_node(self, node, height):
+        self.last_inserted_node = node
+        self.last_inserted_nodes_in_level[height] = node
+
+    def add_polygon_in_tree(self, new_polygon, new_segment):
+        # we try to insert without searching the whole tree
+        height = new_segment.get_height()
+        if not self.last_inserted_node.try_insertion(new_segment, self):
+            if not self.last_inserted_nodes_in_level[height].try_insertion(self, height):
+                # we failed, search the whole tree
+                self.tree.add_polygon(new_polygon, self, height)
+
     def handle_event(self, e):
             starting_segments, ending_segments = [e.get_segments(segment_type) for segment_type in [0, 1]]
-            for s in ending_segments:
-                remove_segment(s, self.current_segments)
-            for s in starting_segments:
-                add_segment(s, self.current_segments)
+            self.update_live_segments(starting_segments, ending_segments)
+
+            # loop through all new segments seeing if we encounter a new polygon never seen before
             for s in sorted(starting_segments, key=lambda seg: (seg.angle(), seg.get_height()), reverse=True):
                 polygon_id = s.get_polygon_id()
                 if polygon_id not in self.seen_polygons:
-                    new_polygon = get_polygon(s, self.polygons)
-                    # we try to insert without searching the whole tree
-                    if not self.last_inserted_node.try_insertion(s, self.current_segments):
-                        if not self.last_inserted_nodes_in_level[s.get_height()].try_insertion(s, self.current_segments):
-                            # we failed, search the whole tree
-                            self.tree.add_polygon(new_polygon, s, self.current_segments)
 
+                    # add it in tree
+                    new_polygon = get_polygon(s, self.polygons)
+                    self.add_polygon_in_tree(new_polygon, s)
+
+                    # mark it as seen
                     self.seen_polygons[polygon_id] = True
                     if __debug__:
                         if is_module_debugged(__name__):
@@ -54,13 +70,15 @@ class inclusion_tree_builder:
         return super_tree
 
 
-def is_included(seg, polygon, current_segments):
+def is_included(new_segment, polygon, current_segments):
     if id(polygon) not in current_segments:
         return False
     else:
         segments = current_segments[id(polygon)]
+        if segments[0].get_height() < new_segment.get_height():
+            return False
         # s1 >= s2 means s1 above and higher than s2 (not strictly)
-        above_segments = [s for s in segments if s >= seg]
+        above_segments = [s for s in segments if s >= new_segment]
         return len(above_segments) % 2 == 1
 
 
@@ -68,7 +86,7 @@ def create_segments(all_polygons):
     all_segments = []
     for height, polygons in all_polygons.items():
         for p in polygons:
-            all_segments += p.non_vertical_segments(height)
+            all_segments.extend(p.non_vertical_segments(height))
     return all_segments
 
 
@@ -93,6 +111,8 @@ def add_segment(s, current_segments):
 def remove_segment(s, current_segments):
     polygon_id = s.get_polygon_id()
     current_segments[polygon_id].remove(s)
+    if current_segments[polygon_id] == []:
+        del current_segments[polygon_id]
 
 
 def get_polygon(segment, polygons):

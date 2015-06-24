@@ -46,15 +46,16 @@ class polygonsegment(segment):
         common_abs = [x1max, x2min]
         ya, yb = [[s.vertical_intersection_at(x) for x in common_abs] for s in (a, b)]
 
-        if ya == yb:
-            assert x1max != x2min, 'comparing segments whose common absciss range is only one point'
-            assert a.height != b.height, 'overlapping segments in the same slice'
-        elif __debug__:
-            for yaa, ybb in zip(ya, yb):
-                if yaa != ybb:
-                    check_precision(yaa, ybb, 'polygonsegment_lt')
+        if __debug__:
+            if ya == yb:
+                assert x1max != x2min, 'comparing segments whose common absciss range is only one point'
+                assert a.height != b.height, 'overlapping segments in the same slice'
+            else:
+                for yaa, ybb in zip(ya, yb):
+                    if yaa != ybb:
+                        check_precision(yaa, ybb, 'polygonsegment_lt')
 
-        return a.height >= b.height and ya <= yb
+        return ya <= yb
 
     def __hash__(self):
         to_hash = list(self.endpoints)
