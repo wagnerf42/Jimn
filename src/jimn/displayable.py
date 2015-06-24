@@ -31,7 +31,6 @@ class displayed_thing(object):
 
     def open_svg(self, filename):
         self.fd = open(filename, 'w')
-        self.fd.write('')
         self.fd.write("<svg width=\"{}\" height=\"{}\">\n".format(*svg_dimensions))
         self.fd.write("<rect width=\"{}\" height=\"{}\" fill=\"white\"/>\n".format(*svg_dimensions))
 
