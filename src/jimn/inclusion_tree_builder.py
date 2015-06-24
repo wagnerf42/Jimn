@@ -1,4 +1,5 @@
 from jimn.event import event
+from jimn.debug import is_module_debugged
 
 
 class inclusion_tree_builder:
@@ -28,10 +29,21 @@ class inclusion_tree_builder:
                 polygon_id = s.get_polygon_id()
                 if polygon_id not in self.seen_polygons:
                     new_polygon = get_polygon(s, self.polygons)
-                    print("adding polygon {} (h={})".format(str(new_polygon.label), str(s.get_height())))
                     self.tree.add_polygon(new_polygon, s, self.current_segments)
                     self.seen_polygons[polygon_id] = True
-                    self.tree.tycat()
+                    if __debug__:
+                        if is_module_debugged(__name__):
+                            print("adding polygon {} (h={})".format(str(new_polygon.label), str(s.get_height())))
+                            self.tree.tycat()
+
+    def ascend_polygons(self):
+        from jimn.inclusion_tree import inclusion_tree
+
+        super_tree = inclusion_tree()
+        super_tree.children = [self.tree]
+        ascend_polygon_rec(self.tree, super_tree, None)
+
+        return super_tree
 
 
 def is_included(seg, polygon, current_segments):
@@ -81,3 +93,12 @@ def get_polygon(segment, polygons):
     same_level_polygons = polygons[height]
     polygon = next(p for p in same_level_polygons if id(p) == polygon_id)
     return polygon
+
+
+def ascend_polygon_rec(node, father, grandfather):
+    if not node.is_polygon:
+        grandfather.children += node.children
+        node.children = []
+    else:
+        for c in node.children:
+            ascend_polygon_rec(c, node, father)

@@ -14,20 +14,20 @@ Distinction will be made later when building final tree"""
 
 class inclusion_tree:
     """stores a set of polygons included one inside another"""
-    def __init__(self, contained_polygon=None, height=None, is_polygon=None):
-        # si mon père est un trou (forcèment au même niveau), je suis un polygone
-        # sinon, si mon père est à un niveau supérieur, je suis un polygone
-        # sinon, je suis un trou
+    def __init__(self, contained_polygon=None, height=None, father=None):
+        if father is None:
+            self.is_polygon = True
+        else:
+            if not father.is_polygon:
+                assert father.height == height
+            self.is_polygon = (not father.is_polygon) or father.height > height
         self.polygon = contained_polygon
-        self.is_polygon = is_polygon
         self.height = height
         self.children = []
 
     def add_polygon(self, new_polygon, seg, current_segments):
         if self.polygon is None:
-            self.polygon = new_polygon
-            self.is_polygon = True
-            self.height = seg.get_height()
+            self.__init__(new_polygon, seg.get_height())
         else:
             self.add_polygon_rec(new_polygon, seg, current_segments)
 
@@ -39,22 +39,14 @@ class inclusion_tree:
             for c in sorted(self.children, key=lambda c: c.height, reverse=True):
                 if c.add_polygon_rec(new_polygon, seg, current_segments):
                     return True
-            # TODO: condition supplémentaire
-            # on ajoute que si :
-            # - self est un polygone
-            # ou
-            # - (self est un trou) mais au même niveau
-            if self.is_polygon or self.height == seg.get_height():
-                if not self.is_polygon:
-                    assert self.height == seg.get_height()
-                child_is_polygon = (not self.is_polygon) or self.height > seg.get_height()
-                self.add_child(new_polygon, seg.get_height(), child_is_polygon)
+            if self.is_polygon or seg.get_height() == self.height:
+                self.add_child(new_polygon, seg.get_height())
                 return True
             else:
                 return False
 
-    def add_child(self, new_polygon, height, is_polygon):
-        leaf = inclusion_tree(new_polygon, height, is_polygon)
+    def add_child(self, new_polygon, height):
+        leaf = inclusion_tree(new_polygon, height, self)
         self.children.append(leaf)
 
     def tycat(self):
