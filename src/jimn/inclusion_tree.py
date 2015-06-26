@@ -1,6 +1,5 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
-from jimn.inclusion_tree_builder import is_included
 import os
 import getpass
 
@@ -25,29 +24,26 @@ class inclusion_tree:
         self.height = height
         self.children = []
 
-    def add_polygon(self, new_polygon, seg, current_segments):
-        if self.polygon is None:
-            self.__init__(new_polygon, seg.get_height())
-        else:
-            self.add_polygon_rec(new_polygon, seg, current_segments)
+    def get_polygon(self):
+        return self.polygon
 
-    def add_polygon_rec(self, new_polygon, seg, current_segments):
-        if not is_included(seg, self.polygon, current_segments):
-            return False
-        else:
-            # TODO: explain why sorted
-            for c in sorted(self.children, key=lambda c: c.height, reverse=True):
-                if c.add_polygon_rec(new_polygon, seg, current_segments):
-                    return True
-            if self.is_polygon or seg.get_height() == self.height:
-                self.add_child(new_polygon, seg.get_height())
-                return True
-            else:
-                return False
+    def get_children(self):
+        return self.children
+
+    def remove_children(self):
+        self.children = []
+
+    def get_height(self):
+        return self.height
+
+    def is_a_polygon(self):
+        return self.is_polygon
+
 
     def add_child(self, new_polygon, height):
         leaf = inclusion_tree(new_polygon, height, self)
         self.children.append(leaf)
+        return leaf
 
     def tycat(self):
         global dot_count
