@@ -13,9 +13,9 @@ class polygontree:
         self.children = []
 
     def add_child_rec(self, current_node):
-        for c in current_node.children:
+        for c in current_node.get_children():
             if c.is_polygon:
-                holes = [gc.polygon for gc in c.children if not gc.is_polygon]
+                holes = [gc.polygon for gc in c.get_children() if not gc.is_polygon]
                 new_child = polygontree(holed_polygon(c.polygon, c.height, holes))
                 self.children.append(new_child)
                 new_child.add_child_rec(c)
@@ -38,7 +38,7 @@ class polygontree:
         os.system("tycat {}".format(svg_file))
 
     def save_dot(self, fd):
-        if self.holed_polygon == None:
+        if self.holed_polygon is None:
             fd.write("n{} [label=\"None\"];\n".format(id(self)))
         elif self.holed_polygon.holes == []:
             fd.write("n{} [label=\"{}, h={}\"];\n".format(id(self), str(self.holed_polygon.polygon.label), str(self.holed_polygon.height)))

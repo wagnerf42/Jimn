@@ -2,6 +2,7 @@ from jimn.inclusion_tree import inclusion_tree
 from jimn.event import event
 from jimn.debug import is_module_debugged
 
+ALIVE = 0
 
 class inclusion_tree_builder:
     def __init__(self, polygons):
@@ -11,6 +12,7 @@ class inclusion_tree_builder:
         self.current_segments = {}
         self.seen_polygons = {}
         self.tree = inclusion_tree()
+        self.fathers = {}
         # small caches to speed up search in tree
         self.last_inserted_node = None
         self.last_inserted_nodes_in_level = {}
@@ -43,13 +45,13 @@ class inclusion_tree_builder:
 
     def update_live_segments(self, starting_segments, ending_segments):
         for s in ending_segments:
-            remove_segment(s, self.current_segments)
+            remove_segment(s, self.current_segments, self.fathers)
         for s in starting_segments:
-            add_segment(s, self.current_segments)
+            add_segment(s, self.current_segments, self.fathers)
 
     def add_polygon_in_tree(self, new_polygon, new_segment):
         # we try to insert without searching the whole tree
-        if not self.add_polygon_from_cache(new_polygon, new_segment):
+        # if not self.add_polygon_from_cache(new_polygon, new_segment):
             # we failed, search the whole tree
             self.add_polygon_from_root(new_polygon, new_segment, self.current_segments)
 
@@ -63,7 +65,7 @@ class inclusion_tree_builder:
     def add_polygon_rec(self, node, new_polygon, seg, current_segments):
         if is_included(seg, node.get_polygon(), current_segments):  # TODO: mettre is_included comme methode de tree_builder
             # TODO: explain why sorted
-            for c in sorted(node.get_children(), key=lambda c: c.get_height(), reverse=True):
+            for c in sorted(node.get_alive_children(), key=lambda c: c.get_height(), reverse=True):
                 if self.add_polygon_rec(c, new_polygon, seg, current_segments):
                     return True
             if node.is_a_polygon() or seg.get_height() == node.get_height():
@@ -93,10 +95,11 @@ class inclusion_tree_builder:
     def add_child_cached(self, father, new_polygon, height):
         new_node = father.add_child(new_polygon, height)
         self.cache_new_tree_node(new_node)
+        self.fathers[id(new_polygon)] = father
 
     def ascend_polygons(self):
         super_tree = inclusion_tree()
-        super_tree.children = [self.tree]
+        super_tree.children[ALIVE] = [self.tree]
         ascend_polygon_rec(self.tree, super_tree, None)
 
         return super_tree
@@ -120,7 +123,7 @@ def create_events(segments):
     return sorted(events.values())
 
 
-def add_segment(s, current_segments):
+def add_segment(s, current_segments, fathers):
     polygon_id = s.get_polygon_id()
     if polygon_id not in current_segments:
         current_segments[polygon_id] = [s]
@@ -128,11 +131,14 @@ def add_segment(s, current_segments):
         current_segments[polygon_id].append(s)
 
 
-def remove_segment(s, current_segments):
+def remove_segment(s, current_segments, fathers):
     polygon_id = s.get_polygon_id()
     current_segments[polygon_id].remove(s)
     if current_segments[polygon_id] == []:
         del current_segments[polygon_id]
+        if polygon_id in fathers:
+            father = fathers[polygon_id]
+            father.kill_child(polygon_id)
 
 
 def get_polygon(segment, polygons):
@@ -157,7 +163,7 @@ def is_included(new_segment, polygon, current_segments):
 
 def ascend_polygon_rec(node, father, grandfather):
     if not node.is_a_polygon():
-        grandfather.get_children().extend(node.get_children())
+        grandfather.get_alive_children().extend(node.get_children())
         node.remove_children()
     else:
         for c in node.get_children():
