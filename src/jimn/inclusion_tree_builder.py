@@ -51,7 +51,7 @@ class inclusion_tree_builder:
 
     def add_polygon_in_tree(self, new_polygon, new_segment):
         # we try to insert without searching the whole tree
-        # if not self.add_polygon_from_cache(new_polygon, new_segment):
+        if not self.add_polygon_from_cache(new_polygon, new_segment):
             # we failed, search the whole tree
             self.add_polygon_from_root(new_polygon, new_segment, self.current_segments)
 
