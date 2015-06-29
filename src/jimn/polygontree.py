@@ -12,13 +12,10 @@ class polygontree:
         self.holed_polygon = holed_polygon
         self.children = []
 
-    def add_child_rec(self, current_node):
-        for c in current_node.get_children():
-            if c.is_polygon:
-                holes = [gc.polygon for gc in c.get_children() if not gc.is_polygon]
-                new_child = polygontree(holed_polygon(c.polygon, c.height, holes))
-                self.children.append(new_child)
-                new_child.add_child_rec(c)
+    def add_child(self, polygon, height, holes):
+        new_child = polygontree(holed_polygon(polygon, height, holes))
+        self.children.append(new_child)
+        return new_child
 
     def tycat(self):
         global dot_count

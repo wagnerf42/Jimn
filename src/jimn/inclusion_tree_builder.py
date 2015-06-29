@@ -155,9 +155,11 @@ class inclusion_tree_builder:
 
     def ascend_polygon_rec(self, node, father, grandfather):
         if not node.is_a_polygon():
-            grandfather.get_alive_children().extend(node.get_children())
+            moved_children = node.get_children()
+            grandfather.get_dead_children().extend(moved_children)
             node.remove_children()
+            for c in moved_children:
+                self.ascend_polygon_rec(c, grandfather, None)
         else:
             for c in node.get_children():
                 self.ascend_polygon_rec(c, node, father)
-
