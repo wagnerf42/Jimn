@@ -18,6 +18,8 @@ class inclusion_tree:
     """stores a set of polygons included one inside another"""
     def __init__(self, contained_polygon=None, height=None, father=None):
         if father is None:
+            self.is_polygon = None
+        elif father.get_polygon() is None:
             self.is_polygon = True
         else:
             if not father.is_polygon:
@@ -37,9 +39,6 @@ class inclusion_tree:
 
     def get_alive_children(self):
         return self.children[ALIVE]
-
-    def get_dead_children(self):
-        return self.children[DEAD]
 
     def remove_children(self):
         self.children[ALIVE] = []
@@ -82,7 +81,10 @@ class inclusion_tree:
         os.system("tycat {}".format(svg_file))
 
     def save_dot(self, fd):
-        fd.write("n{} [label=\"{}, h={}\"];\n".format(id(self), str(self.polygon.label), str(self.height)))
+        if self.polygon is None:
+            fd.write("n{} [label=\"None\"];\n".format(id(self)))
+        else:
+            fd.write("n{} [label=\"{}, h={}\"];\n".format(id(self), str(self.polygon.label), str(self.height)))
         for child in self.children[ALIVE] + self.children[DEAD]:
             if child is not None:
                 fd.write("n{} -> n{};\n".format(id(self), id(child)))

@@ -2,7 +2,6 @@ from jimn.inclusion_tree import inclusion_tree
 from jimn.event import event
 from jimn.debug import is_module_debugged
 
-ALIVE = 0
 
 class inclusion_tree_builder:
     def __init__(self, polygons):
@@ -24,24 +23,24 @@ class inclusion_tree_builder:
             self.handle_event(e)
 
     def handle_event(self, e):
-            starting_segments, ending_segments = [e.get_segments(segment_type) for segment_type in [0, 1]]
-            self.update_live_segments(starting_segments, ending_segments)
+        starting_segments, ending_segments = [e.get_segments(segment_type) for segment_type in [0, 1]]
+        self.update_live_segments(starting_segments, ending_segments)
 
-            # loop through all new segments seeing if we encounter a new polygon never seen before
-            for s in sorted(starting_segments, key=lambda seg: (seg.angle(), seg.get_height()), reverse=True):
-                polygon_id = s.get_polygon_id()
-                if polygon_id not in self.seen_polygons:
+        # loop through all new segments seeing if we encounter a new polygon never seen before
+        for s in sorted(starting_segments, key=lambda seg: (seg.angle(), seg.get_height()), reverse=True):
+            polygon_id = s.get_polygon_id()
+            if polygon_id not in self.seen_polygons:
 
-                    # add it in tree
-                    new_polygon = get_polygon(s, self.polygons)
-                    self.add_polygon_in_tree(new_polygon, s)
+                # add it in tree
+                new_polygon = get_polygon(s, self.polygons)
+                self.add_polygon_in_tree(new_polygon, s)
 
-                    # mark it as seen
-                    self.seen_polygons[polygon_id] = True
-                    if __debug__:
-                        if is_module_debugged(__name__):
-                            print("adding polygon {} (h={})".format(str(new_polygon.label), str(s.get_height())))
-                            self.tree.tycat()
+                # mark it as seen
+                self.seen_polygons[polygon_id] = True
+                if __debug__:
+                    if is_module_debugged(__name__):
+                        print("adding polygon {} (h={})".format(str(new_polygon.label), str(s.get_height())))
+                        self.tree.tycat()
 
     def update_live_segments(self, starting_segments, ending_segments):
         for s in ending_segments:
@@ -56,11 +55,12 @@ class inclusion_tree_builder:
             self.add_polygon_from_root(new_polygon, new_segment, self.current_segments)
 
     def add_polygon_from_root(self, new_polygon, seg, current_segments):
-        if self.tree.get_polygon() is None:
-            self.tree.__init__(new_polygon, seg.get_height())
-            self.cache_new_tree_node(self.tree)
-        else:
-            self.add_polygon_rec(self.tree, new_polygon, seg, current_segments)
+        root = self.tree
+        for c in sorted(root.get_alive_children(), key=lambda c: c.get_height(), reverse=True):
+            if self.add_polygon_rec(c, new_polygon, seg, current_segments):
+                return True
+        self.add_child_cached(root, new_polygon, seg.get_height())
+        return True
 
     def add_polygon_rec(self, node, new_polygon, seg, current_segments):
         if is_included(seg, node.get_polygon(), current_segments):  # TODO: mettre is_included comme methode de tree_builder
@@ -98,11 +98,11 @@ class inclusion_tree_builder:
         self.fathers[id(new_polygon)] = father
 
     def ascend_polygons(self):
-        super_tree = inclusion_tree()
-        super_tree.children[ALIVE] = [self.tree]
-        ascend_polygon_rec(self.tree, super_tree, None)
+        root = self.tree
+        for c in root.get_children():
+            ascend_polygon_rec(c, root, None)
 
-        return super_tree
+        return self.tree
 
 
 def create_segments(all_polygons):
