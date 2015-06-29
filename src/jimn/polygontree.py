@@ -1,6 +1,7 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
 from jimn.holed_polygon import holed_polygon
+from queue import Queue
 import os
 import getpass
 
@@ -16,6 +17,32 @@ class polygontree:
         new_child = polygontree(holed_polygon(polygon, height, holes))
         self.children.append(new_child)
         return new_child
+
+
+    def display_depth_first(self):
+        border = self.children[0].holed_polygon.polygon
+        self.display_depth_first_rec(border)
+
+    def display_depth_first_rec(self, border):
+        if self.holed_polygon is not None:
+            print("displaying polygon {}, h={}".format(self.holed_polygon.polygon.label, self.holed_polygon.height))
+            print("holes = {}".format(str([h.label for h in self.holed_polygon.holes])))
+            self.holed_polygon.tycat(border)
+        for c in self.children:
+            c.display_depth_first_rec(border)
+
+    def display_breadth_first(self):
+        border = self.children[0].holed_polygon.polygon
+        to_display = Queue()
+        to_display.put(self)
+        while not to_display.empty():
+            node = to_display.get()
+            if node.holed_polygon is not None:
+                print("displaying polygon {}, h={}".format(node.holed_polygon.polygon.label, node.holed_polygon.height))
+                print("holes = {}".format(str([h.label for h in node.holed_polygon.holes])))
+                node.holed_polygon.tycat(border)
+            for c in node.children:
+                to_display.put(c)
 
     def tycat(self):
         global dot_count
