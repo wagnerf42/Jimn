@@ -90,24 +90,24 @@ class inclusion_tree_builder:
         # we try to insert without searching the whole tree
         if not self.add_polygon_from_cache(new_polygon, new_segment):
             # we failed, search the whole tree
-            self.add_polygon_from_root(new_polygon, new_segment, self.current_segments)
+            self.add_polygon_from_root(new_polygon, new_segment)
 
-    def add_polygon_from_root(self, new_polygon, seg, current_segments):
+    def add_polygon_from_root(self, new_polygon, new_segment):
         root = self.tree
         for c in sorted(root.get_alive_children(), key=lambda c: c.get_height(), reverse=True):
-            if self.add_polygon_rec(c, new_polygon, seg, current_segments):
+            if self.add_polygon_rec(c, new_polygon, new_segment):
                 return True
-        self.add_child_cached(root, new_polygon, seg.get_height())
+        self.add_child_cached(root, new_polygon, new_segment.get_height())
         return True
 
-    def add_polygon_rec(self, node, new_polygon, seg, current_segments):
-        if self.is_included(seg, node.get_polygon()):
+    def add_polygon_rec(self, node, new_polygon, new_segment):
+        if self.is_included(new_segment, node.get_polygon()):
             # TODO: explain why sorted
             for c in sorted(node.get_alive_children(), key=lambda c: c.get_height(), reverse=True):
-                if self.add_polygon_rec(c, new_polygon, seg, current_segments):
+                if self.add_polygon_rec(c, new_polygon, new_segment):
                     return True
-            if node.is_a_polygon() or seg.get_height() == node.get_height():
-                self.add_child_cached(node, new_polygon, seg.get_height())
+            if node.is_a_polygon() or new_segment.get_height() == node.get_height():
+                self.add_child_cached(node, new_polygon, new_segment.get_height())
                 return True
         return False
 
@@ -119,10 +119,10 @@ class inclusion_tree_builder:
             return True
         return False
 
-    def fast_insert(self, father, new_polygon, seg):
-        if self.is_included(seg, father.get_polygon()):  # TODO: mettre is_included comme methode de tree_builder
-            if father.is_a_polygon() or seg.get_height() == father.get_height():
-                self.add_child_cached(father, new_polygon, seg.get_height())
+    def fast_insert(self, father, new_polygon, new_segment):
+        if self.is_included(new_segment, father.get_polygon()):  # TODO: mettre is_included comme methode de tree_builder
+            if father.is_a_polygon() or new_segment.get_height() == father.get_height():
+                self.add_child_cached(father, new_polygon, new_segment.get_height())
                 return True
         return False
 

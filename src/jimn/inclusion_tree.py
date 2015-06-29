@@ -40,6 +40,9 @@ class inclusion_tree:
     def get_alive_children(self):
         return self.children[ALIVE]
 
+    def get_dead_children(self):
+        return self.children[DEAD]
+
     def remove_children(self):
         self.children[ALIVE] = []
         self.children[DEAD] = []
