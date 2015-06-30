@@ -8,7 +8,7 @@ class point:
     """A point is defined as a vector of any given dimension."""
 
     def __init__(self, coordinates):
-        """Inits a point whose dimension is the number of arguments, and whose coordinates are the arguments."""
+        """Inits a point with given coordinates"""
         self.coordinates = coordinates
 
     def __str__(self):
@@ -36,9 +36,12 @@ class point:
 
     def is_above(self, height):
         """
-        Returns a boolean indicating whether or not the point is located (strictly) above z = height.
+        Returns a boolean indicating whether or not the point is located
+        (strictly) above given height.
         Assumes the point has (at least) 3 dimensions
         """
+        if is_almost(self.coordinates[2], height):
+            return False
         return self.coordinates[2] > height
 
     def angle_with(self, other):
@@ -55,7 +58,9 @@ class point:
         display.write(" r=\"5\" fill=\"{}\"/> opacity=\"0.5\"\n".format(color))
 
     def is_aligned_with(self, p2, p3):
-        (x1, y1), (x2, y2), (x3, y3) = [p.get_coordinates() for p in (self, p2, p3)]
+        (x1, y1), (x2, y2), (x3, y3) = [
+            p.get_coordinates() for p in (self, p2, p3)
+        ]
         determinant = x1*y2 + y1*x3 + x2*y3 - (y2*x3 + y1*x2 + x1*y3)
         return is_almost(determinant, 0)
 
@@ -66,6 +71,12 @@ class point:
         """
         x, y = self.coordinates[0:2]
         return point([x, y])
+
+    def __add__(a, b):
+        added_coordinates = []
+        for c1, c2 in zip(a.coordinates, b.coordinates):
+            added_coordinates.append(c1+c2)
+        return point(added_coordinates)
 
     def __eq__(a, b):
         return a.coordinates == b.coordinates

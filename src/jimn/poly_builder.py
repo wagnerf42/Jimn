@@ -4,6 +4,7 @@ from jimn.segment import segment
 from jimn.displayable import tycat, tycat_set_svg_dimensions
 from jimn.debug import is_module_debugged
 
+area_limit = 10**-10 # TODO: what is the right value ??
 
 class polygonbuilder:
     def __init__(self, segments):
@@ -50,11 +51,12 @@ class polygonbuilder:
                 p = self.build_polygon(s)
             except:
                 tycat_set_svg_dimensions(1024, 768)
+                print(*self.points)
                 self.polygons = []
                 self.tycat()
                 raise
 
-            if p.orientation() > 0:  # discard outer edge
+            if p is not None and p.is_oriented_clockwise():  # discard outer edge
                 self.polygons.append(p)
                 if __debug__:
                     if is_module_debugged(__name__):
@@ -89,4 +91,9 @@ class polygonbuilder:
             s = segment([self.previous_point, self.current_point])
             self.marked_segments[s] = s
 
-        return polygon(self.points)
+        p = polygon(self.points)
+        if abs(p.area()) > area_limit:
+            p.remove_useless_points()
+            return p
+        else:  # discard polygons which are too small
+            return None
