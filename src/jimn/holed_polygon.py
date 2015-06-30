@@ -7,13 +7,16 @@ class holed_polygon:
         self.holes = holes
         self.height = height
 
+    def copy(self, p2):
+        holed_polygon.__init__(self, p2.polygon, p2.height, p2.holes)
+
     def normalize(self):
         self.polygon.orient(clockwise=True)
         self.polygon.normalize_starting_point()
         for h in self.holes:
             h.orient(clockwise=False)
             h.normalize_starting_point()
-        self.holes = sorted(self.holes, key=lambda h: h.get_points[0])
+        self.holes = sorted(self.holes, key=lambda h: h.get_points()[0])
 
     def is_translated(self, p2):
         if not self.polygon.is_translated(p2.polygon):

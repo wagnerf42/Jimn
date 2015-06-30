@@ -26,6 +26,9 @@ class polygon:
             self.label = label
         self.remove_useless_points()
 
+    def points_number(self):
+        return len(self.points)
+
     """when 3 consecutive points are aligned the middle one is useless.
     we remove here all useless points in order to decrease cost of storage and
     computations of further operations.
@@ -99,7 +102,7 @@ class polygon:
         self.points = self.points[::-1]
 
     def normalize_starting_point(self):
-        smallest_point = point(float('inf'), float('inf'))
+        smallest_point = point([float('inf'), float('inf')])
         index = -1
         for k, p in enumerate(self.points):
             if p < smallest_point:

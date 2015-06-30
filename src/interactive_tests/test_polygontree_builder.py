@@ -2,9 +2,8 @@
 
 from jimn.point import point
 from jimn.polygon import polygon
-from jimn.displayable import tycat
-from jimn.inclusion_tree_builder import inclusion_tree_builder
-from jimn.polygontree_builder import polygontree_builder
+# from jimn.displayable import tycat
+from jimn.polygontree_builder import build_tree
 
 a = point([0.0, 0.0])
 b = point([9.0, 0.0])
@@ -69,6 +68,4 @@ polygons[height] = [poly8, poly9, poly10]
 
 # appeller plutot le constructeur de polygontree qui appellera  a son tour le constrcteur de inclusiontree_builder
 # builder = inclusion_tree_builder(polygons)
-new = polygontree_builder(polygons)
-tr = new.translated_holed_polygons()
-print([[str(poly.polygon.label) + " " + str([hole.label for hole in poly.holes]) for poly in cl] for cl in tr])
+tree = build_tree(polygons)
