@@ -1,4 +1,5 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
+from jimn.point import point
 from jimn.segment import segment
 from jimn.polygonsegment import polygonsegment
 from jimn.bounding_box import bounding_box
@@ -90,6 +91,33 @@ class polygon:
         assert not is_almost(o, 0), "flat polygon"
         return o > 0
 
+    def orient(self, clockwise=True):
+        if self.is_oriented_clockwise() != clockwise:
+            self.reverse()
+
+    def reverse(self):
+        self.points = self.points[::-1]
+
+    def normalize_starting_point(self):
+        smallest_point = point(float('inf'), float('inf'))
+        index = -1
+        for k, p in enumerate(self.points):
+            if p < smallest_point:
+                smallest_point = p
+                index = k
+        self.points = self.points[index:] + self.points[:index]
+
+    # assumes the two polygons are normalized
+    def is_translated(self, p2):
+        translation_vector = None
+        for a1, a2 in zip(self.get_points(), p2.get_points()):
+            if translation_vector is None:
+                translation_vector = a2 - a1
+            else:
+                if not (a2 - a1).is_almost(translation_vector):
+                    return False
+        return True
+
     """requires polygon to be oriented counter clockwise to carve the inside
     and clockwise to carve the outside"""
     def reduction(self):
@@ -121,8 +149,8 @@ class polygon:
 
     def save_svg_content(self, display, color):
         svg_coordinates = []
-        for point in self.points:
-            string = "{},{}".format(*display.convert_coordinates(point.get_coordinates()))
+        for p in self.points:
+            string = "{},{}".format(*display.convert_coordinates(p.get_coordinates()))
             svg_coordinates.append(string)
         svg_formatted = " ".join(svg_coordinates)
         display.write("<polygon points=\"{}\"".format(svg_formatted))

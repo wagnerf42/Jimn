@@ -18,7 +18,6 @@ class polygontree:
         self.children.append(new_child)
         return new_child
 
-
     def display_depth_first(self):
         border = self.children[0].holed_polygon.polygon
         self.display_depth_first_rec(border)
