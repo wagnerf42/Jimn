@@ -1,12 +1,8 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
-from jimn.point import point
 from jimn.segment import segment
 from jimn.polygonsegment import polygonsegment
 from jimn.bounding_box import bounding_box
 from jimn.precision import is_almost
-from jimn.displayable import tycat
-from jimn.debug import is_module_debugged
-from math import pi
 
 
 class invalid_polygon(Exception):
@@ -24,7 +20,6 @@ class polygon:
             self.label = id(self)
         else:
             self.label = label
-        self.remove_useless_points()
 
     def points_number(self):
         return len(self.points)
@@ -50,7 +45,7 @@ class polygon:
                 except:
                     raise invalid_polygon("coming back")
                 if d1 > d2:
-                    raise invalid_polygon("coming back")
+                    raise invalid_polygon("coming back 2")
             p2 = p
         if not p1.is_aligned_with(p2, start_point):
             remaining_points.append(p2)
@@ -63,6 +58,7 @@ class polygon:
     def get_points(self):
         return self.points
 
+    # TODO: iterator
     def segments(self):
         s = []
         for p1, p2 in zip(self.points, self.points[1:]):
@@ -81,29 +77,26 @@ class polygon:
             s.append(seg)
         return s
 
-    def orientation(self):
+    def area(self):
         a = 0
         for s in self.segments():
             (x1, y1), (x2, y2) = [p.get_coordinates() for p in s.get_endpoints()]
-            a = a + x1*y1 - x2*y1
-        return a
+            a = a + x1*y2 - x2*y1
+        return a/2
 
     """clockwise is defined respectively to svg displayed"""
     def is_oriented_clockwise(self):
-        o = self.orientation()
-        assert not is_almost(o, 0), "flat polygon"
-        return o > 0
+        a = self.area()
+        assert not is_almost(a, 0), "flat polygon"
+        return a > 0
 
     def orient(self, clockwise=True):
         if self.is_oriented_clockwise() != clockwise:
-            self.reverse()
-
-    def reverse(self):
-        self.points = self.points[::-1]
+            self.points.reverse()
 
     def normalize_starting_point(self):
-        smallest_point = point([float('inf'), float('inf')])
-        index = -1
+        smallest_point = self.points[0]
+        index = 0
         for k, p in enumerate(self.points):
             if p < smallest_point:
                 smallest_point = p
@@ -121,23 +114,10 @@ class polygon:
                     return False
         return True
 
-    """requires polygon to be oriented counter clockwise to carve the inside
-    and clockwise to carve the outside"""
-    def reduction(self):
-        for i in range(len(self.points)):
-            p1, p2, p3 = map(lambda j: self.points[(i+j) % len(self.points)], (-1, 0, 1))
-            angle = p2.angle_with(p1) - p2.angle_with(p3)
-            assert not is_almost(angle, 0), "flat segment"
-            if angle < 0:
-                angle += 2*pi
-            if __debug__:
-                if is_module_debugged(__name__):
-                    print("angle :", angle)
-                    tycat(self, p1, p2, p3)
-
     def __str__(self):
         return "[{}]".format(';'.join(map(lambda p: str(p), self.points)))
 
+    # TODO : use new system
     def get_bounding_box(self):
         min_coordinates = [float('+inf') for i in self.points[0].get_coordinates()]
         max_coordinates = [float('-inf') for i in self.points[0].get_coordinates()]

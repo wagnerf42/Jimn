@@ -43,7 +43,7 @@ class segment_merger:
         # we record on how many segments we currently are
         currently_on = 0
         # we record where interesting segment started
-        starting_point = None
+        previous_point = None
 
         odd_segments = []
 
@@ -52,15 +52,9 @@ class segment_merger:
                 now_on = currently_on + self.counters[START][p]
             if p in self.counters[END]:
                 now_on = now_on - self.counters[END][p]
-            # now test if parity changed
-            if (now_on + currently_on) % 2 == 1:
-                # we test if we enter or leave a segment
-                if now_on % 2 == 1:
-                    # enter
-                    starting_point = p
-                else:
-                    # leave
-                    odd_segments.append(segment([starting_point, p]))
+            if currently_on % 2 == 1:
+                odd_segments.append(segment([previous_point, p]))
+            previous_point = p
             currently_on = now_on
 
         return odd_segments

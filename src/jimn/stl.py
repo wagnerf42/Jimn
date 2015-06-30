@@ -60,9 +60,8 @@ class stl:
                 self.bounding_box.update(facet_bounding_box)
 
     def parse_ascii_stl(file_name):
-        fd = open(file_name, "r")
-        s = fd.read()
-        fd.close()
+        with open(file_name, "r") as fd:
+            s = fd.read()
         head, *facets_strings = s.split('facet normal')
         if not re.search('^solid\s+\S*', head):
             raise IOError

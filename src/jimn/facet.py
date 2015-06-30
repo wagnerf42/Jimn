@@ -4,6 +4,7 @@ from jimn.point import point
 from jimn.segment import segment
 from jimn.displayable import tycat
 from jimn.bounding_box import bounding_box
+from jimn.precision import is_almost
 
 
 class facet:
@@ -40,7 +41,7 @@ class facet:
         elif len(higher_points) == 2:
             together_points = higher_points
             isolated_point = lower_points[0]
-            if(isolated_point.get_z() == h):
+            if(is_almost(isolated_point.get_z(), h)):
                 return
         else:
             return
@@ -53,7 +54,13 @@ class facet:
         # check it to avoid creating a one point segment
         if intersection_points[0] == intersection_points[1]:
             return
-        intersection_segment = segment(intersection_points)
+        try:
+            intersection_segment = segment(intersection_points)
+        except:
+            print("facet is : ", self)
+            print("h is : ", h)
+            print("segment is : ", *intersection_points)
+            raise
         # sort endpoints for remaining algorithms
         segments.append(intersection_segment.sort_endpoints())
 

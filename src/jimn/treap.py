@@ -81,11 +81,10 @@ class treap:
         dot_file = "{}/{}.dot".format(directory, dot_count)
         svg_file = "{}/{}.svg".format(directory, dot_count)
         dot_count = dot_count + 1
-        dot_fd = open(dot_file, 'w')
-        dot_fd.write("digraph g {\n")
-        self.save_dot(dot_fd)
-        dot_fd.write("}")
-        dot_fd.close()
+        with open(dot_file, "w") as dot_fd:
+            dot_fd.write("digraph g {\n")
+            self.save_dot(dot_fd)
+            dot_fd.write("}")
         os.system("dot -Tsvg {} -o {}".format(dot_file, svg_file))
         os.system("tycat {}".format(svg_file))
 

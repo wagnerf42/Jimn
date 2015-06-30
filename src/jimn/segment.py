@@ -3,7 +3,7 @@ import sys
 from jimn.point import point
 from math import atan2
 from jimn.coordinates_hash import coordinates_hash
-from jimn.precision import squared_limit, check_precision, coordinate_key, is_almost
+from jimn.precision import segment_limit, check_precision, coordinate_key, is_almost
 from jimn.bounding_box import bounding_box
 
 rounding_hash = coordinates_hash(3)
@@ -15,7 +15,7 @@ class segment:
         self.endpoints = points
         assert self.endpoints[0].dimension() == self.endpoints[1].dimension()
         if __debug__:
-            if(self.squared_length() <= squared_limit):
+            if(self.squared_length() <= segment_limit):
                 # print("very small segment {}".format(str(self)), file=sys.stderr)
                 raise Exception("very small segment")
 
