@@ -21,6 +21,17 @@ class facet:
     def add_point(self, p):
         self.points.append(p)
 
+    def is_vertical(self):
+        p1, p2, p3 = [p.projection2d() for p in self.points]
+        return p1.is_aligned_with(p2, p3)
+
+    def is_near(self, p, limit):
+        points = [p.projection2d() for p in self.points]
+        for p2 in points:
+            if not p2.is_near(p, limit):
+                return False
+        return True
+
     def find_points_above_and_below(self, h):
         points = [[], []]
         for p in self.points:
@@ -54,13 +65,9 @@ class facet:
         # check it to avoid creating a one point segment
         if intersection_points[0] == intersection_points[1]:
             return
-        try:
-            intersection_segment = segment(intersection_points)
-        except:
-            print("facet is : ", self)
-            print("h is : ", h)
-            print("segment is : ", *intersection_points)
-            raise
+        intersection_segment = segment(intersection_points)
+        print("facet is : ", self)
+        print("segment is : ", *intersection_points)
         # sort endpoints for remaining algorithms
         segments.append(intersection_segment.sort_endpoints())
 

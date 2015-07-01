@@ -105,6 +105,21 @@ class stl:
             border_segments.append(s.sort_endpoints())
         return border_segments
 
+    def remove_non_vertical_facets(self):
+        self.facets = [f for f in self.facets if f.is_vertical()]
+    def keep_facets_near(self, p, limit):
+        self.facets = [f for f in self.facets if f.is_near(p, limit)]
+
+    def flatten(self):
+        segments = []
+        for f in self.facets:
+            facet_segments = f.segments()
+            for s in facet_segments:
+                if not s.is_vertical_3d():
+                    segments.append(s)
+        segments2d = projection2d(segments)
+        return [s.sort_endpoints() for s in segments2d]
+
 
 def projection2d(segments_set):
     return [s.projection2d() for s in segments_set]

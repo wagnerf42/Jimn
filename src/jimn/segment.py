@@ -1,12 +1,11 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
-import sys
 from jimn.point import point
-from math import atan2
 from jimn.coordinates_hash import coordinates_hash
-from jimn.precision import segment_limit, check_precision, coordinate_key, is_almost
+from jimn.precision import segment_limit, check_precision, is_almost
 from jimn.bounding_box import bounding_box
 
 rounding_hash = coordinates_hash(3)
+
 
 class segment:
     """A segment is defined as a set of two points"""
@@ -72,20 +71,28 @@ class segment:
             beta = a.get_y() - alpha * a.get_x()
             return y0 >= alpha * x0 + beta
 
+    def is_vertical_3d(self):
+        xa, xb = [p.get_x() for p in self.endpoints]
+        ya, yb = [p.get_y() for p in self.endpoints]
+        if xa == xb and ya == yb:
+            return True
+        assert not(is_almost(xa, xb) and is_almost(ya, yb)),  "near vertical 3d"
+        return False
+
     # for 2d points
     def is_vertical(self):
-        [xa, xb] = [p.get_x() for p in self.get_endpoints()]
+        xa, xb = [p.get_x() for p in self.endpoints]
         if xa == xb:
             return True
         else:
             if is_almost(xa, xb):
-                raise RuntimeError("Segment presque vertical rencontré")
+                raise RuntimeError("almost vertical segment")
             return False
 
     # return unique id of line on which is segment
     def line_hash(self, rounder):
         assert self.dimension() == 2, 'only works on 2d points segment'
-        (x1, y1), (x2, y2) = [ p.get_coordinates() for p in self.endpoints]
+        (x1, y1), (x2, y2) = [p.get_coordinates() for p in self.endpoints]
         if x1 == x2:
             key = rounder.hash_coordinate(0, x1)
             return ':{}'.format(key)

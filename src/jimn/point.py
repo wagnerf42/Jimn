@@ -64,6 +64,14 @@ class point:
         determinant = x1*y2 + y1*x3 + x2*y3 - (y2*x3 + y1*x2 + x1*y3)
         return is_almost(determinant, 0)
 
+    def is_near(self, other, limit):
+        coordinates = [p.get_coordinates() for p in (self, other)]
+        distance = 0
+        for i in range(len(coordinates[0])):
+            diff = coordinates[0][i] - coordinates[1][i]
+            distance = distance + diff * diff
+        return distance < limit*limit
+
     def is_almost(self, p2):
         assert(len(self.get_coordinates()) == len(p2.get_coordinates()))
         for u1, u2 in zip(self.get_coordinates(), p2.get_coordinates()):
