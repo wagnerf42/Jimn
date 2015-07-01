@@ -69,10 +69,10 @@ class polygon:
     def non_vertical_segments(self, height):
         s = []
         for p1, p2 in zip(self.points, self.points[1:]):
-            seg = polygonsegment([p1, p2], height, id(self))
+            seg = polygonsegment([p1, p2], height, self)
             if not seg.is_vertical():
                 s.append(seg)
-        seg = polygonsegment([self.points[-1], self.points[0]], height, id(self))
+        seg = polygonsegment([self.points[-1], self.points[0]], height, self)
         if not seg.is_vertical():
             s.append(seg)
         return s
@@ -115,7 +115,7 @@ class polygon:
         return True
 
     def __str__(self):
-        return "[{}]".format(';'.join(map(lambda p: str(p), self.points)))
+        return "[{}/{}]".format(self.label,';'.join(map(lambda p: str(p), self.points)))
 
     # TODO : use new system
     def get_bounding_box(self):

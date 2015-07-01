@@ -2,7 +2,7 @@
 
 from jimn.point import point
 from jimn.polygon import polygon
-# from jimn.displayable import tycat
+from jimn.displayable import tycat
 from jimn.polygontree_builder import build_tree
 
 a = point([0.0, 0.0])
@@ -61,10 +61,10 @@ poly9 = polygon(list(points5), 9)
 poly10 = polygon(list(points4), 10)
 polygons[height] = [poly8, poly9, poly10]
 
-# tycat(poly1)
-# tycat(poly2)
-# tycat(poly3, poly4, poly5, poly6, poly7)
-# tycat(poly8, poly9, poly10)
+tycat(poly1)
+tycat(poly2)
+tycat(poly3, poly4, poly5, poly6, poly7)
+tycat(poly8, poly9, poly10)
 
 # appeller plutot le constructeur de polygontree qui appellera  a son tour le constrcteur de inclusiontree_builder
 # builder = inclusion_tree_builder(polygons)

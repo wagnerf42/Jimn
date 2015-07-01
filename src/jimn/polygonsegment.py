@@ -6,13 +6,13 @@ from jimn.precision import check_precision
 class polygonsegment(segment):
     """two additional attributes to basic segments : height and polygon id"""
 
-    def __init__(self, points, height, polygon_id):
+    def __init__(self, points, height, polygon_we_belong_to):
         self.endpoints = sorted(points)
         if __debug__:
             for p in self.endpoints:
                 assert p.dimension() == 2, 'polygonsegment works only on 2d points'
         self.height = height
-        self.polygon_id = polygon_id
+        self.polygon = polygon_we_belong_to
 
     def vertical_intersection_at(self, x):
         x1, y1 = self.endpoints[0].get_coordinates()
@@ -27,7 +27,10 @@ class polygonsegment(segment):
         return y
 
     def get_polygon_id(self):
-        return self.polygon_id
+        return id(self.polygon)
+
+    def get_polygon(self):
+        return self.polygon
 
     def get_height(self):
         return self.height

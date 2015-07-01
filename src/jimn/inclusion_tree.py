@@ -4,32 +4,42 @@ import os
 import getpass
 
 
-dot_count = 0
-
-ALIVE = 0
-DEAD = 1
-
 """This file is only used for polygontree creation
 No distinction between holes and filled_spaces now
 Distinction will be made later when building final tree"""
+
+dot_count = 0
+
+# while scanning through the planes we encounter and leave polygons.
+# polygons currently intersecting sweeping line are marked active
+ALIVE = 0
+DEAD = 1
 
 
 class inclusion_tree:
     """stores a set of polygons included one inside another"""
     def __init__(self, contained_polygon=None, height=None, father=None):
-        if father is None:
-            self.is_polygon = None
-        elif father.get_polygon() is None:
-            self.is_polygon = True
-        else:
-            if not father.is_polygon:
-                assert father.height == height
-            self.is_polygon = (not father.is_polygon) or father.height > height
         self.polygon = contained_polygon
         self.height = height
         self.children = [None, None]
         self.children[ALIVE] = []
         self.children[DEAD] = []
+        if father is not None:
+            self.is_polygon = self.compute_polygonality(father)
+
+    def compute_polygonality(self, father):
+        # compute if we are a polygon
+        if father.is_root():
+            return True
+        else:
+            if __debug__:
+                if not father.is_polygon:
+                    assert father.height == self.height
+                    # do we store a hole or a polygon ?
+                    return (not father.is_polygon) or father.height > self.height
+
+    def is_root(self):
+        return self.polygon is None
 
     def get_polygon(self):
         return self.polygon
@@ -53,7 +63,9 @@ class inclusion_tree:
     def is_a_polygon(self):
         return self.is_polygon
 
-    def add_child(self, new_polygon, height):
+    def add_child(self, new_segment):
+        new_polygon = new_segment.get_polygon()
+        height = new_segment.get_height()
         leaf = inclusion_tree(new_polygon, height, self)
         self.children[ALIVE].append(leaf)
         return leaf
@@ -63,6 +75,8 @@ class inclusion_tree:
             if id(c.get_polygon()) == polygon_id:
                 to_kill_index = k
                 break
+        else:
+            raise "no one here"
         killed = self.children[ALIVE].pop(to_kill_index)
         self.children[DEAD].append(killed)
 
