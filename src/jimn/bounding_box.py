@@ -15,6 +15,14 @@ class bounding_box:
             max_coordinates.append(float('-inf'))
         return cls(min_coordinates, max_coordinates)
 
+    def add_point(self, p):
+        assert p.dimension() == len(self.min_coordinates), "invalid point size"
+        for i, c in enumerate(p.get_coordinates()):
+            if c < self.min_coordinates[i]:
+                self.min_coordinates[i] = c
+            if c > self.max_coordinates[i]:
+                self.max_coordinates[i] = c
+
     def update(self, other):
         assert len(self.min_coordinates) == len(other.min_coordinates), 'merge different boxes'
         for i, c in enumerate(other.min_coordinates):

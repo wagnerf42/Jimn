@@ -119,16 +119,10 @@ class polygon:
 
     # TODO : use new system
     def get_bounding_box(self):
-        min_coordinates = [float('+inf') for i in self.points[0].get_coordinates()]
-        max_coordinates = [float('-inf') for i in self.points[0].get_coordinates()]
+        box = bounding_box.empty_box()
         for p in self.points:
-            coordinates = p.get_coordinates()
-            for coordinate_index, coordinate in enumerate(coordinates):
-                if coordinate < min_coordinates[coordinate_index]:
-                    min_coordinates[coordinate_index] = coordinate
-                if coordinate > max_coordinates[coordinate_index]:
-                    max_coordinates[coordinate_index] = coordinate
-        return bounding_box(min_coordinates, max_coordinates)
+            box.add_point(p)
+        return box
 
     def save_svg_content(self, display, color):
         svg_coordinates = []

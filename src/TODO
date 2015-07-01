@@ -9,7 +9,6 @@
  * minor code improvements (readability)
 
 - python iterators for tree traversal : depth and breadth first (pierre)
-- add point method in bounding box (fred)
 - inclusion_tree_builder is rather complex : clarify a bit more
 - move ascend_polygons from builder into tree
 
@@ -20,3 +19,8 @@
  * misc
 
 - profiling
+- test ascii stl loader
+
+ * calibration
+
+- what precision should be chosen in stl to round z coordinates ?

@@ -66,26 +66,17 @@ class facet:
         if intersection_points[0] == intersection_points[1]:
             return
         intersection_segment = segment(intersection_points)
-        print("facet is : ", self)
-        print("segment is : ", *intersection_points)
         # sort endpoints for remaining algorithms
         segments.append(intersection_segment.sort_endpoints())
 
 
-def binary_facet(all_coordinates):
-    f = facet(
-        [
-            point(all_coordinates[3:6]),
-            point(all_coordinates[6:9]),
-            point(all_coordinates[9:12])
-        ]
-    )
-    # compute bounding box
-    min_coordinates = []
-    max_coordinates = []
+def binary_facet(all_coordinates, heights_hash, box):
+    points = []
     for i in range(3):
-        coordinates = [all_coordinates[j] for j in (3+i, 6+i, 9+i)]
-        min_coordinates.append(min(coordinates))
-        max_coordinates.append(max(coordinates))
-    box = bounding_box(min_coordinates, max_coordinates)
-    return (f, box)
+        coordinates = list(all_coordinates[3+3*i:6+3*i])
+        coordinates[2] = heights_hash.hash_coordinate(0, coordinates[2])
+        p = point(coordinates)
+        box.add_point(p)
+        points.append(p)
+    f = facet(points)
+    return f

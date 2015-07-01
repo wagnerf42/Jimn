@@ -5,12 +5,14 @@ from jimn.point import point
 from jimn.segment import segment
 from jimn.facet import facet, binary_facet
 from jimn.bounding_box import bounding_box
+from jimn.coordinates_hash import coordinates_hash
 import struct
 import re
 
 
 class stl:
     def __init__(self, file_name):
+        self.heights_hash = coordinates_hash(dimension=1, wanted_precision=5)
         self.facets = []
         self.bounding_box = bounding_box.empty_box(3)
         if __debug__:
@@ -33,6 +35,7 @@ class stl:
         slices_number = ceil((max_height - min_height)/slice_size)
         for slice_number in range(slices_number):
             lower_boundary = max_height - (slice_number+1) * slice_size
+            lower_boundary = self.heights_hash.hash_coordinate(0, lower_boundary)
             current_slice = projection2d(self.horizontal_intersection(lower_boundary))
             slices[lower_boundary] = current_slice
         return slices
@@ -55,9 +58,8 @@ class stl:
             #  for each facet : 4 vectors of 3 floats + 2 unused bytes
             s = struct.Struct('12fh')
             for fields in s.iter_unpack(data):
-                (new_facet, facet_bounding_box) = binary_facet(fields)
+                new_facet = binary_facet(fields, self.heights_hash, self.bounding_box)
                 self.facets.append(new_facet)
-                self.bounding_box.update(facet_bounding_box)
 
     def parse_ascii_stl(file_name):
         with open(file_name, "r") as fd:
@@ -73,9 +75,10 @@ class stl:
             for point_string in points_strings:
                 m = re.search('^\s*(-?\d+(\.\d+)?)\s+(-?\d+(\.\d+)?)\s+(-?\d+(\.\d+)?)', point_string)
                 (x, y, z) = (float(m.group(1)), float(m.group(3)), float(m.group(5)))
-                b = bounding_box([x, y, z], [x, y, z])
-                self.bounding_box.update(b)
-                points.append(point([x, y, z]))
+                z = self.heights_hash.hash_coordinate(0, z)
+                p = point([x, y , z])
+                self.bounding_box.add_point(p)
+                points.append(p)
 
             self.facets.append(facet(points))
 
