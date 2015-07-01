@@ -1,6 +1,7 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
 from jimn.holed_polygon import holed_polygon
+from jimn.translated_holed_polygon import translated_holed_polygon
 from queue import Queue
 import os
 import getpass
@@ -71,3 +72,32 @@ class polygontree:
             if child is not None:
                 fd.write("n{} -> n{};\n".format(id(self), id(child)))
                 child.save_dot(fd)
+    #TODO
+    def traversal(self):
+        pass
+
+    """call normalize method on each polygon of the tree
+    this is a prerequisite for translated polygon identifications
+    """
+    def normalize_polygons(self):
+        new_polygon = self.holed_polygon
+        if new_polygon is not None:
+            new_polygon.normalize()
+        for c in self.children:
+            c.normalize_polygons()
+
+    # assumes holed_polygons in tree are normalized
+    def replace_translated_polygons(self, original_polygons):
+        new_polygon = self.holed_polygon
+        if new_polygon is not None:
+            points_number = new_polygon.polygon.points_number()
+            same_degree_polygons = original_polygons[points_number]
+            for original in same_degree_polygons:
+                if new_polygon.is_translated(original):
+                    self.holed_polygon = translated_holed_polygon(original, new_polygon)
+                    break
+            else:
+                original_polygons[points_number].append(new_polygon)
+
+        for c in self.children:
+            c.replace_translated_polygons(original_polygons)

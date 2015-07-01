@@ -1,5 +1,4 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
-from jimn.point import point
 from jimn.segment import segment
 from jimn.polygonsegment import polygonsegment
 from jimn.bounding_box import bounding_box
@@ -21,6 +20,9 @@ class polygon:
             self.label = id(self)
         else:
             self.label = label
+
+    def points_number(self):
+        return len(self.points)
 
     """when 3 consecutive points are aligned the middle one is useless.
     we remove here all useless points in order to decrease cost of storage and
