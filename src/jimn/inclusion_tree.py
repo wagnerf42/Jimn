@@ -35,8 +35,7 @@ class inclusion_tree:
             if __debug__:
                 if not father.is_polygon:
                     assert father.height == self.height
-                    # do we store a hole or a polygon ?
-                    return (not father.is_polygon) or father.height > self.height
+            return (not father.is_polygon) or father.height > self.height
 
     def is_root(self):
         return self.polygon is None

@@ -1,2 +1,22 @@
-- matcher dans l'arbre les polygones translates
-- ajouter une methode 'add point' dans bounding box
+
+ * large goals
+
+- polygon offsetting (fred)
+- path computation for holed polygon
+
+ * code review
+
+ * minor code improvements (readability)
+
+- python iterators for tree traversal : depth and breadth first (pierre)
+- add point method in bounding box (fred)
+- inclusion_tree_builder is rather complex : clarify a bit more
+- move ascend_polygons from builder into tree
+
+ * minor code improvements (performance)
+
+ * additional non-regression tests
+
+ * misc
+
+- profiling
