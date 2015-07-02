@@ -3,6 +3,7 @@
 from jimn.holed_polygon import holed_polygon
 from jimn.translated_holed_polygon import translated_holed_polygon
 from queue import Queue
+from queue import LifoQueue
 import os
 import getpass
 
@@ -31,6 +32,15 @@ class polygontree:
         for c in self.children:
             c.display_depth_first_rec(border)
 
+    def depth_first(self):
+        q = LifoQueue()
+        q.put(self)
+        while not q.empty():
+            node = q.get()
+            yield node
+            for c in node.children:
+                q.put(c)
+
     def display_breadth_first(self):
         border = self.children[0].holed_polygon.polygon
         to_display = Queue()
@@ -43,6 +53,15 @@ class polygontree:
                 node.holed_polygon.tycat(border)
             for c in node.children:
                 to_display.put(c)
+
+    def breadth_first(self):
+        q = Queue()
+        q.put(self)
+        while not q.empty():
+            node = q.get()
+            yield node
+            for c in node.children:
+                q.put(c)
 
     def tycat(self):
         global dot_count

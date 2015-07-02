@@ -119,7 +119,7 @@ class polygon:
 
     # TODO : use new system
     def get_bounding_box(self):
-        box = bounding_box.empty_box()
+        box = bounding_box.empty_box(2)
         for p in self.points:
             box.add_point(p)
         return box
