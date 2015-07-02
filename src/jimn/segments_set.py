@@ -2,6 +2,8 @@ from jimn.coordinates_hash import coordinates_hash
 from jimn.bounding_box import bounding_box
 from jimn.debug import is_module_debugged
 from jimn.displayable import tycat
+from collections import defaultdict
+import itertools
 
 
 class segments_set:
@@ -26,41 +28,28 @@ class segments_set:
 
     """brute force algorithm splitting all into elementary segments"""
     def compute_elementary_segments(self):
-        rounder = coordinates_hash(dimension=2)
-        unclassified_segments = dict(zip(self.segments, self.segments))
-        elementary_segments = []
-        while unclassified_segments:
-            key, candidate_elementary_segment = unclassified_segments.popitem()
-            smaller_segments = self.try_splitting(candidate_elementary_segment,
-                                                  unclassified_segments,
-                                                  rounder)
-            if smaller_segments:
-                for s in smaller_segments:
-                    unclassified_segments[s] = s
-            else:
-                elementary_segments.append(candidate_elementary_segment)
+        new_points = defaultdict(list)
+        self.find_new_points(new_points)
+        return self.split_segments_at(new_points)
 
+    def split_segments_at(self, new_points):
+        elementary_segments = []
+        for s in self.segments:
+            if s not in new_points:
+                elementary_segments.append(s)
+            else:
+                elementary_segments.extend(s.split_at(new_points[s]))
         return segments_set(elementary_segments)
 
-    # private, used to compute elementary segments
-    def try_splitting(self, candidate_elementary_segment, tested_segments, rounder):
-
-        for test_segment in tested_segments.values():
-            i = candidate_elementary_segment.intersection_with(
-                test_segment,
-                rounder
-            )
+    def find_new_points(self, new_points):
+        rounder = coordinates_hash(dimension=2)
+        for pair in itertools.combinations(self.segments, 2):
+            i = pair[0].intersection_with(pair[1], rounder)
             if i is not None:
-                smaller_segments = []
-                smaller_segments.extend(candidate_elementary_segment.split_at(i))
-                smaller_segments.extend(test_segment.split_at(i))
-
-                if len(smaller_segments) != 2:
-                    # they do not intersect, only at endpoints
-                    if __debug__:
-                        if is_module_debugged(__name__):
-                            print("splitting here:")
-                            tycat(self, candidate_elementary_segment, test_segment)
-                    del tested_segments[test_segment]
-                    return smaller_segments
-        return []
+                if __debug__:
+                    if is_module_debugged(__name__):
+                        print("splitting here:")
+                        tycat(self, *pair)
+                for s in pair:
+                    if not s.has_extremity(i):
+                        new_points[s].append(i)

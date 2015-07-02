@@ -29,15 +29,16 @@ class segment:
                 assert not p.is_almost(intermediate_point), "precision pb"
         return False
 
-    def split_at(self, intermediate_point):
-        if self.has_extremity(intermediate_point):
-            return [self]
-        else:
-            segments = [
-                segment([self.endpoints[0], intermediate_point]),
-                segment([intermediate_point, self.endpoints[1]])
-            ]
-            return segments
+    def split_at(self, points):
+        points.extend(self.endpoints)
+        sorted_points = sorted(points)
+        segments = [
+            segment([p1, p2]) for p1, p2 in zip(
+                sorted_points[:-1],
+                sorted_points[1:]
+            )
+        ]
+        return segments
 
     def squared_length(self):
         coordinates = [p.get_coordinates() for p in self.endpoints]

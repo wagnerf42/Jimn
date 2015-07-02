@@ -14,14 +14,15 @@ class polygonsegment(segment):
         self.height = height
         self.polygon = polygon_we_belong_to
 
-    def split_at(self, intermediate_point):
-        if self.has_extremity(intermediate_point):
-            return [self]
+    def split_at(self, points):
+        points.extend(self.endpoints)
+        sorted_points = sorted(points)
         segments = [
-            polygonsegment([self.endpoints[0], intermediate_point],
-                           self.height, self.polygon),
-            polygonsegment([intermediate_point, self.endpoints[1],
-                            intermediate_point], self.height, self.polygon),
+            polygonsegment([p1, p2], self.height, self.polygon)
+            for p1, p2 in zip(
+                sorted_points[:-1],
+                sorted_points[1:]
+            )
         ]
         return segments
 
