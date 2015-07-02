@@ -66,7 +66,8 @@ class inclusion_tree_builder:
                 self.seen_polygons[polygon_id] = True
                 if __debug__:
                     if is_module_debugged(__name__):
-                        print("added polygon {} (h={})".format(str(s.get_polygon().label), str(s.get_height())))
+                        print("added polygon", s.get_polygon().label,
+                              "( h =", s.get_height(), ")")
                         self.tree.tycat()
 
     def update_live_segments(self, starting_segments, ending_segments):
@@ -82,7 +83,7 @@ class inclusion_tree_builder:
     def remove_segment(self, s):
         polygon_id = s.get_polygon_id()
         self.current_segments[polygon_id].remove(s)
-        if self.current_segments[polygon_id] == []:
+        if not self.current_segments[polygon_id]:
             del self.current_segments[polygon_id]
             father = self.fathers[polygon_id]
             father.kill_child(polygon_id)

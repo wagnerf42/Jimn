@@ -83,7 +83,7 @@ class polygontree:
     def save_dot(self, fd):
         if self.holed_polygon is None:
             fd.write("n{} [label=\"None\"];\n".format(id(self)))
-        elif self.holed_polygon.holes == []:
+        elif not self.holed_polygon.holes:
             fd.write("n{} [label=\"{}, h={}\"];\n".format(id(self), str(self.holed_polygon.polygon.label), str(self.holed_polygon.height)))
         else:
             fd.write("n{} [label=\"{}, h={}\nholes={}\"];\n".format(id(self), str(self.holed_polygon.polygon.label), str(self.holed_polygon.height), str([h.label for h in self.holed_polygon.holes])))

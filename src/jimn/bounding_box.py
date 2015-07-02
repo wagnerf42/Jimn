@@ -23,6 +23,15 @@ class bounding_box:
             if c > self.max_coordinates[i]:
                 self.max_coordinates[i] = c
 
+    def contains_point(self, p):
+        assert p.dimension() == len(self.min_coordinates), "invalid point size"
+        for i, c in enumerate(p.get_coordinates()):
+            if c < self.min_coordinates[i]:
+                return False
+            if c > self.max_coordinates[i]:
+                return False
+        return True
+
     def update(self, other):
         assert len(self.min_coordinates) == len(other.min_coordinates), 'merge different boxes'
         for i, c in enumerate(other.min_coordinates):
