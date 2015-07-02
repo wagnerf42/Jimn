@@ -21,6 +21,24 @@ class segment:
     def __str__(self):
         return "[{}]".format(';'.join(map(lambda p: str(p), self.endpoints)))
 
+    def has_extremity(self, intermediate_point):
+        for p in self.endpoints:
+            if p == intermediate_point:
+                return True
+            else:
+                assert not p.is_almost(intermediate_point), "precision pb"
+        return False
+
+    def split_at(self, intermediate_point):
+        if self.has_extremity(intermediate_point):
+            return [self]
+        else:
+            segments = [
+                segment([self.endpoints[0], intermediate_point]),
+                segment([intermediate_point, self.endpoints[1]])
+            ]
+            return segments
+
     def squared_length(self):
         coordinates = [p.get_coordinates() for p in self.endpoints]
         distance = 0
@@ -35,7 +53,10 @@ class segment:
         return boxes[0]
 
     def save_svg_content(self, display, color):
-        svg_coordinates = [c for point in self.endpoints for c in display.convert_coordinates(point.get_coordinates())]
+        svg_coordinates = [
+            c for point in self.endpoints
+            for c in display.convert_coordinates(point.get_coordinates())
+        ]
         display.write("<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"".format(*svg_coordinates))
         display.write(" stroke-width=\"3\" stroke=\"{}\" opacity=\"0.5\"/>\n".format(color))
 
@@ -124,6 +145,46 @@ class segment:
 
     def angle(self):
         return self.endpoints[0].angle_with(self.endpoints[1])
+
+    """
+    intersect two segments.
+    only return point if included on the two segments.
+    """
+    def intersection_with(self, other, rounder):
+        assert self.dimension() == 2, "non 2d intersections"
+        assert other.dimension() == 2, "non 2d intersections"
+        # prepare rounder
+        for s in (self, other):
+            for p in s.get_endpoints():
+                rounder.hash_point(p)
+        # compute point
+        i = self.line_intersection_with(other)
+        if i is None:
+            return  # parallel lines
+        # check validity
+        i = rounder.hash_point(i)
+        for s in (self, other):
+            if not s.get_bounding_box().contains_point(i):
+                return
+        return i
+
+    """returns point intersecting with the two lines passing through the segments.
+    None if lines are almost parallel
+    """
+    def line_intersection_with(self, other):
+        x1, y1, x2, y2, x3, y3, x4, y4 = [
+            c for s in (self, other)
+            for p in s.get_endpoints()
+            for c in p.get_coordinates()
+        ]
+        denominator = (x1-x2) * (y4-y3) + (x3-x4) * (y1-y2)
+        if is_almost(denominator, 0):
+            return
+        x = x1*(x3*y4-x4*y3)+x2*(x4*y3-x3*y4)+(x3-x4)*(y1*x2-x1*y2)
+        x /= denominator
+        y = y2*(x1*(y4-y3)-x3*y4+x4*y3) + y1*(x3*y4+x2*(y3-y4)-x4*y3)
+        y /= denominator
+        return point([x, y])
 
     def __eq__(a, b):
         return a.endpoints == b.endpoints

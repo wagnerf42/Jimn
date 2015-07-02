@@ -14,6 +14,17 @@ class polygonsegment(segment):
         self.height = height
         self.polygon = polygon_we_belong_to
 
+    def split_at(self, intermediate_point):
+        if self.has_extremity(intermediate_point):
+            return [self]
+        segments = [
+            polygonsegment([self.endpoints[0], intermediate_point],
+                           self.height, self.polygon),
+            polygonsegment([intermediate_point, self.endpoints[1],
+                            intermediate_point], self.height, self.polygon),
+        ]
+        return segments
+
     def vertical_intersection_at(self, x):
         x1, y1 = self.endpoints[0].get_coordinates()
         x2, y2 = self.endpoints[1].get_coordinates()
