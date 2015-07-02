@@ -6,9 +6,13 @@
 
  * code review
 
+- polygontree.depth_first()
+- polygontree.breadth_first()
+- polygontree.display_depth_first()
+- polygontree.display_breadth_first()
+
  * minor code improvements (readability)
 
-- python iterators for tree traversal : depth and breadth first (pierre)
 - inclusion_tree_builder is rather complex : clarify a bit more
 - move ascend_polygons from builder into tree
 
