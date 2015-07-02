@@ -61,24 +61,14 @@ poly9 = polygon(list(points5), 9)
 poly10 = polygon(list(points4), 10)
 polygons[height] = [poly8, poly9, poly10]
 
+
+
 tycat(poly1)
 tycat(poly2)
 tycat(poly3, poly4, poly5, poly6, poly7)
 tycat(poly8, poly9, poly10)
 
-# appeller plutot le constructeur de polygontree qui appellera  a son tour le constrcteur de inclusiontree_builder
-# builder = inclusion_tree_builder(polygons)
 tree = build_tree(polygons)
-border = tree.children[0].holed_polygon.polygon
-for node in tree.depth_first():
-    node.tycat()
-    if node.holed_polygon is not None:
-        node.holed_polygon.tycat(border)
-
+tree.display_depth_first()
 print("\n\n\n")
-
-for node in tree.breadth_first():
-    node.tycat()
-    if node.holed_polygon is not None:
-        node.holed_polygon.tycat(border)
-
+tree.display_breadth_first()
