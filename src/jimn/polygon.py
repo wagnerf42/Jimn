@@ -117,7 +117,6 @@ class polygon:
     def __str__(self):
         return "[{}/{}]".format(self.label,';'.join(map(lambda p: str(p), self.points)))
 
-    # TODO : use new system
     def get_bounding_box(self):
         box = bounding_box.empty_box(2)
         for p in self.points:

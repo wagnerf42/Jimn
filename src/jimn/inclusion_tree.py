@@ -22,6 +22,8 @@ class inclusion_tree:
         self.polygon = contained_polygon
         self.height = height
         self.children = [None, None]
+        # by separating between polygons still active or not we can speedup
+        # inclusion tests
         self.children[ALIVE] = []
         self.children[DEAD] = []
         if father is not None:
@@ -62,6 +64,7 @@ class inclusion_tree:
     def is_a_polygon(self):
         return self.is_polygon
 
+    """"add new node with polygon contained in provided segment"""
     def add_child(self, new_segment):
         new_polygon = new_segment.get_polygon()
         height = new_segment.get_height()
@@ -69,6 +72,7 @@ class inclusion_tree:
         self.children[ALIVE].append(leaf)
         return leaf
 
+    """move a child from alive list to dead list"""
     def kill_child(self, polygon_id):
         for k, c in enumerate(self.children[ALIVE]):
             if id(c.get_polygon()) == polygon_id:
@@ -105,3 +109,14 @@ class inclusion_tree:
             if child is not None:
                 fd.write("n{} -> n{};\n".format(id(self), id(child)))
                 child.save_dot(fd)
+
+    """nodes inside a hole are moved up one level"""
+    def ascend_polygons(self, father=None, grandfather=None):
+        if self.is_root() or self.is_a_polygon():
+            children = self.get_children()
+        else:
+            children = self.get_children()
+            grandfather.get_dead_children().extend(children)
+            self.remove_children()
+        for c in self.get_children():
+            c.ascend_polygons(self, father)

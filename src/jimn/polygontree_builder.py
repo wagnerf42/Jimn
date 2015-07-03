@@ -1,6 +1,6 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
-from jimn.inclusion_tree_builder import inclusion_tree_builder
+from jimn.inclusion_tree_builder import build_inclusion_tree
 from jimn.polygontree import polygontree
 from jimn.debug import is_module_debugged
 from collections import defaultdict
@@ -12,7 +12,8 @@ class polygontree_builder:
         self.tree = polygontree()
 
     def build(self):
-        inclusion_tree = inclusion_tree_builder(self.polygons).ascend_polygons()
+        inclusion_tree = build_inclusion_tree(self.polygons)
+        inclusion_tree.ascend_polygons()
         convert_inclusion_tree(self.tree, inclusion_tree)
         if __debug__:
             if is_module_debugged(__name__):
