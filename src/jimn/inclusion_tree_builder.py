@@ -21,9 +21,10 @@ class inclusion_tree_builder:
         self.seen_polygons = {}
         self.tree = inclusion_tree()
         self.fathers = {}
-
+        # build the inclusion tree
         self.build()
 
+    # get all non-vertical segments in polygons
     def create_segments(self):
         segments = []
         for height, polygons in self.polygons.items():
@@ -31,15 +32,24 @@ class inclusion_tree_builder:
                 segments.extend(p.non_vertical_segments(height))
         return segments
 
+    # create an event for each point belonging to a segment.
+    # an event stores two kinds of data :
+    #   - segments starting from given point
+    #   - segments ending at given point
     def create_events(self):
         events = {}
         for s in self.segments:
+            # since segments are oriented in lexicographical order at creation,
+            # the indexes of endpoints indicate starting and ending points
             for segment_type, p in enumerate(s.get_endpoints()):
                 if p not in events:
                     events[p] = event(p)
                 events[p].add_segment(segment_type, s)
+        # we sort the events in lexicographical order
+        # to prepare for sweeping algorithm
         return sorted(events.values())
 
+    # sweeping algorithm
     def build(self):
         for e in self.events:
             self.handle_event(e)
@@ -81,10 +91,14 @@ class inclusion_tree_builder:
         self.current_segments[polygon_id].append(s)
 
     def remove_segment(self, s):
+        # remove segment from active segments.
         polygon_id = s.get_polygon_id()
         self.current_segments[polygon_id].remove(s)
         if not self.current_segments[polygon_id]:
+            # the polygon no longer has active segments.
+            # delete the entry from active segments.
             del self.current_segments[polygon_id]
+            # mark polygon as dead in tree
             father = self.fathers[polygon_id]
             father.kill_child(polygon_id)
 
