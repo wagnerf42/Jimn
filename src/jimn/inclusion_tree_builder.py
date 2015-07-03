@@ -55,13 +55,17 @@ class inclusion_tree_builder:
             self.handle_event(e)
 
     def handle_event(self, e):
+        # update live segments
         starting_segments, ending_segments = [
             e.get_segments(segment_type) for segment_type in [0, 1]
         ]
         self.update_live_segments(starting_segments, ending_segments)
 
         # loop through all new segments
-        # seeing if we encounter a new polygon never seen before
+        # seeing if we encounter a new polygon never seen before.
+        #
+        # we sort new segments to ensure all potential inclusions are tested :
+        # we have to add the potentially containing polygon first in tree
         for s in sorted(starting_segments,
                         key=lambda seg: (seg.angle(), seg.get_height()),
                         reverse=True):
@@ -87,6 +91,7 @@ class inclusion_tree_builder:
             self.add_segment(s)
 
     def add_segment(self, s):
+        # add segment to active segments
         polygon_id = s.get_polygon_id()
         self.current_segments[polygon_id].append(s)
 
@@ -109,9 +114,9 @@ class inclusion_tree_builder:
         root = self.tree
         for c in sorted(root.get_alive_children(), key=lambda c: c.get_height(), reverse=True):
             if self.add_polygon_rec(c, new_segment):
-                return True
-        self.add_child_in_tree(root, new_segment)
-        return True
+                break
+        else:
+            self.add_child_in_tree(root, new_segment)
 
     def add_polygon_rec(self, node, new_segment):
         if self.is_included(new_segment, node.get_polygon()):
