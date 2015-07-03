@@ -44,6 +44,7 @@ class point:
             return False
         return self.coordinates[2] > height
 
+    """angles are computed with respect to svg orientation"""
     def angle_with(self, other):
         (x1, y1), (x2, y2) = [p.get_coordinates() for p in (self, other)]
         return -atan2(y2 - y1, x2 - x1)

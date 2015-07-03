@@ -70,6 +70,10 @@ class facet:
         segments.append(intersection_segment.sort_endpoints())
 
 
+"""parses a facet in a binary stl file.
+returns facet and its bounding box
+hashes all encountered heights in given coordinates hash
+"""
 def binary_facet(all_coordinates, heights_hash, box):
     points = []
     for i in range(3):

@@ -6,14 +6,10 @@
 
  * code review
 
-- polygontree.depth_first()
-- polygontree.breadth_first()
-- polygontree.display_depth_first()
-- polygontree.display_breadth_first()
+- reste a faire polygontree
 
  * minor code improvements (readability)
 
-- inclusion_tree_builder is rather complex : clarify a bit more
 - move ascend_polygons from builder into tree
 
  * minor code improvements (performance)
@@ -28,3 +24,7 @@
  * calibration
 
 - what precision should be chosen in stl to round z coordinates ?
+
+ * doc
+
+- rapport : inclusion tree

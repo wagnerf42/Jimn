@@ -108,20 +108,27 @@ class inclusion_tree_builder:
             father.kill_child(polygon_id)
 
     def add_polygon_in_tree(self, new_segment):
-        self.add_polygon_from_root(new_segment)
-
-    def add_polygon_from_root(self, new_segment):
         root = self.tree
-        for c in sorted(root.get_alive_children(), key=lambda c: c.get_height(), reverse=True):
+        # new polygon
+        # we first try inserting it at current level ; it might be a hole
+        # if not we try going below
+        # see report for more help on inclusion trees
+        for c in sorted(
+            root.get_alive_children(),
+            key=lambda c: c.get_height(), reverse=True
+        ):
             if self.add_polygon_rec(c, new_segment):
                 break
         else:
             self.add_child_in_tree(root, new_segment)
 
+    # see comments in add_polygon_in_tree
     def add_polygon_rec(self, node, new_segment):
         if self.is_included(new_segment, node.get_polygon()):
-            # TODO: explain why sorted
-            for c in sorted(node.get_alive_children(), key=lambda c: c.get_height(), reverse=True):
+            for c in sorted(
+                node.get_alive_children(),
+                key=lambda c: c.get_height(), reverse=True
+            ):
                 if self.add_polygon_rec(c, new_segment):
                     return True
             if node.is_a_polygon() or new_segment.get_height() == node.get_height():
@@ -148,20 +155,6 @@ class inclusion_tree_builder:
             above_segments = [s for s in segments if s >= new_segment]
             return len(above_segments) % 2 == 1
 
-    def ascend_polygons(self):
-        root = self.tree
-        for c in root.get_children():
-            self.ascend_polygon_rec(c, root, None)
-
-        return self.tree
-
-    def ascend_polygon_rec(self, node, father, grandfather):
-        if not node.is_a_polygon():
-            moved_children = node.get_children()
-            grandfather.get_dead_children().extend(moved_children)
-            node.remove_children()
-            for c in moved_children:
-                self.ascend_polygon_rec(c, grandfather, None)
-        else:
-            for c in node.get_children():
-                self.ascend_polygon_rec(c, node, father)
+def build_inclusion_tree(polygons):
+    builder = inclusion_tree_builder(polygons)
+    return builder.tree
