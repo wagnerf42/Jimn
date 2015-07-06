@@ -7,6 +7,14 @@ class holed_polygon:
         self.holes = holes
         self.height = height
 
+    def get_bounding_box(self):
+        return self.polygon.get_bounding_box()
+
+    def save_svg_content(self, display, color):
+        self.polygon.save_svg_content(display, color)
+        for hole in self.holes:
+            hole.save_svg_content(display, color)
+
     def normalize(self):
         self.polygon.orient(clockwise=True)
         self.polygon.normalize_starting_point()

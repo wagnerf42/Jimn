@@ -69,6 +69,5 @@ tycat(poly3, poly4, poly5, poly6, poly7)
 tycat(poly8, poly9, poly10)
 
 tree = build_tree(polygons)
+print("simulating depth first carving")
 tree.display_depth_first()
-print("\n\n\n")
-tree.display_breadth_first()

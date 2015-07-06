@@ -6,8 +6,6 @@
 
  * code review
 
-- reste a faire polygontree
-
  * minor code improvements (readability)
 
 - move ascend_polygons from builder into tree

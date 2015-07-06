@@ -1,5 +1,6 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
+from jimn.tree import tree
 import os
 import getpass
 
@@ -16,7 +17,7 @@ ALIVE = 0
 DEAD = 1
 
 
-class inclusion_tree:
+class inclusion_tree(tree):
     """stores a set of polygons included one inside another"""
     def __init__(self, contained_polygon=None, height=None, father=None):
         self.polygon = contained_polygon
@@ -94,7 +95,8 @@ class inclusion_tree:
         dot_count = dot_count + 1
         dot_fd = open(dot_file, 'w')
         dot_fd.write("digraph g {\n")
-        self.save_dot(dot_fd)
+        for node in self.depth_first_exploration():
+            node.save_dot(dot_fd)
         dot_fd.write("}")
         dot_fd.close()
         os.system("dot -Tsvg {} -o {}".format(dot_file, svg_file))
@@ -108,7 +110,6 @@ class inclusion_tree:
         for child in self.children[ALIVE] + self.children[DEAD]:
             if child is not None:
                 fd.write("n{} -> n{};\n".format(id(self), id(child)))
-                child.save_dot(fd)
 
     """nodes inside a hole are moved up one level"""
     def ascend_polygons(self, father=None, grandfather=None):
