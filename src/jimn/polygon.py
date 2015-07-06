@@ -3,6 +3,7 @@ from jimn.segment import segment
 from jimn.polygonsegment import polygonsegment
 from jimn.bounding_box import bounding_box
 from jimn.precision import is_almost
+from jimn.iterators import all_two_elements
 
 
 class invalid_polygon(Exception):
@@ -58,29 +59,15 @@ class polygon:
     def get_points(self):
         return self.points
 
-    # TODO: iterator
-    def segments(self):
-        s = []
-        for p1, p2 in zip(self.points, self.points[1:]):
-            s.append(segment([p1, p2]))
-        s.append(segment([self.points[-1], self.points[0]]))
-        return s
-
     def non_vertical_segments(self, height):
-        s = []
-        for p1, p2 in zip(self.points, self.points[1:]):
-            seg = polygonsegment([p1, p2], height, self)
-            if not seg.is_vertical():
-                s.append(seg)
-        seg = polygonsegment([self.points[-1], self.points[0]], height, self)
-        if not seg.is_vertical():
-            s.append(seg)
-        return s
+        return grep(lambda s: not s.is_vertical())(
+            [polygonsegment([p1, p2], height, self) for p1, p2 in all_two_elements(self.points)]
+        )
 
     def area(self):
         a = 0
-        for s in self.segments():
-            (x1, y1), (x2, y2) = [p.get_coordinates() for p in s.get_endpoints()]
+        for p1, p2 in all_two_elements(self.points):
+            (x1, y1), (x2, y2) = [p.get_coordinates() for p in (p1, p2)]
             a = a + x1*y2 - x2*y1
         return a/2
 

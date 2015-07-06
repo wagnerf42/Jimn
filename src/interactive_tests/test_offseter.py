@@ -3,6 +3,7 @@
 from jimn.point import point
 from jimn.polygon import polygon
 from jimn.displayable import tycat
+from jimn.offseter import offset_holed_polygon
 
 p = polygon([
     point([0, 0]),
@@ -16,5 +17,4 @@ p = polygon([
 print("clockwise ?", p.is_oriented_clockwise())
 tycat(p, *p.get_points())
 
-print("looping, moving edge")
-p.reduction()
+offset_holed_polygon(0.5, p)
