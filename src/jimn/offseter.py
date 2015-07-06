@@ -1,11 +1,7 @@
-from jimn.segment import segment
-from jimn.polygon import polygon
 from jimn.displayable import tycat
 from jimn.debug import is_module_debugged
-from jimn.point import point
-from jimn.precision import is_almost
-from jimn.iterators import all_two_elements, all_three_elements
-from math import pi, sin, cos
+from jimn.iterators import all_two_elements
+from jimn.coordinates_hash import coordinates_hash
 
 """requires polygon to be oriented counter clockwise to carve the inside
 and clockwise to carve the outside"""
@@ -26,13 +22,14 @@ class offseter:
                 print("unjoined raw segments")
                 tycat(self.polygon, raw_segments)
 
-        return self.join_raw_segments()
+        return self.join_raw_segments(raw_segments)
 
     def join_raw_segments(self, raw_segments):
 
         edge = []
+        rounder = coordinates_hash(dimension=2)
         for s1, s2 in all_two_elements(raw_segments):
-            i = s1.intersection_with(s2)
+            i = s1.intersection_with(s2, rounder)
             edge.append(s1)
             if i is None:
                 # add arc
@@ -45,6 +42,7 @@ class offseter:
             if is_module_debugged(__name__):
                 print("joined segments")
                 tycat(self.polygon, edge)
+        return edge
 
 
 def raw_offset(radius, polygon_to_offset):

@@ -3,6 +3,7 @@ from jimn.point import point
 from jimn.coordinates_hash import coordinates_hash
 from jimn.precision import segment_limit, check_precision, is_almost
 from jimn.bounding_box import bounding_box
+from math import pi, cos, sin
 
 rounding_hash = coordinates_hash(3)
 
@@ -134,6 +135,9 @@ class segment:
     def get_endpoint(self, index):
         return self.endpoints[index]
 
+    def set_endpoint(self, index, new_point):
+        self.endpoints[index] = new_point
+
     def get_endpoints(self):
         return self.endpoints
 
@@ -192,3 +196,14 @@ class segment:
 
     def __hash__(self):
         return hash(tuple(self.endpoints))
+
+    def parallel_segment(self, distance):
+        a = self.endpoints[0].angle_with(self.endpoints[1])
+        a += pi/2
+        displacement = point([
+            distance * cos(-a),
+            distance * sin(-a)
+        ])
+        return segment([
+            p + displacement for p in self.endpoints
+        ])
