@@ -1,19 +1,12 @@
-
  * large goals
 
 - polygon offsetting (fred)
 - path computation for holed polygon
 
  * code review
-
  * minor code improvements (readability)
-
-- move ascend_polygons from builder into tree
-
  * minor code improvements (performance)
-
  * additional non-regression tests
-
  * misc
 
 - profiling
