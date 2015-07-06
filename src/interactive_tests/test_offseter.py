@@ -17,4 +17,4 @@ p = polygon([
 print("clockwise ?", p.is_oriented_clockwise())
 tycat(p, *p.get_points())
 
-offset_holed_polygon(0.5, p)
+offset_holed_polygon(1, p)

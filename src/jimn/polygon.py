@@ -60,9 +60,14 @@ class polygon:
         return self.points
 
     def non_vertical_segments(self, height):
-        return grep(lambda s: not s.is_vertical())(
-            [polygonsegment([p1, p2], height, self) for p1, p2 in all_two_elements(self.points)]
+        return filter(lambda s: not s.is_vertical(), [
+            polygonsegment([p1, p2], height, self)
+            for p1, p2 in all_two_elements(self.points)]
         )
+
+    def segments(self):
+        for p1, p2 in all_two_elements(self.points):
+            yield segment([p1, p2])
 
     def area(self):
         a = 0
@@ -102,7 +107,9 @@ class polygon:
         return True
 
     def __str__(self):
-        return "[{}/{}]".format(self.label,';'.join(map(lambda p: str(p), self.points)))
+        return "[{}/{}]".format(
+            self.label, ';'.join(map(lambda p: str(p), self.points))
+        )
 
     def get_bounding_box(self):
         box = bounding_box.empty_box(2)
@@ -113,7 +120,9 @@ class polygon:
     def save_svg_content(self, display, color):
         svg_coordinates = []
         for p in self.points:
-            string = "{},{}".format(*display.convert_coordinates(p.get_coordinates()))
+            string = "{},{}".format(
+                *display.convert_coordinates(p.get_coordinates())
+            )
             svg_coordinates.append(string)
         svg_formatted = " ".join(svg_coordinates)
         display.write("<polygon points=\"{}\"".format(svg_formatted))
