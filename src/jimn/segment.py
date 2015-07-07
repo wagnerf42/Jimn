@@ -214,17 +214,19 @@ class segment:
         a, b = self.get_endpoints()
         [xa, ya], [xb, yb] = [p.get_coordinates() for p in [a, b]]
 
+        # compute height of slice center below b
         if is_almost(yb/d, round(yb/d)):
             hb = round(yb/d) * d
             yb = hb  # useful ?
         else:
             hb = ceil(yb/d)*d
 
+        # compute height of slice center below a
         if is_almost(ya/d, round(ya/d)):
             ha = round(ya/d) * d
             ya = ha  # useful ?
             # attention, we must not add a vertex at height ha
-            # it is supposed to be added when treating preceding segment
+            # it is supposed to be added when treating preceding segment (?a)
             if ha < hb:
                 h = ha + d
             elif ha > hb:
@@ -237,12 +239,11 @@ class segment:
 
         # we get the equation of x as a function of y
         if is_almost(ya, yb):
+            # horizontal segment
             alpha, beta = None, None
         else:
             alpha = (xb - xa) / (yb - ya)
             beta = xa - alpha * ya
-        print("alpha =", alpha)
-        print("beta =", beta)
 
         new_vertices = []
         if ha > hb:
@@ -255,7 +256,6 @@ class segment:
                 h -= d
         elif ha < hb:
             while h < hb:
-                print(h)
                 x = alpha * h + beta
                 new_vertex = vertex([x, h])
                 new_vertices.append(new_vertex)
@@ -265,7 +265,9 @@ class segment:
         if is_almost(hb, yb):
             new = vertex([xb, hb])
         else:
-            # this is a corner
+            # this is a non-trivial corner
+            # we have to add a point so as to be able to compute paths
+            # correctly between two vertices
             new = point([xb, yb])
         new_vertices.append(new)
         vertices[h].append(new)
