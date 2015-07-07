@@ -1,9 +1,10 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 from jimn.point import point
+from jimn.vertex import vertex
 from jimn.coordinates_hash import coordinates_hash
 from jimn.precision import segment_limit, check_precision, is_almost
 from jimn.bounding_box import bounding_box
-from math import pi, cos, sin
+from math import pi, cos, sin, ceil
 
 rounding_hash = coordinates_hash(3)
 
@@ -207,3 +208,66 @@ class segment:
         return segment([
             p + displacement for p in self.endpoints
         ])
+
+    def cut(self, milling_diameter, vertices):
+        d = milling_diameter
+        a, b = self.get_endpoints()
+        [xa, ya], [xb, yb] = [p.get_coordinates() for p in [a, b]]
+
+        if is_almost(yb/d, round(yb/d)):
+            hb = round(yb/d) * d
+            yb = hb  # useful ?
+        else:
+            hb = ceil(yb/d)*d
+
+        if is_almost(ya/d, round(ya/d)):
+            ha = round(ya/d) * d
+            ya = ha  # useful ?
+            # attention, we must not add a vertex at height ha
+            # it is supposed to be added when treating preceding segment
+            if ha < hb:
+                h = ha + d
+            elif ha > hb:
+                h = ha - d
+            else:
+                h = ha
+        else:
+            ha = ceil(ya/d)*d
+            h = ha
+
+        # we get the equation of x as a function of y
+        if is_almost(ya, yb):
+            alpha, beta = None, None
+        else:
+            alpha = (xb - xa) / (yb - ya)
+            beta = xa - alpha * ya
+        print("alpha =", alpha)
+        print("beta =", beta)
+
+        new_vertices = []
+        if ha > hb:
+            while h > hb:
+                print(h)
+                x = alpha * h + beta
+                new_vertex = vertex([x, h])
+                new_vertices.append(new_vertex)
+                vertices[h].append(new_vertex)
+                h -= d
+        elif ha < hb:
+            while h < hb:
+                print(h)
+                x = alpha * h + beta
+                new_vertex = vertex([x, h])
+                new_vertices.append(new_vertex)
+                vertices[h].append(new_vertex)
+                h += d
+
+        if is_almost(hb, yb):
+            new = vertex([xb, hb])
+        else:
+            # this is a corner
+            new = point([xb, yb])
+        new_vertices.append(new)
+        vertices[h].append(new)
+
+        return new_vertices
