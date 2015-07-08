@@ -4,7 +4,7 @@ from jimn.vertex import vertex
 from jimn.coordinates_hash import coordinates_hash
 from jimn.precision import segment_limit, check_precision, is_almost
 from jimn.bounding_box import bounding_box
-from math import pi, cos, sin, ceil
+from math import pi, cos, sin, ceil, floor
 
 rounding_hash = coordinates_hash(3)
 
@@ -218,37 +218,36 @@ class segment:
         d = milling_diameter
         ya, yb = [p.get_y() for p in self.get_endpoints()]
 
-        # compute height of slice center below a
-        relative_height = ya/d
-        aligned_starting_point = is_almost(relative_height, round(relative_height))
-        if aligned_starting_point:
-            na = round(relative_height)
+        if ya > yb:
+            # compute height of slice center above a
+            na = floor(ya/d)
+            # compute height of slice center strictly above b
+            nb = ceil(yb/d) - 1
         else:
-            na = ceil(relative_height)
-
-        # compute height of slice center below b
-        relative_height = yb/d
-        aligned_ending_point = is_almost(relative_height, round(relative_height))
-        if aligned_ending_point:
-            nb = round(relative_height)
-        else:
-            nb = ceil(relative_height)
+            # compute height of slice center below a
+            na = ceil(ya/d)
+            # compute height of slice center strictly below b
+            nb = floor(yb/d) + 1
 
         steps = [-1, 1]
         step = steps[na <= nb]
         slice_numbers = iter(range(na, nb, step))
 
-        if aligned_starting_point:
+        if ya/d == na:
             # attention, we must not add a vertex at starting point :
             # it is supposed to be added when treating preceding segment
-            if na != nb:
-                next(slice_numbers)
+            next(slice_numbers)
 
         for n in slice_numbers:
             yield n * d
 
     def cut(self, milling_diameter, vertices):
         d = milling_diameter
+        a, b = self.endpoints
+        ya, yb = [p.get_y() for p in self.endpoints]
+
+        if ya == yb:
+            return [b]
 
         decomposition = []
         for h in self.intersecting_slices(d):
@@ -258,26 +257,7 @@ class segment:
             vertices[h].append(new_vertex)
             decomposition.append(new_vertex)
 
-        decomposition.append(self.add_last_point_in_cut(milling_diameter, vertices))
+        if yb/d != round(yb/d):
+            decomposition.append(b)
+
         return decomposition
-
-    def add_last_point_in_cut(milling_diameter, vertices):
-        d = milling_diameter
-        b = self.endpoints[1]
-        yb = b.get_y()
-
-        # compute height of slice center below b
-        relative_height = yb/d
-        aligned_ending_point = is_almost(relative_height, round(relative_height))
-
-        if aligned_ending_point:
-            # we are on a cut line so we are part of the graph
-            new = vertex(b)
-            vertices[yb].append(new)
-        else:
-            # this is a non-trivial corner
-            # we have to add a point so as to be able to compute paths
-            # correctly between two vertices
-            new = b
-
-        return new
