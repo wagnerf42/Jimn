@@ -216,26 +216,30 @@ class segment:
 
         # compute height of slice center below b
         if is_almost(yb/d, round(yb/d)):
-            hb = round(yb/d) * d
-            yb = hb  # useful ?
+            nb = round(yb/d)
+            # yb = hb  # useful ?
         else:
-            hb = ceil(yb/d)*d
+            nb = ceil(yb/d)
+        hb = nb*d
 
         # compute height of slice center below a
         if is_almost(ya/d, round(ya/d)):
-            ha = round(ya/d) * d
-            ya = ha  # useful ?
+            na = round(ya/d)
+            # ya = ha  # useful ?
+            #
             # attention, we must not add a vertex at height ha
             # it is supposed to be added when treating preceding segment (?a)
-            if ha < hb:
-                h = ha + d
-            elif ha > hb:
-                h = ha - d
+            #
+            # this step is equivalent to eating the first element of generator
+            if na < nb:
+                n = na + 1
+            elif na > nb:
+                n = na - 1
             else:
-                h = ha
+                n = na
         else:
-            ha = ceil(ya/d)*d
-            h = ha
+            na = ceil(ya/d)
+            n = na
 
         # we get the equation of x as a function of y
         if is_almost(ya, yb):
@@ -246,21 +250,17 @@ class segment:
             beta = xa - alpha * ya
 
         new_vertices = []
-        if ha > hb:
-            while h > hb:
-                print(h)
-                x = alpha * h + beta
-                new_vertex = vertex([x, h])
-                new_vertices.append(new_vertex)
-                vertices[h].append(new_vertex)
-                h -= d
-        elif ha < hb:
-            while h < hb:
-                x = alpha * h + beta
-                new_vertex = vertex([x, h])
-                new_vertices.append(new_vertex)
-                vertices[h].append(new_vertex)
-                h += d
+        if na >= nb:
+            step = -1
+        else:
+            step = 1
+        for k in range(n, nb, step):
+            h = k*d
+            print(h)
+            x = alpha * h + beta
+            new_vertex = vertex([x, h])
+            new_vertices.append(new_vertex)
+            vertices[h].append(new_vertex)
 
         if is_almost(hb, yb):
             new = vertex([xb, hb])
@@ -270,6 +270,6 @@ class segment:
             # correctly between two vertices
             new = point([xb, yb])
         new_vertices.append(new)
-        vertices[h].append(new)
+        vertices[hb].append(new)
 
         return new_vertices
