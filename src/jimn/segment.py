@@ -209,47 +209,46 @@ class segment:
             p + displacement for p in self.endpoints
         ])
 
+    def intersecting_slices(self, milling_diameter):
+        d = milling_diameter
+        ya, yb = [p.get_y() for p in self.get_endpoints()]
+
+        # compute height of slice center below b
+        if is_almost(yb/d, round(yb/d)):
+            nb = round(yb/d)
+        else:
+            nb = ceil(yb/d)
+
+        # compute height of slice center below a
+        if is_almost(ya/d, round(ya/d)):
+            na = round(ya/d)
+            if na >= nb:
+                step = -1
+            else:
+                step = 1
+            slice_numbers = iter(range(na, nb, step))
+            # attention, we must not add a vertex at height ha
+            # it is supposed to be added when treating preceding segment (?a)
+            if na != nb:
+                next(slice_numbers)
+        else:
+            na = ceil(ya/d)
+            if na >= nb:
+                step = -1
+            else:
+                step = 1
+            slice_numbers = iter(range(na, nb, step))
+
+        for n in slice_numbers:
+            yield n * d
+
     def cut(self, milling_diameter, vertices):
         d = milling_diameter
         a, b = self.get_endpoints()
         [xa, ya], [xb, yb] = [p.get_coordinates() for p in [a, b]]
 
-        # compute height of slice center below b
-        if is_almost(yb/d, round(yb/d)):
-            nb = round(yb/d)
-            # yb = hb  # useful ?
-        else:
-            nb = ceil(yb/d)
-        hb = nb*d
-
-        # compute height of slice center below a
-        if is_almost(ya/d, round(ya/d)):
-            na = round(ya/d)
-            # ya = ha  # useful ?
-            #
-            # attention, we must not add a vertex at height ha
-            # it is supposed to be added when treating preceding segment (?a)
-            #
-            # this step is equivalent to eating the first element of generator :
-            # if na != nb:
-            #     (eat first element)
-            if na < nb:
-                n = na + 1
-            elif na > nb:
-                n = na - 1
-            else:
-                n = na
-        else:
-            na = ceil(ya/d)
-            n = na
-
         new_vertices = []
-        if na >= nb:
-            step = -1
-        else:
-            step = 1
-        for k in range(n, nb, step):
-            h = k*d
+        for h in self.intersecting_slices(d):
             slice_center = [[0.0, h], [1.0, h]]
             slice_center = [point(c) for c in slice_center]
             slice_center = segment(slice_center)
@@ -258,6 +257,12 @@ class segment:
             new_vertex = vertex([x, h])
             new_vertices.append(new_vertex)
             vertices[h].append(new_vertex)
+
+        if is_almost(yb/d, round(yb/d)):
+            nb = round(yb/d)
+        else:
+            nb = ceil(yb/d)
+        hb = nb * d
 
         if is_almost(hb, yb):
             new = vertex([xb, hb])
