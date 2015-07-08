@@ -20,6 +20,11 @@ class segment:
                 # print("very small segment {}".format(str(self)), file=sys.stderr)
                 raise Exception("very small segment")
 
+    @classmethod
+    def horizontal_segment(cls, y):
+            coordinates = ([0.0, y], [1.0, y])
+            return cls([point(c) for c in coordinates])
+
     def __str__(self):
         return "[{}]".format(';'.join(map(lambda p: str(p), self.endpoints)))
 
@@ -244,38 +249,35 @@ class segment:
 
     def cut(self, milling_diameter, vertices):
         d = milling_diameter
-        a, b = self.get_endpoints()
-        [xa, ya], [xb, yb] = [p.get_coordinates() for p in [a, b]]
 
-        new_vertices = []
+        decomposition = []
         for h in self.intersecting_slices(d):
-            coordinates = [[0.0, h], [1.0, h]]
-            slice_center = segment([point(c) for c in coordinates])
+            slice_center = segment.horizontal_segment(h)
             p = self.line_intersection_with(slice_center)
-            new_vertex = vertex(p.get_coordinates())
-
+            new_vertex = vertex(p)
             vertices[h].append(new_vertex)
-            new_vertices.append(new_vertex)
+            decomposition.append(new_vertex)
+
+        decomposition.append(self.add_last_point_in_cut(milling_diameter, vertices))
+        return decomposition
+
+    def add_last_point_in_cut(milling_diameter, vertices):
+        d = milling_diameter
+        b = self.endpoints[1]
+        yb = b.get_y()
 
         # compute height of slice center below b
         relative_height = yb/d
         aligned_ending_point = is_almost(relative_height, round(relative_height))
-        if aligned_ending_point:
-            nb = round(relative_height)
-        else:
-            nb = ceil(relative_height)
-
-        hb = nb * d
 
         if aligned_ending_point:
-            new = vertex([xb, hb])
-            vertices[hb].append(new)
+            # we are on a cut line so we are part of the graph
+            new = vertex(b)
+            vertices[yb].append(new)
         else:
             # this is a non-trivial corner
             # we have to add a point so as to be able to compute paths
             # correctly between two vertices
-            new = point([xb, yb])
+            new = b
 
-        new_vertices.append(new)
-
-        return new_vertices
+        return new
