@@ -230,7 +230,9 @@ class segment:
             # attention, we must not add a vertex at height ha
             # it is supposed to be added when treating preceding segment (?a)
             #
-            # this step is equivalent to eating the first element of generator
+            # this step is equivalent to eating the first element of generator :
+            # if na != nb:
+            #     (eat first element)
             if na < nb:
                 n = na + 1
             elif na > nb:
@@ -241,14 +243,6 @@ class segment:
             na = ceil(ya/d)
             n = na
 
-        # we get the equation of x as a function of y
-        if is_almost(ya, yb):
-            # horizontal segment
-            alpha, beta = None, None
-        else:
-            alpha = (xb - xa) / (yb - ya)
-            beta = xa - alpha * ya
-
         new_vertices = []
         if na >= nb:
             step = -1
@@ -256,8 +250,11 @@ class segment:
             step = 1
         for k in range(n, nb, step):
             h = k*d
-            print(h)
-            x = alpha * h + beta
+            slice_center = [[0.0, h], [1.0, h]]
+            slice_center = [point(c) for c in slice_center]
+            slice_center = segment(slice_center)
+            i = self.line_intersection_with(slice_center)
+            x = i.get_x()
             new_vertex = vertex([x, h])
             new_vertices.append(new_vertex)
             vertices[h].append(new_vertex)
