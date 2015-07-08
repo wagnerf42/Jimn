@@ -249,13 +249,13 @@ class segment:
 
         new_vertices = []
         for h in self.intersecting_slices(d):
-            slice_center = [[0.0, h], [1.0, h]]
-            slice_center = [point(c) for c in slice_center]
-            slice_center = segment(slice_center)
-            i = self.line_intersection_with(slice_center)
-            new_vertex = vertex(i.get_coordinates())
-            new_vertices.append(new_vertex)
+            coordinates = [[0.0, h], [1.0, h]]
+            slice_center = segment([point(c) for c in coordinates])
+            p = self.line_intersection_with(slice_center)
+            new_vertex = vertex(p.get_coordinates())
+
             vertices[h].append(new_vertex)
+            new_vertices.append(new_vertex)
 
         # compute height of slice center below b
         relative_height = yb/d
