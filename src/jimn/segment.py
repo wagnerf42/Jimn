@@ -213,31 +213,31 @@ class segment:
         d = milling_diameter
         ya, yb = [p.get_y() for p in self.get_endpoints()]
 
-        # compute height of slice center below b
-        if is_almost(yb/d, round(yb/d)):
-            nb = round(yb/d)
-        else:
-            nb = ceil(yb/d)
-
         # compute height of slice center below a
-        if is_almost(ya/d, round(ya/d)):
-            na = round(ya/d)
-            if na >= nb:
-                step = -1
-            else:
-                step = 1
-            slice_numbers = iter(range(na, nb, step))
-            # attention, we must not add a vertex at height ha
-            # it is supposed to be added when treating preceding segment (?a)
+        relative_height = ya/d
+        aligned_starting_point = is_almost(relative_height, round(relative_height))
+        if aligned_starting_point:
+            na = round(relative_height)
+        else:
+            na = ceil(relative_height)
+
+        # compute height of slice center below b
+        relative_height = yb/d
+        aligned_ending_point = is_almost(relative_height, round(relative_height))
+        if aligned_ending_point:
+            nb = round(relative_height)
+        else:
+            nb = ceil(relative_height)
+
+        steps = [-1, 1]
+        step = steps[na <= nb]
+        slice_numbers = iter(range(na, nb, step))
+
+        if aligned_starting_point:
+            # attention, we must not add a vertex at starting point :
+            # it is supposed to be added when treating preceding segment
             if na != nb:
                 next(slice_numbers)
-        else:
-            na = ceil(ya/d)
-            if na >= nb:
-                step = -1
-            else:
-                step = 1
-            slice_numbers = iter(range(na, nb, step))
 
         for n in slice_numbers:
             yield n * d
@@ -253,25 +253,29 @@ class segment:
             slice_center = [point(c) for c in slice_center]
             slice_center = segment(slice_center)
             i = self.line_intersection_with(slice_center)
-            x = i.get_x()
-            new_vertex = vertex([x, h])
+            new_vertex = vertex(i.get_coordinates())
             new_vertices.append(new_vertex)
             vertices[h].append(new_vertex)
 
-        if is_almost(yb/d, round(yb/d)):
-            nb = round(yb/d)
+        # compute height of slice center below b
+        relative_height = yb/d
+        aligned_ending_point = is_almost(relative_height, round(relative_height))
+        if aligned_ending_point:
+            nb = round(relative_height)
         else:
-            nb = ceil(yb/d)
+            nb = ceil(relative_height)
+
         hb = nb * d
 
-        if is_almost(hb, yb):
+        if aligned_ending_point:
             new = vertex([xb, hb])
+            vertices[hb].append(new)
         else:
             # this is a non-trivial corner
             # we have to add a point so as to be able to compute paths
             # correctly between two vertices
             new = point([xb, yb])
+
         new_vertices.append(new)
-        vertices[hb].append(new)
 
         return new_vertices
