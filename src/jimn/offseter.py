@@ -2,6 +2,7 @@ from jimn.displayable import tycat
 from jimn.debug import is_module_debugged
 from jimn.iterators import all_two_elements
 from jimn.coordinates_hash import coordinates_hash
+from jimn.arc import arc
 
 """requires polygon to be oriented counter clockwise to carve the inside
 and clockwise to carve the outside"""
@@ -33,7 +34,9 @@ class offseter:
             edge.append(s1)
             if i is None:
                 # add arc
-                print("TODO: arc")
+                binding = arc(self.radius,
+                              [s1.get_endpoint(1), s2.get_endpoint(0)])
+                edge.append(binding)
             else:
                 # stop at intersection
                 s1.set_endpoint(1, i)

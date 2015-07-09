@@ -1,5 +1,5 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
-from math import atan2
+from math import atan2, sqrt, cos, sin
 from jimn.precision import is_almost
 from jimn.bounding_box import bounding_box
 
@@ -15,7 +15,21 @@ class point:
         """Prints "(x, y, ...)"."""
         return "({})".format(','.join(map(lambda x: str(x), self.coordinates)))
 
+    def squared_distance_to(self, other):
+        """squared euclidean distance between two points"""
+        coordinates = [p.get_coordinates() for p in (self, other)]
+        distance = 0
+        for i in range(len(coordinates[0])):
+            diff = coordinates[0][i] - coordinates[1][i]
+            distance = distance + diff * diff
+        return distance
+
+    def distance_to(self, other):
+        """euclidean distance between two points"""
+        return sqrt(self.squared_distance_to(other))
+
     def dimension(self):
+        """dimension of space containing the point"""
         return len(self.coordinates)
 
     def get_coordinates(self):
@@ -44,8 +58,8 @@ class point:
             return False
         return self.coordinates[2] > height
 
-    """angles are computed with respect to svg orientation"""
     def angle_with(self, other):
+        """angles are computed with respect to svg orientation"""
         (x1, y1), (x2, y2) = [p.get_coordinates() for p in (self, other)]
         return -atan2(y2 - y1, x2 - x1)
 
@@ -58,6 +72,22 @@ class point:
         display.write("<circle cx=\"{}\" cy=\"{}\"".format(*svg_coordinates))
         display.write(" r=\"5\" fill=\"{}\"/> opacity=\"0.5\"\n".format(color))
 
+    def rotate(self, angle):
+        """rotates a point around origin"""
+        if __debug__:
+            assert self.dimension() == 2, "2d rotation only"
+        x, y = self.coordinates
+        c = cos(-angle)
+        s = sin(-angle)
+        return point([
+            c*x - s*y,
+            s*x + c*y
+        ])
+
+    def rotate_around(self, center, angle):
+        """rotates a point around another one"""
+        return center + (self-center).rotate(angle)
+
     def is_aligned_with(self, p2, p3):
         (x1, y1), (x2, y2), (x3, y3) = [
             p.get_coordinates() for p in (self, p2, p3)
@@ -66,16 +96,14 @@ class point:
         return is_almost(determinant, 0)
 
     def is_near(self, other, limit):
-        coordinates = [p.get_coordinates() for p in (self, other)]
-        distance = 0
-        for i in range(len(coordinates[0])):
-            diff = coordinates[0][i] - coordinates[1][i]
-            distance = distance + diff * diff
-        return distance < limit*limit
+        distance = self.distance_to(other)
+        if is_almost(distance, limit):
+            return True
+        return distance < limit
 
-    def is_almost(self, p2):
-        assert(len(self.get_coordinates()) == len(p2.get_coordinates()))
-        for u1, u2 in zip(self.get_coordinates(), p2.get_coordinates()):
+    def is_almost(self, other):
+        assert self.dimension() == other.dimension(), "comparing different points"
+        for u1, u2 in zip(self.coordinates, p2.coordinates):
             if not is_almost(u1, u2):
                 return False
         return True
@@ -89,10 +117,13 @@ class point:
         return point([x, y])
 
     def __add__(a, b):
-        added_coordinates = []
-        for c1, c2 in zip(a.coordinates, b.coordinates):
-            added_coordinates.append(c1+c2)
-        return point(added_coordinates)
+        return point([i + j for i, j in zip(a.coordinates, b.coordinates)])
+
+    def __sub__(a, b):
+        return point([i - j for i, j in zip(a.coordinates, b.coordinates)])
+
+    def __truediv__(a, i):
+        return point([c/i for c in a.coordinates])
 
     def __eq__(a, b):
         return a.coordinates == b.coordinates
@@ -107,5 +138,4 @@ class point:
         """
         return a.coordinates < b.coordinates
 
-    def __sub__(a, b):
-        return point([i - j for i, j in zip(a.get_coordinates(), b.get_coordinates())])
+

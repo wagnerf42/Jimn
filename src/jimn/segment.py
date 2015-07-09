@@ -27,6 +27,10 @@ class segment:
     def __str__(self):
         return "[{}]".format(';'.join(map(lambda p: str(p), self.endpoints)))
 
+    def middle_point(self):
+        p1, p2 = self.endpoints
+        return p1 + (p2-p1) / 2
+
     def has_extremity(self, intermediate_point):
         for p in self.endpoints:
             if p == intermediate_point:
@@ -47,12 +51,7 @@ class segment:
         return segments
 
     def squared_length(self):
-        coordinates = [p.get_coordinates() for p in self.endpoints]
-        distance = 0
-        for i in range(len(coordinates[0])):
-            diff = coordinates[0][i] - coordinates[1][i]
-            distance = distance + diff * diff
-        return distance
+        return self.endpoints[0].squared_distance_to(self.endpoints[1])
 
     def get_bounding_box(self):
         boxes = [bounding_box(p.get_coordinates(), p.get_coordinates()) for p in self.endpoints]
@@ -156,11 +155,11 @@ class segment:
     def angle(self):
         return self.endpoints[0].angle_with(self.endpoints[1])
 
-    """
-    intersect two segments.
-    only return point if included on the two segments.
-    """
     def intersection_with(self, other, rounder):
+        """
+        intersect two segments.
+        only return point if included on the two segments.
+        """
         assert self.dimension() == 2, "non 2d intersections"
         assert other.dimension() == 2, "non 2d intersections"
         # prepare rounder
@@ -178,10 +177,10 @@ class segment:
                 return
         return i
 
-    """returns point intersecting with the two lines passing through the segments.
-    None if lines are almost parallel
-    """
     def line_intersection_with(self, other):
+        """returns point intersecting with the two lines passing through the segments.
+        None if lines are almost parallel
+        """
         x1, y1, x2, y2, x3, y3, x4, y4 = [
             c for s in (self, other)
             for p in s.get_endpoints()
