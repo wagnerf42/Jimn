@@ -1,5 +1,5 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
-from math import atan2, sqrt, cos, sin
+from math import atan2, sqrt, cos, sin, floor
 from jimn.precision import is_almost
 from jimn.bounding_box import bounding_box
 
@@ -103,7 +103,7 @@ class point:
 
     def is_almost(self, other):
         assert self.dimension() == other.dimension(), "comparing different points"
-        for u1, u2 in zip(self.coordinates, p2.coordinates):
+        for u1, u2 in zip(self.coordinates, other.coordinates):
             if not is_almost(u1, u2):
                 return False
         return True
@@ -115,6 +115,11 @@ class point:
         """
         x, y = self.coordinates[0:2]
         return point([x, y])
+
+    def is_on_slice(self, milling_diameter):
+        d = milling_diameter
+        y = self.get_y()
+        return y/d == floor(y/d)
 
     def __add__(a, b):
         return point([i + j for i, j in zip(a.coordinates, b.coordinates)])
@@ -137,5 +142,3 @@ class point:
         Assumes a and b have the same dimension.
         """
         return a.coordinates < b.coordinates
-
-

@@ -1,4 +1,5 @@
 from jimn.displayable import tycat
+from jimn.vertex import vertex
 
 
 class holed_polygon:
@@ -32,6 +33,36 @@ class holed_polygon:
             if not h1.is_translated(h2):
                 return False
         return True
+
+    def build_graph(self, milling_diameter):
+        elementary_segments = self.polygon.cut(milling_diameter)
+        points = [s.get_endpoint(0) for s in elementary_segments]
+        for index, point in enumerate(points):
+            if point.is_on_slice(milling_diameter):
+                points[index] = vertex(point)
+        for index, point in enumerate(points):
+            if type(point) is vertex:
+                start = index
+                break
+        print(start)
+        prec = points[start]
+        link = [elementary_segments[start]]
+        n = len(points)
+        k = (start + 1) % n
+        while k != start:
+            print(k)
+            if type(points[k]) is not vertex:
+                link.append(elementary_segments[k])
+                k = (k + 1) % n
+            else:
+                curr = points[k]
+                prec.add_link(link)
+                curr.add_link(link)
+
+                prec = curr
+                link = []
+                k = (k + 1) % n
+        return points
 
     def tycat(self, border):
         tycat(border, self.polygon, *(self.holes))

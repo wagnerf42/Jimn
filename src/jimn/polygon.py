@@ -106,6 +106,12 @@ class polygon:
                     return False
         return True
 
+    def cut(self, milling_diameter):
+        elementary_segments = []
+        for side in self.segments():
+            elementary_segments.extend(side.cut(milling_diameter))
+        return elementary_segments
+
     def __str__(self):
         return "[{}/{}]".format(
             self.label, ';'.join(map(lambda p: str(p), self.points))
