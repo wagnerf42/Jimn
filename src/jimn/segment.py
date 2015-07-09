@@ -1,6 +1,5 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 from jimn.point import point
-from jimn.vertex import vertex
 from jimn.coordinates_hash import coordinates_hash
 from jimn.precision import segment_limit, check_precision, is_almost
 from jimn.bounding_box import bounding_box
@@ -214,50 +213,37 @@ class segment:
             p + displacement for p in self.endpoints
         ])
 
-    def intersecting_slices(self, milling_diameter):
+    def intersection_with_slices(self, milling_diameter):
         d = milling_diameter
         ya, yb = [p.get_y() for p in self.get_endpoints()]
 
         if ya > yb:
-            # compute height of slice center above a
-            na = floor(ya/d)
-            # compute height of slice center strictly above b
-            nb = ceil(yb/d) - 1
+            # compute height of slice center strictly above a
+            na = ceil(ya/d) - 1
+            # compute height of slice center above b
+            nb = floor(yb/d)
         else:
-            # compute height of slice center below a
-            na = ceil(ya/d)
-            # compute height of slice center strictly below b
-            nb = floor(yb/d) + 1
+            # compute height of slice center strictly below a
+            na = floor(ya/d) + 1
+            # compute height of slice center below b
+            nb = ceil(yb/d)
 
         steps = [-1, 1]
-        step = steps[na <= nb]
-        slice_numbers = iter(range(na, nb, step))
+        step = steps[ya <= yb]
+        slice_numbers = range(na, nb, step)
+        slice_heights = [n * d for n in slice_numbers]
+        slice_segments = [segment.horizontal_segment(h) for h in slice_heights]
+        intersection_points = [self.line_intersection_with(s) for s in slice_segments]
 
-        if ya/d == na:
-            # attention, we must not add a vertex at starting point :
-            # it is supposed to be added when treating preceding segment
-            next(slice_numbers)
+        return intersection_points
 
-        for n in slice_numbers:
-            yield n * d
-
-    def cut(self, milling_diameter, vertices):
-        d = milling_diameter
-        a, b = self.endpoints
+    def cut(self, milling_diameter):
         ya, yb = [p.get_y() for p in self.endpoints]
 
         if ya == yb:
-            return [b]
+            return [self]
 
-        decomposition = []
-        for h in self.intersecting_slices(d):
-            slice_center = segment.horizontal_segment(h)
-            p = self.line_intersection_with(slice_center)
-            new_vertex = vertex(p)
-            vertices[h].append(new_vertex)
-            decomposition.append(new_vertex)
+        intersection_points = self.intersection_with_slices(milling_diameter)
+        elementary_segments = self.split_at(intersection_points)
 
-        if yb/d != round(yb/d):
-            decomposition.append(b)
-
-        return decomposition
+        return elementary_segments
