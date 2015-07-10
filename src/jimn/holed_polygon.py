@@ -40,17 +40,18 @@ class holed_polygon:
         for index, point in enumerate(points):
             if point.is_on_slice(milling_diameter):
                 points[index] = vertex(point)
+
         for index, point in enumerate(points):
             if type(point) is vertex:
                 start = index
                 break
-        print(start)
+
         prec = points[start]
         link = [elementary_segments[start]]
         n = len(points)
         k = (start + 1) % n
+
         while k != start:
-            print(k)
             if type(points[k]) is not vertex:
                 link.append(elementary_segments[k])
                 k = (k + 1) % n
@@ -60,8 +61,13 @@ class holed_polygon:
                 curr.add_link(link)
 
                 prec = curr
-                link = []
+                link = [elementary_segments[k]]
                 k = (k + 1) % n
+
+        curr = points[k]
+        prec.add_link(link)
+        curr.add_link(link)
+
         return points
 
     def tycat(self, border):

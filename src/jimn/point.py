@@ -1,5 +1,5 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
-from math import atan2, sqrt, cos, sin, floor
+from math import atan2, sqrt, cos, sin
 from jimn.precision import is_almost
 from jimn.bounding_box import bounding_box
 
@@ -119,7 +119,7 @@ class point:
     def is_on_slice(self, milling_diameter):
         d = milling_diameter
         y = self.get_y()
-        return y/d == floor(y/d)
+        return is_almost(y/d, round(y/d))
 
     def __add__(a, b):
         return point([i + j for i, j in zip(a.coordinates, b.coordinates)])
