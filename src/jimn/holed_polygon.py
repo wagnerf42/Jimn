@@ -36,7 +36,8 @@ class holed_polygon:
 
     def build_graph(self, milling_diameter):
         elementary_segments = self.polygon.cut(milling_diameter)
-        points = [s.get_endpoint(0) for s in elementary_segments]
+        # points are elementary_segments ending points
+        points = [s.get_endpoint(1) for s in elementary_segments]
         # points on a slice are vertices
         for index, point in enumerate(points):
             if point.is_on_slice(milling_diameter):
@@ -48,27 +49,23 @@ class holed_polygon:
                 start = index
                 break
 
-        v1 = points[start]
+        # we put found vertex at the end of lists
+        points = points[start+1:] + points[:start+1]
+        elementary_segments = elementary_segments[start+1:] + elementary_segments[:start+1]
+        v1 = points[-1]
         link = []
-        n = len(points)
-        k = (start+1) % n
 
-        while True:
-            # we look for next vertex
-            link.append(elementary_segments[(k - 1) % n])
-            if type(points[k]) is vertex:
-                # we found it.
-                # we create a link between vertices.
-                v2 = points[k]
+        for p, s in zip(points, elementary_segments):
+            # we look for next vertex, adding ending segments as we go through them
+            link.append(s)
+            if type(p) is vertex:
+                # we found it : create a link between vertices.
+                v2 = p
                 v1.add_link(link)
                 v2.add_link(link)
 
                 v1 = v2
                 link = []
-            k = (k + 1) % n
-            # we got back to starting point, end loop
-            if k == (start+1) % n:
-                break
 
         return points
 
