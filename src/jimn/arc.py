@@ -2,8 +2,6 @@ from jimn.bounding_box import bounding_box
 from jimn.point import point
 from jimn.segment import segment
 from jimn.precision import is_almost
-from jimn.displayable import tycat
-from jimn.coordinates_hash import coordinates_hash
 from math import sqrt, pi
 
 
@@ -24,11 +22,23 @@ class arc:
             box.add_point(p)
         return box
 
-    def intersection_with_arc(self, other):
-        rounder = coordinates_hash(2)
+    def contains(self, p):
+        """return true if point p is inside arc"""
+        if p.is_almost(self.points[0]) or p.is_almost(self.points[1]):
+            return True
+        if not is_almost(self.center.distance_to(p), self.radius):
+            return False
+        diff = self.points[1] - self.points[0]
+        product = diff.scalar_product(p)
+        assert not is_almost(product, 0), "already tested at entry of method"
+        return (product > 0)
+
+    def intersection_with_arc(self, other, rounder):
         points = circles_intersections(self.center, other.center,
                                        self.radius, other.radius, rounder)
-        tycat(self, other, points)
+        for p in points:
+            if self.contains(p):
+                return p
 
     def save_svg_content(self, display, color):
         x1, y1, x2, y2 = [

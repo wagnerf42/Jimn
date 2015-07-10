@@ -16,9 +16,11 @@ class displayed_thing(object):
         for thing in things:
             if (type(thing) is list) or (type(thing) is tuple):
                 for subthing in thing:
-                    self.bounding_box.update(subthing.get_bounding_box())
+                    if subthing is not None:
+                        self.bounding_box.update(subthing.get_bounding_box())
             else:
-                self.bounding_box.update(thing.get_bounding_box())
+                if thing is not None:
+                    self.bounding_box.update(thing.get_bounding_box())
         self.calibrate()
 
     def calibrate(self):
@@ -68,7 +70,8 @@ def tycat(*things):
         color = svg_colors[color_index]
         if (type(thing) is list) or (type(thing) is tuple):
             for subthing in thing:
-                subthing.save_svg_content(display, color)
+                if subthing is not None:
+                    subthing.save_svg_content(display, color)
         else:
             if thing is not None:
                 thing.save_svg_content(display, color)

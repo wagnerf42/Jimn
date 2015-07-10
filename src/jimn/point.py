@@ -17,12 +17,8 @@ class point:
 
     def squared_distance_to(self, other):
         """squared euclidean distance between two points"""
-        coordinates = [p.get_coordinates() for p in (self, other)]
-        distance = 0
-        for i in range(len(coordinates[0])):
-            diff = coordinates[0][i] - coordinates[1][i]
-            distance = distance + diff * diff
-        return distance
+        diff = other - self
+        return diff.scalar_product(diff)
 
     def distance_to(self, other):
         """euclidean distance between two points"""
@@ -115,6 +111,12 @@ class point:
         """
         x, y = self.coordinates[0:2]
         return point([x, y])
+
+    def scalar_product(self, other):
+        p = 0
+        for c1, c2 in zip(self.coordinates, other.coordinates):
+            p += c1 * c2
+        return p
 
     def is_on_slice(self, milling_diameter):
         d = milling_diameter

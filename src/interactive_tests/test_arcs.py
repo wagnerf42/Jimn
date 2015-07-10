@@ -3,6 +3,7 @@
 from jimn.point import point
 from jimn.arc import arc
 from jimn.displayable import tycat
+from jimn.coordinates_hash import coordinates_hash
 
 a1 = arc(
     3, [point([0, 0]), point([3, 3])]
@@ -24,12 +25,16 @@ a5 = arc(
     2, [point([0, 1]), point([2, 3])]
 )
 
-
+rounder = coordinates_hash(2)
 print("testing with double intersections")
-a1.intersection_with_arc(a2)
+i = a1.intersection_with_arc(a2, rounder)
+tycat(a1, a2, i)
 print("testing with single intersection")
-a1.intersection_with_arc(a3)
+i = a1.intersection_with_arc(a3, rounder)
+tycat(a1, a3, i)
 print("testing with no intersection (too far)")
-a1.intersection_with_arc(a4)
+i = a1.intersection_with_arc(a4, rounder)
+tycat(a1, a4, i)
 print("testing with no intersection (same center)")
-a1.intersection_with_arc(a5)
+i = a1.intersection_with_arc(a5, rounder)
+tycat(a1, a5, i)
