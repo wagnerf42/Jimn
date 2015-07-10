@@ -22,5 +22,3 @@ points = abc.build_graph(0.3)
 for p in points:
     if type(p) is vertex:
         tycat(center_lines, abc, p, *(p.links))
-    else:
-        tycat(center_lines, abc, p)
