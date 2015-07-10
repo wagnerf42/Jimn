@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-from collections import defaultdict
 from jimn.point import point
 from jimn.segment import segment
 from jimn.displayable import tycat
@@ -20,13 +19,13 @@ segments_test.append([[0.1, 1.0], [1.1, 1.1]])
 # horizontal segment aligned on a slice center line
 segments_test.append([[0.0, 1.2], [1.2, 1.2]])
 
+segments_test.extend([[[x, -y + 1.2] for [x, y] in endpoints] for endpoints in segments_test])
+
 segments_test = [[point(c1), point(c2)] for [c1, c2] in segments_test]
 segments_test = [segment(endpoints) for endpoints in segments_test]
 
 heights = [0.3 * n for n in range(0, 5)]
 center_lines = [segment([point([0.0, h]), point([1.2, h])]) for h in heights]
 for s in segments_test:
-    vertices_per_height = defaultdict(list)
-    vertices = s.cut(0.3, vertices_per_height)
-    print([str(v) for v in vertices])
-    tycat(center_lines, s, vertices)
+    elementary_segments = s.cut(0.3)
+    tycat(center_lines, *elementary_segments)

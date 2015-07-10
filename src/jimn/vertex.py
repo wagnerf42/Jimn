@@ -2,9 +2,9 @@ from jimn.point import point
 
 
 class vertex(point):
-    def __init__(self, position_point, neighbors=[]):
+    def __init__(self, position_point, links=[]):
         super().__init__(position_point.get_coordinates())
-        self.neighbors = neighbors
+        self.links = links
 
-    def add_neighbor(self, neighbor):
-        self.neighbors.append(neighbor)
+    def add_link(self, link):
+        self.links.append(link)
