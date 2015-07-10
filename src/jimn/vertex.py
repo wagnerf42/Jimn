@@ -8,3 +8,7 @@ class vertex(point):
 
     def add_link(self, link):
         self.links.append(link)
+
+    def get_link(self):
+        assert len(self.links) == 1, "getting link but several links are available"
+        return self.links[0]

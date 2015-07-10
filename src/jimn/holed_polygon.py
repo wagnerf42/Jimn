@@ -36,38 +36,39 @@ class holed_polygon:
 
     def build_graph(self, milling_diameter):
         elementary_segments = self.polygon.cut(milling_diameter)
-        # points are elementary_segments ending points
-        points = [s.get_endpoint(1) for s in elementary_segments]
-        # points on a slice are vertices
-        for index, point in enumerate(points):
-            if point.is_on_slice(milling_diameter):
-                points[index] = vertex(point)
 
-        # we look for a vertex
-        for index, point in enumerate(points):
-            if type(point) is vertex:
-                start = index
-                break
+        elementary_segments = reorder_elementary_segments_to_start_at_vertex(elementary_segments, milling_diameter)
 
-        # we put found vertex at the end of lists
-        points = points[start+1:] + points[:start+1]
-        elementary_segments = elementary_segments[start+1:] + elementary_segments[:start+1]
-        v1 = points[-1]
-        link = []
+        vertices = []
+        intermediate_path = []
+        final_vertex = vertex(elementary_segments[0].get_endpoint(0))
+        previous_vertex = final_vertex
+        for s in elementary_segments:
+            p = s.get_endpoint(1)
+            intermediate_path.append(s)
+            if p.is_on_slice(milling_diameter):
+                v = vertex(p)
+                v.add_link(list(reversed(intermediate_path)))
+                previous_vertex.add_link(intermediate_path)
+                intermediate_path = []
+                previous_vertex = v
+                vertices.append(v)
+        vertices[-1].add_link(final_vertex.get_link())
 
-        for p, s in zip(points, elementary_segments):
-            # we look for next vertex, adding ending segments as we go through them
-            link.append(s)
-            if type(p) is vertex:
-                # we found it : create a link between vertices.
-                v2 = p
-                v1.add_link(link)
-                v2.add_link(link)
-
-                v1 = v2
-                link = []
-
-        return points
+        return vertices
 
     def tycat(self, border):
         tycat(border, self.polygon, *(self.holes))
+
+
+def reorder_elementary_segments_to_start_at_vertex(elementary_segments, milling_diameter):
+        # find first vertex
+        for index, s in enumerate(elementary_segments):
+            p = s.get_endpoint(0)
+            if p.is_on_slice(milling_diameter):
+                start = index
+                break
+        else:
+            raise "no vertex"
+
+        return (elementary_segments[start:] + elementary_segments[:start])
