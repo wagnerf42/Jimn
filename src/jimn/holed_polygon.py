@@ -53,7 +53,7 @@ class holed_polygon:
         n = len(points)
         k = (start+1) % n
 
-        while k != start:
+        while True:
             # we look for next vertex
             link.append(elementary_segments[(k - 1) % n])
             if type(points[k]) is vertex:
@@ -66,11 +66,9 @@ class holed_polygon:
                 v1 = v2
                 link = []
             k = (k + 1) % n
-
-        link.append(elementary_segments[(k - 1) % n])
-        v2 = points[k]
-        v1.add_link(link)
-        v2.add_link(link)
+            # we got back to starting point, end loop
+            if k == (start+1) % n:
+                break
 
         return points
 
