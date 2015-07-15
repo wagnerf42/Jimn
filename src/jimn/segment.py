@@ -236,10 +236,10 @@ class segment:
 
         return intersection_points
 
-    def cut(self, milling_diameter):
+    def cut(self, milling_diameter, previous_segment, next_segment):
         a, b = self.endpoints
-        a.mark(endpoint=True)
-        b.mark(endpoint=True)
+        a.mark(vertex=vertex_corner(previous_segment, self))
+        b.mark(vertex=vertex_corner(self, next_segment))
         ya, yb = [p.get_y() for p in self.endpoints]
 
         if ya == yb:
@@ -247,7 +247,7 @@ class segment:
 
         intersection_points = self.intersection_with_slices(milling_diameter)
         for p in intersection_points:
-            p.mark(endpoint=False)
+            p.mark(vertex=True)
         # elementary_segments = self.split_at(intersection_points)
         # TODO : put in separate function
         points = [a] + intersection_points + [b]
@@ -257,3 +257,14 @@ class segment:
         ]
 
         return segments
+
+    def dy(self):
+        ya, yb = [p.get_y() for p in self.get_endpoints()]
+        return yb - ya
+
+
+def vertex_corner(s1, s2):
+    if s1.dy() == 0 or s2.dy() == 0:
+        return False
+    d1, d2 = [s.dy() > 0 for s in [s1, s2]]
+    return d1 == d2

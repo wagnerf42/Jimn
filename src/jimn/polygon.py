@@ -1,5 +1,6 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 from jimn.segment import segment
+from jimn.vertex import vertex
 from jimn.polygonsegment import polygonsegment
 from jimn.bounding_box import bounding_box
 from jimn.precision import is_almost
@@ -106,11 +107,38 @@ class polygon:
                     return False
         return True
 
-    def cut(self, milling_diameter):
+    def cut_sides(self, milling_diameter):
         elementary_segments = []
-        for side in self.segments():
-            elementary_segments.extend(side.cut(milling_diameter))
+        segments = list(self.segments())
+        curr = segments
+        prec = segments[-1:] + segments[:-1]
+        nextt= segments[1:] + segments[:1]
+        for p, c, n in zip(prec, curr, nextt):
+            elementary_segments.extend(c.cut(milling_diameter, p, n))
         return elementary_segments
+
+    def cut(self, milling_diameter):
+        elementary_segments = self.cut_sides(milling_diameter)
+
+        elementary_segments = reorder_elementary_segments_to_start_at_vertex(elementary_segments, milling_diameter)
+
+        vertices = []
+        intermediate_path = []
+        final_vertex = vertex(elementary_segments[0].get_endpoint(0))
+        previous_vertex = final_vertex
+        for s in elementary_segments:
+            p = s.get_endpoint(1)
+            intermediate_path.append(s)
+            if p.is_vertex:
+                v = vertex(p)
+                v.add_link(list(reversed(intermediate_path)))
+                previous_vertex.add_link(intermediate_path)
+                intermediate_path = []
+                previous_vertex = v
+                vertices.append(v)
+        vertices[-1].add_link(final_vertex.get_link())
+
+        return vertices
 
     def __str__(self):
         return "[{}/{}]".format(
@@ -133,3 +161,20 @@ class polygon:
         svg_formatted = " ".join(svg_coordinates)
         display.write("<polygon points=\"{}\"".format(svg_formatted))
         display.write(" style=\"fill:{};stroke:{};stroke-width:1;opacity:0.4\" />".format(color, color))
+
+
+def reorder_elementary_segments_to_start_at_vertex(elementary_segments, milling_diameter):
+        # find first vertex
+        for index, s in enumerate(elementary_segments):
+            p = s.get_endpoint(0)
+            if p.is_vertex:
+                start = index
+                break
+        else:
+            raise NoVertex
+
+        return (elementary_segments[start:] + elementary_segments[:start])
+
+
+class NoVertex(Exception):
+    pass
