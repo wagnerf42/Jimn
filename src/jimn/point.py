@@ -118,10 +118,16 @@ class point:
             p += c1 * c2
         return p
 
+    def mark(self, endpoint):
+        self.is_endpoint = endpoint
+
     def is_on_slice(self, milling_diameter):
         d = milling_diameter
         y = self.get_y()
-        return is_almost(y/d, round(y/d))
+        try:
+            return not self.is_endpoint and is_almost(y/d, round(y/d))
+        except AttributeError:
+            raise AttributeError('unmarked point (is it an endpoint ?)')
 
     def __add__(a, b):
         return point([i + j for i, j in zip(a.coordinates, b.coordinates)])

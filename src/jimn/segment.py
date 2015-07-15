@@ -238,12 +238,16 @@ class segment:
 
     def cut(self, milling_diameter):
         a, b = self.endpoints
+        a.mark(endpoint=True)
+        b.mark(endpoint=True)
         ya, yb = [p.get_y() for p in self.endpoints]
 
         if ya == yb:
             return [self]
 
         intersection_points = self.intersection_with_slices(milling_diameter)
+        for p in intersection_points:
+            p.mark(endpoint=False)
         # elementary_segments = self.split_at(intersection_points)
         # TODO : put in separate function
         points = [a] + intersection_points + [b]
