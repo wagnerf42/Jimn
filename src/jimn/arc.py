@@ -44,20 +44,30 @@ class arc:
                 return p
 
     def intersection_with_segment(self, intersecting_segment, rounder):
-        d = self.points[1] - self.points[0]
+        points = intersecting_segment.get_endpoints()
+        # take first point as origin
+        d = points[1] - points[0]
+        c = self.center - points[0]
         xd, yd = d.get_coordinates()
-        xc, yc = self.center.get_coordinates()
-        # solve quadratic equation
-        # solutions are at alpha * d with alpha between 0 and 1
-        a = xd*xd + yd*yd
+        xc, yc = c.get_coordinates()
+        # segment points are at alpha * d
+        # distance(alpha * d, center) = r
+
+        # (xc-alpha*xd)**2 + (yc-alpha*yd)**2 - r**2 = 0
+
+        # xc**2 + alpha**2*xd**2 -2*alpha*xc*xd
+        # yc**2 + alpha**2*yd**2 -2*alpha*yc*yd
+        # - r**2 = 0
+        a = xd**2 + yd**2
         b = -2*(xc*xd + yc*yd)
-        c = self.radius * self.radius - xc*xc - yc*yc
+        c = xc**2 + yc**2 - self.radius**2
+
         solutions = solve_quadratic_equation(a, b, c)
         intersections = []
         for s in solutions:
             if is_almost(s, 0) or s > 0:
                 if is_almost(s, 1) or s < 1:
-                    intersections.append(rounder.hash_point(d*s))
+                    intersections.append(rounder.hash_point(points[0]+d*s))
 
         return intersections
 

@@ -47,10 +47,15 @@ for i, a in enumerate(arcs):
 
 segments = (
     segment([point([-1, 2]), point([3, 1])]),
+    segment([point([3.2, 3]), point([0.2, 0])]),
+    segment([point([5.2, 3]), point([2.2, 0])]),
+    segment([point([-1, 0]), point([3, 0])]),
 )
 s_labels = (
     "single intersection",
-    "single intersection",
+    "double intersection",
+    "no intersection",
+    "tangent",
 )
 print("*** trying intersection with segments ***")
 for i, s in enumerate(segments):
