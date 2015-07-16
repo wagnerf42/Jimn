@@ -2,6 +2,7 @@ from jimn.bounding_box import bounding_box
 from jimn.point import point
 from jimn.segment import segment
 from jimn.precision import is_almost
+from jimn.displayable import tycat
 from math import sqrt, pi
 
 
@@ -29,7 +30,8 @@ class arc:
         if not is_almost(self.center.distance_to(p), self.radius):
             return False
         diff = self.points[1] - self.points[0]
-        product = diff.scalar_product(p)
+        diff_p = p - self.points[0]
+        product = diff.scalar_product(diff_p)
         assert not is_almost(product, 0), "already tested at entry of method"
         return (product > 0)
 
@@ -37,7 +39,7 @@ class arc:
         points = circles_intersections(self.center, other.center,
                                        self.radius, other.radius, rounder)
         for p in points:
-            if self.contains(p):
+            if self.contains(p) and other.contains(p):
                 return p
 
     def save_svg_content(self, display, color):
