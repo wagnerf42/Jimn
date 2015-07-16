@@ -11,8 +11,11 @@ from jimn.displayable import tycat
 a = point([0.5, 0.1])
 b = point([0.0, 1.1])
 c = point([1.0, 1.1])
+d = point([0.5, 0.4])
+e = point([0.2, 1.0])
+f = point([0.8, 1.0])
 
-abc = holed_polygon(polygon([a, b, c]))
+abc = holed_polygon(polygon([a, b, c]), height=0, holes=[polygon([d, e, f])])
 
 heights = [0.3 * n for n in range(0, 5)]
 center_lines = [segment([point([0.0, h]), point([1.2, h])]) for h in heights]

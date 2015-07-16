@@ -1,4 +1,7 @@
+from jimn.segment import segment
+from jimn.polygon import NoVertex
 from jimn.displayable import tycat
+from collections import defaultdict
 
 
 class holed_polygon:
@@ -34,20 +37,38 @@ class holed_polygon:
         return True
 
     def build_graph(self, milling_diameter):
-        return self.polygon.cut(milling_diameter)
+        vertices = []
+
+        try:
+            vertices.extend(self.polygon.create_vertices(milling_diameter))
+        except NoVertex:
+            print("no vertex in polygon")
+            raise
+
+        try:
+            for h in self.holes:
+                vertices.extend(h.create_vertices(milling_diameter))
+        except NoVertex:
+            print("no vertex in hole")
+            raise
+
+        vertices_per_height = defaultdict(list)
+        for v in vertices:
+            # TODO: rounding beforehand
+            vertices_per_height[round(v.get_y(), 7)].append(v)
+        for y, same_height_vertices in vertices_per_height.items():
+            assert len(same_height_vertices) % 2 == 0
+            print(y, len(same_height_vertices))
+            vertices_per_height[y] = sorted(same_height_vertices, key=lambda v: v.get_x())
+        for y, same_height_vertices in vertices_per_height.items():
+            even_vertices = same_height_vertices[0:][::2]
+            odd_vertices = same_height_vertices[1:][::2]
+            for v1, v2 in zip(even_vertices, odd_vertices):
+                l = segment([v1, v2])
+                v1.add_link(l)
+                v2.add_link(l)
+
+        return vertices
 
     def tycat(self, border):
         tycat(border, self.polygon, *(self.holes))
-
-
-def reorder_elementary_segments_to_start_at_vertex(elementary_segments, milling_diameter):
-        # find first vertex
-        for index, s in enumerate(elementary_segments):
-            p = s.get_endpoint(0)
-            if p.is_on_slice(milling_diameter):
-                start = index
-                break
-        else:
-            raise "no vertex"
-
-        return (elementary_segments[start:] + elementary_segments[:start])

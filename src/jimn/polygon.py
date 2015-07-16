@@ -110,14 +110,14 @@ class polygon:
     def cut_sides(self, milling_diameter):
         elementary_segments = []
         segments = list(self.segments())
-        curr = segments
-        prec = segments[-1:] + segments[:-1]
-        nextt= segments[1:] + segments[:1]
-        for p, c, n in zip(prec, curr, nextt):
-            elementary_segments.extend(c.cut(milling_diameter, p, n))
+        preceding_segments = segments[-1:] + segments[:-1]
+        current_segments = segments
+        following_segments = segments[1:] + segments[:1]
+        for p, c, f in zip(preceding_segments, current_segments, following_segments):
+            elementary_segments.extend(c.cut(milling_diameter, p, f))
         return elementary_segments
 
-    def cut(self, milling_diameter):
+    def create_vertices(self, milling_diameter):
         elementary_segments = self.cut_sides(milling_diameter)
 
         elementary_segments = reorder_elementary_segments_to_start_at_vertex(elementary_segments, milling_diameter)
