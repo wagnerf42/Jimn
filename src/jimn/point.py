@@ -121,6 +121,12 @@ class point:
             p += c1 * c2
         return p
 
+    def round_coordinates(self, milling_diameter):
+        if self.is_on_slice(milling_diameter):
+            y = self.get_y()
+            d = milling_diameter
+            self.set_y(round(y/d)*d)
+
     def mark(self, vertex):
         self.is_vertex = vertex
 

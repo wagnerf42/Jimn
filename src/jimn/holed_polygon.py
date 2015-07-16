@@ -36,6 +36,11 @@ class holed_polygon:
                 return False
         return True
 
+    def round_coordinates(self, milling_diameter):
+        self.polygon.round_coordinates(milling_diameter)
+        for h in self.holes:
+            h.round_coordinates(milling_diameter)
+
     def build_graph(self, milling_diameter):
         vertices = []
 
