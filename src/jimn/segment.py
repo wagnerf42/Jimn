@@ -19,6 +19,9 @@ class segment:
                 # print("very small segment {}".format(str(self)), file=sys.stderr)
                 raise Exception("very small segment")
 
+    def reverse(self):
+        return segment(list(reversed(self.endpoints)))
+
     @classmethod
     def horizontal_segment(cls, y):
             coordinates = ([0.0, y], [1.0, y])

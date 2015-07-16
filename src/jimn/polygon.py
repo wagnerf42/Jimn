@@ -107,9 +107,8 @@ class polygon:
                     return False
         return True
 
-    def round_coordinates(self, milling_diameter):
-        for p in self.points:
-            p.round_coordinates(self, milling_diameter)
+    def round_points(self, rounder):
+        self.points = [rounder.hash_point(p) for p in self.points]
 
     def cut_sides(self, milling_diameter):
         elementary_segments = []

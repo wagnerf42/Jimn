@@ -1,7 +1,10 @@
+from jimn.coordinates_hash import coordinates_hash
 from jimn.segment import segment
 from jimn.polygon import NoVertex
 from jimn.displayable import tycat
+from jimn.iterators import all_pairs
 from collections import defaultdict
+from math import floor, ceil
 
 
 class holed_polygon:
@@ -36,30 +39,36 @@ class holed_polygon:
                 return False
         return True
 
-    def round_coordinates(self, milling_diameter):
-        self.polygon.round_coordinates(milling_diameter)
+    def round_points(self, rounder):
+        self.polygon.round_points(rounder)
         for h in self.holes:
-            h.round_coordinates(milling_diameter)
+            h.round_points(rounder)
+
+    def milling_heights(self, milling_diameter):
+        box = self.get_bounding_box()
+        ymin, ymax = box.limits(1)
+        start = floor(ymin / milling_diameter)
+        end = ceil(ymax / milling_diameter)
+        for i in range(start, end+1):
+            yield i * milling_diameter
 
     def build_graph(self, milling_diameter):
         vertices = []
+        rounder = coordinates_hash(2)
+        for y in self.milling_heights(milling_diameter):
+            rounder.hash_coordinate(1, y)
+
+        self.round_points(rounder)
 
         try:
             vertices.extend(self.polygon.create_vertices(milling_diameter))
         except NoVertex:
-            # we simply need to visit each point of polygon
-            print("no vertex in polygon")
+            print("TODO: small polygon between two slices")
             raise
-
         for h in self.holes:
-            try:
-                vertices.extend(h.create_vertices(milling_diameter))
-            except NoVertex:
-                # empty hole
-                print("no vertex in hole")
-                raise
+            vertices.extend(h.create_vertices(milling_diameter))
 
-        create_slice_links(vertices)
+        create_slice_edges(vertices)
 
         return vertices
 
@@ -67,23 +76,19 @@ class holed_polygon:
         tycat(border, self.polygon, *(self.holes))
 
 
-def create_slice_links(vertices):
+def create_slice_edges(vertices):
     # we group vertices per height
     vertices_per_height = defaultdict(list)
     for v in vertices:
-        # TODO: rounding coordinates beforehand
         vertices_per_height[v.get_y()].append(v)
 
-    # we sort same height vertices
+    # add horizontal edges, so loop on each slice
     for y, same_height_vertices in vertices_per_height.items():
-        assert len(same_height_vertices) % 2 == 0
-        vertices_per_height[y] = sorted(same_height_vertices, key=lambda v: v.get_x())
-
-    # we group same height vertices in linked pairs
-    for y, same_height_vertices in vertices_per_height.items():
-        even_vertices = same_height_vertices[0:][::2]
-        odd_vertices = same_height_vertices[1:][::2]
-        for v1, v2 in zip(even_vertices, odd_vertices):
+        assert len(same_height_vertices) % 2 == 0, "we cannot have an odd number of aligned vertices"
+        # we sort same height vertices
+        vertices = sorted(same_height_vertices, key=lambda v: v.get_x())
+        # we group same height vertices in linked pairs
+        for v1, v2 in all_pairs(vertices):
             l = segment([v1, v2])
             v1.add_link(l)
-            v2.add_link(l)
+            v2.add_link(l.reverse())
