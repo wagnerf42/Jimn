@@ -17,3 +17,9 @@ def all_pairs(array):
     even_elements = array[0:][::2]
     odd_elements = array[1:][::2]
     return zip(even_elements, odd_elements)
+
+
+def two_arrays_combinations(array1, array2):
+    for e1 in array1:
+        for e2 in array2:
+            yield e1, e2

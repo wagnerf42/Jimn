@@ -1,10 +1,11 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
-from jimn.segment import segment
-from jimn.vertex import vertex
+from jimn.segment import segment, horizontal_segment
 from jimn.polygonsegment import polygonsegment
 from jimn.bounding_box import bounding_box
 from jimn.precision import is_almost
 from jimn.iterators import all_two_elements
+from jimn.segments_set import segments_set
+from math import floor, ceil
 
 
 class invalid_polygon(Exception):
@@ -110,38 +111,30 @@ class polygon:
     def round_points(self, rounder):
         self.points = [rounder.hash_point(p) for p in self.points]
 
-    def cut_sides(self, milling_diameter):
-        elementary_segments = []
-        segments = list(self.segments())
-        preceding_segments = segments[-1:] + segments[:-1]
-        current_segments = segments
-        following_segments = segments[1:] + segments[:1]
-        for p, c, f in zip(preceding_segments, current_segments, following_segments):
-            elementary_segments.extend(c.cut(milling_diameter, p, f))
-        return elementary_segments
+    def milling_heights(self, milling_diameter):
+        box = self.get_bounding_box()
+        ymin, ymax = box.limits(1)
+        start = floor(ymin / milling_diameter)
+        end = ceil(ymax / milling_diameter)
+        for i in range(start, end+1):
+            yield i * milling_diameter
 
-    def create_vertices(self, milling_diameter):
-        elementary_segments = self.cut_sides(milling_diameter)
-
-        elementary_segments = reorder_elementary_segments_to_start_at_vertex(elementary_segments, milling_diameter)
-
-        vertices = []
-        intermediate_path = []
-        final_vertex = vertex(elementary_segments[0].get_endpoint(0))
-        previous_vertex = final_vertex
+    def create_vertices(self, milling_diameter, built_graph):
+        # first cut by horizontal lines spaced by milling_diameter
+        box = self.get_bounding_box()
+        xmin, xmax = box.limits(0)
+        cutting_lines = [
+            horizontal_segment(xmin, xmax, y) for y in self.milling_heights(milling_diameter)
+        ]
+        cutter = segments_set(self.segments())
+        elementary_segments = cutter.elementary_segments(cutting_lines)
+        # ok, now create graph, each segment point becomes a vertex
+        # and we add all external edges
         for s in elementary_segments:
-            p = s.get_endpoint(1)
-            intermediate_path.append(s)
-            if p.is_vertex:
-                v = vertex(p)
-                v.add_link(list(reversed(intermediate_path)))
-                previous_vertex.add_link(intermediate_path)
-                intermediate_path = []
-                previous_vertex = v
-                vertices.append(v)
-        vertices[-1].add_link(final_vertex.get_link())
-
-        return vertices
+            v = built_graph.add_vertex(s.get_endpoint(0))
+            v.add_edge(s)
+            v = built_graph.add_vertex(s.get_endpoint(1))
+            v.add_edge(s.reverse())
 
     def __str__(self):
         return "[{}/{}]".format(
@@ -164,20 +157,3 @@ class polygon:
         svg_formatted = " ".join(svg_coordinates)
         display.write("<polygon points=\"{}\"".format(svg_formatted))
         display.write(" style=\"fill:{};stroke:{};stroke-width:1;opacity:0.4\" />".format(color, color))
-
-
-def reorder_elementary_segments_to_start_at_vertex(elementary_segments, milling_diameter):
-        # find first vertex
-        for index, s in enumerate(elementary_segments):
-            p = s.get_endpoint(0)
-            if p.is_vertex:
-                start = index
-                break
-        else:
-            raise NoVertex
-
-        return (elementary_segments[start:] + elementary_segments[:start])
-
-
-class NoVertex(Exception):
-    pass

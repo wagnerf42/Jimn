@@ -20,6 +20,6 @@ for i in range(10):
 
 big = segments_set(segments)
 tycat(*big.get_segments())
-small = big.compute_elementary_segments()
+small = big.compute_elementary_segments(segments)
 tycat(*small.get_segments())
 
