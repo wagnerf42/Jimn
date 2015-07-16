@@ -42,15 +42,17 @@ class holed_polygon:
         try:
             vertices.extend(self.polygon.create_vertices(milling_diameter))
         except NoVertex:
+            # we simply need to visit each point of polygon
             print("no vertex in polygon")
             raise
 
-        try:
-            for h in self.holes:
+        for h in self.holes:
+            try:
                 vertices.extend(h.create_vertices(milling_diameter))
-        except NoVertex:
-            print("no vertex in hole")
-            raise
+            except NoVertex:
+                # empty hole
+                print("no vertex in hole")
+                raise
 
         create_slice_links(vertices)
 
