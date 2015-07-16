@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from jimn.point import point
+from jimn.segment import segment
 from jimn.arc import arc
 from jimn.displayable import tycat
 from jimn.coordinates_hash import coordinates_hash
@@ -38,7 +39,21 @@ arcs = (
 
 rounder = coordinates_hash(2)
 
+print("*** trying intersection with arcs ***")
 for i, a in enumerate(arcs):
     print(labels[i])
     intersection = a1.intersection_with_arc(a, rounder)
     tycat(a1, a, intersection)
+
+segments = (
+    segment([point([-1, 2]), point([3, 1])]),
+)
+s_labels = (
+    "single intersection",
+    "single intersection",
+)
+print("*** trying intersection with segments ***")
+for i, s in enumerate(segments):
+    print(s_labels[i])
+    intersections = a1.intersection_with_segment(s, rounder)
+    tycat(a1, s, intersections)

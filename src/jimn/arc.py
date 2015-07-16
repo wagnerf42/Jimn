@@ -3,6 +3,7 @@ from jimn.point import point
 from jimn.segment import segment
 from jimn.precision import is_almost
 from jimn.displayable import tycat
+from jimn.math import solve_quadratic_equation
 from math import sqrt, pi
 
 
@@ -41,6 +42,24 @@ class arc:
         for p in points:
             if self.contains(p) and other.contains(p):
                 return p
+
+    def intersection_with_segment(self, intersecting_segment, rounder):
+        d = self.points[1] - self.points[0]
+        xd, yd = d.get_coordinates()
+        xc, yc = self.center.get_coordinates()
+        # solve quadratic equation
+        # solutions are at alpha * d with alpha between 0 and 1
+        a = xd*xd + yd*yd
+        b = -2*(xc*xd + yc*yd)
+        c = self.radius * self.radius - xc*xc - yc*yc
+        solutions = solve_quadratic_equation(a, b, c)
+        intersections = []
+        for s in solutions:
+            if is_almost(s, 0) or s > 0:
+                if is_almost(s, 1) or s < 1:
+                    intersections.append(rounder.hash_point(d*s))
+
+        return intersections
 
     def save_svg_content(self, display, color):
         x1, y1, x2, y2 = [

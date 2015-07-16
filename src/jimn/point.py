@@ -135,6 +135,9 @@ class point:
     def __sub__(a, b):
         return point([i - j for i, j in zip(a.coordinates, b.coordinates)])
 
+    def __mul__(a, i):
+        return point([c*i for c in a.coordinates])
+
     def __truediv__(a, i):
         return point([c/i for c in a.coordinates])
 
