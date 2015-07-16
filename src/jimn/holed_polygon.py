@@ -67,7 +67,7 @@ def create_slice_links(vertices):
     vertices_per_height = defaultdict(list)
     for v in vertices:
         # TODO: rounding coordinates beforehand
-        vertices_per_height[round(v.get_y(), 7)].append(v)
+        vertices_per_height[v.get_y()].append(v)
 
     # we sort same height vertices
     for y, same_height_vertices in vertices_per_height.items():

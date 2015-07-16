@@ -233,6 +233,8 @@ class segment:
         slice_heights = [n * d for n in slice_numbers]
         slice_segments = [segment.horizontal_segment(h) for h in slice_heights]
         intersection_points = [self.line_intersection_with(s) for s in slice_segments]
+        for h, p in zip(slice_heights, intersection_points):
+            p.set_y(h)
 
         return intersection_points
 

@@ -44,6 +44,9 @@ class point:
         """Return the third coordinate, assuming it exists."""
         return self.coordinates[2]
 
+    def set_y(self, y):
+        self.coordinates[1] = y
+
     def is_above(self, height):
         """
         Returns a boolean indicating whether or not the point is located
