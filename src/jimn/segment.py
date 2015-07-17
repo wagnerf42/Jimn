@@ -165,3 +165,7 @@ class segment(elementary_path):
         return segment([
             p + displacement for p in self.endpoints
         ])
+
+    def contains(self, possible_point):
+        distance = sum([possible_point.distance_to(p) for p in self.endpoints])
+        return is_almost(distance, self.endpoints[0].distance_to(self.endpoints[1]))

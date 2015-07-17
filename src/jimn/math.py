@@ -1,6 +1,7 @@
 from math import sqrt
 from jimn.precision import is_almost
 
+
 def solve_quadratic_equation(a, b, c):
     """ solves a*x*x + b*y +c = 0
     careful : we do some rounding here:
@@ -14,4 +15,3 @@ def solve_quadratic_equation(a, b, c):
             return []
         else:
             return [(-b-sqrt(delta))/(2*a), (-b+sqrt(delta))/(2*a)]
-

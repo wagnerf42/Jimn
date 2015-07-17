@@ -43,12 +43,6 @@ class elementary_path:
         sorted_self = self.sort_endpoints()
         return sorted_self.endpoints == self.endpoints
 
-    def middle_point(self):
-        """returns point at same distance of endpoints
-        (not necessarily on path)"""
-        p1, p2 = self.endpoints
-        return p1 + (p2-p1) / 2
-
     def dimension(self):
         return self.endpoints[0].dimension()
 
@@ -86,15 +80,22 @@ class elementary_path:
     def intersections_with(self, other, rounder):
         if str(type(self)) == "<class 'jimn.arc.arc'>":
             if str(type(other)) == "<class 'jimn.arc.arc'>":
-                return self.intersections_with_arc(other, rounder)
+                intersections = self.intersections_with_arc(other, rounder)
             else:
-                return self.intersections_with_segment(other, rounder)
+                intersections = self.intersections_with_segment(other, rounder)
         else:
             if str(type(other)) == "<class 'jimn.arc.arc'>":
-                return other.intersections_with_segment(self, rounder)
+                intersections = other.intersections_with_segment(self, rounder)
             else:
                 i = self.intersection_with_segment(other, rounder)
                 if i is None:
-                    return []
+                    intersections = []
                 else:
-                    return [i]
+                    intersections = [i]
+
+        if __debug__:
+            if is_module_debugged(__name__):
+                print("intersections are:")
+                tycat(self, other, intersections)
+
+        return intersections

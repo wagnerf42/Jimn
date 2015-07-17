@@ -5,19 +5,24 @@
 
  * code review
  * minor code improvements (readability)
+
+- remove duplicated code (checking for contains) in arc by moving it upwards in elementary segment
+
  * minor code improvements (performance)
- 
+
 - use symmetry to avoid half combinations in jimn.iterators.two_arrays_combinations
 
  * additional non-regression tests
  * misc
 
+- better bounding box for arcs
 - profiling
 - test ascii stl loader
 
  * calibration
 
 - what precision should be chosen in stl to round z coordinates ?
+- what to do with rounder when creating arcs ???
 
  * doc
 

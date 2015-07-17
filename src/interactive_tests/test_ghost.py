@@ -30,17 +30,14 @@ for i in range(size):
             ]),
         ])
     else:
-        p = arc(
-            random.random(),
-            [
-                point([
-                    random.random(), random.random()
-                ]),
-                point([
-                    random.random(), random.random()
-                ]),
-            ]
-        )
+        end1 = point([
+            random.random(), random.random()
+        ])
+        end2 = point([
+            random.random(), random.random()
+        ])
+        d = end1.distance_to(end2)
+        p = arc(random.uniform(d/2, 3*d), [end1, end2])
 
     paths.append(p)
 

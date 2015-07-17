@@ -4,6 +4,7 @@ from jimn.point import point
 from jimn.precision import is_almost
 from jimn.displayable import tycat
 from jimn.math import solve_quadratic_equation
+from jimn.coordinates_hash import coordinates_hash
 from math import sqrt, pi
 
 
@@ -15,8 +16,25 @@ class arc(elementary_path):
         self.center = self.compute_center()
 
     def compute_center(self):
-        middle = self.middle_point()
-        return self.endpoints[1].rotate_around(middle, -pi/2)
+        # take endpoints[0] as origin
+        p2 = self.endpoints[1] - self.endpoints[0]
+        # find bisector
+        middle = p2/2
+        p = middle + p2.perpendicular_vector()
+        # intersect with circle at origin
+        rounder = coordinates_hash(2)  # TODO : useless for now
+        intersections = line_circle_intersections(
+            [middle, p],
+            point([0, 0]),
+            self.radius,
+            rounder
+        )
+        assert len(intersections) == 2, "invalid arc"
+        # pick center and translate back
+        for i in intersections:
+            if p2.scalar_product(i) > 0:
+                return self.endpoints[0] + i
+        raise "no center found"
 
     def get_bounding_box(self):
         box = bounding_box.empty_box(2)
@@ -46,31 +64,17 @@ class arc(elementary_path):
         return intersections
 
     def intersections_with_segment(self, intersecting_segment, rounder):
-        points = intersecting_segment.get_endpoints()
-        # take first point as origin
-        d = points[1] - points[0]
-        c = self.center - points[0]
-        xd, yd = d.get_coordinates()
-        xc, yc = c.get_coordinates()
-        # segment points are at alpha * d
-        # distance(alpha * d, center) = r
-
-        # (xc-alpha*xd)**2 + (yc-alpha*yd)**2 - r**2 = 0
-
-        # xc**2 + alpha**2*xd**2 -2*alpha*xc*xd
-        # yc**2 + alpha**2*yd**2 -2*alpha*yc*yd
-        # - r**2 = 0
-        a = xd**2 + yd**2
-        b = -2*(xc*xd + yc*yd)
-        c = xc**2 + yc**2 - self.radius**2
-
-        solutions = solve_quadratic_equation(a, b, c)
+        points = line_circle_intersections(
+            intersecting_segment.get_endpoints(),
+            self.center,
+            self.radius,
+            rounder
+        )
+        #TODO: move upwards ?
         intersections = []
-        for s in solutions:
-            if is_almost(s, 0) or s > 0:
-                if is_almost(s, 1) or s < 1:
-                    intersections.append(rounder.hash_point(points[0]+d*s))
-
+        for p in points:
+            if self.contains(p) and intersecting_segment.contains(p):
+                intersections.append(p)
         return intersections
 
     def save_svg_content(self, display, color):
@@ -84,6 +88,8 @@ class arc(elementary_path):
                       fill="none" stroke="{}" \
                       opacity="0.5" stroke-width="3"\
                       />'.format(x1, y1, r, r, x2, y2, color))
+        # cx, cy = display.convert_coordinates(self.center.get_coordinates())
+        # display.write('<circle cx="{}" cy="{}" r="{}" fill="{}" opacity="0.3"/>'.format(cx, cy, r, color))
 
 
 def circles_intersections(c1, c2, r1, r2, rounder):
@@ -121,3 +127,28 @@ def circles_intersections(c1, c2, r1, r2, rounder):
                 ])
             ]
             return [rounder.hash_point(p) for p in points]
+
+def line_circle_intersections(points, center, radius, rounder):
+        # take first point as origin
+        d = points[1] - points[0]
+        c = center - points[0]
+        xd, yd = d.get_coordinates()
+        xc, yc = c.get_coordinates()
+        # segment points are at alpha * d
+        # distance(alpha * d, center) = r
+
+        # (xc-alpha*xd)**2 + (yc-alpha*yd)**2 - r**2 = 0
+
+        # xc**2 + alpha**2*xd**2 -2*alpha*xc*xd
+        # yc**2 + alpha**2*yd**2 -2*alpha*yc*yd
+        # - r**2 = 0
+        a = xd**2 + yd**2
+        b = -2*(xc*xd + yc*yd)
+        c = xc**2 + yc**2 - radius**2
+
+        solutions = solve_quadratic_equation(a, b, c)
+        intersections = []
+        for s in solutions:
+            intersection = points[0] + d * s
+            intersections.append(rounder.hash_point(intersection))
+        return intersections
