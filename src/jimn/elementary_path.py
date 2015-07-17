@@ -49,12 +49,12 @@ class elementary_path:
     def split_at(self, points):
         """split path at given points.
         returns list of same type objects ;
-        orientation is lost ;
+        orientation is kept ;
         assumes points are on path ;
         outside points are not added ;
         input points can be duplicated but no output paths are
         """
-        start_point, end_point = list(sorted(self.endpoints))
+        start_point, end_point = self.endpoints
         d = end_point - start_point
 
         points.extend(self.endpoints)

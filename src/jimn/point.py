@@ -121,6 +121,12 @@ class point:
             p += c1 * c2
         return p
 
+    def cross_product(self, other):
+        assert self.dimension() == 2
+        x1, y1 = self.get_coordinates()
+        x2, y2 = other.get_coordinates()
+        return x1 * y2 - y1 * x2
+
     def perpendicular_vector(self):
         assert self.dimension() == 2
         return point([self.get_y(), -self.get_x()])
