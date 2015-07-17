@@ -11,7 +11,7 @@ corresponding to the dead remnants of a holed polygon"""
 
 class ghost:
     def __init__(self, paths):
-        self.paths = list(paths)
+        self.paths = paths
 
     def get_content(self):
         return self.paths
@@ -32,7 +32,7 @@ class ghost:
     def compute_elementary_paths(self, intersecting_paths):
         """brute force algorithm splitting all into elementary paths"""
         intersection_points = self.find_new_points(intersecting_paths)
-        return self.split_paths_at(intersection_points)
+        return self.split_paths_at(intersection_points).get_content()
 
     def split_paths_at(self, new_points):
         elementary_paths = []
@@ -41,7 +41,7 @@ class ghost:
                 elementary_paths.append(p)
             else:
                 elementary_paths.extend(p.split_at(new_points[p]))
-        return elementary_paths
+        return ghost(elementary_paths)
 
     def find_new_points(self, intersecting_paths):
         new_points = defaultdict(list)
