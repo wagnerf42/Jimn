@@ -11,7 +11,7 @@ corresponding to the dead remnants of a holed polygon"""
 
 class ghost:
     def __init__(self, paths):
-        self.paths = paths
+        self.paths = list(paths)
 
     def get_content(self):
         return self.paths
