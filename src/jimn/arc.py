@@ -32,7 +32,7 @@ class arc(elementary_path):
         assert len(intersections) == 2, "invalid arc"
         # pick center and translate back
         for i in intersections:
-            if p2.scalar_product(i) > 0:
+            if p2.cross_product(i) > 0:
                 return self.endpoints[0] + i
         raise "no center found"
 
