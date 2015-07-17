@@ -22,4 +22,5 @@ def all_pairs(array):
 def two_arrays_combinations(array1, array2):
     for e1 in array1:
         for e2 in array2:
-            yield e1, e2
+            if e1 != e2:
+                yield e1, e2

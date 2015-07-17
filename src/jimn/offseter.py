@@ -30,7 +30,7 @@ class offseter:
         edge = []
         rounder = coordinates_hash(dimension=2)
         for s1, s2 in all_two_elements(raw_segments):
-            i = s1.intersection_with(s2, rounder)
+            i = s1.intersection_with_segment(s2, rounder)
             edge.append(s1)
             if i is None:
                 # add arc

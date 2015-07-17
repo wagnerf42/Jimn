@@ -30,7 +30,7 @@ class ghost:
             p.save_svg_content(display, color)
 
     def compute_elementary_paths(self, intersecting_paths):
-        """brute force algorithm splitting all into elementary segments"""
+        """brute force algorithm splitting all into elementary paths"""
         intersection_points = self.find_new_points(intersecting_paths)
         return self.split_paths_at(intersection_points)
 
@@ -47,8 +47,8 @@ class ghost:
         new_points = defaultdict(list)
         rounder = coordinates_hash(dimension=2)
         for p1, p2 in two_arrays_combinations(self.paths, intersecting_paths):
-            i = p1.intersection_with(p2, rounder)
-            if i is not None:
+            intersections = p1.intersections_with(p2, rounder)
+            for i in intersections:
                 new_points[p1].append(i)
                 if __debug__:
                     if is_module_debugged(__name__):

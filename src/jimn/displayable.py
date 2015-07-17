@@ -28,8 +28,8 @@ class displayed_thing(object):
         dimensions = [a - b for a, b in zip(self.max_coordinates, self.min_coordinates)]
         real_dimensions = [d-2*margin for d in svg_dimensions]
         stretches = [a / b for a, b in zip(real_dimensions, dimensions)]
-        self.stretch = min(stretches)
-        self.margins = [(a-b*self.stretch)/2 for a, b in zip(svg_dimensions, dimensions)]
+        self.svg_stretch = min(stretches)
+        self.margins = [(a-b*self.svg_stretch)/2 for a, b in zip(svg_dimensions, dimensions)]
 
     def open_svg(self, filename):
         self.fd = open(filename, 'w')
@@ -41,11 +41,11 @@ class displayed_thing(object):
         self.fd.close()
 
     def stretch(self):
-        return self.stretch
+        return self.svg_stretch
 
     def convert_coordinates(self, coordinates):
         relative_coordinates = [a - b for a, b in zip(coordinates, self.min_coordinates)]
-        return [a+b*self.stretch for a, b in zip(self.margins, relative_coordinates)]
+        return [a+b*self.svg_stretch for a, b in zip(self.margins, relative_coordinates)]
 
     def write(self, string):
         self.fd.write(string)

@@ -4,9 +4,6 @@ from jimn.point import point
 from jimn.coordinates_hash import coordinates_hash
 from jimn.precision import check_precision, is_almost
 from jimn.bounding_box import bounding_box
-from jimn.iterators import all_two_elements
-from jimn.displayable import tycat
-from jimn.debug import is_module_debugged
 from math import pi, cos, sin
 
 rounding_hash = coordinates_hash(3)
@@ -23,33 +20,6 @@ class segment(elementary_path):
 
     def __str__(self):
         return "[{}]".format(';'.join(map(lambda p: str(p), self.endpoints)))
-
-    def split_at(self, points):
-        """split segment at given points.
-        returns list of segments ;
-        orientation is lost ;
-        assumes points are aligned on segment ;
-        outside points are not added ;
-        input points can be duplicated but no output segments are
-        """
-        points.extend(self.endpoints)
-        sorted_points = sorted(points)
-        segments = []
-        start_point, end_point = list(sorted(self.endpoints))
-        inside = False
-        for p1, p2 in all_two_elements(sorted_points):
-            if p1 == start_point:
-                inside = True
-            if p1 == end_point:
-                inside = False
-            if inside and not p1 == p2:
-                segments.append(segment([p1, p2]))
-
-        if __debug__:
-            if is_module_debugged(__name__):
-                print("splitting segment :")
-                tycat(self, *segments)
-        return segments
 
     def get_bounding_box(self):
         boxes = [
@@ -139,7 +109,7 @@ class segment(elementary_path):
     def angle(self):
         return self.endpoints[0].angle_with(self.endpoints[1])
 
-    def intersection_with(self, other, rounder):
+    def intersection_with_segment(self, other, rounder):
         """
         intersect two segments.
         only return point if included on the two segments.

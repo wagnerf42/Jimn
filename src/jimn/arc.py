@@ -1,7 +1,6 @@
 from jimn.elementary_path import elementary_path
 from jimn.bounding_box import bounding_box
 from jimn.point import point
-from jimn.segment import segment
 from jimn.precision import is_almost
 from jimn.displayable import tycat
 from jimn.math import solve_quadratic_equation
@@ -12,6 +11,7 @@ class arc(elementary_path):
     def __init__(self, radius, points):
         super().__init__(points)
         self.radius = radius
+        assert self.radius > 0, "0 or negative radius"
         self.center = self.compute_center()
 
     def compute_center(self):
@@ -19,10 +19,9 @@ class arc(elementary_path):
         return self.endpoints[1].rotate_around(middle, -pi/2)
 
     def get_bounding_box(self):
-        # TODO: this is not good
         box = bounding_box.empty_box(2)
-        for p in self.endpoints:
-            box.add_point(p)
+        box.add_point(self.center + point([self.radius, self.radius]))
+        box.add_point(self.center - point([self.radius, self.radius]))
         return box
 
     def contains(self, p):
@@ -37,14 +36,16 @@ class arc(elementary_path):
         assert not is_almost(product, 0), "already tested at entry of method"
         return (product > 0)
 
-    def intersection_with_arc(self, other, rounder):
+    def intersections_with_arc(self, other, rounder):
         points = circles_intersections(self.center, other.center,
                                        self.radius, other.radius, rounder)
+        intersections = []
         for p in points:
             if self.contains(p) and other.contains(p):
-                return p
+                intersections.append(p)
+        return intersections
 
-    def intersection_with_segment(self, intersecting_segment, rounder):
+    def intersections_with_segment(self, intersecting_segment, rounder):
         points = intersecting_segment.get_endpoints()
         # take first point as origin
         d = points[1] - points[0]
@@ -77,7 +78,7 @@ class arc(elementary_path):
             c for p in self.endpoints
             for c in display.convert_coordinates(p.get_coordinates())
         ]
-        r = display.stretch * self.radius
+        r = display.stretch() * self.radius
         self.center.save_svg_content(display, color)
         display.write('<path d="M{},{} A{},{} 0 0,1 {},{}" \
                       fill="none" stroke="{}" \
@@ -97,19 +98,26 @@ def circles_intersections(c1, c2, r1, r2, rounder):
     if r1 < l:
         return []  # too far away
 
-    h = sqrt(r1 * r1 - l * l)
-    points = [
-        point([
-            l/d * (x2 - x1) + h/d * (y2 - y1) + x1,
-            l/d * (y2 - y1) - h/d * (x2 - x1) + y1
-        ]),
-        point([
-            l/d * (x2 - x1) - h/d * (y2 - y1) + x1,
-            l/d * (y2 - y1) + h/d * (x2 - x1) + y1
-        ])
-    ]
     if is_almost(r1, l):
         # only one intersection
-        return [rounder.hash_point(points[0])]
+        i = point([
+            l/d * (x2 - x1) + x1,
+            l/d * (y2 - y1) + y1
+        ])
+        return [rounder.hash_point(i)]
     else:
-        return [rounder.hash_point(p) for p in points]
+        if abs(r1) < abs(l):
+            return []
+        else:
+            h = sqrt(r1 * r1 - l * l)
+            points = [
+                point([
+                    l/d * (x2 - x1) + h/d * (y2 - y1) + x1,
+                    l/d * (y2 - y1) - h/d * (x2 - x1) + y1
+                ]),
+                point([
+                    l/d * (x2 - x1) - h/d * (y2 - y1) + x1,
+                    l/d * (y2 - y1) + h/d * (x2 - x1) + y1
+                ])
+            ]
+            return [rounder.hash_point(p) for p in points]
