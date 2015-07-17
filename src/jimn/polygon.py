@@ -4,7 +4,7 @@ from jimn.polygonsegment import polygonsegment
 from jimn.bounding_box import bounding_box
 from jimn.precision import is_almost
 from jimn.iterators import all_two_elements
-from jimn.segments_set import segments_set
+from jimn.ghost import ghost
 from math import floor, ceil
 
 
@@ -127,8 +127,8 @@ class polygon:
             segment.horizontal_segment(xmin, xmax, y)
             for y in self.milling_heights(milling_diameter)
         ]
-        cutter = segments_set(self.segments())
-        elementary_segments = cutter.elementary_segments(cutting_lines)
+        cutter = ghost(self.segments())
+        elementary_segments = cutter.compute_elementary_paths(cutting_lines)
         # ok, now create graph, each segment point becomes a vertex
         # and we add all external edges
         for s in elementary_segments:

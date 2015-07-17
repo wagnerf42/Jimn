@@ -83,9 +83,6 @@ class segment(elementary_path):
 
         return rounding_hash.hash_point(point([x, y, z]))
 
-    def dimension(self):
-        return self.endpoints[0].dimension()
-
     def is_below(self, p):
         [a, b] = self.get_endpoints()
         [x0, y0] = p.get_coordinates()

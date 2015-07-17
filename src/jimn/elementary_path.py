@@ -44,3 +44,6 @@ class elementary_path:
         """returns point at same distance of endpoints (not necessarily on path)"""
         p1, p2 = self.endpoints
         return p1 + (p2-p1) / 2
+
+    def dimension(self):
+        return self.endpoints[0].dimension()
