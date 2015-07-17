@@ -20,8 +20,7 @@ abc = holed_polygon(polygon([a, b, c]), height=0, holes=[polygon([d, e, f])])
 heights = [0.3 * n for n in range(0, 5)]
 center_lines = [segment([point([0.0, h]), point([1.2, h])]) for h in heights]
 
-points = abc.build_graph(0.3)
+g = abc.build_graph(0.3)
 
-for p in points:
-    if type(p) is vertex:
-        tycat(center_lines, abc, p, *(p.links))
+for p in g.get_vertices():
+    tycat(center_lines, abc, p, *(p.edges))

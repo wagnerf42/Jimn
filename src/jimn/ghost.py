@@ -41,7 +41,7 @@ class ghost:
                 elementary_paths.append(p)
             else:
                 elementary_paths.extend(p.split_at(new_points[p]))
-        return ghost(elementary_paths)
+        return elementary_paths
 
     def find_new_points(self, intersecting_paths):
         new_points = defaultdict(list)
