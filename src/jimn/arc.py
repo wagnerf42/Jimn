@@ -32,7 +32,7 @@ class arc(elementary_path):
         assert len(intersections) == 2, "invalid arc"
         # pick center and translate back
         for i in intersections:
-            if p2.scalar_product(i) > 0:
+            if p2.cross_product(i) > 0:
                 return self.endpoints[0] + i
         raise "no center found"
 
@@ -50,9 +50,9 @@ class arc(elementary_path):
             return False
         diff = self.endpoints[1] - self.endpoints[0]
         diff_p = p - self.endpoints[0]
-        product = diff.scalar_product(diff_p)
+        product = diff.cross_product(diff_p)
         assert not is_almost(product, 0), "already tested at entry of method"
-        return (product > 0)
+        return (product < 0)
 
     def intersections_with_arc(self, other, rounder):
         points = circles_intersections(self.center, other.center,
