@@ -1,5 +1,5 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
-from jimn.segment import segment, horizontal_segment
+from jimn.segment import segment
 from jimn.polygonsegment import polygonsegment
 from jimn.bounding_box import bounding_box
 from jimn.precision import is_almost
@@ -124,7 +124,8 @@ class polygon:
         box = self.get_bounding_box()
         xmin, xmax = box.limits(0)
         cutting_lines = [
-            horizontal_segment(xmin, xmax, y) for y in self.milling_heights(milling_diameter)
+            segment.horizontal_segment(xmin, xmax, y)
+            for y in self.milling_heights(milling_diameter)
         ]
         cutter = segments_set(self.segments())
         elementary_segments = cutter.elementary_segments(cutting_lines)
@@ -156,4 +157,5 @@ class polygon:
             svg_coordinates.append(string)
         svg_formatted = " ".join(svg_coordinates)
         display.write("<polygon points=\"{}\"".format(svg_formatted))
-        display.write(" style=\"fill:{};stroke:{};stroke-width:1;opacity:0.4\" />".format(color, color))
+        display.write(" style=\"fill:{};stroke:{};\
+                      stroke-width:1;opacity:0.4\" />".format(color, color))

@@ -1,29 +1,20 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
+from jimn.elementary_path import elementary_path
 from jimn.point import point
 from jimn.coordinates_hash import coordinates_hash
-from jimn.precision import segment_limit, check_precision, is_almost
+from jimn.precision import check_precision, is_almost
 from jimn.bounding_box import bounding_box
 from jimn.iterators import all_two_elements
 from jimn.displayable import tycat
 from jimn.debug import is_module_debugged
-from math import pi, cos, sin, ceil, floor
+from math import pi, cos, sin
 
 rounding_hash = coordinates_hash(3)
 
 
-class segment:
-    """A segment is defined as a set of two points"""
-
+class segment(elementary_path):
     def __init__(self, points):
-        self.endpoints = points
-        assert self.endpoints[0].dimension() == self.endpoints[1].dimension()
-        if __debug__:
-            if(self.squared_length() <= segment_limit):
-                # print("very small segment {}".format(str(self)), file=sys.stderr)
-                raise Exception("very small segment")
-
-    def reverse(self):
-        return segment(list(reversed(self.endpoints)))
+        super().__init__(points)
 
     @classmethod
     def horizontal_segment(cls, xmin, xmax, y):
@@ -32,18 +23,6 @@ class segment:
 
     def __str__(self):
         return "[{}]".format(';'.join(map(lambda p: str(p), self.endpoints)))
-
-    def middle_point(self):
-        p1, p2 = self.endpoints
-        return p1 + (p2-p1) / 2
-
-    def has_extremity(self, intermediate_point):
-        for p in self.endpoints:
-            if p == intermediate_point:
-                return True
-            else:
-                assert not p.is_almost(intermediate_point), "precision pb"
-        return False
 
     def split_at(self, points):
         """split segment at given points.
@@ -72,11 +51,11 @@ class segment:
                 tycat(self, *segments)
         return segments
 
-    def squared_length(self):
-        return self.endpoints[0].squared_distance_to(self.endpoints[1])
-
     def get_bounding_box(self):
-        boxes = [bounding_box(p.get_coordinates(), p.get_coordinates()) for p in self.endpoints]
+        boxes = [
+            bounding_box(p.get_coordinates(), p.get_coordinates())
+            for p in self.endpoints
+        ]
         boxes[0].update(boxes[1])
         return boxes[0]
 
@@ -85,11 +64,10 @@ class segment:
             c for point in self.endpoints
             for c in display.convert_coordinates(point.get_coordinates())
         ]
-        display.write("<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"".format(*svg_coordinates))
-        display.write(" stroke-width=\"3\" stroke=\"{}\" opacity=\"0.5\"/>\n".format(color))
-
-    def smallest_point(self):
-        return min(*self.endpoints)
+        display.write("<line x1=\"{}\" y1=\"{}\"\
+                      x2=\"{}\" y2=\"{}\"".format(*svg_coordinates))
+        display.write(" stroke-width=\"3\" stroke=\"{}\"\
+                      opacity=\"0.5\"/>\n".format(color))
 
     def horizontal_plane_intersection(self, h):
         assert self.dimension() == 3
@@ -158,21 +136,8 @@ class segment:
         p1, p2 = self.endpoints
         return segment([p1.projection2d(), p2.projection2d()])
 
-    def get_endpoint(self, index):
-        return self.endpoints[index]
-
     def set_endpoint(self, index, new_point):
         self.endpoints[index] = new_point
-
-    def get_endpoints(self):
-        return self.endpoints
-
-    def sort_endpoints(self):
-        return segment(sorted(self.endpoints))
-
-    def is_sorted(self):
-        sorted_self = self.sort_endpoints()
-        return sorted_self.endpoints == self.endpoints
 
     def angle(self):
         return self.endpoints[0].angle_with(self.endpoints[1])
@@ -233,62 +198,3 @@ class segment:
         return segment([
             p + displacement for p in self.endpoints
         ])
-
-    def intersection_with_slices(self, milling_diameter):
-        d = milling_diameter
-        ya, yb = [p.get_y() for p in self.get_endpoints()]
-
-        if ya > yb:
-            # compute height of slice center strictly above a
-            na = ceil(ya/d) - 1
-            # compute height of slice center above b
-            nb = floor(yb/d)
-        else:
-            # compute height of slice center strictly below a
-            na = floor(ya/d) + 1
-            # compute height of slice center below b
-            nb = ceil(yb/d)
-
-        steps = [-1, 1]
-        step = steps[ya <= yb]
-        slice_numbers = range(na, nb, step)
-        slice_heights = [n * d for n in slice_numbers]
-        slice_segments = [segment.horizontal_segment(h) for h in slice_heights]
-        intersection_points = [self.line_intersection_with(s) for s in slice_segments]
-        for h, p in zip(slice_heights, intersection_points):
-            p.set_y(h)
-
-        return intersection_points
-
-    def cut(self, milling_diameter, previous_segment, next_segment):
-        a, b = self.endpoints
-        a.mark(vertex=vertex_corner(previous_segment, self))
-        b.mark(vertex=vertex_corner(self, next_segment))
-        ya, yb = [p.get_y() for p in self.endpoints]
-
-        if ya == yb:
-            return [self]
-
-        intersection_points = self.intersection_with_slices(milling_diameter)
-        for p in intersection_points:
-            p.mark(vertex=True)
-        # elementary_segments = self.split_at(intersection_points)
-        # TODO : put in separate function
-        points = [a] + intersection_points + [b]
-        segments = [
-            segment([p1, p2])
-            for p1, p2 in zip(points[:-1], points[1:])
-        ]
-
-        return segments
-
-    def dy(self):
-        ya, yb = [p.get_y() for p in self.get_endpoints()]
-        return yb - ya
-
-
-def vertex_corner(s1, s2):
-    if s1.dy() == 0 or s2.dy() == 0:
-        return False
-    d1, d2 = [s.dy() > 0 for s in [s1, s2]]
-    return d1 == d2

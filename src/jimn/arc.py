@@ -1,3 +1,4 @@
+from jimn.elementary_path import elementary_path
 from jimn.bounding_box import bounding_box
 from jimn.point import point
 from jimn.segment import segment
@@ -7,31 +8,31 @@ from jimn.math import solve_quadratic_equation
 from math import sqrt, pi
 
 
-class arc:
+class arc(elementary_path):
     def __init__(self, radius, points):
+        super().__init__(points)
         self.radius = radius
-        self.points = points
         self.center = self.compute_center()
 
     def compute_center(self):
-        middle = segment(self.points).middle_point()
-        return self.points[1].rotate_around(middle, -pi/2)
+        middle = self.middle_point()
+        return self.endpoints[1].rotate_around(middle, -pi/2)
 
     def get_bounding_box(self):
         # TODO: this is not good
         box = bounding_box.empty_box(2)
-        for p in self.points:
+        for p in self.endpoints:
             box.add_point(p)
         return box
 
     def contains(self, p):
         """return true if point p is inside arc"""
-        if p.is_almost(self.points[0]) or p.is_almost(self.points[1]):
+        if p.is_almost(self.endpoints[0]) or p.is_almost(self.endpoints[1]):
             return True
         if not is_almost(self.center.distance_to(p), self.radius):
             return False
-        diff = self.points[1] - self.points[0]
-        diff_p = p - self.points[0]
+        diff = self.endpoints[1] - self.endpoints[0]
+        diff_p = p - self.endpoints[0]
         product = diff.scalar_product(diff_p)
         assert not is_almost(product, 0), "already tested at entry of method"
         return (product > 0)
@@ -73,7 +74,7 @@ class arc:
 
     def save_svg_content(self, display, color):
         x1, y1, x2, y2 = [
-            c for p in self.points
+            c for p in self.endpoints
             for c in display.convert_coordinates(p.get_coordinates())
         ]
         r = display.stretch * self.radius
