@@ -99,3 +99,6 @@ class elementary_path:
                 tycat(self, other, intersections)
 
         return intersections
+
+    def get_polygon_id(self):
+        return 0
