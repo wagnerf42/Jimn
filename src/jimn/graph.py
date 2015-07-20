@@ -37,10 +37,11 @@ class graph:
                     if prec_state.has_horizontal_path:
                         s1 = prec_state.non_horizontal_path
                         s2 = v.get_non_horizontal_path()
-                        if are_traversing(s1, s2):
+                        if are_traversing(s1, s2.reverse()):
                             new_state = state(inside=not prec_state.is_inside())
                         else:
                             new_state = state(inside=prec_state.is_inside())
+                        if new_state.inside:
                             adding = True
                     else:
                         new_state = state(inside=prec_state.is_inside())
