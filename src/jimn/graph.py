@@ -26,50 +26,66 @@ class graph:
 
 
 class state:
-    def __init__(self, inside):
+    def __init__(self, inside, v=None):
         self.inside = inside
-        self.has_horizontal_path = False
+        self.v = v
+        self.starts_horizontal_path = False
         self.non_horizontal_path = None
 
     def is_inside(self):
         return self.inside
 
+    def get_vertex(self):
+        return self.v
+
     def change(self):
         self.inside = not self.inside
+
+    def mark_starting_horizontal_path(self):
+        self.starts_horizontal_path = True
+        self.non_horizontal_path = self.v.get_non_horizontal_path()
+
+    def starting_horizontal_path(self):
+        return self.starts_horizontal_path
+
+    def get_non_horizontal_path(self):
+        return self.non_horizontal_path
 
 
 def create_internal_edges_in_slice(vertices):
     new_edges = []
     vertices = sorted(vertices)
-    prec_v = None   # useful ?
-    prec_state = state(inside=False)
+    old_state = state(inside=False)
     add_edge = False
 
     for v in vertices:
-        crossing_border = False
         if add_edge:
-            new_edges.append(segment([prec_v, v]))
+            new_edges.append(segment([old_state.get_vertex(), v]))
 
-        new_state = state(inside=prec_state.is_inside())
+        new_state = state(old_state.is_inside(), v)
+
         if v.has_horizontal_path():
-            if prec_state.has_horizontal_path:
-                s1 = prec_state.non_horizontal_path
+            if old_state.starting_horizontal_path():
+                s1 = old_state.get_non_horizontal_path()
                 s2 = v.get_non_horizontal_path()
                 crossing_border = are_traversing(s1, s2.reverse())
             else:
-                # mark state as having beginning horizontal path
-                new_state.has_horizontal_path = True
-                new_state.non_horizontal_path = v.get_non_horizontal_path()
+                crossing_border = False
+                new_state.mark_starting_horizontal_path()
         else:
             crossing_border = v.is_traversed_by_paths()
 
         if crossing_border:
             new_state.change()
-        add_edge = new_state.is_inside() and not new_state.has_horizontal_path
-        prec_state = new_state
-        prec_v = v
 
-    for e in new_edges:
-        p1, p2 = e.get_endpoints()
-        p1.add_edge(e)
-        p2.add_edge(e.reverse())
+        add_edge = new_state.is_inside() and not new_state.starting_horizontal_path()
+        old_state = new_state
+
+    create_edges_from_paths(new_edges)
+
+
+def create_edges_from_paths(paths):
+    for p in paths:
+        v1, v2 = p.get_endpoints()
+        v1.add_edge(p)
+        v2.add_edge(p.reverse())
