@@ -61,6 +61,7 @@ class ghost:
             intersections = p1.intersections_with(p2, rounder)
             for i in intersections:
                 new_points[p1].append(i)
+                new_points[p2].append(i)
                 if __debug__:
                     if is_module_debugged(__name__):
                         print("splitting here:")

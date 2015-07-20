@@ -2,6 +2,8 @@ from jimn.iterators import all_two_elements
 from jimn.precision import segment_limit
 from jimn.debug import is_module_debugged
 from jimn.displayable import tycat
+from jimn.precision import check_precision, is_almost
+from jimn.point import point
 import copy
 
 
@@ -102,3 +104,38 @@ class elementary_path:
 
     def get_polygon_id(self):
         return 0
+
+    def winding_number(self):
+        d = self.endpoints[1] - self.endpoints[0]
+        w = d.cross_product(point([0, 1]))
+        if is_almost(w, 0):
+            return 0
+        if w > 0:
+            return 1
+        else:
+            return -1
+
+    def is_above(a, b):
+        xa = sorted([p.get_x() for p in a.endpoints])
+        xb = sorted([p.get_x() for p in b.endpoints])
+        x1max = max(xa[0], xb[0])
+        x2min = max(xa[1], xb[1])
+        common_abs = [x1max, x2min]
+        ya, yb = [
+            [s.vertical_intersection_at(x) for x in common_abs]
+            for s in (a, b)
+        ]
+        return ya < yb
+
+    def vertical_intersection_at(self, x):
+        # TODO: not ok for arcs
+        x1, y1 = self.endpoints[0].get_coordinates()
+        x2, y2 = self.endpoints[1].get_coordinates()
+        if x1 == x2:
+            # when vertical, we return lowest coordinate
+            return y1
+        if __debug__:
+            check_precision(x1, x2, 'vertical_intersection_at')
+        a = (y2-y1)/(x2-x1)
+        y = y1 + a*(x-x1)
+        return y

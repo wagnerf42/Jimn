@@ -4,6 +4,7 @@ from jimn.iterators import all_two_elements
 from jimn.coordinates_hash import coordinates_hash
 from jimn.arc import arc
 from jimn.ghost import ghost
+from jimn.sweeping_offseter_selection import select_offseted_paths
 
 """requires polygon to be oriented counter clockwise to carve the inside
 and clockwise to carve the outside"""
@@ -62,5 +63,7 @@ def offset_holed_polygon(radius, *polygons):
     g = ghost([])
     for p in polygons:
         g.extend(raw_offset(radius, p))
+    #TODO: handle overlapping arcs and segments
     g = g.compute_self_elementary_paths()
-    return g.get_content()
+    remaining_paths = select_offseted_paths(g.get_content())
+    return remaining_paths

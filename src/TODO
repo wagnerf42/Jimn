@@ -1,6 +1,14 @@
  * large goals
 
 - polygon offsetting (fred)
+
+----> there is a bug right now for comparing arcs (is_above)
+      vertical_intersection_at in jimn.elementary_path is only ok for segments but not for arcs
+	-> move vertical_intersection_at out of elementary_path and into both segments and arcs classes
+
+----> we need to handle overlapping segments and arcs after raw offseting (split and or remove)
+	and before paths selection
+
 - path computation for holed polygon
 
  * code review

@@ -1,0 +1,34 @@
+from jimn.sweeping_line_algorithm import sweeping_line_algorithm
+from jimn.debug import is_module_debugged
+from jimn.displayable import tycat
+
+
+class sweeping_offseter_selection(sweeping_line_algorithm):
+    def __init__(self, paths):
+        self.kept_paths = []
+        super().__init__(paths)
+
+    def handle_new_paths(self, new_paths):
+        for p in new_paths:
+            up_to_new_path_winding = self.winding_number(p)
+            after_new_path_winding = up_to_new_path_winding + p.winding_number()
+            # if windings are of opposite sign then this path is a limit
+            # between outside and inside
+            if up_to_new_path_winding * after_new_path_winding < 0:
+                self.kept_paths.append(p)
+                if __debug__:
+                    if is_module_debugged(__name__):
+                        print("keeping segment")
+                        tycat(self.paths, self.kept_paths, p)
+
+    def winding_number(self, limit_path):
+        winding_number = 0.5
+        above_paths = [p for p in self.current_paths[0] if p.is_above(limit_path)]
+        for p in above_paths:
+            winding_number += p.winding_number()
+        return winding_number
+
+
+def select_offseted_paths(paths):
+    s = sweeping_offseter_selection(paths)
+    return s.kept_paths

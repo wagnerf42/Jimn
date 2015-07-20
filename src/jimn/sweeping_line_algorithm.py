@@ -15,7 +15,6 @@ class sweeping_line_algorithm:
         prepare for sweeping line algorithm on a set of paths
         preconditions:
         - paths should not intersect other than on endpoints
-        - paths should not overlap
         - there is no orientation condition on paths
         """
         self.paths = paths

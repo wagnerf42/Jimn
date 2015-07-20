@@ -26,18 +26,6 @@ class polygonsegment(segment):
         ]
         return segments
 
-    def vertical_intersection_at(self, x):
-        x1, y1 = self.endpoints[0].get_coordinates()
-        x2, y2 = self.endpoints[1].get_coordinates()
-        if x1 == x2:
-            # when vertical, we return lowest coordinate
-            return y1
-        if __debug__:
-            check_precision(x1, x2, 'vertical_intersection_at')
-        a = (y2-y1)/(x2-x1)
-        y = y1 + a*(x-x1)
-        return y
-
     def get_polygon_id(self):
         return id(self.polygon)
 
