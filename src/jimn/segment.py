@@ -83,6 +83,16 @@ class segment(elementary_path):
                 raise RuntimeError("almost vertical segment")
             return False
 
+    # for 2d points
+    def is_horizontal(self):
+        ya, yb = [p.get_y() for p in self.endpoints]
+        if ya == yb:
+            return True
+        else:
+            if is_almost(ya, yb):
+                raise RuntimeError("almost horizontal segment")
+            return False
+
     # return unique id of line on which is segment
     def line_hash(self, rounder):
         assert self.dimension() == 2, 'only works on 2d points segment'
@@ -108,6 +118,10 @@ class segment(elementary_path):
 
     def angle(self):
         return self.endpoints[0].angle_with(self.endpoints[1])
+
+    def dy(self):
+        ya, yb = [p.get_y() for p in self.get_endpoints()]
+        return yb - ya
 
     def intersection_with_segment(self, other, rounder):
         """
@@ -169,3 +183,7 @@ class segment(elementary_path):
     def contains(self, possible_point):
         distance = sum([possible_point.distance_to(p) for p in self.endpoints])
         return is_almost(distance, self.endpoints[0].distance_to(self.endpoints[1]))
+
+
+def are_traversing(s1, s2):
+    return (s1.dy() > 0 and s2.dy() > 0) or (s1.dy() < 0 and s2.dy() < 0)

@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 from jimn.point import point
-from jimn.vertex import vertex
 from jimn.segment import segment
 from jimn.polygon import polygon
 from jimn.holed_polygon import holed_polygon
