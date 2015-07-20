@@ -1,7 +1,7 @@
  * large goals
 
 - polygon offsetting (fred)
-- path computation for holed polygon
+- path computation for holed polygon : add on slice test
 
  * code review
 
