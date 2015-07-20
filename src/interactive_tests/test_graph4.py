@@ -39,5 +39,5 @@ center_lines = [segment([point([0.0, y]), point([13.0, y])]) for y in heights]
 g = hp.build_graph(4.0)
 
 for v in sorted(g.get_vertices(), key=lambda v: (v.get_y(), v.get_x())):
-    print([str(edge) for edge in v.edges])
+    print(len(v.edges))
     tycat(center_lines, hp, v, *(v.edges))

@@ -9,9 +9,12 @@
 ----> we need to handle overlapping segments and arcs after raw offseting (split and or remove)
 	and before paths selection
 
-- path computation for holed polygon
+- path computation for holed polygon : add on slice test
 
  * code review
+
+- internal edges builder
+
  * minor code improvements (readability)
 
 - remove duplicated code (checking for contains) in arc by moving it upwards in elementary segment
