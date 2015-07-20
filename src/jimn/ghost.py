@@ -4,6 +4,7 @@ from jimn.debug import is_module_debugged
 from jimn.displayable import tycat
 from collections import defaultdict
 from jimn.iterators import two_arrays_combinations
+from itertools import combinations
 
 """unordered set of segments and arcs
 corresponding to the dead remnants of a holed polygon"""
@@ -12,6 +13,9 @@ corresponding to the dead remnants of a holed polygon"""
 class ghost:
     def __init__(self, paths):
         self.paths = paths
+
+    def extend(self, additional_paths):
+        self.paths.extend(additional_paths)
 
     def get_content(self):
         return self.paths
@@ -29,10 +33,17 @@ class ghost:
         for p in self.paths:
             p.save_svg_content(display, color)
 
+    def compute_self_elementary_paths(self):
+        """brute force algorithm splitting all paths in self
+        into elementary paths"""
+        intersection_points = self.find_new_points(combinations(self.paths, r=2))
+        return self.split_paths_at(intersection_points)
+
     def compute_elementary_paths(self, intersecting_paths):
-        """brute force algorithm splitting all into elementary paths"""
-        intersection_points = self.find_new_points(intersecting_paths)
-        return self.split_paths_at(intersection_points).get_content()
+        """brute force algorithm splitting all paths in self by paths in intersecting_paths
+        into elementary paths"""
+        intersection_points = self.find_new_points(two_arrays_combinations(self.paths, intersecting_paths))
+        return self.split_paths_at(intersection_points)
 
     def split_paths_at(self, new_points):
         elementary_paths = []
@@ -43,10 +54,10 @@ class ghost:
                 elementary_paths.extend(p.split_at(new_points[p]))
         return ghost(elementary_paths)
 
-    def find_new_points(self, intersecting_paths):
+    def find_new_points(self, paths_iterator):
         new_points = defaultdict(list)
         rounder = coordinates_hash(dimension=2)
-        for p1, p2 in two_arrays_combinations(self.paths, intersecting_paths):
+        for p1, p2 in paths_iterator:
             intersections = p1.intersections_with(p2, rounder)
             for i in intersections:
                 new_points[p1].append(i)

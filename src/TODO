@@ -10,8 +10,6 @@
 
  * minor code improvements (performance)
 
-- use symmetry to avoid half combinations in jimn.iterators.two_arrays_combinations
-
  * additional non-regression tests
  * misc
 

@@ -3,6 +3,7 @@ from jimn.debug import is_module_debugged
 from jimn.iterators import all_two_elements
 from jimn.coordinates_hash import coordinates_hash
 from jimn.arc import arc
+from jimn.ghost import ghost
 
 """requires polygon to be oriented counter clockwise to carve the inside
 and clockwise to carve the outside"""
@@ -58,7 +59,8 @@ def raw_offset(radius, polygon_to_offset):
 
 
 def offset_holed_polygon(radius, *polygons):
-    segments = []
+    g = ghost([])
     for p in polygons:
-        segments.extend(raw_offset(radius, p))
-    tycat(segments)
+        g.extend(raw_offset(radius, p))
+    g = g.compute_self_elementary_paths()
+    return g.get_content()

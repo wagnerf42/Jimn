@@ -18,10 +18,10 @@ class holed_polygon:
             hole.save_svg_content(display, color)
 
     def normalize(self):
-        self.polygon.orient(clockwise=True)
+        self.polygon.orient(clockwise=False)
         self.polygon.normalize_starting_point()
         for h in self.holes:
-            h.orient(clockwise=False)
+            h.orient(clockwise=True)
             h.normalize_starting_point()
         self.holes = sorted(self.holes, key=lambda h: h.get_points()[0])
 
