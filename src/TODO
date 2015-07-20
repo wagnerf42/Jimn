@@ -4,6 +4,9 @@
 - path computation for holed polygon
 
  * code review
+
+- internal edges builder
+
  * minor code improvements (readability)
 
 - remove duplicated code (checking for contains) in arc by moving it upwards in elementary segment

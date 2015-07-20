@@ -34,41 +34,38 @@ class state:
     def is_inside(self):
         return self.inside
 
+    def change(self):
+        self.inside = not self.inside
+
+
 def create_internal_edges_in_slice(vertices):
     new_edges = []
     vertices = sorted(vertices)
     prec_v = None   # useful ?
     prec_state = state(inside=False)
-    adding = False
+    add_edge = False
 
     for v in vertices:
-        if adding:
+        crossing_border = False
+        if add_edge:
             new_edges.append(segment([prec_v, v]))
-            adding = False
 
+        new_state = state(inside=prec_state.is_inside())
         if v.has_horizontal_path():
             if prec_state.has_horizontal_path:
                 s1 = prec_state.non_horizontal_path
                 s2 = v.get_non_horizontal_path()
-                if are_traversing(s1, s2.reverse()):
-                    new_state = state(inside=not prec_state.is_inside())
-                else:
-                    new_state = state(inside=prec_state.is_inside())
-                if new_state.inside:
-                    adding = True
+                crossing_border = are_traversing(s1, s2.reverse())
             else:
-                new_state = state(inside=prec_state.is_inside())
                 # mark state as having beginning horizontal path
                 new_state.has_horizontal_path = True
                 new_state.non_horizontal_path = v.get_non_horizontal_path()
-        elif v.is_traversed_by_paths():
-            new_state = state(inside=not prec_state.is_inside())
-            if new_state.is_inside():
-                adding = True
         else:
-            new_state = state(inside=prec_state.is_inside())
-            if new_state.is_inside():
-                adding = True
+            crossing_border = v.is_traversed_by_paths()
+
+        if crossing_border:
+            new_state.change()
+        add_edge = new_state.is_inside() and not new_state.has_horizontal_path
         prec_state = new_state
         prec_v = v
 
