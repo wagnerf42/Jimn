@@ -7,6 +7,17 @@ class vertex(point):
         super().__init__(position_point.get_coordinates())
         self.edges = []
 
+    def get_bounding_box(self):
+        box = super(vertex, self).get_bounding_box()
+        for e in self.edges:
+            edge_box = e.get_bounding_box()
+            box.update(edge_box)
+
+    def save_svg_content(self, display, color):
+        super(vertex, self).save_svg_content(display, color)
+        for e in self.edges:
+            e.save_svg_content(display, color)
+
     def get_edges(self):
         return self.edges
 
@@ -39,3 +50,9 @@ class vertex(point):
         assert len(self.edges) == 2
         e1, e2 = self.edges
         return are_traversing(e1, e2.reverse())
+
+    def find_first_neighbor_not(self, neighbor):
+        for e in self.edges:
+            if neighbor is None or e.get_endpoint(1) != neighbor:
+                return e
+        raise Exception("only one neighbor")

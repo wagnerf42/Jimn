@@ -2,8 +2,8 @@ from jimn.segment import segment
 from jimn.segment import are_traversing
 from jimn.vertex import vertex
 from jimn.point import is_slice_height
-from jimn.elementary_path import same_paths
 from collections import defaultdict
+from jimn.bounding_box import bounding_box
 
 
 class graph:
@@ -13,6 +13,16 @@ class graph:
     def get_vertices(self):
         return self.vertices.values()
 
+    def get_bounding_box(self):
+        box = bounding_box.empty_box(2)
+        for p in self.get_vertices():
+            box.add_point(p)
+        return box
+
+    def save_svg_content(self, display, color):
+        for p in self.get_vertices():
+            p.save_svg_content(display, color)
+
     def add_vertex(self, vertex_point):
         if vertex_point not in self.vertices:
             self.vertices[vertex_point] = vertex(vertex_point)
@@ -21,11 +31,12 @@ class graph:
     def create_internal_edges(self, milling_diameter):
         vertices_per_height = defaultdict(list)
         for v in self.vertices.values():
-            vertices_per_height[v.get_y()].append(v)
+            y = v.get_y()
+            if is_slice_height(y, milling_diameter):
+                vertices_per_height[y].append(v)
 
         for y, vertices_y in vertices_per_height.items():
-            if is_slice_height(y, milling_diameter):
-                create_internal_edges_in_slice(vertices_y)
+            create_internal_edges_in_slice(vertices_y)
 
     def make_degrees_even(self):
         for v in self.vertices.values():
@@ -35,21 +46,17 @@ class graph:
     # requires that in each vertex, the first two edges are border edges
     # otherwise, we may add internal edges too
     def create_edge_from_vertex(self, v):
-        complex_edge = []
 
-        starting_path = v.get_edge(0)
-        complex_edge.append(starting_path)
-        old_path = starting_path
-        new_vertex = self.vertices[old_path.get_endpoint(1)]
-        while new_vertex.even_degree():
-            new_path = find_new_path(old_path, new_vertex)
-            complex_edge.append(new_path)
-            old_path = new_path
-            new_vertex = self.vertices[old_path.get_endpoint(1)]
-
-        v.add_edge(complex_edge)
-        reversed_complex_edge = [e.reverse() for e in reversed(complex_edge)]
-        new_vertex.add_edge(reversed_complex_edge)
+        previous_vertex = None
+        current_vertex = v
+        while not current_vertex.even_degree():
+            edge = current_vertex.find_first_neighbor_not(previous_vertex)
+            next_point = edge.get_endpoint(1)  # edge goes from current to next
+            next_vertex = self.vertices[next_point]
+            current_vertex.add_edge(edge)
+            next_vertex.add_edge(edge.reverse())
+            previous_vertex = current_vertex
+            current_vertex = next_vertex
 
 
 class state:
@@ -105,7 +112,8 @@ def create_internal_edges_in_slice(vertices):
         if crossing_border:
             new_state.change()
 
-        add_edge = new_state.is_inside() and not new_state.starting_horizontal_path()
+        add_edge = (new_state.is_inside() and
+                    not new_state.starting_horizontal_path())
         old_state = new_state
 
     create_edges_from_paths(new_edges)
@@ -116,12 +124,3 @@ def create_edges_from_paths(paths):
         v1, v2 = p.get_endpoints()
         v1.add_edge(p)
         v2.add_edge(p.reverse())
-
-
-def find_new_path(old_path, new_vertex):
-    e1, e2 = new_vertex.get_edges()[:2]
-    if same_paths(e1, old_path):
-        return e2
-    else:
-        assert same_paths(e2, old_path)
-        return e1

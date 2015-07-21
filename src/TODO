@@ -19,6 +19,8 @@
 
  * minor code improvements (readability)
 
+- graph : create_interal_edges_in_slice -> vers un code plus clair
+ pour chaque arete, si strictement interne alors ajouter a la liste 
 - remove duplicated code (checking for contains) in arc by moving it upwards in elementary segment
 
  * minor code improvements (performance)
