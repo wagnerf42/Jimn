@@ -39,18 +39,11 @@ class graph:
 
         starting_path = v.get_edge(0)
         complex_edge.append(starting_path)
-        old_vertex = v
         old_path = starting_path
         new_vertex = self.vertices[old_path.get_endpoint(1)]
         while new_vertex.even_degree():
-            e1, e2 = new_vertex.get_edges()[:2]
-            if same_paths(e1, old_path):
-                new_path = e2
-            else:
-                assert same_paths(e2, old_path)
-                new_path = e1
+            new_path = find_new_path(old_path, new_vertex)
             complex_edge.append(new_path)
-            old_vertex = new_vertex
             old_path = new_path
             new_vertex = self.vertices[old_path.get_endpoint(1)]
 
@@ -123,3 +116,12 @@ def create_edges_from_paths(paths):
         v1, v2 = p.get_endpoints()
         v1.add_edge(p)
         v2.add_edge(p.reverse())
+
+
+def find_new_path(old_path, new_vertex):
+    e1, e2 = new_vertex.get_edges()[:2]
+    if same_paths(e1, old_path):
+        return e2
+    else:
+        assert same_paths(e2, old_path)
+        return e1
