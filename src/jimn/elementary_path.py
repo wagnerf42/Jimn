@@ -128,3 +128,7 @@ class elementary_path:
             for s in (a, b)
         ]
         return ya < yb
+
+
+def same_paths(p1, p2):
+    return p1 == p2 or p1.reverse() == p2

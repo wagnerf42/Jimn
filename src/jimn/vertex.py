@@ -10,11 +10,17 @@ class vertex(point):
     def get_edges(self):
         return self.edges
 
+    def get_edge(self, index):
+        return self.edges[index]
+
     def add_edge(self, edge):
         self.edges.append(edge)
 
-    def edges_number(self):
+    def degree(self):
         return len(self.edges)
+
+    def even_degree(self):
+        return self.degree() % 2 == 0
 
     def has_horizontal_path(self):
         for e in self.edges:
