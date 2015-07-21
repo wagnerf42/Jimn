@@ -127,3 +127,6 @@ class elementary_path:
             if is_almost(xa, xb):
                 raise RuntimeError("almost vertical")
             return False
+
+def same_paths(p1, p2):
+    return p1 == p2 or p1.reverse() == p2
