@@ -7,8 +7,14 @@ class vertex(point):
         super().__init__(position_point.get_coordinates())
         self.edges = []
 
+    def get_edges(self):
+        return self.edges
+
     def add_edge(self, edge):
         self.edges.append(edge)
+
+    def edges_number(self):
+        return len(self.edges)
 
     def has_horizontal_path(self):
         for e in self.edges:

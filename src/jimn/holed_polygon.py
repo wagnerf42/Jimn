@@ -60,6 +60,8 @@ class holed_polygon:
         # finish by adding horizontal internal edges
         g.create_internal_edges(milling_diameter)
 
+        g.make_degrees_even()
+
         return g
 
     def tycat(self, border):
