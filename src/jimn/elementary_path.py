@@ -3,7 +3,6 @@ from jimn.precision import segment_limit
 from jimn.debug import is_module_debugged
 from jimn.displayable import tycat
 from jimn.precision import is_almost
-from jimn.point import point
 import copy
 
 
@@ -72,7 +71,8 @@ class elementary_path:
             if inside and not p1.is_almost(p2):
                 new_path = copy.copy(self)
                 new_path.endpoints = [p1, p2]
-                assert new_path.squared_length() > segment_limit, "very small path when splitting"
+                assert new_path.squared_length() > segment_limit,\
+                    "very small path when splitting"
                 paths.append(new_path)
 
         if __debug__:
@@ -107,16 +107,6 @@ class elementary_path:
     def get_polygon_id(self):
         return 0
 
-    def winding_number(self):
-        d = self.endpoints[1] - self.endpoints[0]
-        w = d.cross_product(point([0, 1]))
-        if is_almost(w, 0):
-            return 0
-        if w > 0:
-            return 1
-        else:
-            return -1
-
     def is_above(a, b):
         xa = sorted([p.get_x() for p in a.endpoints])
         xb = sorted([p.get_x() for p in b.endpoints])
@@ -128,3 +118,12 @@ class elementary_path:
             for s in (a, b)
         ]
         return ya < yb
+
+    def is_vertical(self):
+        xa, xb = [p.get_x() for p in self.endpoints]
+        if xa == xb:
+            return True
+        else:
+            if is_almost(xa, xb):
+                raise RuntimeError("almost vertical")
+            return False

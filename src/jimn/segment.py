@@ -74,16 +74,6 @@ class segment(elementary_path):
         return False
 
     # for 2d points
-    def is_vertical(self):
-        xa, xb = [p.get_x() for p in self.endpoints]
-        if xa == xb:
-            return True
-        else:
-            if is_almost(xa, xb):
-                raise RuntimeError("almost vertical segment")
-            return False
-
-    # for 2d points
     def is_horizontal(self):
         ya, yb = [p.get_y() for p in self.endpoints]
         if ya == yb:
@@ -185,7 +175,6 @@ class segment(elementary_path):
         return is_almost(distance, self.endpoints[0].distance_to(self.endpoints[1]))
 
     def vertical_intersection_at(self, x):
-        # TODO: not ok for arcs
         x1, y1 = self.endpoints[0].get_coordinates()
         x2, y2 = self.endpoints[1].get_coordinates()
         if x1 == x2:
