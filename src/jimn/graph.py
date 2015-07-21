@@ -1,6 +1,7 @@
 from jimn.segment import segment
 from jimn.segment import are_traversing
 from jimn.vertex import vertex
+from jimn.point import is_slice_height
 from collections import defaultdict
 
 
@@ -21,8 +22,9 @@ class graph:
         for v in self.vertices.values():
             vertices_per_height[v.get_y()].append(v)
 
-        for vertices_y in vertices_per_height.values():
-            create_internal_edges_in_slice(vertices_y)
+        for y, vertices_y in vertices_per_height.items():
+            if is_slice_height(y, milling_diameter):
+                create_internal_edges_in_slice(vertices_y)
 
 
 class state:

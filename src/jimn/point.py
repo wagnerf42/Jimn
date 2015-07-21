@@ -132,9 +132,7 @@ class point:
         return point([self.get_y(), -self.get_x()])
 
     def is_on_slice(self, milling_diameter):
-        d = milling_diameter
-        y = self.get_y()
-        return is_almost(y/d, round(y/d))
+        return is_slice_height(self.get_y(), milling_diameter)
 
     def __add__(a, b):
         return point([i + j for i, j in zip(a.coordinates, b.coordinates)])
@@ -160,3 +158,8 @@ class point:
         Assumes a and b have the same dimension.
         """
         return a.coordinates < b.coordinates
+
+
+def is_slice_height(y, milling_diameter):
+    d = milling_diameter
+    return is_almost(y/d, round(y/d))
