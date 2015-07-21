@@ -6,8 +6,6 @@
 	== was not enough and we switched to is_almost
 	this raises lots of nasty questions as why points were not rounded correctly
 
-----> what to do with vertical segments is not completely clear
-
 ----> we need to handle overlapping segments and arcs after raw offseting (split and or remove)
 	and before paths selection
 

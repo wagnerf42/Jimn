@@ -90,15 +90,19 @@ class arc(elementary_path):
                       />'.format(x1, y1, r, r, x2, y2, color))
 
     def vertical_intersection_at(self, x):
-        """return y of one of the intersections given vertical line"""
+        """return y of lowest intersection given vertical line"""
+        if self.is_vertical():
+            return self.lowest_endpoint()
+
         line = [point([x, 0]), point([x, 1])]
         rounder = coordinates_hash(2)  # TODO: what about this one ?
-        intersections = line_circle_intersections(line, self.center, self.radius, rounder)
-        for i in intersections:
-            if self.contains(i):
-                return i.get_y()
-        raise "no intersection"
+        intersections = \
+            line_circle_intersections(line, self.center, self.radius, rounder)
 
+        candidates = [i for i in intersections if self.contains(i)]
+        assert candidates, "no intersection"
+        ys = [i.get_y() for i in candidates]
+        return max(ys)
 
 def circles_intersections(c1, c2, r1, r2, rounder):
     d = c1.distance_to(c2)
