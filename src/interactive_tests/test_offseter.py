@@ -13,12 +13,16 @@ p = polygon([
     point([4, 0]),
 ])
 
-print("clockwise ?", p.is_oriented_clockwise())
-tycat(p, *p.get_points())
-tycat(p, *p.segments())
-
-#ghost = offset_holed_polygon(0.5, p)
-#tycat(p, *ghost)
 p.orient(False)
+ghost = offset_holed_polygon(0.5, p)
+tycat(p, *ghost)
+
+p = polygon([
+    point([0, 0]),
+    point([3, 0]),
+    point([3, -3]),
+    point([0, -3]),
+])
+
 ghost = offset_holed_polygon(0.5, p)
 tycat(p, *ghost)

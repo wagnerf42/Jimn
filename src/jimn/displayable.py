@@ -1,13 +1,19 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 import os
 import getpass
-import sys
 from jimn.bounding_box import bounding_box
 
 svg_dimensions = (400, 200)
 margin = 20
 
-svg_colors = tuple('red green blue purple orange saddlebrown mediumseagreen darkolivegreen darkred dimgray mediumpurple midnightblue olive chartreuse darkorchid hotpink lightskyblue peru goldenrod mediumslateblue orangered darkmagenta darkgoldenrod mediumslateblue firebrick palegreen royalblue tan tomato springgreen pink orchid saddlebrown moccasin mistyrose  cornflowerblue darkgrey'.split())
+svg_colors = tuple('red green blue purple orange saddlebrown mediumseagreen\
+                   darkolivegreen darkred dimgray mediumpurple midnightblue\
+                   olive chartreuse darkorchid hotpink lightskyblue peru\
+                   goldenrod mediumslateblue orangered darkmagenta\
+                   darkgoldenrod mediumslateblue firebrick palegreen\
+                   royalblue tan tomato springgreen pink orchid\
+                   saddlebrown moccasin mistyrose cornflowerblue\
+                   darkgrey'.split())
 
 
 class displayed_thing(object):
@@ -24,17 +30,24 @@ class displayed_thing(object):
         self.calibrate()
 
     def calibrate(self):
-        self.max_coordinates, self.min_coordinates = self.bounding_box.get_arrays()
-        dimensions = [a - b for a, b in zip(self.max_coordinates, self.min_coordinates)]
+        coordinates = self.bounding_box.get_arrays()
+        self.max_coordinates, self.min_coordinates = coordinates
+        dimensions = [
+            a - b for a, b in zip(self.max_coordinates, self.min_coordinates)
+        ]
         real_dimensions = [d-2*margin for d in svg_dimensions]
         stretches = [a / b for a, b in zip(real_dimensions, dimensions)]
         self.svg_stretch = min(stretches)
-        self.margins = [(a-b*self.svg_stretch)/2 for a, b in zip(svg_dimensions, dimensions)]
+        self.margins = [
+            (a-b*self.svg_stretch)/2 for a, b in zip(svg_dimensions, dimensions)
+        ]
 
     def open_svg(self, filename):
         self.fd = open(filename, 'w')
-        self.fd.write("<svg width=\"{}\" height=\"{}\">\n".format(*svg_dimensions))
-        self.fd.write("<rect width=\"{}\" height=\"{}\" fill=\"white\"/>\n".format(*svg_dimensions))
+        self.fd.write("<svg width=\"{}\"\
+                      height=\"{}\">\n".format(*svg_dimensions))
+        self.fd.write("<rect width=\"{}\" height=\"{}\"\
+                      fill=\"white\"/>\n".format(*svg_dimensions))
 
     def close_svg(self):
         self.fd.write("</svg>\n")
@@ -44,8 +57,13 @@ class displayed_thing(object):
         return self.svg_stretch
 
     def convert_coordinates(self, coordinates):
-        relative_coordinates = [a - b for a, b in zip(coordinates, self.min_coordinates)]
-        return [a+b*self.svg_stretch for a, b in zip(self.margins, relative_coordinates)]
+        relative_coordinates = [
+            a - b for a, b in zip(coordinates, self.min_coordinates)
+        ]
+        return [
+            a+b*self.svg_stretch
+            for a, b in zip(self.margins, relative_coordinates)
+        ]
 
     def write(self, string):
         self.fd.write(string)
@@ -55,13 +73,18 @@ file_count = 0
 
 def tycat(*things):
     global file_count
+
+    try:
+        display = displayed_thing(things)
+    except ZeroDivisionError:
+        print("*** svg display failed ***")
+        return
+
     user = getpass.getuser()
     directory = "/tmp/{}".format(user)
     if not os.path.exists(directory):
         os.makedirs(directory)
     filename = "{}/{}.svg".format(directory, str(file_count))
-
-    display = displayed_thing(things)
 
     display.open_svg(filename)
 
@@ -81,7 +104,7 @@ def tycat(*things):
 
     os.system("convert {} {}.jpg".format(filename, filename))
     os.system("tycat {}.jpg".format(filename))
-    #os.system("tycat {}".format(filename))
+    # os.system("tycat {}".format(filename))
     file_count = file_count + 1
 
 

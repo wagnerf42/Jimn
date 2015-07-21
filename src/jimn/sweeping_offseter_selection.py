@@ -14,7 +14,8 @@ class sweeping_offseter_selection(sweeping_line_algorithm):
             after_new_path_winding = up_to_new_path_winding + p.winding_number()
             # if windings are of opposite sign then this path is a limit
             # between outside and inside
-            if up_to_new_path_winding * after_new_path_winding < 0:
+            # other possibility is vertical path already inside
+            if (up_to_new_path_winding * after_new_path_winding < 0) or ((up_to_new_path_winding > 0) and (after_new_path_winding == up_to_new_path_winding)):
                 self.kept_paths.append(p)
                 if __debug__:
                     if is_module_debugged(__name__):

@@ -5,7 +5,7 @@ from jimn.precision import is_almost
 from jimn.displayable import tycat
 from jimn.math import solve_quadratic_equation
 from jimn.coordinates_hash import coordinates_hash
-from math import sqrt, pi
+from math import sqrt
 
 
 class arc(elementary_path):
@@ -70,7 +70,7 @@ class arc(elementary_path):
             self.radius,
             rounder
         )
-        #TODO: move upwards ?
+        # TODO: move upwards ?
         intersections = []
         for p in points:
             if self.contains(p) and intersecting_segment.contains(p):
@@ -88,8 +88,16 @@ class arc(elementary_path):
                       fill="none" stroke="{}" \
                       opacity="0.5" stroke-width="3"\
                       />'.format(x1, y1, r, r, x2, y2, color))
-        # cx, cy = display.convert_coordinates(self.center.get_coordinates())
-        # display.write('<circle cx="{}" cy="{}" r="{}" fill="{}" opacity="0.3"/>'.format(cx, cy, r, color))
+
+    def vertical_intersection_at(self, x):
+        """return y of one of the intersections given vertical line"""
+        line = [point([x, 0]), point([x, 1])]
+        rounder = coordinates_hash(2)  # TODO: what about this one ?
+        intersections = line_circle_intersections(line, self.center, self.radius, rounder)
+        for i in intersections:
+            if self.contains(i):
+                return i.get_y()
+        raise "no intersection"
 
 
 def circles_intersections(c1, c2, r1, r2, rounder):
@@ -127,6 +135,7 @@ def circles_intersections(c1, c2, r1, r2, rounder):
                 ])
             ]
             return [rounder.hash_point(p) for p in points]
+
 
 def line_circle_intersections(points, center, radius, rounder):
         # take first point as origin

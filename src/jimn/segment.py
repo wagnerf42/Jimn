@@ -184,6 +184,19 @@ class segment(elementary_path):
         distance = sum([possible_point.distance_to(p) for p in self.endpoints])
         return is_almost(distance, self.endpoints[0].distance_to(self.endpoints[1]))
 
+    def vertical_intersection_at(self, x):
+        # TODO: not ok for arcs
+        x1, y1 = self.endpoints[0].get_coordinates()
+        x2, y2 = self.endpoints[1].get_coordinates()
+        if x1 == x2:
+            # when vertical, we return lowest coordinate
+            return y1
+        if __debug__:
+            check_precision(x1, x2, 'vertical_intersection_at')
+        a = (y2-y1)/(x2-x1)
+        y = y1 + a*(x-x1)
+        return y
+
 
 def are_traversing(s1, s2):
     return (s1.dy() > 0 and s2.dy() > 0) or (s1.dy() < 0 and s2.dy() < 0)

@@ -2,7 +2,7 @@ from jimn.iterators import all_two_elements
 from jimn.precision import segment_limit
 from jimn.debug import is_module_debugged
 from jimn.displayable import tycat
-from jimn.precision import check_precision, is_almost
+from jimn.precision import is_almost
 from jimn.point import point
 import copy
 
@@ -10,8 +10,7 @@ import copy
 class elementary_path:
     def __init__(self, points):
         self.endpoints = points
-        if __debug__:
-            assert self.squared_length() > segment_limit, "very small path"
+        assert self.squared_length() > segment_limit, "very small path"
 
     def squared_length(self):
         """squared distance between endpoints"""
@@ -68,9 +67,12 @@ class elementary_path:
                 inside = True
             if p1 == end_point:
                 inside = False
-            if inside and not p1 == p2:
+            # TODO: change back is_almost to == and figure out why it is not
+            # enough
+            if inside and not p1.is_almost(p2):
                 new_path = copy.copy(self)
                 new_path.endpoints = [p1, p2]
+                assert new_path.squared_length() > segment_limit, "very small path when splitting"
                 paths.append(new_path)
 
         if __debug__:
@@ -119,23 +121,10 @@ class elementary_path:
         xa = sorted([p.get_x() for p in a.endpoints])
         xb = sorted([p.get_x() for p in b.endpoints])
         x1max = max(xa[0], xb[0])
-        x2min = max(xa[1], xb[1])
+        x2min = min(xa[1], xb[1])
         common_abs = [x1max, x2min]
         ya, yb = [
             [s.vertical_intersection_at(x) for x in common_abs]
             for s in (a, b)
         ]
         return ya < yb
-
-    def vertical_intersection_at(self, x):
-        # TODO: not ok for arcs
-        x1, y1 = self.endpoints[0].get_coordinates()
-        x2, y2 = self.endpoints[1].get_coordinates()
-        if x1 == x2:
-            # when vertical, we return lowest coordinate
-            return y1
-        if __debug__:
-            check_precision(x1, x2, 'vertical_intersection_at')
-        a = (y2-y1)/(x2-x1)
-        y = y1 + a*(x-x1)
-        return y

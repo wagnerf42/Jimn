@@ -2,9 +2,11 @@
 
 - polygon offsetting (fred)
 
-----> there is a bug right now for comparing arcs (is_above)
-      vertical_intersection_at in jimn.elementary_path is only ok for segments but not for arcs
-	-> move vertical_intersection_at out of elementary_path and into both segments and arcs classes
+----> there is a precision problem with 'split at' points
+	== was not enough and we switched to is_almost
+	this raises lots of nasty questions as why points were not rounded correctly
+
+----> what to do with vertical segments is not completely clear
 
 ----> we need to handle overlapping segments and arcs after raw offseting (split and or remove)
 	and before paths selection
