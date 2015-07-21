@@ -92,7 +92,8 @@ class arc(elementary_path):
     def vertical_intersection_at(self, x):
         """return y of lowest intersection given vertical line"""
         if self.is_vertical():
-            return self.lowest_endpoint()
+            assert x == self.endpoints[0].get_x()
+            return self.lowest_endpoint().get_y()
 
         line = [point([x, 0]), point([x, 1])]
         rounder = coordinates_hash(2)  # TODO: what about this one ?

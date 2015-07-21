@@ -178,8 +178,8 @@ class segment(elementary_path):
         x1, y1 = self.endpoints[0].get_coordinates()
         x2, y2 = self.endpoints[1].get_coordinates()
         if x1 == x2:
-            # when vertical, we return lowest coordinate
-            return y1
+            # when vertical, we return coordinate of lowest point
+            return self.lowest_endpoint().get_y()
         if __debug__:
             check_precision(x1, x2, 'vertical_intersection_at')
         a = (y2-y1)/(x2-x1)

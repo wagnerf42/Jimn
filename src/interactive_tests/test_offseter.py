@@ -26,3 +26,14 @@ p = polygon([
 
 ghost = offset_holed_polygon(0.5, p)
 tycat(p, *ghost)
+
+p = polygon([
+    point([0, 0]),
+    point([-2, 1]),
+    point([-0.6, 2]),
+    point([-2, 3]),
+    point([0, 4]),
+])
+
+ghost = offset_holed_polygon(0.5, p)
+tycat(p, *ghost)

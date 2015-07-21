@@ -128,5 +128,12 @@ class elementary_path:
                 raise RuntimeError("almost vertical")
             return False
 
+    def lowest_endpoint(self):
+        ya, yb = [p.get_y() for p in self.endpoints]
+        if ya > yb:
+            return self.endpoints[0]
+        else:
+            return self.endpoints[1]
+
 def same_paths(p1, p2):
     return p1 == p2 or p1.reverse() == p2
