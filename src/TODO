@@ -11,7 +11,9 @@
 ----> we need to handle overlapping segments and arcs after raw offseting (split and or remove)
 	and before paths selection
 
-- path computation for holed polygon : add on slice test
+- path computation for holed polygon
+
+----> add == operator for arcs
 
  * code review
 
