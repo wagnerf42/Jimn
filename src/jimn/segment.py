@@ -103,15 +103,8 @@ class segment(elementary_path):
         p1, p2 = self.endpoints
         return segment([p1.projection2d(), p2.projection2d()])
 
-    def set_endpoint(self, index, new_point):
-        self.endpoints[index] = new_point
-
     def angle(self):
         return self.endpoints[0].angle_with(self.endpoints[1])
-
-    def dy(self):
-        ya, yb = [p.get_y() for p in self.get_endpoints()]
-        return yb - ya
 
     def intersection_with_segment(self, other, rounder):
         """
@@ -185,7 +178,3 @@ class segment(elementary_path):
         a = (y2-y1)/(x2-x1)
         y = y1 + a*(x-x1)
         return y
-
-
-def are_traversing(s1, s2):
-    return (s1.dy() > 0 and s2.dy() > 0) or (s1.dy() < 0 and s2.dy() < 0)

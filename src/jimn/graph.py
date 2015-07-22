@@ -1,9 +1,10 @@
 from jimn.segment import segment
-from jimn.segment import are_traversing
 from jimn.vertex import vertex
 from jimn.point import is_slice_height
 from collections import defaultdict
 from jimn.bounding_box import bounding_box
+from jimn.debug import is_module_debugged
+from jimn.displayable import tycat
 
 
 class graph:
@@ -12,6 +13,12 @@ class graph:
 
     def get_vertices(self):
         return self.vertices.values()
+
+    def get_vertex(self, vertex_point):
+        if vertex_point in self.vertices:
+            return self.vertices[vertex_point]
+        else:
+            return None
 
     def get_bounding_box(self):
         box = bounding_box.empty_box(2)
@@ -28,6 +35,13 @@ class graph:
             self.vertices[vertex_point] = vertex(vertex_point)
         return self.vertices[vertex_point]
 
+    def add_edge(self, edge_path):
+        endpoints = edge_path.get_endpoints()
+        assert endpoints[0] in self.vertices, "no such vertex"
+        assert endpoints[1] in self.vertices, "no such vertex"
+        self.vertices[endpoints[0]].add_edge(edge_path)
+        self.vertices[endpoints[1]].add_edge(edge_path.reverse())
+
     def create_internal_edges(self, milling_diameter):
         vertices_per_height = defaultdict(list)
         for v in self.vertices.values():
@@ -36,91 +50,104 @@ class graph:
                 vertices_per_height[y].append(v)
 
         for y, vertices_y in vertices_per_height.items():
-            create_internal_edges_in_slice(vertices_y)
+            self._create_internal_edges_in_slice(y, sorted(vertices_y))
 
     def make_degrees_even(self):
         for v in self.vertices.values():
             if not v.even_degree():
-                self.create_edge_from_vertex(v)
+                self._create_edge_from_vertex(v)
 
     # requires that in each vertex, the first two edges are border edges
     # otherwise, we may add internal edges too
-    def create_edge_from_vertex(self, v):
+    def _create_edge_from_vertex(self, v):
 
         previous_vertex = None
         current_vertex = v
         while not current_vertex.even_degree():
             edge = current_vertex.find_first_neighbor_not(previous_vertex)
+            self.add_edge(edge)
             next_point = edge.get_endpoint(1)  # edge goes from current to next
             next_vertex = self.vertices[next_point]
-            current_vertex.add_edge(edge)
-            next_vertex.add_edge(edge.reverse())
             previous_vertex = current_vertex
             current_vertex = next_vertex
 
+    def _create_internal_edges_in_slice(self, y, vertices):
+        p = position(y, self, outside=True)
+        for e in _horizontal_edges(vertices):
+            p.update(e)
+            if p.is_inside():
+                self.add_edge(e)
+                if __debug__:
+                    if is_module_debugged(__name__):
+                        print("adding horizontal edge", str(p))
+                        tycat(self, e)
+            else:
+                if __debug__:
+                    if is_module_debugged(__name__):
+                        print("not adding horizontal edge", str(p))
+                        tycat(self, e)
 
-class state:
-    def __init__(self, inside, v=None):
-        self.inside = inside
-        self.v = v
-        self.starts_horizontal_path = False
-        self.non_horizontal_path = None
+
+class position:
+    def __init__(self, y, g, outside):
+        self.outside = outside
+        self.on_edge = False
+        self.on_edge_inside_is_above = None
+        self.graph = g
+        self.y = y
+
+    def __str__(self):
+        return "out:{} on_edge:{} on_edge_inside_above:{}".format(
+            self.outside, self.on_edge, self.on_edge_inside_is_above
+        )
+
+    def update(self, edge):
+        start_point = edge.get_endpoint(0)
+        start_vertex = self.graph.get_vertex(start_point)
+        # many cases here
+        # we look at edges starting from start_vertex
+        # to figure out current position
+        if not self.on_edge:
+            if not start_vertex.has_edge(edge):
+                # easy case : we were not on edge
+                # and are not on edge
+                # edges on different sides of y flip position
+                if start_vertex.has_edges_on_different_sides_of(self.y):
+                    self.outside = not self.outside
+            else:
+                # harder case, we are now on edge of polygon
+                self.on_edge = True
+                other_edge = start_vertex.other_edge(edge)
+                # remember where is the inside with respect to us
+                if other_edge.is_above_y(self.y):
+                    self.on_edge_inside_is_above = self.outside
+                else:
+                    self.on_edge_inside_is_above = not self.outside
+        else:
+            # hardest case
+            # we were on edge of polygon and are leaving it
+            # so we are back outside or inside
+            self.on_edge = False
+            non_horizontal_edge = start_vertex.get_non_horizontal_edge()
+            if non_horizontal_edge.is_above_y(self.y):
+                #               /
+                #      inside  / outside
+                #             /
+                # ------------***edge***
+                self.outside = self.on_edge_inside_is_above
+            else:
+                self.outside = not self.on_edge_inside_is_above
 
     def is_inside(self):
-        return self.inside
-
-    def get_vertex(self):
-        return self.v
-
-    def change(self):
-        self.inside = not self.inside
-
-    def mark_starting_horizontal_path(self):
-        self.starts_horizontal_path = True
-        self.non_horizontal_path = self.v.get_non_horizontal_path()
-
-    def starting_horizontal_path(self):
-        return self.starts_horizontal_path
-
-    def get_non_horizontal_path(self):
-        return self.non_horizontal_path
+        if self.on_edge:
+            return False
+        return not self.outside
 
 
-def create_internal_edges_in_slice(vertices):
-    new_edges = []
-    vertices = sorted(vertices)
-    old_state = state(inside=False)
-    add_edge = False
-
-    for v in vertices:
-        if add_edge:
-            new_edges.append(segment([old_state.get_vertex(), v]))
-
-        new_state = state(old_state.is_inside(), v)
-
-        if v.has_horizontal_path():
-            if old_state.starting_horizontal_path():
-                s1 = old_state.get_non_horizontal_path()
-                s2 = v.get_non_horizontal_path()
-                crossing_border = are_traversing(s1, s2.reverse())
-            else:
-                crossing_border = False
-                new_state.mark_starting_horizontal_path()
-        else:
-            crossing_border = v.is_traversed_by_paths()
-
-        if crossing_border:
-            new_state.change()
-
-        add_edge = (new_state.is_inside() and
-                    not new_state.starting_horizontal_path())
-        old_state = new_state
-
-    create_edges_from_paths(new_edges)
-
-
-def create_edges_from_paths(paths):
-    for p in paths:
-        v1, v2 = p.get_endpoints()
-        v1.add_edge(p)
-        v2.add_edge(p.reverse())
+def _horizontal_edges(aligned_vertices):
+    """iterates through all horizontal segments
+    between given horizontally aligned vertices"""
+    for i in range(len(aligned_vertices)-1):
+        v1 = aligned_vertices[i]
+        v2 = aligned_vertices[(i+1) % len(aligned_vertices)]
+        yield segment([v1, v2])

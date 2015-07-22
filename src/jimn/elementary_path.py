@@ -28,6 +28,9 @@ class elementary_path:
                 assert not p.is_almost(intermediate_point), "precision pb"
         return False
 
+    def set_endpoint(self, index, new_point):
+        self.endpoints[index] = new_point
+
     def get_endpoint(self, index):
         return self.endpoints[index]
 
@@ -128,6 +131,24 @@ class elementary_path:
                 raise RuntimeError("almost vertical")
             return False
 
+    def is_horizontal(self):
+        ya, yb = [p.get_y() for p in self.endpoints]
+        if ya == yb:
+            return True
+        else:
+            if is_almost(ya, yb):
+                raise RuntimeError("almost vertical")
+            return False
+
+    def is_above_y(self, y_limit):
+        non_limit_y = None
+        for p in self.endpoints:
+            y = p.get_y()
+            if y != y_limit:
+                non_limit_y = y
+        assert non_limit_y is not None, "horizontal path"
+        return non_limit_y < y_limit
+
     def lowest_endpoint(self):
         ya, yb = [p.get_y() for p in self.endpoints]
         if ya > yb:
@@ -135,5 +156,9 @@ class elementary_path:
         else:
             return self.endpoints[1]
 
-def same_paths(p1, p2):
-    return p1 == p2 or p1.reverse() == p2
+    def is_same(self, other):
+        if self.get_endpoints() == other.get_endpoints():
+            return True
+        if self.get_endpoints() == other.reverse().get_endpoints():
+            return True
+        return False

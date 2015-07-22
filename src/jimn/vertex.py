@@ -1,5 +1,4 @@
 from jimn.point import point
-from jimn.segment import are_traversing
 
 
 class vertex(point):
@@ -12,6 +11,7 @@ class vertex(point):
         for e in self.edges:
             edge_box = e.get_bounding_box()
             box.update(edge_box)
+        return box
 
     def save_svg_content(self, display, color):
         super(vertex, self).save_svg_content(display, color)
@@ -33,23 +33,45 @@ class vertex(point):
     def even_degree(self):
         return self.degree() % 2 == 0
 
-    def has_horizontal_path(self):
-        for e in self.edges:
-            if e.is_horizontal():
+    def has_edge(self, edge):
+        """
+        returns true if one of our first two edges
+        is given edge
+        """
+        for e in self.edges[:2]:
+            if e.is_same(edge):
                 return True
         return False
 
-    def get_non_horizontal_path(self):
-        assert len(self.edges) == 2
-        for e in self.edges:
+    def has_edges_on_different_sides_of(self, y):
+        """
+        returns true if our first two edges
+        are on different sides of horizontal line
+        at given y
+        """
+        aboves = [e.is_above_y(y) for e in self.edges[:2]]
+        print("aboves", aboves)
+        return (aboves[0] != aboves[1])
+
+    def other_edge(self, edge):
+        """
+        returns edge in first two edges
+        which is not given edge
+        """
+        for e in self.edges[:2]:
+            if not e.is_same(edge):
+                return e
+        raise Exception("no different edge")
+
+    def get_non_horizontal_edge(self):
+        """
+        returns edge in first two edges
+        which is not horizontal
+        """
+        for e in self.edges[:2]:
             if not e.is_horizontal():
                 return e
-        raise Exception("only horizontal paths found")
-
-    def is_traversed_by_paths(self):
-        assert len(self.edges) == 2
-        e1, e2 = self.edges
-        return are_traversing(e1, e2.reverse())
+        raise Exception("only horizontal edges")
 
     def find_first_neighbor_not(self, neighbor):
         for e in self.edges:
