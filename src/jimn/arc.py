@@ -70,11 +70,11 @@ class arc(elementary_path):
             self.radius,
             rounder
         )
-        # TODO: move upwards ?
         intersections = []
         for p in points:
             if self.contains(p) and intersecting_segment.contains(p):
                 intersections.append(p)
+
         return intersections
 
     def save_svg_content(self, display, color):
@@ -104,6 +104,7 @@ class arc(elementary_path):
         assert candidates, "no intersection"
         ys = [i.get_y() for i in candidates]
         return max(ys)
+
 
 def circles_intersections(c1, c2, r1, r2, rounder):
     d = c1.distance_to(c2)

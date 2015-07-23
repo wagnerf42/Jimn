@@ -69,9 +69,7 @@ class elementary_path:
                 inside = True
             if p1 == end_point:
                 inside = False
-            # TODO: change back is_almost to == and figure out why it is not
-            # enough
-            if inside and not p1.is_almost(p2):
+            if inside and not p1 == p2:
                 new_path = copy.copy(self)
                 new_path.endpoints = [p1, p2]
                 assert new_path.squared_length() > segment_limit,\
@@ -85,6 +83,9 @@ class elementary_path:
         return paths
 
     def intersections_with(self, other, rounder):
+        points = [end for p in (self, other) for end in p.get_endpoints()]
+        for p in points:
+            rounder.hash_point(p)
         if str(type(self)) == "<class 'jimn.arc.arc'>":
             if str(type(other)) == "<class 'jimn.arc.arc'>":
                 intersections = self.intersections_with_arc(other, rounder)

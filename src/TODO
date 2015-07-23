@@ -2,16 +2,8 @@
 
 - polygon offsetting (fred)
 
-----> there is a precision problem with 'split at' points
-	== was not enough and we switched to is_almost
-	this raises lots of nasty questions as why points were not rounded correctly
-
 ----> we need to handle overlapping segments and arcs after raw offseting (split and or remove)
 	and before paths selection
-
-- path computation for holed polygon
-
-----> add == operator for arcs
 
  * code review
 

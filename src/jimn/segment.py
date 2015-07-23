@@ -152,7 +152,7 @@ class segment(elementary_path):
     def __hash__(self):
         return hash(tuple(self.endpoints))
 
-    def parallel_segment(self, distance):
+    def parallel_segment(self, distance, rounder):
         a = self.endpoints[0].angle_with(self.endpoints[1])
         a += pi/2
         displacement = point([
@@ -160,7 +160,7 @@ class segment(elementary_path):
             distance * sin(-a)
         ])
         return segment([
-            p + displacement for p in self.endpoints
+            rounder.hash_point(p + displacement) for p in self.endpoints
         ])
 
     def contains(self, possible_point):

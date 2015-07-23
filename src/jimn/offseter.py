@@ -11,13 +11,15 @@ and clockwise to carve the outside"""
 
 
 class offseter:
-    def __init__(self, radius, polygon):
+    def __init__(self, radius, polygon, rounder):
         self.polygon = polygon
+        self.polygon.round_points(rounder)
         self.radius = radius
+        self.rounder = rounder
 
     def raw_offset(self):
         raw_segments = [
-            s.parallel_segment(self.radius) for s in self.polygon.segments()
+            s.parallel_segment(self.radius, self.rounder) for s in self.polygon.segments()
         ]
 
         if __debug__:
@@ -30,9 +32,8 @@ class offseter:
     def join_raw_segments(self, raw_segments):
 
         edge = []
-        rounder = coordinates_hash(dimension=2)
         for s1, s2 in all_two_elements(raw_segments):
-            i = s1.intersection_with_segment(s2, rounder)
+            i = s1.intersection_with_segment(s2, self.rounder)
             edge.append(s1)
             if i is None:
                 # add arc
@@ -50,8 +51,8 @@ class offseter:
         return edge
 
 
-def raw_offset(radius, polygon_to_offset):
-    o = offseter(radius, polygon_to_offset)
+def raw_offset(radius, polygon_to_offset, rounder):
+    o = offseter(radius, polygon_to_offset, rounder)
     segments = o.raw_offset()
     if len(segments) < 2:
         return []
@@ -61,8 +62,9 @@ def raw_offset(radius, polygon_to_offset):
 
 def offset_holed_polygon(radius, *polygons):
     g = ghost([])
+    rounder = coordinates_hash(2)
     for p in polygons:
-        g.extend(raw_offset(radius, p))
+        g.extend(raw_offset(radius, p, rounder))
     #TODO: handle overlapping arcs and segments
     g = g.compute_self_elementary_paths()
     remaining_paths = select_offseted_paths(g.get_content())
