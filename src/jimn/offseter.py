@@ -13,7 +13,6 @@ and clockwise to carve the outside"""
 class offseter:
     def __init__(self, radius, polygon, rounder):
         self.polygon = polygon
-        self.polygon.round_points(rounder)
         self.radius = radius
         self.rounder = rounder
 
@@ -61,8 +60,13 @@ def raw_offset(radius, polygon_to_offset, rounder):
 
 
 def offset_holed_polygon(radius, *polygons):
-    g = ghost([])
+
+    # fill rounder with all coordinates
     rounder = coordinates_hash(2)
+    for p in polygons:
+        p.round_points(rounder)
+
+    g = ghost([])
     for p in polygons:
         g.extend(raw_offset(radius, p, rounder))
     #TODO: handle overlapping arcs and segments
