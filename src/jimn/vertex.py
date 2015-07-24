@@ -27,6 +27,13 @@ class vertex(point):
     def add_edge(self, edge):
         self.edges.append(edge)
 
+    def delete_edge(self, edge):
+        if edge in self.edges:
+            self.edges.remove(edge)
+        else:
+            assert edge.reverse() in self.edges
+            self.edges.remove(edge.reverse())
+
     def degree(self):
         return len(self.edges)
 

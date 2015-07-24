@@ -21,3 +21,4 @@ center_lines = [segment([point([0.0, h]), point([1.2, h])]) for h in heights]
 
 g = abc.build_graph(0.3)
 tycat(g)
+g.get_cycles()
