@@ -12,12 +12,21 @@ corresponding to the dead remnants of a holed polygon"""
 
 class ghost:
     def __init__(self, paths):
+        """
+        takes a set of elementary paths
+        """
         self.paths = paths
 
     def extend(self, additional_paths):
+        """
+        adds some more paths
+        """
         self.paths.extend(additional_paths)
 
     def get_content(self):
+        """
+        returns paths contained
+        """
         return self.paths
 
     def get_bounding_box(self):
@@ -36,16 +45,16 @@ class ghost:
     def compute_self_elementary_paths(self):
         """brute force algorithm splitting all paths in self
         into elementary paths"""
-        intersection_points = self.find_new_points(combinations(self.paths, r=2))
-        return self.split_paths_at(intersection_points)
+        intersection_points = self._find_new_points(combinations(self.paths, r=2))
+        return self._split_paths_at(intersection_points)
 
     def compute_elementary_paths(self, intersecting_paths):
         """brute force algorithm splitting all paths in self by paths in intersecting_paths
         into elementary paths"""
-        intersection_points = self.find_new_points(two_arrays_combinations(self.paths, intersecting_paths))
-        return self.split_paths_at(intersection_points)
+        intersection_points = self._find_new_points(two_arrays_combinations(self.paths, intersecting_paths))
+        return self._split_paths_at(intersection_points)
 
-    def split_paths_at(self, new_points):
+    def _split_paths_at(self, new_points):
         elementary_paths = []
         for p in self.paths:
             if p not in new_points:
@@ -54,7 +63,7 @@ class ghost:
                 elementary_paths.extend(p.split_at(new_points[p]))
         return ghost(elementary_paths)
 
-    def find_new_points(self, paths_iterator):
+    def _find_new_points(self, paths_iterator):
         new_points = defaultdict(list)
         rounder = coordinates_hash(dimension=2)
         for p1, p2 in paths_iterator:

@@ -4,9 +4,12 @@ from jimn.utils.coordinates_hash import coordinates_hash
 
 
 class holed_polygon:
-    def __init__(self, polygon, height=None, holes=[]):
+    def __init__(self, polygon, height=None, holes=None):
         self.polygon = polygon
-        self.holes = holes
+        if holes is None:
+            self.holes = []
+        else:
+            self.holes = holes
         self.height = height
 
     def get_bounding_box(self):
@@ -18,6 +21,10 @@ class holed_polygon:
             hole.save_svg_content(display, color)
 
     def normalize(self):
+        """
+        prepares for hashing by reordering points and
+        re-orienting
+        """
         self.polygon.orient(clockwise=False)
         self.polygon.normalize_starting_point()
         for h in self.holes:
@@ -26,6 +33,9 @@ class holed_polygon:
         self.holes = sorted(self.holes, key=lambda h: h.get_points()[0])
 
     def is_translated(self, p2):
+        """
+        are we a translation of p2 ?
+        """
         if not self.polygon.is_translated(p2.polygon):
             return False
         if len(self.holes) != len(p2.holes):
@@ -36,14 +46,23 @@ class holed_polygon:
         return True
 
     def round_points(self, rounder):
+        """
+        round all points through given rounder
+        """
         self.polygon.round_points(rounder)
         for h in self.holes:
             h.round_points(rounder)
 
     def milling_heights(self, milling_diameter):
+        """
+        returns iterator on all y coordinates used in milling
+        """
         return self.polygon.milling_heights(milling_diameter)
 
     def build_graph(self, milling_diameter):
+        """
+        returns graph which will be used to compute milling path
+        """
         # round all points on intersecting lines
         rounder = coordinates_hash(2)
         for y in self.milling_heights(milling_diameter):
