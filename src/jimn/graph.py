@@ -6,6 +6,7 @@ from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from collections import defaultdict
 from queue import Queue
+import pdb
 
 
 class graph:
@@ -71,6 +72,8 @@ class graph:
                 c1.extend(c)
 
     def get_cycles(self):
+        pdb.set_trace()
+
         cycles = []
         cycles_by_start_points = defaultdict(list)
         potential_starting_points = Queue()
@@ -78,7 +81,7 @@ class graph:
 
         cycle = []
 
-        start_point, start_vertex = self.vertices.popitem()
+        start_point, start_vertex = list(self.vertices.items())[0]
         cycles_by_start_points[start_vertex].append(cycle)
         potential_starting_points.put(start_vertex)
 
@@ -95,15 +98,15 @@ class graph:
             cycle.append(edge)
             # del self.vertices[current_point]
 
-            previous_vertex.delete_edge(edge)
+            # previous_vertex.delete_edge(edge)
             current_vertex.delete_edge(edge)
             if previous_vertex.degree() > 1:
-                potential_starting_points.put(current_vertex)
+                potential_starting_points.put(previous_vertex)
             if current_vertex.degree() > 1:
                 potential_starting_points.put(current_vertex)
 
             while current_vertex != start_vertex:
-                tycat(self, edge, cycle)
+                # tycat(self, edge, cycle)
                 previous_vertex = current_vertex
                 previous_edge = edge
                 edge = current_vertex.other_edge(previous_edge)
@@ -115,7 +118,8 @@ class graph:
                     current_vertex = self.vertices[current_point]
                     # del self.vertices[current_point]
 
-                previous_vertex.delete_edge(edge)
+                # previous_vertex.delete_edge(edge)
+                tycat(self, edge)
                 current_vertex.delete_edge(edge)
                 if current_vertex.degree() > 1:
                     potential_starting_points.put(current_vertex)
