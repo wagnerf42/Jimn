@@ -111,17 +111,55 @@ class elementary_path:
     def get_polygon_id(self):
         return 0
 
-    def is_above(a, b):
+    def _find_common_xrange(a, b):
+        """
+        find three different x belonging to both paths
+        """
         xa = sorted([p.get_x() for p in a.endpoints])
         xb = sorted([p.get_x() for p in b.endpoints])
         x1max = max(xa[0], xb[0])
         x2min = min(xa[1], xb[1])
-        common_abs = [x1max, x2min]
+        assert x1max <= x2min
+        return [x1max, x1max + (x2min-x1max)/2, x2min]
+
+    def is_above(a, b):
+        """
+        returns true if a is strictly above b
+        """
+        # take three common x
+        # we need three because arcs are not flat
+        # and need therefore three comparison points
+        common_abs = a._find_common_xrange(b)
+        # compute y intersections
         ya, yb = [
             [s.vertical_intersection_at(x) for x in common_abs]
             for s in (a, b)
         ]
-        return ya < yb
+        # who is above whom
+        point_above = [0, 0, 0]
+        for i in range(3):
+            if is_almost(ya[i], yb[i]):
+                point_above[i] = 0
+            else:
+                if ya[i] < yb[i]:
+                    point_above[i] = 1
+                else:
+                    point_above[i] = -1
+        # assert all points are on one same side
+        possibly_below = True
+        possibly_above = True
+        for p in point_above:
+            if p > 0:
+                possibly_below = False
+            if p < 0:
+                possibly_above = False
+
+        assert (possibly_below or possibly_above)
+
+        s = sum(point_above)
+        if s == 0:
+            return False
+        return (s > 0)
 
     def is_vertical(self):
         xa, xb = [p.get_x() for p in self.endpoints]

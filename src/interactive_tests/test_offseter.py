@@ -17,6 +17,9 @@ p.orient(False)
 ghost = offset_holed_polygon(0.5, p)
 tycat(p, *ghost)
 
+ghost = offset_holed_polygon(0.2, p)
+tycat(p, *ghost)
+
 p = polygon([
     point([0, 0]),
     point([3, 0]),

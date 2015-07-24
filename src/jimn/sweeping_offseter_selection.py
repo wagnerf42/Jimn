@@ -30,6 +30,13 @@ class sweeping_offseter_selection(sweeping_line_algorithm):
                               up_to_new_path_winding,
                               after_new_path_winding)
                         tycat(self.paths, self.kept_paths, p)
+            else:
+                if __debug__:
+                    if is_module_debugged(__name__):
+                        print("not keeping segment",
+                              up_to_new_path_winding,
+                              after_new_path_winding)
+                        tycat(self.paths, self.kept_paths, p)
 
     def winding_number(self, limit_path):
         winding_number = 0.5
