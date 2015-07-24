@@ -24,6 +24,8 @@
 - profiling
 - test ascii stl loader
 - rounders in arc class
+- is_above_y : arcs ???
+- elementary_path : is_same : what about arcs ?? is it needed ?
 
  * calibration
 

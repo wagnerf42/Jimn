@@ -6,6 +6,12 @@ import copy
 
 
 class elementary_path:
+
+    """
+    elementary path is a small path between two endpoints.
+    class is further refined into segments and arcs
+    """
+
     def __init__(self, points):
         self.endpoints = points
         assert self.squared_length() > segment_limit, "very small path"
@@ -15,19 +21,22 @@ class elementary_path:
         return self.endpoints[0].squared_distance_to(self.endpoints[1])
 
     def reverse(self):
+        """invert endpoints"""
         copied_path = copy.copy(self)
         copied_path.endpoints = list(reversed(self.endpoints))
         return copied_path
 
-    def has_extremity(self, intermediate_point):
+    def has_extremity(self, searched_point):
+        """do we have this endpoint ?"""
         for p in self.endpoints:
-            if p == intermediate_point:
+            if p == searched_point:
                 return True
             else:
-                assert not p.is_almost(intermediate_point), "precision pb"
+                assert not p.is_almost(searched_point), "precision pb"
         return False
 
     def set_endpoint(self, index, new_point):
+        """set new_point as endpoint numbered index"""
         self.endpoints[index] = new_point
 
     def get_endpoint(self, index):
@@ -37,6 +46,9 @@ class elementary_path:
         return self.endpoints
 
     def sort_endpoints(self):
+        """sort endpoints and return a new path (same type).
+        this will also work in derived classes
+        """
         copied_path = copy.copy(self)
         copied_path.endpoints = sorted(self.endpoints)
         return copied_path
@@ -46,6 +58,7 @@ class elementary_path:
         return sorted_self.endpoints == self.endpoints
 
     def dimension(self):
+        """returns dimension of space containing the points"""
         return self.endpoints[0].dimension()
 
     def split_at(self, points):
@@ -82,6 +95,9 @@ class elementary_path:
         return paths
 
     def intersections_with(self, other, rounder):
+        """compute intersections with some other path.
+        works with any combination of arcs and segments
+        """
         points = [end for p in (self, other) for end in p.get_endpoints()]
         for p in points:
             rounder.hash_point(p)
@@ -108,6 +124,9 @@ class elementary_path:
         return intersections
 
     def get_polygon_id(self):
+        """returns id of polygon we belong to.
+        0 unless overloaded in subclasses
+        """
         return 0
 
     def _find_common_xrange(a, b):
@@ -161,6 +180,7 @@ class elementary_path:
         return (s > 0)
 
     def is_vertical(self):
+        """are endpoints aligned vertically"""
         xa, xb = [p.get_x() for p in self.endpoints]
         if xa == xb:
             return True
@@ -170,6 +190,7 @@ class elementary_path:
             return False
 
     def is_horizontal(self):
+        """are endpoints aligned horizontally"""
         ya, yb = [p.get_y() for p in self.endpoints]
         if ya == yb:
             return True
@@ -179,6 +200,10 @@ class elementary_path:
             return False
 
     def is_above_y(self, y_limit):
+        """
+        are we above or below horizontal segment at y_limit ?
+        prerequisite: one of our enpoints is at y_limit
+        """
         non_limit_y = None
         for p in self.endpoints:
             y = p.get_y()
@@ -188,6 +213,9 @@ class elementary_path:
         return non_limit_y < y_limit
 
     def lowest_endpoint(self):
+        """
+        return one of lowest endpoints (y maximized)
+        """
         ya, yb = [p.get_y() for p in self.endpoints]
         if ya > yb:
             return self.endpoints[0]
@@ -195,6 +223,10 @@ class elementary_path:
             return self.endpoints[1]
 
     def is_same(self, other):
+        """
+        comparing endpoints only, are we like other ?
+        (order is not important)
+        """
         if self.get_endpoints() == other.get_endpoints():
             return True
         if self.get_endpoints() == other.reverse().get_endpoints():
