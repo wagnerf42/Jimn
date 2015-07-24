@@ -2,7 +2,7 @@
 
 from jimn.inclusion_tree_builder import build_inclusion_tree
 from jimn.polygontree import polygontree
-from jimn.debug import is_module_debugged
+from jimn.utils.debug import is_module_debugged
 from collections import defaultdict
 
 

@@ -1,10 +1,10 @@
 from jimn.displayable import tycat
-from jimn.debug import is_module_debugged
-from jimn.iterators import all_two_elements
-from jimn.coordinates_hash import coordinates_hash
 from jimn.arc import arc
 from jimn.ghost import ghost
 from jimn.sweeping_offseter_selection import select_offseted_paths
+from jimn.utils.coordinates_hash import coordinates_hash
+from jimn.utils.debug import is_module_debugged
+from jimn.utils.iterators import all_two_elements
 
 """requires polygon to be oriented counter clockwise to carve the inside
 and clockwise to carve the outside"""

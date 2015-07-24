@@ -2,7 +2,7 @@
 from jimn.polygon import polygon
 from jimn.segment import segment
 from jimn.displayable import tycat, tycat_set_svg_dimensions
-from jimn.debug import is_module_debugged
+from jimn.utils.debug import is_module_debugged
 
 area_limit = 10**-10 # TODO: what is the right value ??
 

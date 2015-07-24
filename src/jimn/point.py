@@ -1,7 +1,7 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 from math import atan2, sqrt, cos, sin
-from jimn.precision import is_almost
 from jimn.bounding_box import bounding_box
+from jimn.utils.precision import is_almost
 
 
 class point:

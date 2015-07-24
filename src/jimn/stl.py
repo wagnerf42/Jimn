@@ -1,11 +1,9 @@
-# vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
-
 from math import ceil
 from jimn.point import point
 from jimn.segment import segment
 from jimn.facet import facet, binary_facet
 from jimn.bounding_box import bounding_box
-from jimn.coordinates_hash import coordinates_hash
+from jimn.utils.coordinates_hash import coordinates_hash
 import struct
 import re
 

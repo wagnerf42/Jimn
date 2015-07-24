@@ -23,6 +23,7 @@
 - better bounding box for arcs
 - profiling
 - test ascii stl loader
+- rounders in arc class
 
  * calibration
 
@@ -32,3 +33,4 @@
  * doc
 
 - rapport : inclusion tree
+

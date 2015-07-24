@@ -1,6 +1,6 @@
-from jimn.coordinates_hash import coordinates_hash
 from jimn.displayable import tycat
 from jimn.graph import graph
+from jimn.utils.coordinates_hash import coordinates_hash
 
 
 class holed_polygon:

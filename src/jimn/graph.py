@@ -1,11 +1,11 @@
 from jimn.segment import segment
 from jimn.vertex import vertex
 from jimn.point import is_slice_height
+from jimn.bounding_box import bounding_box
+from jimn.displayable import tycat
+from jimn.utils.debug import is_module_debugged
 from collections import defaultdict
 from queue import Queue
-from jimn.bounding_box import bounding_box
-from jimn.debug import is_module_debugged
-from jimn.displayable import tycat
 
 
 class graph:

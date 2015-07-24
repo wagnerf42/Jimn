@@ -1,6 +1,6 @@
 from jimn.sweeping_line_algorithm import sweeping_line_algorithm
 from jimn.inclusion_tree import inclusion_tree
-from jimn.debug import is_module_debugged
+from jimn.utils.debug import is_module_debugged
 
 
 """

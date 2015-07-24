@@ -1,5 +1,5 @@
 from math import sqrt
-from jimn.precision import is_almost
+from jimn.utils.precision import is_almost
 
 
 def solve_quadratic_equation(a, b, c):

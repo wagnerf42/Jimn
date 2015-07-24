@@ -1,10 +1,10 @@
-from jimn.coordinates_hash import coordinates_hash
 from jimn.bounding_box import bounding_box
-from jimn.debug import is_module_debugged
 from jimn.displayable import tycat
-from collections import defaultdict
-from jimn.iterators import two_arrays_combinations
+from jimn.utils.coordinates_hash import coordinates_hash
+from jimn.utils.debug import is_module_debugged
+from jimn.utils.iterators import two_arrays_combinations
 from itertools import combinations
+from collections import defaultdict
 
 """unordered set of segments and arcs
 corresponding to the dead remnants of a holed polygon"""

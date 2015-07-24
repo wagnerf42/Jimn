@@ -4,7 +4,7 @@ from jimn.point import point
 from jimn.segment import segment
 from jimn.arc import arc
 from jimn.displayable import tycat
-from jimn.coordinates_hash import coordinates_hash
+from jimn.utils.coordinates_hash import coordinates_hash
 
 labels = (
     "testing with double intersections",
@@ -42,7 +42,7 @@ rounder = coordinates_hash(2)
 print("*** trying intersection with arcs ***")
 for i, a in enumerate(arcs):
     print(labels[i])
-    intersection = a1.intersection_with_arc(a, rounder)
+    intersection = a1.intersections_with_arc(a, rounder)
     tycat(a1, a, intersection)
 
 segments = (
@@ -60,5 +60,5 @@ s_labels = (
 print("*** trying intersection with segments ***")
 for i, s in enumerate(segments):
     print(s_labels[i])
-    intersections = a1.intersection_with_segment(s, rounder)
+    intersections = a1.intersections_with_segment(s, rounder)
     tycat(a1, s, intersections)

@@ -1,7 +1,6 @@
-# vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
-from jimn.precision import coordinate_key, displaced_coordinate_key, precision
 from jimn.point import point
-from jimn.debug import is_module_debugged
+from jimn.utils.debug import is_module_debugged
+from jimn.utils.precision import coordinate_key, displaced_coordinate_key, precision
 
 
 class coordinates_hash:

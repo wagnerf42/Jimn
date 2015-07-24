@@ -1,5 +1,3 @@
-# vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
-
 START_EVENT = 0
 END_EVENT = 1
 

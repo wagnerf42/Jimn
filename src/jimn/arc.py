@@ -1,21 +1,25 @@
 from jimn.elementary_path import elementary_path
 from jimn.bounding_box import bounding_box
 from jimn.point import point
-from jimn.precision import is_almost
 from jimn.displayable import tycat
-from jimn.math import solve_quadratic_equation
-from jimn.coordinates_hash import coordinates_hash
+from jimn.utils.coordinates_hash import coordinates_hash
+from jimn.utils.math import solve_quadratic_equation
+from jimn.utils.precision import is_almost
 from math import sqrt
 
 
 class arc(elementary_path):
     def __init__(self, radius, points):
+        """
+        builds an arc out of two endpoints and a radius.
+        different ordering of endpoints give different arcs
+        """
         super().__init__(points)
         self.radius = radius
         assert self.radius > 0, "0 or negative radius"
-        self.center = self.compute_center()
+        self.center = self._compute_center()
 
-    def compute_center(self):
+    def _compute_center(self):
         # take endpoints[0] as origin
         p2 = self.endpoints[1] - self.endpoints[0]
         # find bisector
@@ -23,7 +27,7 @@ class arc(elementary_path):
         p = middle + p2.perpendicular_vector()
         # intersect with circle at origin
         rounder = coordinates_hash(2)  # TODO : useless for now
-        intersections = line_circle_intersections(
+        intersections = _line_circle_intersections(
             [middle, p],
             point([0, 0]),
             self.radius,
@@ -55,8 +59,12 @@ class arc(elementary_path):
         return (product < 0)
 
     def intersections_with_arc(self, other, rounder):
-        points = circles_intersections(self.center, other.center,
-                                       self.radius, other.radius, rounder)
+        """
+        intersects with an arc.
+        returns up to two points.
+        """
+        points = _circles_intersections(self.center, other.center,
+                                        self.radius, other.radius, rounder)
         intersections = []
         for p in points:
             if self.contains(p) and other.contains(p):
@@ -64,7 +72,11 @@ class arc(elementary_path):
         return intersections
 
     def intersections_with_segment(self, intersecting_segment, rounder):
-        points = line_circle_intersections(
+        """
+        intersects with a segment.
+        returns up to two points.
+        """
+        points = _line_circle_intersections(
             intersecting_segment.get_endpoints(),
             self.center,
             self.radius,
@@ -98,7 +110,7 @@ class arc(elementary_path):
         line = [point([x, 0]), point([x, 1])]
         rounder = coordinates_hash(2)  # TODO: what about this one ?
         intersections = \
-            line_circle_intersections(line, self.center, self.radius, rounder)
+            _line_circle_intersections(line, self.center, self.radius, rounder)
 
         candidates = [i for i in intersections if self.contains(i)]
         assert candidates, "no intersection"
@@ -106,7 +118,7 @@ class arc(elementary_path):
         return max(ys)
 
 
-def circles_intersections(c1, c2, r1, r2, rounder):
+def _circles_intersections(c1, c2, r1, r2, rounder):
     d = c1.distance_to(c2)
     if is_almost(d, 0):
         return []  # common center
@@ -143,7 +155,7 @@ def circles_intersections(c1, c2, r1, r2, rounder):
             return [rounder.hash_point(p) for p in points]
 
 
-def line_circle_intersections(points, center, radius, rounder):
+def _line_circle_intersections(points, center, radius, rounder):
         # take first point as origin
         d = points[1] - points[0]
         c = center - points[0]

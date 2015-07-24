@@ -1,6 +1,5 @@
-# vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 from jimn.segment import segment
-from jimn.precision import check_precision
+from jimn.utils.precision import check_precision
 
 
 class polygonsegment(segment):

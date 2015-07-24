@@ -1,9 +1,8 @@
-# vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 from jimn.elementary_path import elementary_path
 from jimn.point import point
-from jimn.coordinates_hash import coordinates_hash
-from jimn.precision import check_precision, is_almost
 from jimn.bounding_box import bounding_box
+from jimn.utils.coordinates_hash import coordinates_hash
+from jimn.utils.precision import check_precision, is_almost
 from math import pi, cos, sin
 
 rounding_hash = coordinates_hash(3)

@@ -1,8 +1,7 @@
-# vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 from jimn.segment import segment
-from jimn.precision import precision
-from jimn.coordinates_hash import coordinates_hash
 from jimn.displayable import tycat
+from jimn.utils.precision import precision
+from jimn.utils.coordinates_hash import coordinates_hash
 from collections import defaultdict
 START = 0
 END = 1

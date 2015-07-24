@@ -1,8 +1,8 @@
 from jimn.sweeping_line_algorithm import sweeping_line_algorithm
-from jimn.debug import is_module_debugged
 from jimn.point import point
-from jimn.precision import is_almost
 from jimn.displayable import tycat
+from jimn.utils.debug import is_module_debugged
+from jimn.utils.precision import is_almost
 
 
 class sweeping_offseter_selection(sweeping_line_algorithm):

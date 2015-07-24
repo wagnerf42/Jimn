@@ -1,10 +1,9 @@
-# vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 from jimn.segment import segment
 from jimn.polygonsegment import polygonsegment
 from jimn.bounding_box import bounding_box
-from jimn.precision import is_almost
-from jimn.iterators import all_two_elements
 from jimn.ghost import ghost
+from jimn.utils.precision import is_almost
+from jimn.utils.iterators import all_two_elements
 from math import floor, ceil
 
 

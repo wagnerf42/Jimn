@@ -1,8 +1,7 @@
-from jimn.iterators import all_two_elements
-from jimn.precision import segment_limit
-from jimn.debug import is_module_debugged
 from jimn.displayable import tycat
-from jimn.precision import is_almost
+from jimn.utils.iterators import all_two_elements
+from jimn.utils.debug import is_module_debugged
+from jimn.utils.precision import is_almost, segment_limit
 import copy
 
 

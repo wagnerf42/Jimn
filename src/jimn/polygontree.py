@@ -1,5 +1,3 @@
-# vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
-
 from jimn.holed_polygon import holed_polygon
 from jimn.translated_holed_polygon import translated_holed_polygon
 from jimn.displayable import tycat

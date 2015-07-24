@@ -1,4 +1,3 @@
-# vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 import os
 import getpass
 from jimn.bounding_box import bounding_box
@@ -27,11 +26,14 @@ class displayed_thing(object):
             else:
                 if thing is not None:
                     self.bounding_box.update(thing.get_bounding_box())
-        self.calibrate()
+        self._calibrate()
 
-    def calibrate(self):
+    def _calibrate(self):
+        """
+        compute how to transform coordinates
+        """
         coordinates = self.bounding_box.get_arrays()
-        self.max_coordinates, self.min_coordinates = coordinates
+        self.min_coordinates, self.max_coordinates = coordinates
         dimensions = [
             a - b for a, b in zip(self.max_coordinates, self.min_coordinates)
         ]
@@ -42,21 +44,33 @@ class displayed_thing(object):
             (a-b*self.svg_stretch)/2 for a, b in zip(svg_dimensions, dimensions)
         ]
 
-    def open_svg(self, filename):
+    def _open_svg(self, filename):
+        """
+        open new svg file
+        """
         self.fd = open(filename, 'w')
         self.fd.write("<svg width=\"{}\"\
                       height=\"{}\">\n".format(*svg_dimensions))
         self.fd.write("<rect width=\"{}\" height=\"{}\"\
                       fill=\"white\"/>\n".format(*svg_dimensions))
 
-    def close_svg(self):
+    def _close_svg(self):
+        """
+        close svg file
+        """
         self.fd.write("</svg>\n")
         self.fd.close()
 
     def stretch(self):
+        """
+        returns stretch required for converting to svg coordinates
+        """
         return self.svg_stretch
 
     def convert_coordinates(self, coordinates):
+        """
+        convert coordinates to svg coordinates
+        """
         relative_coordinates = [
             a - b for a, b in zip(coordinates, self.min_coordinates)
         ]
@@ -66,12 +80,23 @@ class displayed_thing(object):
         ]
 
     def write(self, string):
+        """
+        write a string to svg file
+        """
         self.fd.write(string)
 
 file_count = 0
 
 
 def tycat(*things):
+    """
+    graphically displays a list of objects.
+    requires :
+        - the terminology terminal emulator
+        - each object displays implements
+            * get_bounding_box
+            * save_svg_content
+    """
     global file_count
 
     try:
@@ -86,7 +111,7 @@ def tycat(*things):
         os.makedirs(directory)
     filename = "{}/{}.svg".format(directory, str(file_count))
 
-    display.open_svg(filename)
+    display._open_svg(filename)
 
     color_index = 0
     for thing in things:
@@ -100,7 +125,7 @@ def tycat(*things):
                 thing.save_svg_content(display, color)
         color_index = (color_index+1) % len(svg_colors)
 
-    display.close_svg()
+    display._close_svg()
 
     os.system("convert {} {}.jpg".format(filename, filename))
     os.system("tycat {}.jpg".format(filename))
@@ -109,5 +134,8 @@ def tycat(*things):
 
 
 def tycat_set_svg_dimensions(w, h):
+    """
+    sets dimension (screen size) of svg images displayed
+    """
     global svg_dimensions
     svg_dimensions = (w, h)

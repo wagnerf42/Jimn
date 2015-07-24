@@ -4,7 +4,7 @@ from jimn.point import point
 from jimn.segment import segment
 from jimn.displayable import tycat
 from jimn.bounding_box import bounding_box
-from jimn.precision import is_almost
+from jimn.utils.precision import is_almost
 
 
 class facet:
