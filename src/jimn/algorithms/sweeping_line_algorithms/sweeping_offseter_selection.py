@@ -1,4 +1,4 @@
-from jimn.sweeping_line_algorithm import sweeping_line_algorithm
+from jimn.algorithms.sweeping_line_algorithms import sweeping_line_algorithm
 from jimn.point import point
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged

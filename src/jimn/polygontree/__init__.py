@@ -1,7 +1,7 @@
 from jimn.holed_polygon import holed_polygon
 from jimn.translated_holed_polygon import translated_holed_polygon
 from jimn.displayable import tycat
-from jimn.tree import tree
+from jimn.polygontree.tree import tree
 import os
 import getpass
 

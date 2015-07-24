@@ -2,9 +2,9 @@
 
 from jimn.point import point
 from jimn.segment import segment
-from jimn.segment_merger import segment_merger
 from jimn.displayable import tycat
 from jimn.displayable import tycat_set_svg_dimensions
+from jimn.algorithms.segment_merger import merge_segments
 
 tycat_set_svg_dimensions(800, 600)
 
@@ -33,7 +33,6 @@ s = [
 ]
 
 tycat(*s)
-merger = segment_merger(s)
-merged = merger.merge()
+merged = merge_segments(s)
 tycat(merged)
 print('answer is [0-1] [2-6] [7-8]')

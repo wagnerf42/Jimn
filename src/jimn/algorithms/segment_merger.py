@@ -13,12 +13,18 @@ class segment_merger:
         self.lines = defaultdict(list)
         self.rounder = coordinates_hash(2, precision-2)
 
-    def hash_segments(self):
+    def _hash_segments(self):
+        """
+        hashes aligned segments together
+        """
         for s in self.segments:
             h = s.line_hash(self.rounder)
             self.lines[h].append(s)
 
-    def compute_points_and_counters(self, segments):
+    def _compute_points_and_counters(self, segments):
+        """
+        prepares for sweeping through line of aligned segments
+        """
         self.points = {}
         self.counters = [defaultdict(int), defaultdict(int)]
         # loop through each segment
@@ -35,9 +41,13 @@ class segment_merger:
         # now sort points
         self.sorted_points = sorted(self.points.keys())
 
-    def odd_segments_on_line(self, line_hash):
+    def _odd_segments_on_line(self, line_hash):
+        """
+        sweeps through line of aligned segments.
+        keeping the ones we want
+        """
         segments = self.lines[line_hash]
-        self.compute_points_and_counters(segments)
+        self._compute_points_and_counters(segments)
         # now iterate through each point
         # we record on how many segments we currently are
         currently_on = 0
@@ -60,8 +70,20 @@ class segment_merger:
 
     def merge(self):
         odd_segments = []
-        self.hash_segments()
+        self._hash_segments()
         for line_hash in self.lines:
-            kept_segments = self.odd_segments_on_line(line_hash)
+            kept_segments = self._odd_segments_on_line(line_hash)
             odd_segments.extend(kept_segments)
         return odd_segments
+
+
+def merge_segments(segments):
+    """
+    takes a list of potentially overlapping segments.
+    returns a list of non overlapping segments.
+    overlapping pieces are kept or discarded according to following rule:
+        - even number of segments overlap -> discard
+        - odd number of segments overlap -> keep
+    """
+    merger = segment_merger(segments)
+    return merger.merge()

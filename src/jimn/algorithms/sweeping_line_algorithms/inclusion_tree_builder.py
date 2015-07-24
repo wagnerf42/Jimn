@@ -1,6 +1,8 @@
-from jimn.sweeping_line_algorithm import sweeping_line_algorithm
-from jimn.inclusion_tree import inclusion_tree
+from jimn.algorithms.sweeping_line_algorithms import sweeping_line_algorithm
+from jimn.polygontree.inclusion_tree import inclusion_tree
 from jimn.utils.debug import is_module_debugged
+from jimn.utils.iterators import all_two_elements
+from jimn.polygontree.polygonsegment import polygonsegment
 
 
 """
@@ -23,7 +25,7 @@ class inclusion_tree_builder(sweeping_line_algorithm):
         segments = []
         for height, polygons in self.polygons.items():
             for p in polygons:
-                segments.extend(p.non_vertical_segments(height))
+                segments.extend(_non_vertical_segments(p, height))
         return segments
 
     def handle_new_paths(self, starting_segments):
@@ -79,7 +81,7 @@ class inclusion_tree_builder(sweeping_line_algorithm):
             ):
                 if self.add_polygon_rec(c, new_segment):
                     return True
-            if node.is_a_polygon() or new_segment.get_height() == node.get_height():
+            if (node.is_a_polygon() or new_segment.get_height() == node.get_height()):
                 self.add_child_in_tree(node, new_segment)
                 return True
         return False
@@ -102,6 +104,13 @@ class inclusion_tree_builder(sweeping_line_algorithm):
             # s1 >= s2 means s1 above and higher than s2 (not strictly)
             above_segments = [s for s in segments if s >= new_segment]
             return len(above_segments) % 2 == 1
+
+
+def _non_vertical_segments(p, height):
+    return filter(lambda s: not s.is_vertical(), [
+        polygonsegment([p1, p2], height, p)
+        for p1, p2 in all_two_elements(p.get_points())]
+    )
 
 
 def build_inclusion_tree(polygons):

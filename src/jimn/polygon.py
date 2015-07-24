@@ -1,5 +1,4 @@
 from jimn.segment import segment
-from jimn.polygonsegment import polygonsegment
 from jimn.bounding_box import bounding_box
 from jimn.ghost import ghost
 from jimn.utils.precision import is_almost
@@ -59,12 +58,6 @@ class polygon:
 
     def get_points(self):
         return self.points
-
-    def non_vertical_segments(self, height):
-        return filter(lambda s: not s.is_vertical(), [
-            polygonsegment([p1, p2], height, self)
-            for p1, p2 in all_two_elements(self.points)]
-        )
 
     def segments(self):
         for p1, p2 in all_two_elements(self.points):

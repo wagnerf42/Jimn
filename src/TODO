@@ -29,6 +29,7 @@
 
 - what precision should be chosen in stl to round z coordinates ?
 - what to do with rounder when creating arcs ???
+- area_limit in poly builder
 
  * doc
 

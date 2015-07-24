@@ -1,7 +1,8 @@
 from jimn.displayable import tycat
 from jimn.arc import arc
 from jimn.ghost import ghost
-from jimn.sweeping_offseter_selection import select_offseted_paths
+from jimn.algorithms.sweeping_line_algorithms.sweeping_offseter_selection\
+    import select_offseted_paths
 from jimn.utils.coordinates_hash import coordinates_hash
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.iterators import all_two_elements
@@ -18,7 +19,8 @@ class offseter:
 
     def raw_offset(self):
         raw_segments = [
-            s.parallel_segment(self.radius, self.rounder) for s in self.polygon.segments()
+            s.parallel_segment(self.radius, self.rounder)
+            for s in self.polygon.segments()
         ]
 
         if __debug__:
@@ -69,7 +71,7 @@ def offset_holed_polygon(radius, *polygons):
     g = ghost([])
     for p in polygons:
         g.extend(raw_offset(radius, p, rounder))
-    #TODO: handle overlapping arcs and segments
+    # TODO: handle overlapping arcs and segments
     g = g.compute_self_elementary_paths()
     remaining_paths = select_offseted_paths(g.get_content())
     return remaining_paths
