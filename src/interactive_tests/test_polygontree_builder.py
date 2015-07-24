@@ -3,7 +3,7 @@
 from jimn.point import point
 from jimn.polygon import polygon
 from jimn.displayable import tycat
-from jimn.polygontree_builder import build_tree
+from jimn.polygontree.polygontree_builder import build_tree
 
 a = point([0.0, 0.0])
 b = point([9.0, 0.0])

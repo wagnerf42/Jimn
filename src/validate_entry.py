@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 
 from jimn.stl import stl
-from jimn.displayable import tycat_set_svg_dimensions
-from jimn.segment_merger import segment_merger
+from jimn.displayable import tycat
+from jimn.algorithms.segment_merger import merge_segments
 import sys
 
 (bin_name, stl_file) = sys.argv
 model = stl(stl_file)
 border = model.border_2d()
 flat = model.flatten()
-merger = segment_merger(flat)
-simpler_slice = merger.merge()
+simpler_slice = merge_segments(flat)
 if len(simpler_slice) > 0:
     print("incorrect input : holes in surface")
     tycat(simpler_slice, border)

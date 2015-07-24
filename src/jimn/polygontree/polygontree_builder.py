@@ -1,6 +1,5 @@
-# vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
-
-from jimn.inclusion_tree_builder import build_inclusion_tree
+from jimn.algorithms.sweeping_line_algorithms.inclusion_tree_builder\
+    import build_inclusion_tree
 from jimn.polygontree import polygontree
 from jimn.utils.debug import is_module_debugged
 from collections import defaultdict
@@ -45,6 +44,7 @@ def build_tree(slices_polygons):
     tree_builder = polygontree_builder(slices_polygons)
     tree_builder.build()
     tree_builder.tree.normalize_polygons()
-    original_polygons = defaultdict(list)  # we need to store which polygons are translated and which are not
+    # we need to store which polygons are translated and which are not
+    original_polygons = defaultdict(list)
     tree_builder.tree.replace_translated_polygons(original_polygons)
     return tree_builder.tree

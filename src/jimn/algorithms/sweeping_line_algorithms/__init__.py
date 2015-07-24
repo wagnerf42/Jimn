@@ -1,4 +1,4 @@
-from jimn.event import event
+from jimn.algorithms.sweeping_line_algorithms.event import event
 from collections import defaultdict
 
 """

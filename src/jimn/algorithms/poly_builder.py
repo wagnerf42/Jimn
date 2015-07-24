@@ -6,7 +6,7 @@ from jimn.utils.debug import is_module_debugged
 
 area_limit = 10**-10 # TODO: what is the right value ??
 
-class polygonbuilder:
+class polygon_builder:
     def __init__(self, segments):
         # initialize various structs to hold info
         self.points = []
@@ -97,3 +97,13 @@ class polygonbuilder:
             return p
         else:  # discard polygons which are too small
             return None
+
+
+def build_polygons(segments):
+    """
+    turns a set of segments into a set of polygons.
+    works by following edges.
+    pre-requisite: no segments intersect other than at endpoints.
+    """
+    builder = polygon_builder(segments)
+    return builder.build_polygons()
