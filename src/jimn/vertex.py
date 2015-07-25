@@ -1,4 +1,5 @@
 from jimn.point import point
+from collections import defaultdict
 
 
 class vertex(point):
@@ -15,8 +16,14 @@ class vertex(point):
 
     def save_svg_content(self, display, color):
         super(vertex, self).save_svg_content(display, color)
+        overlapping_edges = defaultdict(int)
         for e in self.edges:
-            e.save_svg_content(display, color)
+            # dont display twice the edges
+            if e.is_sorted():
+                overlapping_edges[e] += 1
+
+        for e, d in overlapping_edges.items():
+            e.save_svg_content(display, display.get_color(d+20))
 
     def get_edges(self):
         return self.edges
@@ -26,6 +33,20 @@ class vertex(point):
 
     def remove_any_edge(self):
         return self.edges.pop()
+
+    def remove_edge_to(self, destination):
+        """
+        removes one edge going to destination
+        """
+        kept_edges = []
+        removed_edge = False
+        for edge in self.edges:
+            if (not removed_edge) and (edge.get_endpoint(1) == destination):
+                removed_edge = True
+            else:
+                kept_edges.append(edge)
+        self.edges = kept_edges
+        assert removed_edge
 
     def add_edge(self, edge):
         self.edges.append(edge)
@@ -60,7 +81,6 @@ class vertex(point):
         at given y
         """
         aboves = [e.is_above_y(y) for e in self.edges[:2]]
-        print("aboves", aboves)
         return (aboves[0] != aboves[1])
 
     def other_edge(self, edge):

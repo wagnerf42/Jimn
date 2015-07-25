@@ -232,3 +232,6 @@ class elementary_path:
         if self.get_endpoints() == other.reverse().get_endpoints():
             return True
         return False
+
+    def __hash__(self):
+        return hash(tuple(self.endpoints))

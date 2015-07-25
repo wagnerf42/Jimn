@@ -33,10 +33,11 @@ class segment(elementary_path):
             c for point in self.endpoints
             for c in display.convert_coordinates(point.get_coordinates())
         ]
+        stroke_width = display.stroke_width()
         display.write("<line x1=\"{}\" y1=\"{}\"\
                       x2=\"{}\" y2=\"{}\"".format(*svg_coordinates))
-        display.write(" stroke-width=\"3\" stroke=\"{}\"\
-                      opacity=\"0.5\"/>\n".format(color))
+        display.write(" stroke-width=\"{}\" stroke=\"{}\"\
+                      opacity=\"0.5\"/>\n".format(stroke_width, color))
 
     def horizontal_plane_intersection(self, h):
         assert self.dimension() == 3
@@ -164,7 +165,8 @@ class segment(elementary_path):
 
     def contains(self, possible_point):
         distance = sum([possible_point.distance_to(p) for p in self.endpoints])
-        return is_almost(distance, self.endpoints[0].distance_to(self.endpoints[1]))
+        return is_almost(distance,
+                         self.endpoints[0].distance_to(self.endpoints[1]))
 
     def vertical_intersection_at(self, x):
         x1, y1 = self.endpoints[0].get_coordinates()

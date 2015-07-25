@@ -4,8 +4,9 @@ from jimn.point import point
 from jimn.segment import segment
 from jimn.polygon import polygon
 from jimn.holed_polygon import holed_polygon
-from jimn.displayable import tycat
+from jimn.displayable import tycat, tycat_set_svg_dimensions
 
+tycat_set_svg_dimensions(800, 600)
 
 a = point([0.5, 0.1])
 b = point([0.0, 1.1])
@@ -21,4 +22,5 @@ center_lines = [segment([point([0.0, h]), point([1.2, h])]) for h in heights]
 
 g = abc.build_graph(0.3)
 tycat(g)
-g.get_cycles()
+p = g.find_eulerian_cycle()
+tycat(abc, p)

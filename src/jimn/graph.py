@@ -22,7 +22,7 @@ class graph:
         """
         return a vertex
         """
-        return self.vertices.values()[0]
+        return next(iter(self.vertices.values()))
 
     def get_vertex(self, vertex_point):
         if vertex_point in self.vertices:
@@ -67,7 +67,7 @@ class graph:
             if not v.even_degree():
                 self._create_edge_from_vertex(v)
 
-    def find_eulerian_path(self):
+    def find_eulerian_cycle(self):
         cycle_starts = defaultdict(list)  # where do found cycles start
         possible_starts = {}  # where to search for a new cycle
         start_vertex = self.get_any_vertex()
@@ -75,30 +75,35 @@ class graph:
         first_cycle = None
         while not self.is_empty():
             c = self._find_cycle(possible_starts)
+            tycat(self, start_vertex, c)
             if first_cycle is None:
                 first_cycle = c
             else:
-                cycle_start = c.get_start()
+                cycle_start = self.vertices[c.get_start()]
                 cycle_starts[cycle_start].append(c)
         first_cycle.fuse_with(cycle_starts)
         return first_cycle
 
     def _find_cycle(self, possible_starts):
-        start_vertex = possible_starts.values()[0]
+        start_vertex = next(iter(possible_starts.keys()))
         current_vertex = start_vertex
         edges = []
         while True:
             current_edge = current_vertex.remove_any_edge()
             self._update_possible_starts(possible_starts, current_vertex)
-            next_vertex = current_edge.get_endpoint(1)
+            next_point = current_edge.get_endpoint(1)
             edges.append(current_edge)
-            current_vertex = next_vertex
-            if start_vertex == current_vertex:
+            if next_point not in self.vertices:
                 break
+            next_vertex = self.vertices[next_point]
+            next_vertex.remove_edge_to(current_vertex)
+            self._update_possible_starts(possible_starts, next_vertex)
+            current_vertex = next_vertex
+            tycat(self, edges)
         return path(edges)
 
     def _update_possible_starts(self, possible_starts, decreased_vertex):
-        degree = vertex.degree()
+        degree = decreased_vertex.degree()
         if degree:
             possible_starts[decreased_vertex] = degree
         else:

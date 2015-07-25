@@ -1,6 +1,7 @@
 import os
 import getpass
 from jimn.bounding_box import bounding_box
+from math import ceil
 
 svg_dimensions = (400, 200)
 margin = 20
@@ -84,6 +85,14 @@ class displayed_thing(object):
         write a string to svg file
         """
         self.fd.write(string)
+
+    def get_color(self, index):
+        return svg_colors[index % len(svg_colors)]
+
+    def stroke_width(self):
+        min_dimension = min(svg_dimensions)
+        expected_size = ceil(min_dimension / 100)
+        return expected_size
 
 file_count = 0
 
