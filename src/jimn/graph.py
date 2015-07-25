@@ -68,18 +68,31 @@ class graph:
                 self._create_edge_from_vertex(v)
 
     def find_eulerian_cycle(self):
-        cycle_starts = defaultdict(list)  # where do found cycles start
+        """
+        eulerian cycle classical algorithm.
+        requires all degrees to be even.
+        """
+        # we loop finding cycles until graph is empty
         possible_starts = {}  # where to search for a new cycle
         start_vertex = self.get_any_vertex()
+        # we constrain possible starting points
+        # to be only a previous cycles
+        # this will enable easier merging of all cycles
         possible_starts[start_vertex] = start_vertex.degree()
+        # we just need to remember for each cycle its starting point
+        cycle_starts = defaultdict(list)  # where do found cycles start
+
         first_cycle = None
         while not self.is_empty():
             c = self._find_cycle(possible_starts)
-            tycat(self, start_vertex, c)
+            if __debug__:
+                if is_module_debugged(__name__):
+                    print("found new cycle")
+                    tycat(self, c)
             if first_cycle is None:
                 first_cycle = c
             else:
-                cycle_start = self.vertices[c.get_start()]
+                cycle_start = c.get_start()
                 cycle_starts[cycle_start].append(c)
         first_cycle.fuse_with(cycle_starts)
         return first_cycle
@@ -88,18 +101,18 @@ class graph:
         start_vertex = next(iter(possible_starts.keys()))
         current_vertex = start_vertex
         edges = []
-        while True:
+        while current_vertex.degree() != 0:
+
             current_edge = current_vertex.remove_any_edge()
             self._update_possible_starts(possible_starts, current_vertex)
-            next_point = current_edge.get_endpoint(1)
             edges.append(current_edge)
-            if next_point not in self.vertices:
-                break
+
+            next_point = current_edge.get_endpoint(1)
             next_vertex = self.vertices[next_point]
             next_vertex.remove_edge_to(current_vertex)
             self._update_possible_starts(possible_starts, next_vertex)
             current_vertex = next_vertex
-            tycat(self, edges)
+
         return path(edges)
 
     def _update_possible_starts(self, possible_starts, decreased_vertex):

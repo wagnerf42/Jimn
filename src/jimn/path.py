@@ -1,4 +1,5 @@
 from jimn.bounding_box import bounding_box
+from jimn.displayable import tycat
 
 """
 a path is a list of arcs or segments
@@ -43,3 +44,12 @@ class path:
     def save_svg_content(self, display, color):
         for p in self.elementary_paths:
             p.save_svg_content(display, color)
+
+    def length(self):
+        return sum([p.length() for p in self.elementary_paths])
+
+    def animate(self, *other_things):
+        displayed_paths = []
+        for p in self.elementary_paths:
+            displayed_paths.append(p)
+            tycat(displayed_paths, other_things)

@@ -6,14 +6,7 @@
 	and before paths selection
 
  * code review
-
-- internal edges builder
-
  * minor code improvements (readability)
-
-- graph : create_interal_edges_in_slice -> vers un code plus clair
- pour chaque arete, si strictement interne alors ajouter a la liste 
-- remove duplicated code (checking for contains) in arc by moving it upwards in elementary segment
 
  * minor code improvements (performance)
 
@@ -26,6 +19,7 @@
 - rounders in arc class
 - is_above_y : arcs ???
 - elementary_path : is_same : what about arcs ?? is it needed ?
+- interactive_tests/test_graph.py : why have top vertices such a high degree ?
 
  * calibration
 
