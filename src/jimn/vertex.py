@@ -24,6 +24,9 @@ class vertex(point):
     def get_edge(self, index):
         return self.edges[index]
 
+    def remove_any_edge(self):
+        return self.edges.pop()
+
     def add_edge(self, edge):
         self.edges.append(edge)
 

@@ -2,19 +2,27 @@ from jimn.segment import segment
 from jimn.vertex import vertex
 from jimn.point import is_slice_height
 from jimn.bounding_box import bounding_box
+from jimn.path import path
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from collections import defaultdict
-from queue import Queue
-import pdb
 
 
 class graph:
     def __init__(self):
         self.vertices = {}
 
+    def is_empty(self):
+        return len(self.vertices) == 0
+
     def get_vertices(self):
         return self.vertices.values()
+
+    def get_any_vertex(self):
+        """
+        return a vertex
+        """
+        return self.vertices.values()[0]
 
     def get_vertex(self, vertex_point):
         if vertex_point in self.vertices:
@@ -60,73 +68,42 @@ class graph:
                 self._create_edge_from_vertex(v)
 
     def find_eulerian_path(self):
-        cycles, cycles_by_start_points = self.get_cycles()
-        c1 = cycles[0]
-        res = []
-        while c1 != []:
-            e = c1.pop()
-            res.append(e)
-            p = e.get_endpoint(1)
-            if p in cycles_by_start_points:
-                c = cycles_by_start_points[p].pop()
-                c1.extend(c)
+        cycle_starts = defaultdict(list)  # where do found cycles start
+        possible_starts = {}  # where to search for a new cycle
+        start_vertex = self.get_any_vertex()
+        possible_starts[start_vertex] = start_vertex.degree()
+        first_cycle = None
+        while not self.is_empty():
+            c = self._find_cycle(possible_starts)
+            if first_cycle is None:
+                first_cycle = c
+            else:
+                cycle_start = c.get_start()
+                cycle_starts[cycle_start].append(c)
+        first_cycle.fuse_with(cycle_starts)
+        return first_cycle
 
-    def get_cycles(self):
-        pdb.set_trace()
+    def _find_cycle(self, possible_starts):
+        start_vertex = possible_starts.values()[0]
+        current_vertex = start_vertex
+        edges = []
+        while True:
+            current_edge = current_vertex.remove_any_edge()
+            self._update_possible_starts(possible_starts, current_vertex)
+            next_vertex = current_edge.get_endpoint(1)
+            edges.append(current_edge)
+            current_vertex = next_vertex
+            if start_vertex == current_vertex:
+                break
+        return path(edges)
 
-        cycles = []
-        cycles_by_start_points = defaultdict(list)
-        potential_starting_points = Queue()
-        # on ajoutera start_point dans Queue pour généraliser le code
-
-        cycle = []
-
-        start_point, start_vertex = list(self.vertices.items())[0]
-        cycles_by_start_points[start_vertex].append(cycle)
-        potential_starting_points.put(start_vertex)
-
-        while not potential_starting_points.empty():
-            start_vertex = potential_starting_points.get()
-
-            if start_vertex.degree() == 0:
-                continue
-
-            previous_vertex = start_vertex
-            edge = previous_vertex.get_edge(0)
-            current_point = edge.get_endpoint(1)
-            current_vertex = self.vertices[current_point]
-            cycle.append(edge)
-            # del self.vertices[current_point]
-
-            # previous_vertex.delete_edge(edge)
-            current_vertex.delete_edge(edge)
-            if previous_vertex.degree() > 1:
-                potential_starting_points.put(previous_vertex)
-            if current_vertex.degree() > 1:
-                potential_starting_points.put(current_vertex)
-
-            while current_vertex != start_vertex:
-                # tycat(self, edge, cycle)
-                previous_vertex = current_vertex
-                previous_edge = edge
-                edge = current_vertex.other_edge(previous_edge)
-                cycle.append(edge)
-                current_point = edge.get_endpoint(1)
-                if current_point == start_point:
-                    current_vertex = start_vertex
-                else:
-                    current_vertex = self.vertices[current_point]
-                    # del self.vertices[current_point]
-
-                # previous_vertex.delete_edge(edge)
-                tycat(self, edge)
-                current_vertex.delete_edge(edge)
-                if current_vertex.degree() > 1:
-                    potential_starting_points.put(current_vertex)
-
-            cycles.append(cycle)
-
-        return cycles, cycles_by_start_points
+    def _update_possible_starts(self, possible_starts, decreased_vertex):
+        degree = vertex.degree()
+        if degree:
+            possible_starts[decreased_vertex] = degree
+        else:
+            del possible_starts[decreased_vertex]
+            del self.vertices[decreased_vertex]
 
     # requires that in each vertex, the first two edges are border edges
     # otherwise, we may add internal edges too
