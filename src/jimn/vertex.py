@@ -6,6 +6,8 @@ class vertex(point):
     def __init__(self, position_point):
         super().__init__(position_point.get_coordinates())
         self.edges = []
+        self.multiplicities = defaultdict(int)
+        self.edges_number = 0
 
     def get_bounding_box(self):
         box = super(vertex, self).get_bounding_box()
@@ -16,14 +18,8 @@ class vertex(point):
 
     def save_svg_content(self, display, color):
         super(vertex, self).save_svg_content(display, color)
-        overlapping_edges = defaultdict(int)
-        for e in self.edges:
-            # dont display twice the edges
-            if e.is_sorted():
-                overlapping_edges[e] += 1
-
-        for e, d in overlapping_edges.items():
-            e.save_svg_content(display, display.get_color(d+20))
+        for e, count in self.multiplicities.items():
+            e.save_svg_content(display, display.get_color(count+20))
 
     def get_edges(self):
         return self.edges
@@ -32,7 +28,16 @@ class vertex(point):
         return self.edges[index]
 
     def remove_any_edge(self):
-        return self.edges.pop()
+        e = self.edges.pop()
+        self.update_multiplicity(e, -1)
+        return e
+
+    def update_multiplicity(self, target_edge, diff_count):
+        self.edges_number += diff_count
+        assert self.edges_number >= 0
+        self.multiplicities[target_edge] += diff_count
+        if self.multiplicities[target_edge] == 0:
+            del self.multiplicities[target_edge]
 
     def remove_edge_to(self, destination):
         """
@@ -43,6 +48,7 @@ class vertex(point):
         for edge in self.edges:
             if (not removed_edge) and (edge.get_endpoint(1) == destination):
                 removed_edge = True
+                self.update_multiplicity(edge, -1)
             else:
                 kept_edges.append(edge)
         self.edges = kept_edges
@@ -50,19 +56,23 @@ class vertex(point):
 
     def add_edge(self, edge):
         self.edges.append(edge)
+        self.update_multiplicity(edge, 1)
 
     def delete_edge(self, edge):
         if edge in self.edges:
             self.edges.remove(edge)
+            self.update_multiplicity(edge, -1)
         else:
             assert edge.reverse() in self.edges
-            self.edges.remove(edge.reverse())
+            reversed_edge = edge.reverse()
+            self.edges.remove(reversed_edge)
+            self.update_multiplicity(reversed_edge, -1)
 
     def degree(self):
-        return len(self.edges)
+        return self.edges_number
 
     def even_degree(self):
-        return self.degree() % 2 == 0
+        return self.edges_number % 2 == 0
 
     def has_edge(self, edge):
         """
@@ -115,14 +125,5 @@ class vertex(point):
         one edge and those of even multiplicities into
         two edges.
         """
-        edges_count = defaultdict(int)
-        for e in self.edges:
-            edges_count[e] += 1
-        new_edges = []
-        for e, count in edges_count.items():
-            if count % 2:
-                new_edges.append(e)
-            else:
-                new_edges.append(e)
-                new_edges.append(e)
-        self.edges = new_edges
+        for e, count in self.multiplicities.items():
+            self.multiplicities[e] = 1 + ((count-1) % 2)
