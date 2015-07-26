@@ -66,8 +66,6 @@ class graph:
         for v in self.vertices.values():
             if not v.even_degree():
                 self._create_edge_from_vertex(v)
-        for v in self.vertices.values():
-            v.shrink_multiedges()
 
     def find_eulerian_cycle(self):
         """
@@ -186,16 +184,16 @@ class position:
         # we look at edges starting from start_vertex
         # to figure out current position
         if not self.on_edge:
-            if not start_vertex.has_edge(edge):
+            if not start_vertex.has_initial_edge(edge):
                 # easy case : we were not on edge
                 # and are not on edge
                 # edges on different sides of y flip position
-                if start_vertex.has_edges_on_different_sides_of(self.y):
+                if start_vertex.has_initial_edges_on_different_sides_of(self.y):
                     self.outside = not self.outside
             else:
                 # harder case, we are now on edge of polygon
                 self.on_edge = True
-                other_edge = start_vertex.other_edge(edge)
+                other_edge = start_vertex.other_initial_edge(edge)
                 # remember where is the inside with respect to us
                 if other_edge.is_above_y(self.y):
                     self.on_edge_inside_is_above = self.outside

@@ -125,9 +125,9 @@ class polygon:
         # and we add all external edges
         for s in elementary_segments:
             v = built_graph.add_vertex(s.get_endpoint(0))
-            v.add_edge(s)
+            v.add_initial_edge(s)
             v = built_graph.add_vertex(s.get_endpoint(1))
-            v.add_edge(s.reverse())
+            v.add_initial_edge(s.reverse())
 
     def __str__(self):
         return "[{}/{}]".format(
