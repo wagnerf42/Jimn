@@ -108,3 +108,21 @@ class vertex(point):
             if neighbor is None or e.get_endpoint(1) != neighbor:
                 return e
         raise Exception("only one neighbor")
+
+    def shrink_multiedges(self):
+        """
+        turns multiedges of odd multiplicities into
+        one edge and those of even multiplicities into
+        two edges.
+        """
+        edges_count = defaultdict(int)
+        for e in self.edges:
+            edges_count[e] += 1
+        new_edges = []
+        for e, count in edges_count.items():
+            if count % 2:
+                new_edges.append(e)
+            else:
+                new_edges.append(e)
+                new_edges.append(e)
+        self.edges = new_edges

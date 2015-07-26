@@ -66,6 +66,8 @@ class graph:
         for v in self.vertices.values():
             if not v.even_degree():
                 self._create_edge_from_vertex(v)
+        for v in self.vertices.values():
+            v.shrink_multiedges()
 
     def find_eulerian_cycle(self):
         """
@@ -129,13 +131,23 @@ class graph:
 
         previous_vertex = None
         current_vertex = v
+        if __debug__:
+            if is_module_debugged(__name__):
+                added_edges = []
         while not current_vertex.even_degree():
             edge = current_vertex.find_first_neighbor_not(previous_vertex)
             self.add_edge(edge)
+            if __debug__:
+                if is_module_debugged(__name__):
+                    added_edges.append(edge)
             next_point = edge.get_endpoint(1)  # edge goes from current to next
             next_vertex = self.vertices[next_point]
             previous_vertex = current_vertex
             current_vertex = next_vertex
+        if __debug__:
+            if is_module_debugged(__name__):
+                print("making degrees even : added edges")
+                tycat(self, added_edges)
 
     def _create_internal_edges_in_slice(self, y, vertices):
         p = position(y, self, outside=True)

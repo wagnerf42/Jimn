@@ -1,5 +1,6 @@
  * large goals
 
+- replace simple jimn.graph.make_degrees_even by something smarter
 - polygon offsetting (fred)
 
 ----> we need to handle overlapping segments and arcs after raw offseting (split and or remove)
@@ -19,7 +20,6 @@
 - rounders in arc class
 - is_above_y : arcs ???
 - elementary_path : is_same : what about arcs ?? is it needed ?
-- interactive_tests/test_graph.py : why have top vertices such a high degree ?
 
  * calibration
 
