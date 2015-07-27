@@ -21,11 +21,13 @@ def bellman_ford(searched_graph, source_vertex):
     for useless in range(g.get_vertices_number()-1):
         for e in g.get_all_edges():
             v1, v2 = e.get_endpoints()
-            w = g.get_edge_weight(v1, e)
-            new_distance = distances[v1] + w
-            if distances[v2] > new_distance:
-                predecessors[v2] = e
-                distances[v2] = new_distance
+            # skip going directly back
+            if (v1 not in predecessors) or (predecessors[v1].get_endpoint(0) != v2):
+                w = g.get_edge_weight(v1, e)
+                new_distance = distances[v1] + w
+                if distances[v2] > new_distance:
+                    predecessors[v2] = e
+                    distances[v2] = new_distance
     if __debug__:
         if is_module_debugged(__name__):
             print("bellman ford")

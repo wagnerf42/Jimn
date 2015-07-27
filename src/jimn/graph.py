@@ -139,9 +139,11 @@ class graph:
             del self.vertices[decreased_vertex]
 
     def _augment_path(self, v):
+        # this is a very simple way to find the best augmenting path
+        # it is in no way optimized
+        # and has a complexity of O(n^2)
         distances, predecessors = bellman_ford(self, v)
         destination = self._find_nearest_odd_vertex(v, distances)
-        print("going to", destination)
         current_point = destination
         if __debug__:
             if is_module_debugged(__name__):
@@ -154,7 +156,6 @@ class graph:
                     added_edges.append(edge)
             previous_point = edge.get_endpoint(0)
             current_point = previous_point
-            tycat(self, v, destination, added_edges, current_point)
         if __debug__:
             if is_module_debugged(__name__):
                 print("new augmenting path")

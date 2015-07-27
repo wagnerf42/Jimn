@@ -26,7 +26,8 @@ class vertex(point):
     def save_svg_content(self, display, color):
         super(vertex, self).save_svg_content(display, color)
         for e, count in self.edges.items():
-            e.save_svg_content(display, display.get_color(count+20))
+            if e.is_sorted():
+                e.save_svg_content(display, display.get_color(count+20))
 
     def remove_any_edge(self):
         e = next(iter(self.edges.keys()))
