@@ -2,6 +2,7 @@ from jimn.displayable import tycat
 from jimn.utils.iterators import all_two_elements
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost, segment_limit
+from math import sqrt
 import copy
 
 
@@ -15,6 +16,9 @@ class elementary_path:
     def __init__(self, points):
         self.endpoints = points
         assert self.squared_length() > segment_limit, "very small path"
+
+    def length(self):
+        return sqrt(self.squared_length())
 
     def squared_length(self):
         """squared distance between endpoints"""

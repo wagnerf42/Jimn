@@ -7,6 +7,15 @@ class vertex(point):
         self.edges = {}
         self.initial_edges = []
 
+    def get_edges(self):
+        return self.edges.keys()
+
+    def get_edge_weight(self, edge):
+        if self.edges[edge] % 2:
+            return edge.length()
+        else:
+            return -edge.length()
+
     def get_bounding_box(self):
         box = super(vertex, self).get_bounding_box()
         for e in self.edges.keys():

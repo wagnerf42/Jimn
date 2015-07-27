@@ -1,6 +1,7 @@
  * large goals
 
 - replace simple jimn.graph.make_degrees_even by something smarter
+add length to arcs
 - polygon offsetting (fred)
 
 ----> we need to handle overlapping segments and arcs after raw offseting (split and or remove)
@@ -9,7 +10,11 @@
  * code review
  * minor code improvements (readability)
 
+- in graphs : the mix between points and vertices is at the same time nice and troublesome
+
  * minor code improvements (performance)
+
+- use arrays instead of hash tables in bellman ford
 
  * additional non-regression tests
  * misc

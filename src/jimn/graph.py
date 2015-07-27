@@ -1,3 +1,4 @@
+from jimn.algorithms.bellman_ford import bellman_ford
 from jimn.segment import segment
 from jimn.vertex import vertex
 from jimn.point import is_slice_height
@@ -17,6 +18,20 @@ class graph:
 
     def get_vertices(self):
         return self.vertices.values()
+
+    def get_vertices_number(self):
+        return len(self.vertices)
+
+    def get_edges_from(self, start):
+        return self.vertices[start].get_edges()
+
+    def get_all_edges(self):
+        for v in self.vertices.values():
+            for e in v.get_edges():
+                yield e
+
+    def get_edge_weight(self, start_vertex, edge):
+        return self.vertices[start_vertex].get_edge_weight(edge)
 
     def get_any_vertex(self):
         """
@@ -45,12 +60,12 @@ class graph:
             self.vertices[vertex_point] = vertex(vertex_point)
         return self.vertices[vertex_point]
 
-    def add_edge(self, edge_path):
-        endpoints = edge_path.get_endpoints()
+    def add_edge(self, edge):
+        endpoints = edge.get_endpoints()
         assert endpoints[0] in self.vertices, "no such vertex"
         assert endpoints[1] in self.vertices, "no such vertex"
-        self.vertices[endpoints[0]].add_edge(edge_path)
-        self.vertices[endpoints[1]].add_edge(edge_path.reverse())
+        self.vertices[endpoints[0]].add_edge(edge)
+        self.vertices[endpoints[1]].add_edge(edge.reverse())
 
     def create_internal_edges(self, milling_diameter):
         vertices_per_height = defaultdict(list)
@@ -65,7 +80,7 @@ class graph:
     def make_degrees_even(self):
         for v in self.vertices.values():
             if not v.even_degree():
-                self._create_edge_from_vertex(v)
+                self._augment_path(v)
 
     def find_eulerian_cycle(self):
         """
@@ -123,29 +138,36 @@ class graph:
             del possible_starts[decreased_vertex]
             del self.vertices[decreased_vertex]
 
-    # requires that in each vertex, the first two edges are border edges
-    # otherwise, we may add internal edges too
-    def _create_edge_from_vertex(self, v):
-
-        previous_vertex = None
-        current_vertex = v
+    def _augment_path(self, v):
+        distances, predecessors = bellman_ford(self, v)
+        destination = self._find_nearest_odd_vertex(v, distances)
+        print("going to", destination)
+        current_point = destination
         if __debug__:
             if is_module_debugged(__name__):
                 added_edges = []
-        while not current_vertex.even_degree():
-            edge = current_vertex.find_first_neighbor_not(previous_vertex)
+        while current_point != v:
+            edge = predecessors[current_point]
             self.add_edge(edge)
             if __debug__:
                 if is_module_debugged(__name__):
                     added_edges.append(edge)
-            next_point = edge.get_endpoint(1)  # edge goes from current to next
-            next_vertex = self.vertices[next_point]
-            previous_vertex = current_vertex
-            current_vertex = next_vertex
+            previous_point = edge.get_endpoint(0)
+            current_point = previous_point
+            tycat(self, v, destination, added_edges, current_point)
         if __debug__:
             if is_module_debugged(__name__):
-                print("making degrees even : added edges")
+                print("new augmenting path")
                 tycat(self, added_edges)
+
+    def _find_nearest_odd_vertex(self, v, distances):
+        current_distance = float("inf")
+        for destination, distance in distances.items():
+            if (destination != v) and (current_distance > distance):
+                destination = self.vertices[destination]
+                if destination.degree() % 2:
+                    best_destination = destination
+        return best_destination
 
     def _create_internal_edges_in_slice(self, y, vertices):
         p = position(y, self, outside=True)
