@@ -227,7 +227,7 @@ class position:
             # we were on edge of polygon and are leaving it
             # so we are back outside or inside
             self.on_edge = False
-            non_horizontal_edge = start_vertex.get_non_horizontal_edge()
+            non_horizontal_edge = start_vertex.get_non_horizontal_initial_edge()
             if non_horizontal_edge.is_above_y(self.y):
                 #               /
                 #      inside  / outside

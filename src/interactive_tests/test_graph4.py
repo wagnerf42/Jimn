@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
 from jimn.point import point
-from jimn.segment import segment
 from jimn.polygon import polygon
 from jimn.holed_polygon import holed_polygon
-from jimn.displayable import tycat
+from jimn.displayable import tycat, tycat_set_svg_dimensions
 
+tycat_set_svg_dimensions(640, 480)
 
 a = point([0.0, 4.0])
 b = point([1.0, 8.0])
@@ -33,11 +33,8 @@ hole = polygon([o, p, q, r])
 
 hp = holed_polygon(poly, height=0, holes=[hole])
 
-heights = [4.0 * u for u in range(0, 4)]
-center_lines = [segment([point([0.0, y]), point([13.0, y])]) for y in heights]
-
+print("complex case for internal edges")
 g = hp.build_graph(4.0)
-
-for v in sorted(g.get_vertices(), key=lambda v: (v.get_y(), v.get_x())):
-    print(len(v.edges))
-    tycat(center_lines, hp, v, *(v.edges))
+tycat(g)
+p = g.find_eulerian_cycle()
+p.animate(hp)
