@@ -12,6 +12,7 @@ def bellman_ford(searched_graph, source_vertex):
     predecessors = {}
     distances = defaultdict(lambda: float("inf"))
     # init
+    distances[source_vertex] = 0
     for e in g.get_edges_from(source_vertex):
         destination = e.get_destination()
         predecessors[destination] = e
@@ -31,6 +32,6 @@ def bellman_ford(searched_graph, source_vertex):
                     distances[v2] = new_distance
     if __debug__:
         if is_module_debugged(__name__):
-            print("bellman ford")
+            print("bellman ford : result")
             tycat(g, source_vertex, list(predecessors.values()))
     return (distances, predecessors)

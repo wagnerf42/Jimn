@@ -4,6 +4,7 @@ from jimn.point import point
 from jimn.polygon import polygon
 from jimn.holed_polygon import holed_polygon
 from jimn.displayable import tycat, tycat_set_svg_dimensions
+from jimn.graph.eulerian_cycle import find_eulerian_cycle
 
 tycat_set_svg_dimensions(640, 480)
 
@@ -18,5 +19,5 @@ abc = holed_polygon(polygon([a, b, c]), height=0, holes=[polygon([d, e, f])])
 
 g = abc.build_graph(0.3)
 tycat(g)
-p = g.find_eulerian_cycle()
+p = find_eulerian_cycle(g)
 p.animate(abc)

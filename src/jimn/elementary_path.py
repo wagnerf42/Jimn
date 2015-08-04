@@ -200,7 +200,7 @@ class elementary_path:
             return True
         else:
             if is_almost(ya, yb):
-                raise RuntimeError("almost vertical")
+                raise RuntimeError("almost horizontal")
             return False
 
     def lowest_endpoint(self):

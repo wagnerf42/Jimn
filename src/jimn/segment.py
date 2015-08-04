@@ -73,16 +73,6 @@ class segment(elementary_path):
         assert not(is_almost(xa, xb) and is_almost(ya, yb)),  "near vertical 3d"
         return False
 
-    # for 2d points
-    def is_horizontal(self):
-        ya, yb = [p.get_y() for p in self.endpoints]
-        if ya == yb:
-            return True
-        else:
-            if is_almost(ya, yb):
-                raise RuntimeError("almost horizontal segment")
-            return False
-
     # return unique id of line on which is segment
     def line_hash(self, rounder):
         assert self.dimension() == 2, 'only works on 2d points segment'

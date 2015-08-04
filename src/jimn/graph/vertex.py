@@ -7,6 +7,9 @@ class vertex(point):
         self.edges = {}
         self.frontier_edges = []
 
+    def to_point(self):
+        return point(self.coordinates)
+
     def get_edges(self):
         return self.edges.keys()
 
@@ -25,7 +28,7 @@ class vertex(point):
         for e, count in self.edges.items():
             p = e.get_path()
             if p.is_sorted():
-                p.save_svg_content(display, display.get_color(count+20))
+                p.save_svg_content(display, display.get_color(count+7))
 
     def remove_any_edge(self):
         e = next(iter(self.edges.keys()))
@@ -113,3 +116,7 @@ class vertex(point):
             if neighbor is None or e.get_endpoint(1) != neighbor:
                 return e
         raise Exception("only one neighbor")
+
+    def __str__(self):
+        return str(id(self)) + "\n\t" \
+                             + "\n\t".join([str(e) for e in self.get_edges()])

@@ -7,6 +7,12 @@ class edge:
         self.path = real_path
         assert isinstance(self.path, elementary_path)
 
+    def get_bounding_box(self):
+        return self.path.get_bounding_box()
+
+    def save_svg_content(self, display, color):
+        self.path.save_svg_content(display, color)
+
     def reverse(self):
         return edge(self.vertices[1], self.vertices[0], self.path.reverse())
 
@@ -48,3 +54,16 @@ class edge:
                 non_limit_y = y
         assert non_limit_y is not None, "horizontal path"
         return non_limit_y < y_limit
+
+    def is_horizontal(self):
+        return self.path.is_horizontal()
+
+    def __hash__(self):
+        return hash(id(self.vertices[1]))
+
+    def __str__(self):
+        return str(id(self.vertices[0])) + " -> " + str(id(self.vertices[1]))
+
+    def __eq__(self, other):
+        return self.vertices[0] == other.vertices[0] \
+            and self.vertices[1] == other.vertices[1]

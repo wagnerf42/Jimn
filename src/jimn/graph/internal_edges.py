@@ -29,12 +29,12 @@ def _create_internal_edges_in_slice(g, y, vertices):
             if __debug__:
                 if is_module_debugged(__name__):
                     print("adding horizontal edge", str(p))
-                    tycat(g, e.get_path())
+                    tycat(g, e)
         else:
             if __debug__:
                 if is_module_debugged(__name__):
                     print("not adding horizontal edge", str(p))
-                    tycat(g, e.get_path())
+                    tycat(g, e)
 
 
 class position:
@@ -101,4 +101,6 @@ def _horizontal_edges(aligned_vertices):
     for i in range(len(aligned_vertices)-1):
         v1 = aligned_vertices[i]
         v2 = aligned_vertices[(i+1) % len(aligned_vertices)]
-        yield edge(v1, v2, segment([v1, v2]))
+        p1 = v1.to_point()
+        p2 = v2.to_point()
+        yield edge(v1, v2, segment([p1, p2]))

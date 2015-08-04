@@ -31,6 +31,8 @@ def _augment_path(g, v):
         if is_module_debugged(__name__):
             print("new augmenting path")
             tycat(g, added_edges)
+            print("graph is now")
+            tycat(g)
 
 
 def _find_nearest_odd_vertex(g, v, distances):

@@ -15,7 +15,6 @@ add length to arcs
 
  * minor code improvements (performance)
 
-- turn vertices back into points when extracting path from graph
 - use arrays instead of hash tables in bellman ford
 
  * additional non-regression tests
