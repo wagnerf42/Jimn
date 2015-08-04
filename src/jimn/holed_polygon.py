@@ -1,5 +1,7 @@
 from jimn.displayable import tycat
 from jimn.graph import graph
+from jimn.graph.even_degrees import make_degrees_even
+from jimn.graph.internal_edges import create_internal_edges
 from jimn.utils.coordinates_hash import coordinates_hash
 
 
@@ -77,9 +79,10 @@ class holed_polygon:
             h.create_vertices(milling_diameter, g)
 
         # finish by adding horizontal internal edges
-        g.create_internal_edges(milling_diameter)
+        create_internal_edges(g, milling_diameter)
 
-        g.make_degrees_even()
+        #prepare for eulerian path
+        make_degrees_even(g)
 
         return g
 

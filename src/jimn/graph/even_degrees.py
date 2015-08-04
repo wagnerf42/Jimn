@@ -1,0 +1,42 @@
+from jimn.utils.debug import is_module_debugged
+from jimn.algorithms.bellman_ford import bellman_ford
+from jimn.displayable import tycat
+
+
+def make_degrees_even(g):
+    for v in g.get_vertices():
+        if not v.even_degree():
+            _augment_path(g, v)
+
+
+def _augment_path(g, v):
+    # this is a very simple way to find the best augmenting path
+    # it is in no way optimized
+    # and has a complexity of O(n^2)
+    distances, predecessors = bellman_ford(g, v)
+    destination = _find_nearest_odd_vertex(g, v, distances)
+    current_point = destination
+    if __debug__:
+        if is_module_debugged(__name__):
+            added_edges = []
+    while current_point != v:
+        edge = predecessors[current_point]
+        g.add_edge(edge)
+        if __debug__:
+            if is_module_debugged(__name__):
+                added_edges.append(edge)
+        previous_point = edge.get_endpoint(0)
+        current_point = previous_point
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("new augmenting path")
+            tycat(g, added_edges)
+
+
+def _find_nearest_odd_vertex(g, v, distances):
+    current_distance = float("inf")
+    for destination, distance in distances.items():
+        if (destination != v) and (current_distance > distance):
+            if destination.degree() % 2:
+                best_destination = destination
+    return best_destination
