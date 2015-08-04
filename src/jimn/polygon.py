@@ -120,14 +120,13 @@ class polygon:
             for y in self.milling_heights(milling_diameter)
         ]
         cutter = ghost(list(self.segments()))
-        elementary_segments = cutter.compute_elementary_paths(cutting_lines).get_content()
+        elementary_segments = cutter.compute_elementary_paths(
+            cutting_lines
+        ).get_content()
         # ok, now create graph, each segment point becomes a vertex
         # and we add all external edges
         for s in elementary_segments:
-            v = built_graph.add_vertex(s.get_endpoint(0))
-            v.add_initial_edge(s)
-            v = built_graph.add_vertex(s.get_endpoint(1))
-            v.add_initial_edge(s.reverse())
+            built_graph.add_edge(s, frontier_edge=True)
 
     def __str__(self):
         return "[{}/{}]".format(

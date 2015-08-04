@@ -1,6 +1,7 @@
 from jimn.algorithms.bellman_ford import bellman_ford
 from jimn.segment import segment
-from jimn.vertex import vertex
+from jimn.graph.vertex import vertex
+from jimn.graph.edge import edge
 from jimn.point import is_slice_height
 from jimn.bounding_box import bounding_box
 from jimn.path import path
@@ -30,20 +31,11 @@ class graph:
             for e in v.get_edges():
                 yield e
 
-    def get_edge_weight(self, start_vertex, edge):
-        return self.vertices[start_vertex].get_edge_weight(edge)
-
     def get_any_vertex(self):
         """
         return a vertex
         """
         return next(iter(self.vertices.values()))
-
-    def get_vertex(self, vertex_point):
-        if vertex_point in self.vertices:
-            return self.vertices[vertex_point]
-        else:
-            return None
 
     def get_bounding_box(self):
         box = bounding_box.empty_box(2)
@@ -60,12 +52,13 @@ class graph:
             self.vertices[vertex_point] = vertex(vertex_point)
         return self.vertices[vertex_point]
 
-    def add_edge(self, edge):
-        endpoints = edge.get_endpoints()
-        assert endpoints[0] in self.vertices, "no such vertex"
-        assert endpoints[1] in self.vertices, "no such vertex"
-        self.vertices[endpoints[0]].add_edge(edge)
-        self.vertices[endpoints[1]].add_edge(edge.reverse())
+    def add_edge(self, edge_path, frontier_edge=False):
+        endpoints = edge_path.get_endpoints()
+        vertices = [self.add_vertex(p) for p in endpoints]
+        e = edge(v[0], v[1], edge_path)
+        v[0].add_edge(e, frontier_edge)
+        reversed_e = edge(v[1], v[0], edge_path.reverse())
+        v[1].add_edge(reversed_e, frontier_edge)
 
     def create_internal_edges(self, milling_diameter):
         vertices_per_height = defaultdict(list)
@@ -122,8 +115,7 @@ class graph:
             self._update_possible_starts(possible_starts, current_vertex)
             edges.append(current_edge)
 
-            next_point = current_edge.get_endpoint(1)
-            next_vertex = self.vertices[next_point]
+            next_vertex = current_edge.get_destination()
             next_vertex.remove_edge_to(current_vertex)
             self._update_possible_starts(possible_starts, next_vertex)
             current_vertex = next_vertex
@@ -131,6 +123,9 @@ class graph:
         return path(edges)
 
     def _update_possible_starts(self, possible_starts, decreased_vertex):
+        """
+        we can still start from here if degree does not reach 0
+        """
         degree = decreased_vertex.degree()
         if degree:
             possible_starts[decreased_vertex] = degree
@@ -201,8 +196,7 @@ class position:
         )
 
     def update(self, edge):
-        start_point = edge.get_endpoint(0)
-        start_vertex = self.graph.get_vertex(start_point)
+        start_vertex = edge.get_endpoint(0)
         # many cases here
         # we look at edges starting from start_vertex
         # to figure out current position
