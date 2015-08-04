@@ -203,19 +203,6 @@ class elementary_path:
                 raise RuntimeError("almost vertical")
             return False
 
-    def is_above_y(self, y_limit):
-        """
-        are we above or below horizontal segment at y_limit ?
-        prerequisite: one of our enpoints is at y_limit
-        """
-        non_limit_y = None
-        for p in self.endpoints:
-            y = p.get_y()
-            if y != y_limit:
-                non_limit_y = y
-        assert non_limit_y is not None, "horizontal path"
-        return non_limit_y < y_limit
-
     def lowest_endpoint(self):
         """
         return one of lowest endpoints (y maximized)
@@ -225,17 +212,6 @@ class elementary_path:
             return self.endpoints[0]
         else:
             return self.endpoints[1]
-
-    def is_same(self, other):
-        """
-        comparing endpoints only, are we like other ?
-        (order is not important)
-        """
-        if self.get_endpoints() == other.get_endpoints():
-            return True
-        if self.get_endpoints() == other.reverse().get_endpoints():
-            return True
-        return False
 
     def __hash__(self):
         return hash(tuple(self.endpoints))

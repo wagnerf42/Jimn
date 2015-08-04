@@ -38,19 +38,19 @@ def find_eulerian_cycle(g):
 def _find_cycle(g, possible_starts):
     start_vertex = next(iter(possible_starts.keys()))
     current_vertex = start_vertex
-    edges = []
+    paths = []
     while current_vertex.degree() != 0:
 
         current_edge = current_vertex.remove_any_edge()
         _update_possible_starts(g, possible_starts, current_vertex)
-        edges.append(current_edge)
+        paths.append(current_edge.get_path())
 
         next_vertex = current_edge.get_destination()
         next_vertex.remove_edge_to(current_vertex)
         _update_possible_starts(g, possible_starts, next_vertex)
         current_vertex = next_vertex
 
-    return path(edges)
+    return path(paths)
 
 
 def _update_possible_starts(g, possible_starts, decreased_vertex):

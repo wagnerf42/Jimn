@@ -1,5 +1,5 @@
 from jimn.utils.debug import is_module_debugged
-from jimn.algorithms.bellman_ford import bellman_ford
+from jimn.graph.bellman_ford import bellman_ford
 from jimn.displayable import tycat
 
 
@@ -20,12 +20,12 @@ def _augment_path(g, v):
         if is_module_debugged(__name__):
             added_edges = []
     while current_point != v:
-        edge = predecessors[current_point]
-        g.add_edge(edge)
+        e = predecessors[current_point]
+        g.add_direct_edge(e)
         if __debug__:
             if is_module_debugged(__name__):
-                added_edges.append(edge)
-        previous_point = edge.get_endpoint(0)
+                added_edges.append(e)
+        previous_point = e.get_endpoint(0)
         current_point = previous_point
     if __debug__:
         if is_module_debugged(__name__):

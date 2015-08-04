@@ -55,3 +55,12 @@ class graph:
         vertices[0].add_edge(e, frontier_edge)
         reversed_e = edge(vertices[1], vertices[0], edge_path.reverse())
         vertices[1].add_edge(reversed_e, frontier_edge)
+
+    def add_direct_edge(self, e):
+        """
+        adds an edge (non frontier)
+        between two existing vertices
+        """
+        vertices = e.get_endpoints()
+        vertices[0].add_edge(e, frontier_edge=False)
+        vertices[1].add_edge(e.reverse(), frontier_edge=False)
