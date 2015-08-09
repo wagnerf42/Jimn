@@ -7,6 +7,7 @@ add length to arcs
 
 ----> we need to handle overlapping segments and arcs after raw offseting (split and or remove)
 	and before paths selection
+-> segment merger need to be modified in order to support un-ordered segments
 
  * code review
  * minor code improvements (readability)

@@ -71,7 +71,8 @@ def offset_holed_polygon(radius, *polygons):
     g = ghost([])
     for p in polygons:
         g.extend(raw_offset(radius, p, rounder))
-    # TODO: handle overlapping arcs and segments
+
+    g.remove_overlapping_segments()
     g = g.compute_self_elementary_paths()
     remaining_paths = select_offseted_paths(g.get_content())
     return remaining_paths

@@ -1,5 +1,6 @@
 from jimn.segment import segment
 from jimn.displayable import tycat
+from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import precision
 from jimn.utils.coordinates_hash import coordinates_hash
 from collections import defaultdict
@@ -66,6 +67,9 @@ class segment_merger:
             previous_point = p
             currently_on = now_on
 
+        if __debug__:
+            if is_module_debugged(__name__):
+                tycat(self.segments, odd_segments)
         return odd_segments
 
     def merge(self):

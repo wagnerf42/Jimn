@@ -1,5 +1,7 @@
 from jimn.bounding_box import bounding_box
 from jimn.displayable import tycat
+from jimn.segment import segment
+from jimn.algorithms.segment_merger import merge_segments
 from jimn.utils.coordinates_hash import coordinates_hash
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.iterators import two_arrays_combinations
@@ -16,6 +18,20 @@ class ghost:
         takes a set of elementary paths
         """
         self.paths = paths
+
+    def remove_overlapping_segments(self):
+        """remove overlapping parts of segments
+        leaves arcs untouched
+        """
+        arcs = []
+        segments = []
+        for p in self.paths:
+            if isinstance(p, segment):
+                segments.append(p)
+            else:
+                arcs.append(p)
+        self.paths = merge_segments(segments)
+        self.paths.extend(arcs)
 
     def extend(self, additional_paths):
         """
@@ -45,13 +61,17 @@ class ghost:
     def compute_self_elementary_paths(self):
         """brute force algorithm splitting all paths in self
         into elementary paths"""
-        intersection_points = self._find_new_points(combinations(self.paths, r=2))
+        intersection_points = self._find_new_points(
+            combinations(self.paths, r=2)
+        )
         return self._split_paths_at(intersection_points)
 
     def compute_elementary_paths(self, intersecting_paths):
-        """brute force algorithm splitting all paths in self by paths in intersecting_paths
-        into elementary paths"""
-        intersection_points = self._find_new_points(two_arrays_combinations(self.paths, intersecting_paths))
+        """brute force algorithm splitting all paths in self by paths
+        in intersecting_paths into elementary paths"""
+        intersection_points = self._find_new_points(
+            two_arrays_combinations(self.paths, intersecting_paths)
+        )
         return self._split_paths_at(intersection_points)
 
     def _split_paths_at(self, new_points):
