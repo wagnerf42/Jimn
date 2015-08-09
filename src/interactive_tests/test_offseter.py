@@ -5,38 +5,45 @@ from jimn.polygon import polygon
 from jimn.displayable import tycat
 from jimn.algorithms.offseter import offset_holed_polygon
 
-p = polygon([
-    point([0, 0]),
-    point([1, -2]),
-    point([2, -0.6]),
-    point([3, -2]),
-    point([4, 0]),
-])
+polygons = [
+    polygon([
+        point([4, 0]),
+        point([3, -2]),
+        point([2, -0.6]),
+        point([1, -2]),
+        point([0, 0]),
+    ]),
 
-p.orient(False)
-ghost = offset_holed_polygon(0.5, p)
-tycat(p, *ghost)
+    polygon([
+        point([0, 0]),
+        point([3, 0]),
+        point([3, -3]),
+        point([0, -3]),
+    ]),
 
-ghost = offset_holed_polygon(0.2, p)
-tycat(p, *ghost)
+    polygon([
+        point([0, 0]),
+        point([-2, 1]),
+        point([-0.6, 2]),
+        point([-2, 3]),
+        point([0, 4]),
+    ]),
 
-p = polygon([
-    point([0, 0]),
-    point([3, 0]),
-    point([3, -3]),
-    point([0, -3]),
-])
+    polygon([
+        point([0, 0]),
+        point([0.5, 0]),
+        point([0.5, -2]),
+        point([0.7, -3]),
+        point([-0.2, -3]),
+        point([0, -2]),
+    ])
+]
 
-ghost = offset_holed_polygon(0.5, p)
-tycat(p, *ghost)
+descriptions = ["polygon cut in pieces", "basic", "vertical cut in pieces",
+                "overlapping segments"]
 
-p = polygon([
-    point([0, 0]),
-    point([-2, 1]),
-    point([-0.6, 2]),
-    point([-2, 3]),
-    point([0, 4]),
-])
-
-ghost = offset_holed_polygon(0.5, p)
-tycat(p, *ghost)
+for radius in (0.2, 0.5):
+    for index, p in enumerate(polygons):
+        print(descriptions[index], radius)
+        ghost = offset_holed_polygon(radius, p)
+        tycat(p, *ghost)
