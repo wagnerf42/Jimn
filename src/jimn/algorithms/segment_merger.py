@@ -32,7 +32,6 @@ class segment_merger:
         # we record all points
         # and for each one how many segments start here and end here
         for s in segments:
-            assert s.is_sorted(), 'unsorted segment in segment merger'
             endpoints = s.get_endpoints()
             self.points[endpoints[0]] = endpoints[0]
             self.points[endpoints[1]] = endpoints[1]
@@ -58,12 +57,16 @@ class segment_merger:
         odd_segments = []
 
         for p in self.sorted_points:
+            now_on = currently_on
             if p in self.counters[START]:
-                now_on = currently_on + self.counters[START][p]
+                now_on = now_on + self.counters[START][p]
             if p in self.counters[END]:
                 now_on = now_on - self.counters[END][p]
             if currently_on % 2 == 1:
-                odd_segments.append(segment([previous_point, p]))
+                if currently_on > 0:
+                    odd_segments.append(segment([previous_point, p]))
+                else:
+                    odd_segments.append(segment([p, previous_point]))
             previous_point = p
             currently_on = now_on
 

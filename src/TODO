@@ -1,18 +1,9 @@
 
  * large goals
-
-- replace simple jimn.graph.make_degrees_even by something smarter
-add length to arcs
-- polygon offsetting (fred)
-
-----> we need to handle overlapping segments and arcs after raw offseting (split and or remove)
-	and before paths selection
--> segment merger need to be modified in order to support un-ordered segments
-
  * code review
  * minor code improvements (readability)
 
-- in graphs : the mix between points and vertices is at the same time nice and troublesome
+- document new segment merger
 
  * minor code improvements (performance)
 

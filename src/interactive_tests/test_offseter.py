@@ -33,8 +33,8 @@ polygons = [
         point([0, 0]),
         point([0.5, 0]),
         point([0.5, -2]),
-        point([0.7, -3]),
-        point([-0.2, -3]),
+        point([1.5, -5]),
+        point([-0.5, -5]),
         point([0, -2]),
     ])
 ]
