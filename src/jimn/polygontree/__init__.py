@@ -88,7 +88,14 @@ class polygontree(tree):
                 same_degree_polygons = original_polygons[points_number]
                 for original in same_degree_polygons:
                     if new_polygon.is_translated(original):
-                        self.holed_polygon = translated_holed_polygon(original, new_polygon)
+                        self.holed_polygon = \
+                            translated_holed_polygon(original, new_polygon)
                         break
                 else:
                     original_polygons[points_number].append(new_polygon)
+
+    def offset_polygons(self, carving_radius):
+        print("TODO")
+
+    def compute_path(self):
+        print("TODO")

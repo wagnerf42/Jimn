@@ -1,5 +1,10 @@
 
  * large goals
+
+- use translated nodes in addition to translated polygons
+- apply offseting to polygon tree and rebuild tree in place
+- compute global path
+
  * code review
  * minor code improvements (readability)
 
