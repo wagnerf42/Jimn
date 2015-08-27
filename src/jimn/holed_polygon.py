@@ -14,6 +14,15 @@ class holed_polygon:
             self.holes = holes
         self.height = height
 
+    def get_polygons(self):
+        """
+        returns a list of all polygons we contain
+        (both outer edge and holes)
+        """
+        polygons = list(self.holes)
+        polygons.append(self.polygon)
+        return polygons
+
     def get_bounding_box(self):
         return self.polygon.get_bounding_box()
 

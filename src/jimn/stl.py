@@ -4,6 +4,7 @@ from jimn.segment import segment
 from jimn.facet import facet, binary_facet
 from jimn.bounding_box import bounding_box
 from jimn.utils.coordinates_hash import coordinates_hash
+from jimn.utils.debug import is_module_debugged
 import struct
 import re
 
@@ -14,10 +15,12 @@ class stl:
         self.facets = []
         self.bounding_box = bounding_box.empty_box(3)
         if __debug__:
-            print('loading stl file')
+            if is_module_debugged(__name__):
+                print('loading stl file')
         self.parse_stl(file_name)
         if __debug__:
-            print('stl file loaded')
+            if is_module_debugged(__name__):
+                print('stl file loaded')
 
     def horizontal_intersection(self, h):
         segments = []

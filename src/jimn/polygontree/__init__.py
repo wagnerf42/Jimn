@@ -1,5 +1,5 @@
+from jimn.algorithms.offseter import offset_holed_polygon
 from jimn.holed_polygon import holed_polygon
-from jimn.translated_holed_polygon import translated_holed_polygon
 from jimn.displayable import tycat
 from jimn.polygontree.tree import tree
 import os
@@ -69,33 +69,40 @@ class polygontree(tree):
             for child in self.children:
                 fd.write("n{} -> n{};\n".format(id(self), id(child)))
 
-    """call normalize method on each polygon of the tree
-    this is a prerequisite for translated polygon identifications
-    """
     def normalize_polygons(self):
+        """call normalize method on each polygon of the tree
+        this is a prerequisite for translated polygon identifications
+        """
         for node in self.depth_first_exploration():
             new_polygon = node.holed_polygon
             if new_polygon is not None:
                 new_polygon.normalize()
 
-    # assumes holed_polygons in tree are normalized
-    # we do everything in one pass
-    def replace_translated_polygons(self, original_polygons):
-        for node in self.depth_first_exploration():
-            new_polygon = self.holed_polygon
-            if new_polygon is not None:
-                points_number = new_polygon.polygon.points_number()
-                same_degree_polygons = original_polygons[points_number]
-                for original in same_degree_polygons:
-                    if new_polygon.is_translated(original):
-                        self.holed_polygon = \
-                            translated_holed_polygon(original, new_polygon)
-                        break
-                else:
-                    original_polygons[points_number].append(new_polygon)
-
     def offset_polygons(self, carving_radius):
-        print("TODO")
+        """walks the tree, offseting all polygons.
+        since offseting can cut polygons into sub-polygons, this will
+        modify the tree in place.
+        """
+        # start with children
+        subtrees = [
+            n.offset_polygons(carving_radius) for n in self.get_children()
+        ]
+        if self.holed_polygon is not None:
+            # now, offset ourselves (if we are not root)
+            polygons = self.holed_polygon.get_polygons()
+            offseted_polygons = offset_holed_polygon(carving_radius, *polygons)
+            return _rebuild_offseted_tree(offseted_polygons, subtrees)
+        else:
+            self.children = subtrees
 
     def compute_path(self):
         print("TODO")
+
+
+def _rebuild_offseted_tree(offseted_polygons, subtrees):
+    """
+    takes a set of trees and a set of polygons
+    figures out in which polygon each tree is included
+    and rebuilds a global tree
+    """
+    print("TODO")

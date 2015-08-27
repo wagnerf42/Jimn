@@ -43,8 +43,6 @@ def convert_inclusion_tree(polygon_tree_node, inclusion_tree_node):
 def build_tree(slices_polygons):
     tree_builder = polygontree_builder(slices_polygons)
     tree_builder.build()
-    tree_builder.tree.normalize_polygons()
-    # we need to store which polygons are translated and which are not
-    original_polygons = defaultdict(list)
-    tree_builder.tree.replace_translated_polygons(original_polygons)
+    tree_builder.tree.normalize_polygons() # needed for tree compression and offseting
+    #TODO : compress tree
     return tree_builder.tree
