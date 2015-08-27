@@ -213,5 +213,8 @@ class elementary_path:
         else:
             return self.endpoints[1]
 
+    def round_points(self, rounder):
+        self.endpoints = [rounder.hash_point(p) for p in self.endpoints]
+
     def __hash__(self):
         return hash(tuple(self.endpoints))

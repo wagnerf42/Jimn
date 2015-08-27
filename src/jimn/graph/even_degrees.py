@@ -41,4 +41,5 @@ def _find_nearest_odd_vertex(g, v, distances):
         if (destination != v) and (current_distance > distance):
             if destination.degree() % 2:
                 best_destination = destination
+                current_distance = distance
     return best_destination
