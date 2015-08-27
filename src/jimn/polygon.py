@@ -1,9 +1,7 @@
 from jimn.segment import segment
 from jimn.bounding_box import bounding_box
-from jimn.ghost import ghost
 from jimn.utils.precision import is_almost
 from jimn.utils.iterators import all_two_elements
-from math import floor, ceil
 
 
 class invalid_polygon(Exception):
@@ -25,12 +23,12 @@ class polygon:
     def points_number(self):
         return len(self.points)
 
-    """when 3 consecutive points are aligned the middle one is useless.
-    we remove here all useless points in order to decrease cost of storage and
-    computations of further operations.
-    WARNING : this operation reverses orientation
-    """
     def remove_useless_points(self):
+        """when 3 consecutive points are aligned the middle one is useless.
+        we remove here all useless points in order to decrease cost of storage
+        and computations of further operations.
+        WARNING : this operation reverses orientation
+        """
         p1 = self.points.pop()
         start_point = p1
         p2 = self.points.pop()
@@ -70,8 +68,8 @@ class polygon:
             a = a + x1*y2 - x2*y1
         return a/2
 
-    """clockwise is defined respectively to svg displayed"""
     def is_oriented_clockwise(self):
+        """clockwise is defined respectively to svg displayed"""
         a = self.area()
         assert not is_almost(a, 0), "flat polygon"
         return a > 0
@@ -102,31 +100,6 @@ class polygon:
 
     def round_points(self, rounder):
         self.points = [rounder.hash_point(p) for p in self.points]
-
-    def milling_heights(self, milling_diameter):
-        box = self.get_bounding_box()
-        ymin, ymax = box.limits(1)
-        start = floor(ymin / milling_diameter)
-        end = ceil(ymax / milling_diameter)
-        for i in range(start, end+1):
-            yield i * milling_diameter
-
-    def create_vertices(self, milling_diameter, built_graph):
-        # first cut by horizontal lines spaced by milling_diameter
-        box = self.get_bounding_box()
-        xmin, xmax = box.limits(0)
-        cutting_lines = [
-            segment.horizontal_segment(xmin, xmax, y)
-            for y in self.milling_heights(milling_diameter)
-        ]
-        cutter = ghost(list(self.segments()))
-        elementary_segments = cutter.compute_elementary_paths(
-            cutting_lines
-        ).get_content()
-        # ok, now create graph, each segment point becomes a vertex
-        # and we add all external edges
-        for s in elementary_segments:
-            built_graph.add_edge(s, frontier_edge=True)
 
     def __str__(self):
         return "[{}/{}]".format(

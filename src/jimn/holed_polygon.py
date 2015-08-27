@@ -1,8 +1,4 @@
 from jimn.displayable import tycat
-from jimn.graph import graph
-from jimn.graph.even_degrees import make_degrees_even
-from jimn.graph.internal_edges import create_internal_edges
-from jimn.utils.coordinates_hash import coordinates_hash
 
 
 class holed_polygon:
@@ -63,37 +59,6 @@ class holed_polygon:
         self.polygon.round_points(rounder)
         for h in self.holes:
             h.round_points(rounder)
-
-    def milling_heights(self, milling_diameter):
-        """
-        returns iterator on all y coordinates used in milling
-        """
-        return self.polygon.milling_heights(milling_diameter)
-
-    def build_graph(self, milling_diameter):
-        """
-        returns graph which will be used to compute milling path
-        """
-        # round all points on intersecting lines
-        rounder = coordinates_hash(2)
-        for y in self.milling_heights(milling_diameter):
-            rounder.hash_coordinate(1, y)
-
-        self.round_points(rounder)
-
-        # fill all vertices
-        g = graph()
-        self.polygon.create_vertices(milling_diameter, g)
-        for h in self.holes:
-            h.create_vertices(milling_diameter, g)
-
-        # finish by adding horizontal internal edges
-        create_internal_edges(g, milling_diameter)
-
-        #prepare for eulerian path
-        make_degrees_even(g)
-
-        return g
 
     def tycat(self, border):
         tycat(border, self.polygon, *(self.holes))
