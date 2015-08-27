@@ -42,8 +42,10 @@ polygons = [
 descriptions = ["polygon cut in pieces", "basic", "vertical cut in pieces",
                 "overlapping segments"]
 
-for radius in (0.2, 0.5):
-    for index, p in enumerate(polygons):
-        print(descriptions[index], radius)
-        ghost = offset_holed_polygon(radius, p)
-        tycat(p, *ghost)
+ghost = offset_holed_polygon(0.5, polygons[0])
+#
+# for radius in (0.2, 0.5):
+#     for index, p in enumerate(polygons):
+#         print(descriptions[index], radius)
+#         ghost = offset_holed_polygon(radius, p)
+#         tycat(p, *ghost)

@@ -75,6 +75,5 @@ def offset_holed_polygon(radius, *polygons):
     g.remove_overlapping_segments()
     g = g.compute_self_elementary_paths()
     remaining_paths = select_offseted_paths(g.get_content())
-    print("TODO: rebuild holed polygons")
-    sys.exit()
+    print("TODO: build several pockets out of that stuff")
     return remaining_paths
