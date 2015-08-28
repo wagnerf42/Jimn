@@ -1,6 +1,7 @@
 
  * large goals
 
+- merge ghost in pocket
 - change the end of the offseter
 - use translated nodes in replacement of translated polygons
 - apply offseting to polygon tree and rebuild tree in place

@@ -3,7 +3,7 @@
 from jimn.stl import stl
 from jimn.stl import projection2d
 from jimn.displayable import tycat
-from jimn.algorithms.poly_builder import build_polygons
+from jimn.pocket.builder import build_polygons
 
 
 scene2 = stl('../test_files/cordoba_2.stl')
