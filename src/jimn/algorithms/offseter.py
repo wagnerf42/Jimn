@@ -1,6 +1,6 @@
 from jimn.displayable import tycat
 from jimn.arc import arc
-from jimn.ghost import ghost
+from jimn.pocket import pocket
 from jimn.algorithms.sweeping_line_algorithms.sweeping_offseter_selection\
     import select_offseted_paths
 from jimn.utils.coordinates_hash import coordinates_hash
@@ -68,12 +68,12 @@ def offset_holed_polygon(radius, *polygons):
     for p in polygons:
         p.round_points(rounder)
 
-    g = ghost([])
+    overall_pocket = pocket([])
     for p in polygons:
-        g.extend(raw_offset(radius, p, rounder))
+        overall_pocket.extend(raw_offset(radius, p, rounder))
 
-    g.remove_overlapping_segments()
-    g = g.compute_self_elementary_paths()
-    remaining_paths = select_offseted_paths(g.get_content())
+    overall_pocket.remove_overlapping_segments()
+    overall_pocket = overall_pocket.compute_self_elementary_paths()
+    remaining_paths = select_offseted_paths(overall_pocket.get_content())
     print("TODO: build several pockets out of that stuff")
     return remaining_paths

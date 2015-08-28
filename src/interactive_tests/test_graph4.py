@@ -3,6 +3,7 @@
 from jimn.point import point
 from jimn.polygon import polygon
 from jimn.pocket import pocket
+from jimn.pocket.graph_builder import build_graph
 from jimn.displayable import tycat, tycat_set_svg_dimensions
 from jimn.graph.eulerian_cycle import find_eulerian_cycle
 
@@ -37,7 +38,7 @@ segments.extend(list(polygon([o, p, q, r]).segments()))  # hole
 hp = pocket(segments)
 
 print("complex case for internal edges")
-g = hp.build_graph(4.0)
+g = build_graph(hp, 4.0)
 tycat(g)
 p = find_eulerian_cycle(g)
 p.animate(hp)

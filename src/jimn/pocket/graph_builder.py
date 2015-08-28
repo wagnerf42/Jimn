@@ -14,7 +14,7 @@ def build_graph(milled_pocket, milling_diameter):
     """
     # round all points on intersecting lines
     rounder = coordinates_hash(2)
-    for y in self.milling_heights(milling_diameter):
+    for y in _milling_heights(milled_pocket, milling_diameter):
         rounder.hash_coordinate(1, y)
 
     milled_pocket.round_points(rounder)
@@ -48,16 +48,17 @@ def _create_vertices(milled_pocket, milling_diameter, built_graph):
         segment.horizontal_segment(xmin, xmax, y)
         for y in _milling_heights(milled_pocket, milling_diameter)
     ]
-    milled_pocket.compute_elementary_paths(cutting_lines)
-    elementary_segments = milled_pocket.get_content()
+    split_pocket = milled_pocket.compute_elementary_paths(cutting_lines)
+    elementary_segments = split_pocket.get_content()
     # ok, now create graph, each segment point becomes a vertex
     # and we add all external edges
     for s in elementary_segments:
         built_graph.add_edge(s, frontier_edge=True)
+
     if __debug__:
         if is_module_debugged(__name__):
             print("created vertices")
-            tycat(g)
+            tycat(built_graph)
 
 
 def _milling_heights(p, milling_diameter):
