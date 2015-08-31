@@ -22,4 +22,6 @@ pockets = build_pockets(
     ]
 )
 
+print("two pockets connected by one point")
+print("should create two different pockets")
 tycat(*pockets)

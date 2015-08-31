@@ -3,7 +3,7 @@
 from jimn.point import point
 from jimn.segment import segment
 from jimn.arc import arc
-from jimn.ghost import ghost
+from jimn.pocket import pocket
 from jimn.displayable import tycat, tycat_set_svg_dimensions
 import random
 import sys
@@ -41,7 +41,7 @@ for i in range(size):
 
     paths.append(p)
 
-big = ghost(paths)
-tycat(*big.get_content())
+big = pocket(paths)
+tycat(big)
 small = big.compute_elementary_paths(paths)
 tycat(*small.get_content())

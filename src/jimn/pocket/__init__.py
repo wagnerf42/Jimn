@@ -6,6 +6,7 @@ from jimn.utils.iterators import two_arrays_combinations
 from jimn.utils.coordinates_hash import coordinates_hash
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
+from jimn.utils.precision import is_almost
 from collections import defaultdict
 from itertools import combinations
 
@@ -83,6 +84,18 @@ class pocket:
             two_arrays_combinations(self.paths, intersecting_paths)
         )
         return self._split_paths_at(intersection_points)
+
+    def is_included_in(self, other):
+        tested_point = self.paths[0].get_endpoint(0)
+        x, y = tested_point.get_coordinates()
+
+        above_paths = 0
+        for p in other.paths:
+            intersection_y = p.vertical_intersection_at(x)
+            assert not is_almost(intersection_y, y)
+            if intersection_y < y:
+                above_paths = above_paths + 1
+        return ((above_paths % 2) == 1)
 
     def _split_paths_at(self, new_points):
         elementary_paths = []
