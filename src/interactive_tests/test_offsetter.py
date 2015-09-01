@@ -3,7 +3,7 @@
 from jimn.point import point
 from jimn.polygon import polygon
 from jimn.displayable import tycat
-from jimn.algorithms.offseter import offset_holed_polygon
+from jimn.algorithms.offsetter import offset_holed_polygon
 
 polygons = [
     polygon([

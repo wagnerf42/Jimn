@@ -5,7 +5,7 @@ from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost
 
 
-class sweeping_offseter_selection(sweeping_line_algorithm):
+class sweeping_offsetter_selection(sweeping_line_algorithm):
     def __init__(self, paths):
         self.kept_paths = []
         super().__init__(paths)
@@ -70,5 +70,5 @@ def _path_orientation(p):
 
 
 def select_offseted_paths(paths):
-    s = sweeping_offseter_selection(paths)
+    s = sweeping_offsetter_selection(paths)
     return s.kept_paths

@@ -1,4 +1,4 @@
-from jimn.algorithms.offseter import offset_holed_polygon
+from jimn.algorithms.offsetter import offset_holed_polygon
 from jimn.holed_polygon import holed_polygon
 from jimn.displayable import tycat
 from jimn.polygontree.tree import tree
@@ -79,8 +79,8 @@ class polygontree(tree):
                 new_polygon.normalize()
 
     def offset_polygons(self, carving_radius):
-        """walks the tree, offseting all polygons.
-        since offseting can cut polygons into sub-polygons, this will
+        """walks the tree, offsetting all polygons.
+        since offsetting can cut polygons into sub-polygons, this will
         modify the tree in place.
         """
         # start with children

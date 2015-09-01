@@ -2,7 +2,7 @@
  * large goals
 
 - use translated nodes in replacement of translated polygons
-- apply offseting to polygon tree and rebuild tree in place
+- apply offsetting to polygon tree and rebuild tree in place
 - compute global path
 
  * code review

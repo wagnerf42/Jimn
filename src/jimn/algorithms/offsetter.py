@@ -3,7 +3,7 @@ from jimn.arc import arc
 from jimn.pocket import pocket
 from jimn.pocket.elementary_paths import pocket_elementary_paths
 from jimn.pocket.builder import build_pockets
-from jimn.algorithms.sweeping_line_algorithms.sweeping_offseter_selection\
+from jimn.algorithms.sweeping_line_algorithms.sweeping_offsetter_selection\
     import select_offseted_paths
 from jimn.utils.coordinates_hash import coordinates_hash
 from jimn.utils.debug import is_module_debugged
@@ -14,7 +14,7 @@ from collections import defaultdict
 and clockwise to carve the outside"""
 
 
-class offseter:
+class offsetter:
     def __init__(self, radius, polygon, rounder):
         self.polygon = polygon
         self.radius = radius
@@ -56,7 +56,7 @@ class offseter:
 
 
 def _raw_offset(radius, polygon_to_offset, rounder):
-    o = offseter(radius, polygon_to_offset, rounder)
+    o = offsetter(radius, polygon_to_offset, rounder)
     segments = o.raw_offset()
     if len(segments) < 2:
         return []

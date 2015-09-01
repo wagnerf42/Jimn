@@ -1,7 +1,10 @@
+from jimn.point import point
 from jimn.segment import segment
 from jimn.bounding_box import bounding_box
 from jimn.utils.precision import is_almost
 from jimn.utils.iterators import all_two_elements
+
+_squares_counter = 0
 
 
 class invalid_polygon(Exception):
@@ -19,6 +22,25 @@ class polygon:
             self.label = id(self)
         else:
             self.label = label
+
+    @classmethod
+    def square(cls, start_x, start_y, side):
+        """
+        creates a square, horizontally aligned.
+        used in many test scripts as a quick way to get polygons
+        """
+        global _squares_counter
+        starting_point = point([start_x, start_y])
+        points = [
+            point([0.0, 0.0]),
+            point([side, 0.0]),
+            point([side, side]),
+            point([0.0, side]),
+        ]
+        points = [p + starting_point for p in points]
+        square_polygon = cls(points, _squares_counter)
+        _squares_counter += 1
+        return square_polygon
 
     def points_number(self):
         return len(self.points)

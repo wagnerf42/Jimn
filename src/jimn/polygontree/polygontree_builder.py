@@ -43,6 +43,6 @@ def convert_inclusion_tree(polygon_tree_node, inclusion_tree_node):
 def build_tree(slices_polygons):
     tree_builder = polygontree_builder(slices_polygons)
     tree_builder.build()
-    tree_builder.tree.normalize_polygons() # needed for tree compression and offseting
+    tree_builder.tree.normalize_polygons() # needed for tree compression and offsetting
     #TODO : compress tree
     return tree_builder.tree
