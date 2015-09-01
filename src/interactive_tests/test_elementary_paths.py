@@ -4,6 +4,7 @@ from jimn.point import point
 from jimn.segment import segment
 from jimn.arc import arc
 from jimn.pocket import pocket
+from jimn.pocket.elementary_paths import pocket_intersect_paths
 from jimn.displayable import tycat, tycat_set_svg_dimensions
 import random
 import sys
@@ -43,5 +44,5 @@ for i in range(size):
 
 big = pocket(paths)
 tycat(big)
-small = big.compute_elementary_paths(paths)
+small = pocket_intersect_paths(big, paths)
 tycat(*small.get_content())

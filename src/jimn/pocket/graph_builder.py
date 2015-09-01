@@ -1,3 +1,4 @@
+from jimn.pocket.elementary_paths import pocket_intersect_paths
 from jimn.displayable import tycat
 from jimn.graph import graph
 from jimn.graph.even_degrees import make_degrees_even
@@ -48,7 +49,7 @@ def _create_vertices(milled_pocket, milling_diameter, built_graph):
         segment.horizontal_segment(xmin, xmax, y)
         for y in _milling_heights(milled_pocket, milling_diameter)
     ]
-    split_pocket = milled_pocket.compute_elementary_paths(cutting_lines)
+    split_pocket = pocket_intersect_paths(milled_pocket, cutting_lines)
     elementary_segments = split_pocket.get_content()
     # ok, now create graph, each segment point becomes a vertex
     # and we add all external edges
