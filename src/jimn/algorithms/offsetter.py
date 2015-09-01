@@ -74,8 +74,8 @@ def _merge_included_pockets(pockets):
     for p1 in pockets:
         for p2 in pockets:
             if id(p1) != id(p2):
-                if p2.is_included_in(p1):
-                    included_pockets[id(p1)].append(p2)
+                if p1.is_included_in(p2):
+                    included_pockets[id(p2)].append(p1)
                     break
         else:
             included_pockets[id(p1)].append(p1)
@@ -108,7 +108,19 @@ def offset_holed_polygon(radius, *polygons):
 
     overall_pocket.remove_overlapping_segments()
     overall_pocket = pocket_elementary_paths(overall_pocket)
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("before path selection")
+            tycat(overall_pocket)
     remaining_paths = select_offseted_paths(overall_pocket.get_content())
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("after path selection")
+            tycat(remaining_paths)
     pockets = build_pockets(remaining_paths)
     final_pockets = _merge_included_pockets(pockets)
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("final pockets")
+            tycat(final_pockets)
     return final_pockets

@@ -29,6 +29,6 @@ print("corresponding tree")
 tree = build_tree(polygons)
 tree.tycat()
 
-offsetted_tree = tree.offset(0.2)
+offsetted_tree = tree.offset_polygons(0.1)
 print("offsetted tree")
-offsetted_tree.tycat()
+offsetted_tree.display_breadth_first()

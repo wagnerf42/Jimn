@@ -20,6 +20,7 @@ class pockets_builder:
 
         # start
         self.paths = paths
+        self.add_reversed_paths()
         self.marked_paths = {}  # we go only once through each (oriented) path
 
         # compute structures to easily enter and leave points
@@ -27,22 +28,32 @@ class pockets_builder:
         self.hash_points()
         self.sort_neighbours_by_angle()
 
+    def add_reversed_paths(self):
+        reversed_paths = []
+        for p in self.paths:
+            reversed_path = p.reverse()
+            reversed_paths.append(reversed_path)
+        self.paths.extend(reversed_paths)
+
     def tycat(self):
         tycat(self.pockets, self.points, self.current_path, self.paths, list(self.marked_paths.values()))
 
     def hash_points(self):
         """computes for each point the list of neighbouring points"""
         self.points_neighbours = defaultdict(list)
-        for s in self.paths:
-            endpoints = s.get_endpoints()
-            self.points_neighbours[endpoints[0]].append(s)
-            self.points_neighbours[endpoints[1]].append(s.reverse())
+        for p in self.paths:
+            start = p.get_endpoint(0)
+            self.points_neighbours[start].append(p)
 
     def sort_neighbours_by_angle(self):
         """sorts all neighbours so that we can easily turn around a point"""
-        for point, neighbour_paths in self.points_neighbours.items():
-            sorted_neighbours = sorted(neighbour_paths, key=lambda neighbour: point.angle_with(neighbour.get_endpoint(1)), reverse=True)
-            self.points_neighbours[point] = sorted_neighbours
+        for p, neighbour_paths in self.points_neighbours.items():
+            sorted_neighbours = sorted(
+                neighbour_paths,
+                key=lambda neighbour: p.angle_with(neighbour.get_endpoint(1)),
+                reverse=True
+            )
+            self.points_neighbours[p] = sorted_neighbours
 
     def build_pockets(self):
         for s in self.paths:
@@ -88,7 +99,6 @@ class pockets_builder:
         self.previous_point = self.start_point
 
         while self.current_point != self.start_point:
-
             # find where to go
             next_path = self.find_next_path(self.current_point, self.previous_point)
             self.paths.append(next_path)

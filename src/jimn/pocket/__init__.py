@@ -66,23 +66,36 @@ class pocket:
         return self.paths
 
     def is_included_in(self, other):
-        tested_point = self.paths[0].get_endpoint(0)
-        x, y = tested_point.get_coordinates()
+        # loop trying points
+        for p in self.paths:
+            tested_point = p.get_endpoint(0)
+            test_result = other._contains_point(tested_point)
+            if test_result is not None:
+                included = test_result
+                break
+        else:
+            # all points of self are on edge of other
+            included = True
 
+        if __debug__:
+            if is_module_debugged(__name__):
+                print("inclusion:", included)
+                tycat(self, other)
+
+        return included
+
+    def _contains_point(self, tested_point):
+        x, y = tested_point.get_coordinates()
         above_paths = 0
-        for p in other.paths:
+        for p in self.paths:
+            if p.contains(tested_point):
+                return None
             x1, x2 = sorted([end.get_x() for end in p.get_endpoints()])
             if x1 == x2:
                 continue
             if x > x1 and ((x < x2) or is_almost(x, x2)):
                 # we only take paths over us
                 intersection_y = p.vertical_intersection_at(x)
-                assert not is_almost(intersection_y, y)
                 if intersection_y < y:
                     above_paths = above_paths + 1
-        included = ((above_paths % 2) == 1)
-        if __debug__:
-            if is_module_debugged(__name__):
-                print("inclusion:", included)
-                tycat(self, other)
-        return included
+        return ((above_paths % 2) == 1)

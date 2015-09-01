@@ -84,25 +84,44 @@ class polygontree(tree):
         modify the tree in place.
         """
         # start with children
-        subtrees = [
-            n.offset_polygons(carving_radius) for n in self.get_children()
-        ]
+        subtrees = []
+        for n in self.get_children():
+            pockets = n.offset_polygons(carving_radius)
+            subtrees.extend(pockets)
+
         if self.holed_polygon is not None:
             # now, offset ourselves (if we are not root)
             polygons = self.holed_polygon.get_polygons()
-            offseted_polygons = offset_holed_polygon(carving_radius, *polygons)
-            return _rebuild_offseted_tree(offseted_polygons, subtrees)
+            tycat(polygons)
+            pockets = offset_holed_polygon(carving_radius, *polygons)
+            return _rebuild_offsetted_tree(pockets, subtrees)
         else:
-            self.children = subtrees
+            root = polygontree()
+            root.children = subtrees
+            return root
 
     def compute_path(self):
         print("TODO")
 
 
-def _rebuild_offseted_tree(offseted_polygons, subtrees):
+def _rebuild_offsetted_tree(pockets, subtrees):
     """
-    takes a set of trees and a set of polygons
-    figures out in which polygon each tree is included
+    takes a set of trees from sublevel and a set of pockets
+    at current level ;
+    figures out in which pocket each tree is included
     and rebuilds a global tree
     """
-    print("TODO")
+    new_trees = {}
+    for p in pockets:
+        new_trees[id(p)] = polygontree(p)
+
+    for t in subtrees:
+        for p in pockets:
+            if t.holed_polygon.is_included_in(p):
+                new_trees[id(p)].children.append(t)
+                break
+        else:
+            tycat(t.holed_polygon, p)
+            raise Exception("subtree does not belong here")
+
+    return list(new_trees.values())

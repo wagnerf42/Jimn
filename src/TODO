@@ -8,6 +8,10 @@
  * code review
  * minor code improvements (readability)
 
+when offseting we obtain a pocketstree of class polygontree
+we also cannot use tycat anymore on the obtained tree
+-> add new class ? replace by one more generic class ?
+
 - document new segment merger
 
  * minor code improvements (performance)
