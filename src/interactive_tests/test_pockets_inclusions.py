@@ -51,8 +51,8 @@ else:
     print("red is not included in green (not ok)")
 
 if tested_pocket.is_included_in(not_including_pocket):
-    print("red is not included in blue (ok)")
-else:
     print("red is included in blue (not ok)")
+else:
+    print("red is not included in blue (ok)")
 
 tycat(tested_pocket, including_pocket, not_including_pocket)

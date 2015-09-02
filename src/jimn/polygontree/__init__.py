@@ -2,10 +2,6 @@ from jimn.algorithms.offsetter import offset_holed_polygon
 from jimn.holed_polygon import holed_polygon
 from jimn.displayable import tycat
 from jimn.polygontree.tree import tree
-import os
-import getpass
-
-dot_count = 0
 
 
 class polygontree(tree):
@@ -17,44 +13,6 @@ class polygontree(tree):
         new_child = polygontree(holed_polygon(polygon, height, holes))
         self.children.append(new_child)
         return new_child
-
-    def display_depth_first(self):
-        _display(self.depth_first_exploration())
-
-    def display_breadth_first(self):
-        _display(self.breadth_first_exploration())
-
-    def tycat(self):
-        global dot_count
-        user = getpass.getuser()
-        directory = "/tmp/{}".format(user)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        dot_file = "{}/ptree_{}.dot".format(directory, dot_count)
-        svg_file = "{}/ptree_{}.svg".format(directory, dot_count)
-        dot_count = dot_count + 1
-        dot_fd = open(dot_file, 'w')
-        dot_fd.write("digraph g {\n")
-        for node in self.depth_first_exploration():
-            node.save_dot(dot_fd)
-        dot_fd.write("}")
-        dot_fd.close()
-        os.system("dot -Tsvg {} -o {}".format(dot_file, svg_file))
-        os.system("tycat {}".format(svg_file))
-
-    def save_dot(self, fd):
-            if self.content is None:
-                label = "\"None\""
-            else:
-                label = self.content.get_dot_label()
-
-            fd.write("n{} [label={}];\n".format(
-                id(self),
-                label
-            ))
-
-            for child in self.children:
-                fd.write("n{} -> n{};\n".format(id(self), id(child)))
 
     def normalize_polygons(self):
         """call normalize method on each polygon of the tree
@@ -113,9 +71,3 @@ def _rebuild_offsetted_tree(pockets, subtrees):
     return list(new_trees.values())
 
 
-def _display(iterator):
-    displayed_content = []
-    for node in iterator:
-        if node.content is not None:
-            displayed_content.append(node.content)
-            tycat(*displayed_content)
