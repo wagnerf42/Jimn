@@ -13,11 +13,18 @@ dot_count = 0
 
 class tree:
 
+    def __init__(self, content=None):
+        self.content = content
+        self.children = []
+
     def get_children(self):
         """
         return children array of current node
         """
         return self.children
+
+    def get_content(self):
+        return self.content
 
     def depth_first_exploration(self):
         """

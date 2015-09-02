@@ -3,6 +3,7 @@
 from jimn.polygon import polygon
 from jimn.displayable import tycat
 from jimn.tree.polygon_tree.polygon_tree_builder import build_tree
+from jimn.tree.pocket_tree import pocket_tree
 
 polygons = {}
 polygons[2] = [polygon.square(0, 0, 10)]
@@ -29,7 +30,7 @@ print("corresponding tree")
 tree = build_tree(polygons)
 tree.tycat()
 
-offsetted_tree = tree.offset_polygons(0.1)
-print("offsetted tree")
-offsetted_tree.tycat()
-offsetted_tree.display_breadth_first()
+pockets = pocket_tree.build_from_polygon_tree(tree, 0.1)
+print("pockets tree")
+pockets.tycat()
+pockets.display_breadth_first()
