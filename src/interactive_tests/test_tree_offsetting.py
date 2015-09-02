@@ -2,7 +2,7 @@
 
 from jimn.polygon import polygon
 from jimn.displayable import tycat
-from jimn.tree.polygon_tree.polygon_tree_builder import build_tree
+from jimn.tree.polygon_tree import polygon_tree
 from jimn.tree.pocket_tree import pocket_tree
 
 polygons = {}
@@ -27,7 +27,7 @@ tycat(polygons[1])
 tycat(polygons[0])
 
 print("corresponding tree")
-tree = build_tree(polygons)
+tree = polygon_tree.build(polygons)
 tree.tycat()
 
 pockets = pocket_tree.build_from_polygon_tree(tree, 0.1)

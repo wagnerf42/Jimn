@@ -3,7 +3,7 @@
 from jimn.point import point
 from jimn.polygon import polygon
 from jimn.displayable import tycat
-from jimn.tree.polygon_tree.polygon_tree_builder import build_tree
+from jimn.tree.polygon_tree import polygon_tree
 
 a = point([0.0, 0.0])
 b = point([9.0, 0.0])
@@ -61,13 +61,11 @@ poly9 = polygon(list(points5), 9)
 poly10 = polygon(list(points4), 10)
 polygons[height] = [poly8, poly9, poly10]
 
-
-
 tycat(poly1)
 tycat(poly2)
 tycat(poly3, poly4, poly5, poly6, poly7)
 tycat(poly8, poly9, poly10)
 
-tree = build_tree(polygons)
+tree = polygon_tree.build(polygons)
 print("simulating depth first carving")
 tree.display_depth_first()

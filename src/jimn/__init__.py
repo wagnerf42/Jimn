@@ -1,7 +1,7 @@
 from jimn.utils.debug import is_module_debugged
 from jimn.displayable import tycat
 from jimn.stl import stl
-from jimn.tree.polygon_tree.polygon_tree_builder import build_tree
+from jimn.tree.polygon_tree import polygon_tree
 from jimn.pocket.builder import build_polygons
 from jimn.tree.pocket_tree import pocket_tree
 from jimn.algorithms.segment_merger import merge_segments
@@ -39,6 +39,6 @@ def compute_carving_path(stl_file, slice_size, carving_radius):
         slice_polygons = build_polygons(simpler_slice)
         slices_polygons[height] = slice_polygons
 
-    tree = build_tree(slices_polygons)
+    tree = polygon_tree.build(slices_polygons)
     pockets = pocket_tree.build_from_polygon_tree(tree, carving_radius)
     return pockets.compute_path()

@@ -2,7 +2,7 @@
 
 from jimn.polygon import polygon
 from jimn.displayable import tycat
-from jimn.tree.polygon_tree.polygon_tree_builder import build_tree
+from jimn.tree.polygon_tree import build
 
 polygons = {}
 polygons[1] = [polygon.square(0, 0, 10)]
@@ -16,7 +16,7 @@ tycat(polygons[1])
 tycat(polygons[0])
 
 print("corresponding tree")
-tree = build_tree(polygons)
+tree = polygon_tree.build(polygons)
 tree.tycat()
 
 offsetted_tree = tree.offset_polygons(0.1)
