@@ -1,14 +1,14 @@
 from jimn.algorithms.sweeping_line_algorithms.inclusion_tree_builder\
     import build_inclusion_tree
-from jimn.polygontree import polygontree
+from jimn.tree.polygon_tree import polygon_tree
 from jimn.utils.debug import is_module_debugged
 from collections import defaultdict
 
 
-class polygontree_builder:
+class polygon_tree_builder:
     def __init__(self, slices_polygons):
         self.polygons = slices_polygons
-        self.tree = polygontree()
+        self.tree = polygon_tree()
 
     def build(self):
         inclusion_tree = build_inclusion_tree(self.polygons)
@@ -41,7 +41,7 @@ def convert_inclusion_tree(polygon_tree_node, inclusion_tree_node):
 
 
 def build_tree(slices_polygons):
-    tree_builder = polygontree_builder(slices_polygons)
+    tree_builder = polygon_tree_builder(slices_polygons)
     tree_builder.build()
     tree_builder.tree.normalize_polygons() # needed for tree compression and offsetting
     #TODO : compress tree

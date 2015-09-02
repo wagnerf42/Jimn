@@ -1,7 +1,7 @@
 from jimn.utils.debug import is_module_debugged
 from jimn.displayable import tycat
 from jimn.stl import stl
-from jimn.polygontree.polygontree_builder import build_tree
+from jimn.tree.polygon_tree.polygon_tree_builder import build_tree
 from jimn.pocket.builder import build_polygons
 from jimn.algorithms.segment_merger import merge_segments
 

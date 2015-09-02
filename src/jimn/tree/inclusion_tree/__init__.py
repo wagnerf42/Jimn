@@ -1,4 +1,4 @@
-from jimn.polygontree.tree import tree
+from jimn.tree import tree
 import os
 import getpass
 

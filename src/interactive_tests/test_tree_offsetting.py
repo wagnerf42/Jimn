@@ -2,7 +2,7 @@
 
 from jimn.polygon import polygon
 from jimn.displayable import tycat
-from jimn.polygontree.polygontree_builder import build_tree
+from jimn.tree.polygon_tree.polygon_tree_builder import build_tree
 
 polygons = {}
 polygons[2] = [polygon.square(0, 0, 10)]

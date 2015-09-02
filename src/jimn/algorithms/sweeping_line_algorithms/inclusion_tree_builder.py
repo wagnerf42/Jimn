@@ -1,8 +1,8 @@
 from jimn.algorithms.sweeping_line_algorithms import sweeping_line_algorithm
-from jimn.polygontree.inclusion_tree import inclusion_tree
+from jimn.tree.inclusion_tree import inclusion_tree
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.iterators import all_two_elements
-from jimn.polygontree.polygonsegment import polygonsegment
+from jimn.tree.inclusion_tree.polygonsegment import polygonsegment
 
 
 """

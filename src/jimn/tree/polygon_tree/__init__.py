@@ -1,16 +1,16 @@
 from jimn.algorithms.offsetter import offset_holed_polygon
 from jimn.holed_polygon import holed_polygon
 from jimn.displayable import tycat
-from jimn.polygontree.tree import tree
+from jimn.tree import tree
 
 
-class polygontree(tree):
+class polygon_tree(tree):
     def __init__(self, content=None):
         self.content = content
         self.children = []
 
     def add_child(self, polygon, height, holes):
-        new_child = polygontree(holed_polygon(polygon, height, holes))
+        new_child = polygon_tree(holed_polygon(polygon, height, holes))
         self.children.append(new_child)
         return new_child
 
@@ -40,7 +40,7 @@ class polygontree(tree):
             pockets = offset_holed_polygon(carving_radius, *polygons)
             return _rebuild_offsetted_tree(pockets, subtrees)
         else:
-            root = polygontree()
+            root = polygon_tree()
             root.children = subtrees
             return root
 
@@ -57,7 +57,7 @@ def _rebuild_offsetted_tree(pockets, subtrees):
     """
     new_trees = {}
     for p in pockets:
-        new_trees[id(p)] = polygontree(p)
+        new_trees[id(p)] = polygon_tree(p)
 
     for t in subtrees:
         for p in pockets:
@@ -69,5 +69,3 @@ def _rebuild_offsetted_tree(pockets, subtrees):
             raise Exception("subtree does not belong here")
 
     return list(new_trees.values())
-
-
