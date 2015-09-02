@@ -10,6 +10,25 @@ class holed_polygon:
             self.holes = holes
         self.height = height
 
+    def get_height(self):
+        return self.height
+
+    def get_dot_label(self):
+        """
+        returns text label for display in dot file (see polygontree class)
+        """
+        if not self.holes:
+            return ("\"{}, h={}\"".format(
+                str(self.polygon.get_label()),
+                str(self.height))
+            )
+        else:
+            return ("\"{}, h={}, holes={}\"".format(
+                str(self.polygon.get_label()),
+                str(self.height),
+                str([h.label for h in self.holes]))
+            )
+
     def get_polygons(self):
         """
         returns a list of all polygons we contain

@@ -19,6 +19,12 @@ class pocket:
         for p in self.paths:
             yield p.get_endpoint(0)
 
+    def get_dot_label(self):
+        """
+        returns text label for display in dot file (see polygontree class)
+        """
+        return ("\"{}\"".format(id(self)))
+
     def round_points(self, rounder):
         for p in self.paths:
             p.round_points(rounder)

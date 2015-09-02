@@ -39,5 +39,5 @@ def compute_carving_path(stl_file, slice_size, carving_radius):
         slices_polygons[height] = slice_polygons
 
     tree = build_tree(slices_polygons)
-    tree.offset_polygons(carving_radius)
-    return tree.compute_path()
+    pockets_tree = tree.offset_polygons(carving_radius)
+    return pockets_tree.compute_path()

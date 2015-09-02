@@ -9,8 +9,8 @@ dot_count = 0
 
 
 class polygontree(tree):
-    def __init__(self, holed_polygon=None):
-        self.holed_polygon = holed_polygon
+    def __init__(self, content=None):
+        self.content = content
         self.children = []
 
     def add_child(self, polygon, height, holes):
@@ -19,18 +19,10 @@ class polygontree(tree):
         return new_child
 
     def display_depth_first(self):
-        carved_polygons = []
-        for node in self.depth_first_exploration():
-            if node.holed_polygon is not None:
-                carved_polygons.append(node.holed_polygon)
-                tycat(*carved_polygons)
+        _display(self.depth_first_exploration())
 
     def display_breadth_first(self):
-        carved_polygons = []
-        for node in self.breadth_first_exploration():
-            if node.holed_polygon is not None:
-                carved_polygons.append(node.holed_polygon)
-                tycat(*carved_polygons)
+        _display(self.breadth_first_exploration())
 
     def tycat(self):
         global dot_count
@@ -51,21 +43,16 @@ class polygontree(tree):
         os.system("tycat {}".format(svg_file))
 
     def save_dot(self, fd):
-            if self.holed_polygon is None:
-                fd.write("n{} [label=\"None\"];\n".format(
-                    id(self))
-                )
-            elif not self.holed_polygon.holes:
-                fd.write("n{} [label=\"{}, h={}\"];\n".format(
-                    id(self), str(self.holed_polygon.polygon.label),
-                    str(self.holed_polygon.height))
-                )
+            if self.content is None:
+                label = "\"None\""
             else:
-                fd.write("n{} [label=\"{}, h={}\nholes={}\"];\n".format(
-                    id(self), str(self.holed_polygon.polygon.label),
-                    str(self.holed_polygon.height),
-                    str([h.label for h in self.holed_polygon.holes]))
-                )
+                label = self.content.get_dot_label()
+
+            fd.write("n{} [label={}];\n".format(
+                id(self),
+                label
+            ))
+
             for child in self.children:
                 fd.write("n{} -> n{};\n".format(id(self), id(child)))
 
@@ -74,7 +61,7 @@ class polygontree(tree):
         this is a prerequisite for translated polygon identifications
         """
         for node in self.depth_first_exploration():
-            new_polygon = node.holed_polygon
+            new_polygon = node.content
             if new_polygon is not None:
                 new_polygon.normalize()
 
@@ -89,10 +76,9 @@ class polygontree(tree):
             pockets = n.offset_polygons(carving_radius)
             subtrees.extend(pockets)
 
-        if self.holed_polygon is not None:
+        if self.content is not None:
             # now, offset ourselves (if we are not root)
-            polygons = self.holed_polygon.get_polygons()
-            tycat(polygons)
+            polygons = self.content.get_polygons()
             pockets = offset_holed_polygon(carving_radius, *polygons)
             return _rebuild_offsetted_tree(pockets, subtrees)
         else:
@@ -117,11 +103,19 @@ def _rebuild_offsetted_tree(pockets, subtrees):
 
     for t in subtrees:
         for p in pockets:
-            if t.holed_polygon.is_included_in(p):
+            if t.content.is_included_in(p):
                 new_trees[id(p)].children.append(t)
                 break
         else:
-            tycat(t.holed_polygon, p)
+            tycat(t.content, p)
             raise Exception("subtree does not belong here")
 
     return list(new_trees.values())
+
+
+def _display(iterator):
+    displayed_content = []
+    for node in iterator:
+        if node.content is not None:
+            displayed_content.append(node.content)
+            tycat(*displayed_content)

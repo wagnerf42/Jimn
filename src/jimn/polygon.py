@@ -23,6 +23,9 @@ class polygon:
         else:
             self.label = label
 
+    def get_label(self):
+        return self.label
+
     @classmethod
     def square(cls, start_x, start_y, side):
         """
