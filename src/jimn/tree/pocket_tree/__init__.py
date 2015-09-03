@@ -6,7 +6,7 @@ from jimn.tree import tree
 class pocket_tree(tree):
 
     @classmethod
-    def build_from_polygon_tree(cls, poly_tree, carving_radius):
+    def build(cls, poly_tree, carving_radius):
         """walks the polygon tree, offsetting all polygons.
         returns pockets tree.
         """

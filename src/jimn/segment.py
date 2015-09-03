@@ -17,6 +17,10 @@ class segment(elementary_path):
             coordinates = ([xmin, y], [xmax, y])
             return cls([point(c) for c in coordinates])
 
+    def reverse(self):
+        """invert endpoints"""
+        return segment(list(reversed(self.endpoints)))
+
     def __str__(self):
         return "[{}]".format(';'.join(map(lambda p: str(p), self.endpoints)))
 
@@ -36,6 +40,27 @@ class segment(elementary_path):
         stroke_width = display.stroke_width()
         display.write("<line x1=\"{}\" y1=\"{}\"\
                       x2=\"{}\" y2=\"{}\"".format(*svg_coordinates))
+        display.write(" stroke-width=\"{}\" stroke=\"{}\"\
+                      opacity=\"0.5\"/>\n".format(stroke_width, color))
+        # have a small arrow
+        center = self.endpoints[0]*0.5 + self.endpoints[1]*0.5
+        before = self.endpoints[0]*0.6 + self.endpoints[1]*0.4
+        top = before.rotate_around(self.endpoints[0], pi/20)
+        bottom = before.rotate_around(self.endpoints[0], -pi/20)
+        top_coordinates = [
+            c for point in [center, top]
+            for c in display.convert_coordinates(point.get_coordinates())
+        ]
+        bottom_coordinates = [
+            c for point in [center, bottom]
+            for c in display.convert_coordinates(point.get_coordinates())
+        ]
+        display.write("<line x1=\"{}\" y1=\"{}\"\
+                      x2=\"{}\" y2=\"{}\"".format(*top_coordinates))
+        display.write(" stroke-width=\"{}\" stroke=\"{}\"\
+                      opacity=\"0.5\"/>\n".format(stroke_width, color))
+        display.write("<line x1=\"{}\" y1=\"{}\"\
+                      x2=\"{}\" y2=\"{}\"".format(*bottom_coordinates))
         display.write(" stroke-width=\"{}\" stroke=\"{}\"\
                       opacity=\"0.5\"/>\n".format(stroke_width, color))
 

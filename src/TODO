@@ -8,6 +8,8 @@
  * code review
  * minor code improvements (readability)
 
+- rethink reversed arcs
+
 - document new segment merger
 
  * minor code improvements (performance)
@@ -23,6 +25,9 @@
 - rounders in arc class
 - is_above_y : arcs ???
 - elementary_path : is_same : what about arcs ?? is it needed ?
+- path compression
+- generate paths to have more compression feasible
+- hardware : better machines : faster on milling axis used :-)
 
  * calibration
 

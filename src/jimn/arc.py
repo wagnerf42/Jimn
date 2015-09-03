@@ -6,6 +6,7 @@ from jimn.utils.coordinates_hash import coordinates_hash
 from jimn.utils.math import solve_quadratic_equation
 from jimn.utils.precision import is_almost
 from math import sqrt
+from copy import copy
 
 
 class arc(elementary_path):
@@ -18,6 +19,7 @@ class arc(elementary_path):
         self.radius = radius
         assert self.radius > 0, "0 or negative radius"
         self.center = self._compute_center()
+        self.reversed_direction = False  # QADH to handle reversed arcs
 
     def _compute_center(self):
         # take endpoints[0] as origin
@@ -39,6 +41,22 @@ class arc(elementary_path):
             if p2.cross_product(i) > 0:
                 return self.endpoints[0] + i
         raise "no center found"
+
+    def reverse(self):
+        copied_self = copy(self)
+        copied_self.reversed_direction = not self.reversed_direction
+        return copied_self
+
+    def get_endpoints(self):
+        if self.reversed_direction:
+            return list(reversed(self.endpoints))
+        else:
+            return self.endpoints
+
+    def get_endpoint(self, index):
+        if self.reversed_direction:
+            index = 1 - index
+        return self.endpoints[index]
 
     def get_bounding_box(self):
         box = bounding_box.empty_box(2)

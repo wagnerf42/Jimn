@@ -30,7 +30,7 @@ print("corresponding tree")
 tree = polygon_tree.build(polygons)
 tree.tycat()
 
-pockets = pocket_tree.build_from_polygon_tree(tree, 0.1)
+pockets = pocket_tree.build(tree, 0.1)
 print("pockets tree")
 pockets.tycat()
 pockets.display_breadth_first()

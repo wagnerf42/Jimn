@@ -23,13 +23,6 @@ class elementary_path:
     def squared_length(self):
         """squared distance between endpoints"""
         return self.endpoints[0].squared_distance_to(self.endpoints[1])
-
-    def reverse(self):
-        """invert endpoints"""
-        copied_path = copy.copy(self)
-        copied_path.endpoints = list(reversed(self.endpoints))
-        return copied_path
-
     def has_extremity(self, searched_point):
         """do we have this endpoint ?"""
         for p in self.endpoints:
