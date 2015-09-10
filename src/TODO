@@ -2,19 +2,15 @@
  * large goals
 
 - use translated nodes in replacement of translated polygons
-- apply offsetting to polygon tree and rebuild tree in place
 - compute global path
 
  * code review
  * minor code improvements (readability)
 
 - rethink reversed arcs
-
 - document new segment merger
 
  * minor code improvements (performance)
-
-- use arrays instead of hash tables in bellman ford
 
  * additional non-regression tests
  * misc
