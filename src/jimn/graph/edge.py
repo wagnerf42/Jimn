@@ -5,7 +5,20 @@ class edge:
     def __init__(self, start_vertex, end_vertex, real_path):
         self.vertices = [start_vertex, end_vertex]
         self.path = real_path
+        self.multiplicity = 1
+        self.weight = self.path.length()
         assert isinstance(self.path, elementary_path)
+
+    def change_multiplicity(self, change):
+        assert change == 1 or change == -1
+        self.multiplicity += change
+        if self.multiplicity == 3:
+            self.multiplicity = 1
+        self.weight *= -1
+        return self.multiplicity
+
+    def get_multiplicity(self):
+        return self.multiplicity
 
     def get_bounding_box(self):
         return self.path.get_bounding_box()
@@ -17,11 +30,7 @@ class edge:
         return edge(self.vertices[1], self.vertices[0], self.path.reverse())
 
     def get_weight(self):
-        multiplicity = self.vertices[0].get_edge_multiplicity(self)
-        if multiplicity % 2:
-            return self.path.length()
-        else:
-            return -self.path.length()
+        return self.weight
 
     def get_path(self):
         return self.path
@@ -59,10 +68,11 @@ class edge:
         return self.path.is_horizontal()
 
     def __hash__(self):
+        #TODO: change
         return hash(id(self.vertices[1]))
 
     def __str__(self):
-        return str(id(self.vertices[0])) + " -> " + str(id(self.vertices[1]))
+        return str(id(self.vertices[0])) + " -> " + str(id(self.vertices[1])) + " " + str(self.multiplicity)
 
     def __eq__(self, other):
         return self.vertices[0] == other.vertices[0] \

@@ -63,4 +63,5 @@ class graph:
         """
         vertices = e.get_endpoints()
         vertices[0].add_edge(e, frontier_edge=False)
-        vertices[1].add_edge(e.reverse(), frontier_edge=False)
+        tmp = e.reverse()
+        vertices[1].add_edge(tmp, frontier_edge=False)
