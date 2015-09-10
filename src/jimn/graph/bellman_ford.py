@@ -22,12 +22,10 @@ def bellman_ford(searched_graph, source_vertex):
     for useless in range(g.get_vertices_number()-1):
         for e in g.get_all_edges():
             v1, v2 = e.get_endpoints()
-            # skip going directly back
-            if (v1 not in predecessors) or \
-                    (predecessors[v1].get_endpoint(0) != v2):
-                w = e.get_weight()
-                new_distance = distances[v1] + w
-                if distances[v2] > new_distance:
+            w = e.get_weight()
+            new_distance = distances[v1] + w
+            if distances[v2] > new_distance:
+                if _not_in_incoming_path(predecessors, source_vertex, v1, v2):
                     predecessors[v2] = e
                     distances[v2] = new_distance
     if __debug__:
@@ -35,3 +33,17 @@ def bellman_ford(searched_graph, source_vertex):
             print("bellman ford : result")
             tycat(g, source_vertex, list(predecessors.values()))
     return (distances, predecessors)
+
+
+def _not_in_incoming_path(predecessors, start, end, to_avoid):
+    """
+    return true if 'to_avoid' vertex is not between start and end
+    """
+    current_vertex = end
+    while current_vertex != start:
+        if current_vertex == to_avoid:
+            return False
+        e = predecessors[current_vertex]
+        assert current_vertex == e.get_endpoint(1)
+        current_vertex = e.get_endpoint(0)
+    return True

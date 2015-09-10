@@ -13,7 +13,7 @@ class graph:
         return self.vertices_number == 0
 
     def get_vertices(self):
-        return self.points.values()
+        return self.vertices.values()
 
     def get_vertices_number(self):
         return self.vertices_number
