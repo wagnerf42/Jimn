@@ -6,20 +6,24 @@ from jimn.bounding_box import bounding_box
 class graph:
     def __init__(self):
         self.points = {}
-        self.vertices = {}
+        self.vertices = []
         self.vertices_number = 0
+        self.max_vertices_number = 0
 
     def is_empty(self):
         return self.vertices_number == 0
 
     def get_vertices(self):
-        return self.vertices.values()
+        return self.vertices
 
     def get_vertices_number(self):
         return self.vertices_number
 
+    def get_max_vertices_number(self):
+        return self.max_vertices_number
+
     def get_all_edges(self):
-        for v in self.vertices.values():
+        for v in self.vertices:
             for e in v.get_edges():
                 yield e
 
@@ -27,7 +31,7 @@ class graph:
         """
         return a vertex
         """
-        return next(iter(self.vertices.values()))
+        return self.vertices[0]
 
     def get_bounding_box(self):
         box = bounding_box.empty_box(2)
@@ -40,16 +44,20 @@ class graph:
             p.save_svg_content(display, color)
 
     def add_vertex(self, vertex_point):
+        """
+        for the given points, check if we already have a vertex.
+        if yes, return it ; else add a new one.
+        """
         if vertex_point not in self.points:
-            v = vertex(vertex_point, self.vertices_number)
+            v = vertex(vertex_point, self.max_vertices_number)
             self.points[vertex_point] = v
-            self.vertices[v.get_id()] = v
+            self.vertices.append(v)
+            self.max_vertices_number += 1
             self.vertices_number += 1
         return self.points[vertex_point]
 
     def remove_vertex(self, v):
-        del self.points[v]
-        del self.vertices[v.get_id()]
+        self.vertices.remove(v)
         self.vertices_number -= 1
 
     def add_edge(self, edge_path, frontier_edge=False):
