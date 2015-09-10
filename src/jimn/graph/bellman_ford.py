@@ -13,7 +13,7 @@ def bellman_ford(searched_graph, source_vertex):
     distances = defaultdict(lambda: float("inf"))
     # init
     distances[source_vertex] = 0
-    for e in g.get_edges_from(source_vertex):
+    for e in source_vertex.get_edges():
         destination = e.get_destination()
         predecessors[destination] = e
         w = e.get_weight()

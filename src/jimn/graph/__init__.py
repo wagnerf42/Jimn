@@ -5,6 +5,7 @@ from jimn.bounding_box import bounding_box
 
 class graph:
     def __init__(self):
+        self.points = {}
         self.vertices = {}
         self.vertices_number = 0
 
@@ -12,13 +13,10 @@ class graph:
         return self.vertices_number == 0
 
     def get_vertices(self):
-        return self.vertices.values()
+        return self.points.values()
 
     def get_vertices_number(self):
         return self.vertices_number
-
-    def get_edges_from(self, start):
-        return self.vertices[start].get_edges()
 
     def get_all_edges(self):
         for v in self.vertices.values():
@@ -42,13 +40,16 @@ class graph:
             p.save_svg_content(display, color)
 
     def add_vertex(self, vertex_point):
-        if vertex_point not in self.vertices:
-            self.vertices[vertex_point] = vertex(vertex_point)
+        if vertex_point not in self.points:
+            v = vertex(vertex_point, self.vertices_number)
+            self.points[vertex_point] = v
+            self.vertices[v.get_id()] = v
             self.vertices_number += 1
-        return self.vertices[vertex_point]
+        return self.points[vertex_point]
 
     def remove_vertex(self, v):
-        del self.vertices[v]
+        del self.points[v]
+        del self.vertices[v.get_id()]
         self.vertices_number -= 1
 
     def add_edge(self, edge_path, frontier_edge=False):

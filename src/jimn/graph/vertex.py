@@ -2,10 +2,14 @@ from jimn.point import point
 
 
 class vertex(point):
-    def __init__(self, position_point):
+    def __init__(self, position_point, number):
         super().__init__(position_point.get_coordinates())
         self.edges = [] #degree is very low so this is ok
         self.frontier_edges = []
+        self.number = number
+
+    def get_id(self):
+        return self.number
 
     def to_point(self):
         return point(self.coordinates)
