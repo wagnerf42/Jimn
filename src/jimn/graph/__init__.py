@@ -6,15 +6,16 @@ from jimn.bounding_box import bounding_box
 class graph:
     def __init__(self):
         self.vertices = {}
+        self.vertices_number = 0
 
     def is_empty(self):
-        return len(self.vertices) == 0
+        return self.vertices_number == 0
 
     def get_vertices(self):
         return self.vertices.values()
 
     def get_vertices_number(self):
-        return len(self.vertices)
+        return self.vertices_number
 
     def get_edges_from(self, start):
         return self.vertices[start].get_edges()
@@ -43,10 +44,12 @@ class graph:
     def add_vertex(self, vertex_point):
         if vertex_point not in self.vertices:
             self.vertices[vertex_point] = vertex(vertex_point)
+            self.vertices_number += 1
         return self.vertices[vertex_point]
 
     def remove_vertex(self, v):
         del self.vertices[v]
+        self.vertices_number -= 1
 
     def add_edge(self, edge_path, frontier_edge=False):
         endpoints = edge_path.get_endpoints()
