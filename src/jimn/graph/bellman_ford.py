@@ -8,6 +8,7 @@ def bellman_ford(searched_graph, source_vertex):
     assumes no negative cycles
     """
     g = searched_graph
+    source_id = source_vertex.get_id()
     predecessors = [None for i in range(g.get_max_vertices_number())]
     distances = [float("inf") for i in range(g.get_max_vertices_number())]
     # init
@@ -17,16 +18,24 @@ def bellman_ford(searched_graph, source_vertex):
         predecessors[destination.get_id()] = e
         w = e.get_weight()
         distances[destination.get_id()] = w
+
+    # extract a maximum of operations out of main loop
+    # precompute all weights and ids
+    edges = []
+    for e in g.get_all_edges():
+        v1, v2 = [p.get_id() for p in e.get_endpoints()]
+        w = e.get_weight()
+        edges.append([v1, v2, w, e])
+
     # go
     for useless in range(g.get_vertices_number()-1):
-        for e in g.get_all_edges():
-            v1, v2 = e.get_endpoints()
-            w = e.get_weight()
-            new_distance = distances[v1.get_id()] + w
-            if distances[v2.get_id()] > new_distance:
-                if _not_in_incoming_path(predecessors, source_vertex, v1, v2):
-                    predecessors[v2.get_id()] = e
-                    distances[v2.get_id()] = new_distance
+        for packed_data in edges:
+            v1, v2, w, e = packed_data
+            new_distance = distances[v1] + w
+            if distances[v2] > new_distance:
+                if _not_in_incoming_path(predecessors, source_id, v1, v2):
+                    predecessors[v2] = e
+                    distances[v2] = new_distance
     if __debug__:
         if is_module_debugged(__name__):
             print("bellman ford : result")
@@ -43,7 +52,6 @@ def _not_in_incoming_path(predecessors, start, end, to_avoid):
     while current_vertex != start:
         if current_vertex == to_avoid:
             return False
-        e = predecessors[current_vertex.get_id()]
-        assert current_vertex == e.get_endpoint(1)
-        current_vertex = e.get_endpoint(0)
+        e = predecessors[current_vertex]
+        current_vertex = e.get_endpoint(0).get_id()
     return True
