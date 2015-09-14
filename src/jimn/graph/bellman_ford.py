@@ -1,7 +1,6 @@
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 
-
 def bellman_ford(searched_graph, source_vertex):
     """
     bellman ford shortest path algorithm.
@@ -25,12 +24,11 @@ def bellman_ford(searched_graph, source_vertex):
     for e in g.get_all_edges():
         v1, v2 = [p.get_id() for p in e.get_endpoints()]
         w = e.get_weight()
-        edges.append([v1, v2, w, e])
+        edges.append((v1, v2, w, e))
 
     # go
     for useless in range(g.get_vertices_number()-1):
-        for packed_data in edges:
-            v1, v2, w, e = packed_data
+        for v1, v2, w, e in edges:
             new_distance = distances[v1] + w
             if distances[v2] > new_distance:
                 if _not_in_incoming_path(predecessors, source_id, v1, v2):

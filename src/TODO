@@ -12,6 +12,10 @@
 
  * minor code improvements (performance)
 
+- special graph even_degrees algo for monotone polygons
+- or c binding for bellman ford
+- sweeping line algo for last_intersection_with
+
  * additional non-regression tests
  * misc
 

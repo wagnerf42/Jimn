@@ -53,3 +53,38 @@ class path:
         for p in self.elementary_paths:
             displayed_paths.append(p)
             tycat(displayed_paths, other_things)
+
+    def last_intersection_with(self, other):
+        """
+        loop on self, finding the last elementary path (in current order)
+        intersecting with other.
+        for now brute force quadratic algorithm.
+        returns the two indices of intersecting elementary paths together
+        with the last intersection point.
+        """
+        for i, p in enumerate(self.elementary_paths):
+            for j, p2 in enumerate(other.elementary_paths):
+                intersections = p.intersections_with(p2)
+                if intersections:
+                    last_intersection = intersections[-1]
+                    assert False  # TODO : check this is good
+                    last_intersecting_indices = (i, j)
+        return last_intersecting_indices, last_intersection
+
+    def set_starting_point(self, start, index):
+        """
+        pre-requisite: path is a cycle ; elementary_path at 'index'
+        contains 'start'.
+        change cycle starting point so that first point is 'start'
+        """
+        intersecting_path = self.elementary_paths[index]
+        split_end, split_start = intersecting_path.split_at(start)
+        assert False  # TODO check always good
+        cycle_end, cycle_start = (
+            self.elementary_paths[:index],
+            self.elementary_paths[index+1:]
+        )
+        self.elementary_paths = [split_start]
+        self.elementary_paths.extend(cycle_start)
+        self.elementary_paths.extend(cycle_end)
+        self.elementary_paths.append(split_end)
