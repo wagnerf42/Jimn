@@ -167,9 +167,9 @@ class segment(elementary_path):
     def __hash__(self):
         return hash(tuple(self.endpoints))
 
-    def parallel_segment(self, distance, rounder):
+    def parallel_segment(self, distance, rounder, side=-1):
         a = self.endpoints[0].angle_with(self.endpoints[1])
-        a += pi/2
+        a += side*pi/2
         displacement = point([
             distance * cos(-a),
             distance * sin(-a)

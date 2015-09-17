@@ -1,6 +1,11 @@
 
  * large goals
 
+- use new caching functions
+- do 'inflate' for arcs
+- use inflated paths for intersections
+- do path merging algorithm
+
 - use translated nodes in replacement of translated polygons
 - compute global path
 

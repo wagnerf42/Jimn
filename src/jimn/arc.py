@@ -10,7 +10,7 @@ from copy import copy
 
 
 class arc(elementary_path):
-    def __init__(self, radius, points):
+    def __init__(self, radius, points, center=None):
         """
         builds an arc out of two endpoints and a radius.
         different ordering of endpoints give different arcs
@@ -18,7 +18,10 @@ class arc(elementary_path):
         super().__init__(points)
         self.radius = radius
         assert self.radius > 0, "0 or negative radius"
-        self.center = self._compute_center()
+        if center is None:
+            self.center = self._compute_center()
+        else:
+            self.center = center
         self.reversed_direction = False  # QADH to handle reversed arcs
 
     def _compute_center(self):
