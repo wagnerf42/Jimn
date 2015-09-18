@@ -71,6 +71,13 @@ class pocket:
         """
         return self.paths
 
+    def intersects(self, other):
+        # TODO : what level of strictness do we want ??
+        for p1 in self.paths:
+            for p2 in self.paths:
+                intersections = p1.intersections_with(p2)
+                assert False  # TODO: rethink it all
+
     def is_included_in(self, other):
         # loop trying points
         for p in self.paths:
@@ -80,6 +87,8 @@ class pocket:
                 included = test_result
                 break
         else:
+            assert False  # TODO: bug bug bug
+            # there is not enough info to return true
             # all points of self are on edge of other
             included = True
 

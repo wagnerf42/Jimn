@@ -1,6 +1,8 @@
 from jimn.utils.coordinates_hash import coordinates_hash
 from jimn.pocket import pocket
 from jimn.arc import arc
+
+
 def inflate_segment(s, radius):
     """
     returns pocket around segment reachable by given radius
@@ -24,3 +26,19 @@ def inflate_segment(s, radius):
         )
     )
     return pocket(sides)
+
+
+def inflate_arc(a, radius):
+    """
+    returns pocket around arc reachable by given radius
+    """
+    assert radius == a.get_radius()
+    p2, p4 = a.get_endpoints()
+    p3 = a.get_center()
+    diff = (p2-p3)
+    p1 = p2 + diff
+    p5 = p4 - diff
+    a1 = arc(radius, (p3, p1), p2)
+    a2 = arc(radius, (p5, p3), p4)
+    a3 = arc(2*radius, (p1, p5), p3)
+    return pocket([a1, a2, a3])

@@ -45,6 +45,12 @@ class arc(elementary_path):
                 return self.endpoints[0] + i
         raise "no center found"
 
+    def get_center(self):
+        return self.center
+
+    def get_radius(self):
+        return self.radius
+
     def reverse(self):
         copied_self = copy(self)
         copied_self.reversed_direction = not self.reversed_direction

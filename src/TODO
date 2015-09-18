@@ -2,7 +2,6 @@
  * large goals
 
 - use new caching functions
-- do 'inflate' for arcs
 - use inflated paths for intersections
 - do path merging algorithm
 
@@ -44,3 +43,7 @@
 
 - rapport : inclusion tree
 
+ * bug fixes
+
+- there is a bug in pocket inclusion
+- rounding bug in arc creation (see interactive_tests/test_inflate.py)
