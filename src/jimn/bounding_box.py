@@ -5,6 +5,7 @@ delimiting a set of items.
 they are usually used in display to compute image sizes.
 """
 
+
 class bounding_box:
     def __init__(self, min_coordinates, max_coordinates):
         self.min_coordinates = list(min_coordinates)
@@ -20,7 +21,7 @@ class bounding_box:
         for i in range(dimension):
             min_coordinates.append(float('+inf'))
             max_coordinates.append(float('-inf'))
-        return cls(min_coordinates, max_coordinates)
+            return cls(min_coordinates, max_coordinates)
 
     def add_point(self, p):
         """
@@ -31,8 +32,8 @@ class bounding_box:
         for i, c in enumerate(p.get_coordinates()):
             if c < self.min_coordinates[i]:
                 self.min_coordinates[i] = c
-            if c > self.max_coordinates[i]:
-                self.max_coordinates[i] = c
+                if c > self.max_coordinates[i]:
+                    self.max_coordinates[i] = c
 
     def contains_point(self, p):
         """
@@ -46,17 +47,31 @@ class bounding_box:
                 return False
         return True
 
+    def intersects(self, other):
+        """
+        returns if the two boxes intersect (even only on edge)
+        """
+        for d in range(len(self.min_coordinates)):
+            small = self.min_coordinates[d]
+            big = self.max_coordinates[d]
+            other_small = other.min_coordinates[d]
+            other_big = other.max_coordinates[d]
+            if (other_small > big) or (other_big < small):
+                return False
+        return True
+
     def update(self, other):
         """
         update self box by taking constraints from other box into account
         """
-        assert len(self.min_coordinates) == len(other.min_coordinates), 'merge different boxes'
+        assert len(self.min_coordinates) == len(other.min_coordinates), \
+            'merge different boxes'
         for i, c in enumerate(other.min_coordinates):
             if self.min_coordinates[i] > c:
                 self.min_coordinates[i] = c
-        for i, c in enumerate(other.max_coordinates):
-            if self.max_coordinates[i] < c:
-                self.max_coordinates[i] = c
+                for i, c in enumerate(other.max_coordinates):
+                    if self.max_coordinates[i] < c:
+                        self.max_coordinates[i] = c
 
     def limits(self, index):
         """

@@ -221,11 +221,20 @@ class elementary_path:
         end_distance = other.distance_to_point(self.get_endpoint(1))
         if is_almost(end_distance, radius) or end_distance < radius:
             return
+        # compute inflation of self and other
+        inflated_self = self.inflate(radius)
+        inflated_other = other.inflate(radius)
+
         # if bounding boxes do not intersect, leave immediately
-        # compute ghost of self and ghost of other
+        b1 = inflated_self.get_bounding_box()
+        b2 = inflated_other.get_bounding_box()
+
+        if not b1.intersects(b2):
+            return
+
         # compute intersection points
         # if no intersection return
-        # compute projection of each intersection on self
+        # compute 'projection' of each intersection on self
         # find projected point nearest from self.p2
         # return it
 
