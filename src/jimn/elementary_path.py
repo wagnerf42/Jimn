@@ -233,7 +233,10 @@ class elementary_path:
             return
 
         # compute intersection points
+        intersections = inflated_self.intersects(inflated_other)
         # if no intersection return
+        if len(intersections == 0):
+            return
         # compute 'projection' of each intersection on self
         # find projected point nearest from self.p2
         # return it

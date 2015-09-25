@@ -72,11 +72,17 @@ class pocket:
         return self.paths
 
     def intersects(self, other):
-        # TODO : what level of strictness do we want ??
+        """
+        computes list of intersections between paths in self
+        and paths in other.
+        does not care about overlappings
+        """
+        intersections = []
         for p1 in self.paths:
             for p2 in self.paths:
-                intersections = p1.intersections_with(p2)
-                assert False  # TODO: rethink it all
+                i = p1.intersections_with(p2)
+                intersections.extend(i)
+        return intersections
 
     def is_included_in(self, other):
         """
