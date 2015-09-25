@@ -23,6 +23,7 @@ class elementary_path:
     def squared_length(self):
         """squared distance between endpoints"""
         return self.endpoints[0].squared_distance_to(self.endpoints[1])
+
     def has_extremity(self, searched_point):
         """do we have this endpoint ?"""
         for p in self.endpoints:
@@ -208,6 +209,25 @@ class elementary_path:
 
     def round_points(self, rounder):
         self.endpoints = [rounder.hash_point(p) for p in self.endpoints]
+
+    def overlapping_area_exit_point(self, other, radius):
+        """
+        when we advance on self with a drill of given radius
+        we might interfere with the drill of other.
+        if interference stops before end of self,
+        return last point of interference
+        """
+        # if distance from end to other is < radius return immediately
+        end_distance = other.distance_to_point(self.get_endpoint(1))
+        if is_almost(end_distance, radius) or end_distance < radius:
+            return
+        # if bounding boxes do not intersect, leave immediately
+        # compute ghost of self and ghost of other
+        # compute intersection points
+        # if no intersection return
+        # compute projection of each intersection on self
+        # find projected point nearest from self.p2
+        # return it
 
     def __hash__(self):
         return hash(tuple(self.endpoints))

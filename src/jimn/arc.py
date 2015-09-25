@@ -1,6 +1,7 @@
 from jimn.elementary_path import elementary_path
 from jimn.bounding_box import bounding_box
 from jimn.point import point
+from jimn.segment import segment
 from jimn.displayable import tycat
 from jimn.utils.coordinates_hash import coordinates_hash
 from jimn.utils.math import solve_quadratic_equation
@@ -143,6 +144,18 @@ class arc(elementary_path):
         assert candidates, "no intersection"
         ys = [i.get_y() for i in candidates]
         return max(ys)
+
+    def distance_to_point(self, p):
+        """
+        returns min distance from self to point
+        """
+        s = segment([self.center, p])
+        intersections = self.intersections_with_segment(s)
+        if len(intersections == 1):
+            return intersections[0].distance_to(p)
+        else:
+            assert len(intersections) == 0
+            return min([p.distance_to(q) for q in self.endpoints])
 
 
 def _circles_intersections(c1, c2, r1, r2, rounder):

@@ -118,6 +118,27 @@ class segment(elementary_path):
         p1, p2 = self.endpoints
         return segment([p1.projection2d(), p2.projection2d()])
 
+    def point_projection(self, p):
+        """
+        project p on line going through self
+        """
+        s = self.endpoints[1] - self.endpoints[0]
+        v = p - self.endpoints[0]
+        return self.endpoints[0] + s * (v.scalar_product(s)/s.scalar_product(s))
+
+    def distance_to_point(self, p):
+        """
+        returns distance from segment to point.
+        if point projects inside segment returns distance between point
+        and projection.
+        else returns distance to nearest endpoint
+        """
+        projected_p = self.point_projection(p)
+        if self.contains(projected_p):
+            return projected_p.distance_to(p)
+        else:
+            return min([q.distance_to(p) for q in self.endpoints])
+
     def angle(self):
         return self.endpoints[0].angle_with(self.endpoints[1])
 

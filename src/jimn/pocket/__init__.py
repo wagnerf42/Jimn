@@ -79,6 +79,11 @@ class pocket:
                 assert False  # TODO: rethink it all
 
     def is_included_in(self, other):
+        """
+        fast inclusion test.
+        many pre-conditions.
+        returns true if we can find one point of self included in other
+        """
         # loop trying points
         for p in self.paths:
             tested_point = p.get_endpoint(0)
