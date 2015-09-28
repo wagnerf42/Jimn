@@ -11,9 +11,8 @@ s = segment([
     point([6, 5])
 ])
 
-p = inflate_segment(s, 1.1)
-tycat(s, p)
-
 a = arc(1, [point([2,3]), point([2,5])], point([2,4]))
 p = inflate_arc(a, 1)
-tycat(a, p)
+
+e = s.overlapping_area_exit_point(a, 1)
+tycat(s, p, e)

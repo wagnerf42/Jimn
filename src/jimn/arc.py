@@ -2,11 +2,9 @@ from jimn.elementary_path import elementary_path
 from jimn.bounding_box import bounding_box
 from jimn.point import point
 from jimn.segment import segment
-from jimn.displayable import tycat
 from jimn.utils.coordinates_hash import coordinates_hash
-from jimn.utils.math import solve_quadratic_equation, circles_intersections, line_circle_intersections
+from jimn.utils.math import circles_intersections, line_circle_intersections
 from jimn.utils.precision import is_almost
-from math import sqrt
 from copy import copy
 
 
@@ -92,7 +90,7 @@ class arc(elementary_path):
         returns up to two points.
         """
         points = circles_intersections(self.center, other.center,
-                                        self.radius, other.radius, rounder)
+                                       self.radius, other.radius, rounder)
         intersections = []
         for p in points:
             if self.contains(p) and other.contains(p):
@@ -150,8 +148,9 @@ class arc(elementary_path):
         returns min distance from self to point
         """
         s = segment([self.center, p])
-        intersections = self.intersections_with_segment(s)
-        if len(intersections == 1):
+        rounder = coordinates_hash(2)
+        intersections = self.intersections_with_segment(s, rounder)
+        if len(intersections) == 1:
             return intersections[0].distance_to(p)
         else:
             assert len(intersections) == 0
@@ -163,5 +162,7 @@ class arc(elementary_path):
         all which are at given distance from p.
         """
         rounder = coordinates_hash(2)
-        intersections = circles_intersections(self.endpoints, p, distance, rounder)
+        intersections = circles_intersections(
+            self.endpoints, p, distance, rounder
+        )
         return [i for i in intersections if self.contains(i)]
