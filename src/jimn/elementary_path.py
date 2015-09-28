@@ -237,9 +237,16 @@ class elementary_path:
         # if no intersection return
         if len(intersections == 0):
             return
-        # compute 'projection' of each intersection on self
-        # find projected point nearest from self.p2
-        # return it
+        # compute points on self reaching all these intersections
+        on_path_points = []
+        for p in intersections:
+            on_path_points.extend(self.points_at_distance(p, radius))
+        # find path point nearest from self.p2
+        d = self.endpoints[1] - self.endpoints[0]
+        last_point = max(
+            on_path_points, key=lambda p: p.scalar_product(d)
+        )
+        return last_point
 
     def __hash__(self):
         return hash(tuple(self.endpoints))

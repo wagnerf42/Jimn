@@ -3,6 +3,7 @@ from jimn.point import point
 from jimn.bounding_box import bounding_box
 from jimn.utils.coordinates_hash import coordinates_hash
 from jimn.utils.precision import check_precision, is_almost
+from jimn.utils.math import line_circle_intersections
 from math import pi, cos, sin
 
 rounding_hash = coordinates_hash(3)
@@ -217,3 +218,12 @@ class segment(elementary_path):
         a = (y2-y1)/(x2-x1)
         y = y1 + a*(x-x1)
         return y
+
+    def points_at_distance(self, p, distance):
+        """
+        returns from all points on self between start and end
+        all which are at given distance from p.
+        """
+        rounder = coordinates_hash(2)
+        intersections = line_circle_intersections(self.endpoints, p, distance, rounder)
+        return [i for i in intersections if self.contains(i)]

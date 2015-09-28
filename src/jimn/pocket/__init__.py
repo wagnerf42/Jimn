@@ -38,7 +38,8 @@ class pocket:
     def get_bounding_box(self):
         box = bounding_box.empty_box(2)
         for p in self.paths:
-            box.update(p.get_bounding_box())
+            pbox = p.get_bounding_box()
+            box.update(pbox)
         return box
 
     def save_svg_content(self, display, color):

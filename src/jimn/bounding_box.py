@@ -21,7 +21,7 @@ class bounding_box:
         for i in range(dimension):
             min_coordinates.append(float('+inf'))
             max_coordinates.append(float('-inf'))
-            return cls(min_coordinates, max_coordinates)
+        return cls(min_coordinates, max_coordinates)
 
     def add_point(self, p):
         """
@@ -32,8 +32,8 @@ class bounding_box:
         for i, c in enumerate(p.get_coordinates()):
             if c < self.min_coordinates[i]:
                 self.min_coordinates[i] = c
-                if c > self.max_coordinates[i]:
-                    self.max_coordinates[i] = c
+            if c > self.max_coordinates[i]:
+                self.max_coordinates[i] = c
 
     def contains_point(self, p):
         """
@@ -69,9 +69,9 @@ class bounding_box:
         for i, c in enumerate(other.min_coordinates):
             if self.min_coordinates[i] > c:
                 self.min_coordinates[i] = c
-                for i, c in enumerate(other.max_coordinates):
-                    if self.max_coordinates[i] < c:
-                        self.max_coordinates[i] = c
+        for i, c in enumerate(other.max_coordinates):
+            if self.max_coordinates[i] < c:
+                self.max_coordinates[i] = c
 
     def limits(self, index):
         """
