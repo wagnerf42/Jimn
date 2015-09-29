@@ -1,11 +1,4 @@
 from jimn.elementary_path import elementary_path
-from jimn.bounding_box import bounding_box
-from jimn.point import point
-from jimn.segment import segment
-from jimn.utils.coordinates_hash import coordinates_hash
-from jimn.utils.math import circles_intersections, line_circle_intersections
-from jimn.utils.precision import is_almost
-from copy import copy
 
 
 class arc(elementary_path):
@@ -166,3 +159,15 @@ class arc(elementary_path):
             self.endpoints, p, distance, rounder
         )
         return [i for i in intersections if self.contains(i)]
+
+    def inflate(self, radius):
+        return inflate_arc(self, radius)
+
+from jimn.bounding_box import bounding_box
+from jimn.point import point
+from jimn.segment import segment
+from jimn.utils.coordinates_hash import coordinates_hash
+from jimn.utils.math import circles_intersections, line_circle_intersections
+from jimn.utils.precision import is_almost
+from copy import copy
+from jimn.path_merger import inflate_arc

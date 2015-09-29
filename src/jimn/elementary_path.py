@@ -210,43 +210,5 @@ class elementary_path:
     def round_points(self, rounder):
         self.endpoints = [rounder.hash_point(p) for p in self.endpoints]
 
-    def overlapping_area_exit_point(self, other, radius):
-        """
-        when we advance on self with a drill of given radius
-        we might interfere with the drill of other.
-        if interference stops before end of self,
-        return last point of interference
-        """
-        # if distance from end to other is < radius return immediately
-        end_distance = other.distance_to_point(self.get_endpoint(1))
-        if is_almost(end_distance, radius) or end_distance < radius:
-            return
-        # compute inflation of self and other
-        inflated_self = self.inflate(radius)
-        inflated_other = other.inflate(radius)
-
-        # if bounding boxes do not intersect, leave immediately
-        b1 = inflated_self.get_bounding_box()
-        b2 = inflated_other.get_bounding_box()
-
-        if not b1.intersects(b2):
-            return
-
-        # compute intersection points
-        intersections = inflated_self.intersects(inflated_other)
-        # if no intersection return
-        if len(intersections == 0):
-            return
-        # compute points on self reaching all these intersections
-        on_path_points = []
-        for p in intersections:
-            on_path_points.extend(self.points_at_distance(p, radius))
-        # find path point nearest from self.p2
-        d = self.endpoints[1] - self.endpoints[0]
-        last_point = max(
-            on_path_points, key=lambda p: p.scalar_product(d)
-        )
-        return last_point
-
     def __hash__(self):
         return hash(tuple(self.endpoints))

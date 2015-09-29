@@ -1,11 +1,3 @@
-from jimn.bounding_box import bounding_box
-from jimn.polygon import polygon
-from jimn.segment import segment
-from jimn.algorithms.segment_merger import merge_segments
-from jimn.displayable import tycat
-from jimn.utils.debug import is_module_debugged
-from jimn.utils.precision import is_almost
-
 """
 set of paths defining a pocket to mill.
 """
@@ -80,8 +72,9 @@ class pocket:
         """
         intersections = []
         for p1 in self.paths:
-            for p2 in self.paths:
-                i = p1.intersections_with(p2)
+            for p2 in other.paths:
+                rounder = coordinates_hash(2)
+                i = p1.intersections_with(p2, rounder)
                 intersections.extend(i)
         return intersections
 
@@ -126,3 +119,12 @@ class pocket:
                 if intersection_y < y:
                     above_paths = above_paths + 1
         return ((above_paths % 2) == 1)
+
+from jimn.utils.coordinates_hash import coordinates_hash
+from jimn.bounding_box import bounding_box
+from jimn.polygon import polygon
+from jimn.segment import segment
+from jimn.algorithms.segment_merger import merge_segments
+from jimn.displayable import tycat
+from jimn.utils.debug import is_module_debugged
+from jimn.utils.precision import is_almost

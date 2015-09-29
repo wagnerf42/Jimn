@@ -225,5 +225,12 @@ class segment(elementary_path):
         all which are at given distance from p.
         """
         rounder = coordinates_hash(2)
-        intersections = line_circle_intersections(self.endpoints, p, distance, rounder)
+        intersections = line_circle_intersections(
+            self.endpoints, p, distance, rounder
+        )
         return [i for i in intersections if self.contains(i)]
+
+    def inflate(self, radius):
+        return inflate_segment(self, radius)
+
+from jimn.path_merger import inflate_segment
