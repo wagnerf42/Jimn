@@ -160,8 +160,13 @@ def merge_path(outer_path, inner_path, position):
     inner_path.change_starting_point(position.p)
     paths = outer_path.get_elementary_paths()
     arrival_path = paths[position.index]
-    before, after = arrival_path.split_at([position.p])
-    sub_path = [before]
+    if arrival_path.get_endpoint(1) != position.p:
+        before, after = arrival_path.split_at([position.p])
+        sub_path = [before]
+    else:
+        sub_path = [arrival_path]
+        after = None
+
     sub_path.extend(inner_path.get_elementary_paths())
     if after:
         sub_path.append[after]

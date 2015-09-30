@@ -92,11 +92,13 @@ class path:
         else:
             raise Exception("we do not contain given starting point")
         start = self.elementary_paths[:index]
-        end = self.elementary_paths[index+1]
-        before, after = self.elementary_paths[index].split_at(p)
+        end = self.elementary_paths[index+1:]
         new_cycle = []
-        if after:
+        if self.elementary_paths[index].get_endpoint(1) != p:
+            before, after = self.elementary_paths[index].split_at([p])
             new_cycle.append(after)
+        else:
+            before = self.elementary_paths[index]
         new_cycle.extend(end)
         new_cycle.extend(start)
         new_cycle.append(before)
