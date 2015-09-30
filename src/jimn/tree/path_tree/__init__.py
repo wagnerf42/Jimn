@@ -1,14 +1,10 @@
 from jimn.tree import tree
-from jimn.pocket.graph_builder import build_graph
-from jimn.graph.eulerian_cycle import find_eulerian_cycle
-from jimn.displayable import tycat
-from jimn.utils.debug import is_module_debugged
 
 
 class path_tree(tree):
 
     def __init__(self, path=None):
-        self.initial_path = path
+        self.content = path
         self.children = []
 
     @classmethod
@@ -20,11 +16,76 @@ class path_tree(tree):
 
     def animate(self):
         for n in self.depth_first_exploration():
-            if n.initial_path is not None:
-                n.initial_path.animate()
+            if n.content is not None:
+                n.content.animate()
 
-    def global_path(self):
-        print("TODO")
+    def global_path(self, milling_radius):
+        """
+        flattens the tree into final path
+        """
+        # start by computing toplevel tour
+        toplevel_tour = self._compute_toplevel_tour()
+        # now, process all subtrees
+        for c in self.children:
+            c._merge_paths(milling_radius)
+        return self._merge_toplevel(toplevel_tour)
+
+    def _merge_toplevel(self, toplevel_tour):
+        """
+        tour all points in tour.
+        at each point (except first)
+        we go down in subtree and back up to continue touring
+        """
+        final_paths = []
+        for i in range(len(toplevel_tour))-1:
+            start = toplevel_tour[i]
+            end = toplevel_tour[i+1]
+            if not start.is_almost(end):
+                final_paths.append(segment([start, end]))
+            # TODO: go down
+            final_paths.extend(self.children[i].content.get_elementary_path())
+            # TODO: go back up
+        # back to origin
+        final_paths.append(segment([toplevel_tour[-1], toplevel_tour[0]]))
+        return path(final_paths)
+
+    def _merge_paths(self, milling_radius):
+        """
+        recursive merging of paths
+        """
+        # figure out on small paths where overlapping takes place
+        # it will be way more faster than after we merged back
+        # all subtrees
+        intervals = []
+        for c in self.children:
+            i = overlap_interval(self.content, c.content, milling_radius)
+            intervals.append(i)
+
+        # sort children by intervals
+        # from last overlapping to first overlapping
+        # in this way we can keep valid position as array indices :
+        # when we will update merged_path, if we start adding steps
+        # at the end then positions for adding steps at the beginning
+        # will still be valid
+        intervals = self._sort_children_and_intervals(intervals)
+
+        # recurse
+        for c in self.children:
+            c._merge_paths()
+        # now, insert merged paths in main one
+        for i, c in enumerate(self.children):
+            merge_path(self.content, c, intervals[i])
+
+    def _compute_toplevel_tour(self):
+        """
+        find cycle starting at origin and
+        passing through one point of each toplevel pocket.
+        returns list of 2d points.
+        This will also sort all children by order of visit of the tour
+        and change each cycle starting point as the visited point
+        """
+        # TODO: use TSP instead of dumb algorithm
+        assert False, "TODO"
 
 
 def _pocket_node_to_path_node(pocket_node, milling_radius):
@@ -48,3 +109,11 @@ def _pocket_node_to_path_node(pocket_node, milling_radius):
         for n in pocket_node.get_children()
     ]
     return path_node
+
+from jimn.displayable import tycat
+from jimn.graph.eulerian_cycle import find_eulerian_cycle
+from jimn.path import path
+from jimn.path_merger import overlap_interval, merge_path
+from jimn.pocket.graph_builder import build_graph
+from jimn.segment import segment
+from jimn.utils.debug import is_module_debugged

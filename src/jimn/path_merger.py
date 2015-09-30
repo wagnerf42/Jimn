@@ -82,6 +82,14 @@ def overlapping_area_exit_point(followed, other, radius):
     return last_point
 
 
+def overlap_interval(outer_path, inner_path, milling_radius):
+    assert False, "TODO"
+
+
+def merge_path(outer_path, inner_path, p):
+    assert False, "TODO"
+
+
 from jimn.arc import arc
 from jimn.displayable import tycat
 from jimn.pocket import pocket

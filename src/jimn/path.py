@@ -10,6 +10,9 @@ class path:
     def __init__(self, elementary_paths):
         self.elementary_paths = elementary_paths
 
+    def get_elementary_paths(self):
+        return self.elementary_paths
+
     def get_start(self):
         return self.elementary_paths[0].get_endpoint(0)
 
