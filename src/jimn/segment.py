@@ -233,4 +233,4 @@ class segment(elementary_path):
     def inflate(self, radius):
         return inflate_segment(self, radius)
 
-from jimn.path_merger import inflate_segment
+from jimn.tree.path_tree.path_merger import inflate_segment

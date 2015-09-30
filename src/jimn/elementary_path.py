@@ -59,6 +59,13 @@ class elementary_path:
         """returns dimension of space containing the points"""
         return self.endpoints[0].dimension()
 
+    def squared_distance_from_start(self, p):
+        """
+        returns scalar used for comparing points on path.
+        the higher the scalar, the closer to endpoint.
+        """
+        return self.endpoints[0].squared_distance_to(p)
+
     def split_at(self, points):
         """split path at given points.
         returns list of same type objects ;
@@ -68,10 +75,11 @@ class elementary_path:
         input points can be duplicated but no output paths are
         """
         start_point, end_point = self.endpoints
-        d = end_point - start_point
 
         points.extend(self.endpoints)
-        sorted_points = sorted(points, key=lambda p: p.scalar_product(d))
+        sorted_points = sorted(
+            points, key=lambda p: self.squared_distance_from_start(p)
+        )
         paths = []
         inside = False
         for p1, p2 in all_two_elements(sorted_points):

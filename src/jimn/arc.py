@@ -170,4 +170,4 @@ from jimn.utils.coordinates_hash import coordinates_hash
 from jimn.utils.math import circles_intersections, line_circle_intersections
 from jimn.utils.precision import is_almost
 from copy import copy
-from jimn.path_merger import inflate_arc
+from jimn.tree.path_tree.path_merger import inflate_arc
