@@ -13,6 +13,9 @@ class path:
     def get_elementary_paths(self):
         return self.elementary_paths
 
+    def set_elementary_paths(self, elementary_paths):
+        self.elementary_paths = elementary_paths
+
     def get_start(self):
         return self.elementary_paths[0].get_endpoint(0)
 
@@ -74,20 +77,27 @@ class path:
                     last_intersecting_indices = (i, j)
         return last_intersecting_indices, last_intersection
 
-    def set_starting_point(self, start, index):
+    def change_starting_point(self, p):
         """
-        pre-requisite: path is a cycle ; elementary_path at 'index'
-        contains 'start'.
-        change cycle starting point so that first point is 'start'
+        change starting point of cycle path.
+        pre-requisite: given point is on path
         """
-        intersecting_path = self.elementary_paths[index]
-        split_end, split_start = intersecting_path.split_at(start)
-        assert False  # TODO check always good
-        cycle_end, cycle_start = (
-            self.elementary_paths[:index],
-            self.elementary_paths[index+1:]
-        )
-        self.elementary_paths = [split_start]
-        self.elementary_paths.extend(cycle_start)
-        self.elementary_paths.extend(cycle_end)
-        self.elementary_paths.append(split_end)
+        if p == self.get_start():
+            return
+
+        for i, ep in enumerate(self.elementary_paths):
+            if ep.contains(p):
+                index = i
+                break
+        else:
+            raise Exception("we do not contain given starting point")
+        start = self.elementary_paths[:index]
+        end = self.elementary_paths[index+1]
+        before, after = self.elementary_paths[index].split_at(p)
+        new_cycle = []
+        if after:
+            new_cycle.append(after)
+        new_cycle.extend(end)
+        new_cycle.extend(start)
+        new_cycle.append(before)
+        self.elementary_paths = new_cycle

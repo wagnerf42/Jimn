@@ -117,7 +117,6 @@ def overlapping_area_exit_point(followed, other, radius, index):
             tycat(followed, inflated_followed, inflated_other,
                   intersections, on_path_points)
     # find path point nearest from followed.p2
-    d = followed.endpoints[1] - followed.endpoints[0]
     last_point = max(
         on_path_points, key=lambda p: followed.squared_distance_from_start(p)
     )
@@ -152,8 +151,22 @@ def overlap_exit_position(outer_path, inner_path, milling_radius):
     raise Exception("no path intersection")
 
 
-def merge_path(outer_path, inner_path, p):
-    assert False, "TODO"
+def merge_path(outer_path, inner_path, position):
+    """
+    merge inner path inside outer path at given position.
+    Note that since positions contains array indices you
+    need to merge starting from last path.
+    """
+    inner_path.change_starting_point(position.p)
+    paths = outer_path.get_elementary_paths()
+    arrival_path = paths[position.index]
+    before, after = arrival_path.split_at([position.p])
+    sub_path = [before]
+    sub_path.extend(inner_path.get_elementary_paths())
+    if after:
+        sub_path.append[after]
+    paths[position.index:position.index] = sub_path
+    outer_path.set_elementary_paths(paths)
 
 
 from jimn.arc import arc

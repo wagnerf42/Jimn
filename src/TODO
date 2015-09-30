@@ -2,11 +2,10 @@
  * large goals
 
 - use new caching functions
-- use inflated paths for intersections
 - do path merging algorithm
+  -> we need to store two points in path_positions
 
 - use translated nodes in replacement of translated polygons
-- compute global path
 
  * code review
  * minor code improvements (readability)

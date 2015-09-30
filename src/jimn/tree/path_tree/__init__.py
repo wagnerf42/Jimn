@@ -71,13 +71,24 @@ class path_tree(tree):
 
         # recurse
         for c in self.children:
-            c._merge_paths()
+            c._merge_paths(milling_radius)
             # now, insert merged paths in main one
             for i, c in enumerate(self.children):
-                merge_path(self.content, c, positions[i])
+                merge_path(self.content, c.content, positions[i])
 
     def _sort_children_and_positions(self, positions):
-        assert False, "TODO"
+        pairs = [
+            (p, self.children[i])
+            for i, p in enumerate(positions)
+        ]
+        sorted_pairs = sorted(pairs, key=lambda pair: pair[0])
+        sorted_children = []
+        sorted_positions = []
+        for pair in sorted_pairs:
+            sorted_positions.append(pair[0])
+            sorted_children.append(pair[1])
+        self.children = sorted_children
+        return sorted_positions
 
     def _compute_toplevel_tour(self):
         """
