@@ -1,17 +1,17 @@
 
 class path_position:
-    def __init__(self, p, ep, index):
+    def __init__(self, points, ep, index):
         """
-        creates an object storing a position on a path.
+        creates an object storing a interference position on two paths.
         records:
-            - the point
-            - the elementary path on which the point is
-            - the index of the elementary path in the path
+            - pair of points (first one on the followed path)
+            - the followed elementary path on which the first point is
+            - the index of the elementary path in the followed path
         """
-        self.p = p
+        self.points = points
         self.ep = ep
         if index >= 0:
-            self.distance = ep.squared_distance_from_start(p)
+            self.distance = ep.squared_distance_from_start(points[0])
         self.index = index
 
     @classmethod
@@ -111,16 +111,20 @@ def overlapping_area_exit_point(followed, other, radius, index):
     # compute points on followed reaching all these intersections
     on_path_points = []
     for p in intersections:
-        on_path_points.extend(followed.points_at_distance(p, radius))
+        raise Exception("TODO: wrong, we need a 1:1 correspondance")
+        on_path_points.extend([
+            followed.points_at_distance(p, radius),
+            other.points_at_distance(p, radius),
+        ])
     if __debug__:
         if is_module_debugged(__name__):
             tycat(followed, inflated_followed, inflated_other,
-                  intersections, on_path_points)
+                  intersections)
     # find path point nearest from followed.p2
-    last_point = max(
-        on_path_points, key=lambda p: followed.squared_distance_from_start(p)
+    last_points = max(
+        on_path_points, key=lambda p: followed.squared_distance_from_start(p[0])
     )
-    return path_position(last_point, followed, index)
+    return path_position(last_points, followed, index)
 
 
 def overlap_exit_position(outer_path, inner_path, milling_radius):
@@ -157,11 +161,11 @@ def merge_path(outer_path, inner_path, position):
     Note that since positions contains array indices you
     need to merge starting from last path.
     """
-    inner_path.change_starting_point(position.p)
+    inner_path.change_starting_point(position.points[1])
     paths = outer_path.get_elementary_paths()
     arrival_path = paths[position.index]
     if arrival_path.get_endpoint(1) != position.p:
-        before, after = arrival_path.split_at([position.p])
+        before, after = arrival_path.split_at([position.points[0]])
         sub_path = [before]
     else:
         sub_path = [arrival_path]

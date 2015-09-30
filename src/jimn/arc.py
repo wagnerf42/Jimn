@@ -156,7 +156,7 @@ class arc(elementary_path):
         """
         rounder = coordinates_hash(2)
         intersections = circles_intersections(
-            self.endpoints, p, distance, rounder
+            self.center, p, self.radius, distance, rounder
         )
         return [i for i in intersections if self.contains(i)]
 
