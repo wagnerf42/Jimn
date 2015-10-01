@@ -87,7 +87,7 @@ class elementary_path:
                 inside = True
             if p1 == end_point:
                 inside = False
-            if inside and not p1 == p2:
+            if inside and not p1.is_almost(p2):
                 new_path = copy.copy(self)
                 new_path.endpoints = [p1, p2]
                 assert new_path.squared_length() > segment_limit,\

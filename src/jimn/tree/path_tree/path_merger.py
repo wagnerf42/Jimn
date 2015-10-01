@@ -193,8 +193,6 @@ def overlap_exit_position(outer_path, inner_path, milling_radius):
     with inner path.
     returns a marker for this position.
     """
-    print("doing")
-    tycat(outer_path, inner_path)
     outer_paths = outer_path.get_elementary_paths()
     inner_paths = inner_path.get_elementary_paths()
     # we start from end of outer path because we are interested in last
@@ -225,7 +223,8 @@ def merge_path(outer_path, inner_path, position):
     inner_path.change_starting_point(position.inner_point)
     paths = outer_path.get_elementary_paths()
     arrival_path = paths[position.index]
-    if arrival_path.get_endpoint(1) != position.p:
+    assert arrival_path.contains(position.outer_point), "no merging here"
+    if not position.outer_point.is_almost(arrival_path.get_endpoint(1)):
         before, after = arrival_path.split_at([position.outer_point])
         sub_path = [before]
     else:
@@ -234,7 +233,7 @@ def merge_path(outer_path, inner_path, position):
 
     sub_path.extend(inner_path.get_elementary_paths())
     if after:
-        sub_path.append[after]
+        sub_path.append(after)
     paths[position.index:position.index] = sub_path
     outer_path.set_elementary_paths(paths)
 

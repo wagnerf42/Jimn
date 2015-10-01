@@ -37,13 +37,13 @@ class path_tree(tree):
         we go down in subtree and back up to continue touring
         """
         final_paths = []
-        for i in range(len(toplevel_tour))-1:
+        for i in range(len(toplevel_tour)-1):
             start = toplevel_tour[i]
             end = toplevel_tour[i+1]
             if not start.is_almost(end):
                 final_paths.append(segment([start, end]))
             # TODO: go down
-            final_paths.extend(self.children[i].content.get_elementary_path())
+            final_paths.extend(self.children[i].content.get_elementary_paths())
             # TODO: go back up
         # back to origin
         final_paths.append(segment([toplevel_tour[-1], toplevel_tour[0]]))
@@ -56,10 +56,10 @@ class path_tree(tree):
         # figure out on small paths where overlapping takes place
         # it will be way more faster than after we merged back
         # all subtrees
-        positions = []
-        for c in self.children:
-            p = overlap_exit_position(self.content, c.content, milling_radius)
-            positions.append(p)
+        positions = [
+            overlap_exit_position(self.content, c.content, milling_radius)
+            for c in self.children
+        ]
 
         # sort children by positions
         # from last overlapping to first overlapping
@@ -81,14 +81,14 @@ class path_tree(tree):
             (p, self.children[i])
             for i, p in enumerate(positions)
         ]
-        sorted_pairs = sorted(pairs, key=lambda pair: pair[0])
+        sorted_pairs = sorted(pairs, key=lambda pair: pair[0], reverse=True)
         sorted_children = []
         sorted_positions = []
         for pair in sorted_pairs:
             sorted_positions.append(pair[0])
             sorted_children.append(pair[1])
-        self.children = sorted_children
-        return sorted_positions
+            self.children = sorted_children
+            return sorted_positions
 
     def _compute_toplevel_tour(self):
         """

@@ -95,7 +95,7 @@ class path:
         start = self.elementary_paths[:index]
         end = self.elementary_paths[index+1:]
         new_cycle = []
-        if self.elementary_paths[index].get_endpoint(1) != p:
+        if not p.is_almost(self.elementary_paths[index].get_endpoint(1)):
             before, after = self.elementary_paths[index].split_at([p])
             new_cycle.append(after)
         else:
