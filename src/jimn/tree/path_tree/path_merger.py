@@ -1,17 +1,19 @@
 
 class path_position:
-    def __init__(self, points, ep, index):
+    def __init__(self, outer_point, inner_point, ep, index):
         """
         creates an object storing a interference position on two paths.
         records:
-            - pair of points (first one on the followed path)
-            - the followed elementary path on which the first point is
+            - point on the followed path
+            - interference point on the other path
+            - followed elementary path
             - the index of the elementary path in the followed path
         """
-        self.points = points
+        self.outer_point = outer_point
+        self.inner_point = inner_point
         self.ep = ep
         if index >= 0:
-            self.distance = ep.squared_distance_from_start(points[0])
+            self.distance = ep.squared_distance_from_start(outer_point)
         self.index = index
 
     @classmethod
@@ -20,7 +22,7 @@ class path_position:
         returns a non existing position which will always compare as
         less than a real one
         """
-        return cls(None, None, -1)
+        return cls(None, None, None, -1)
 
     def is_not_empty(self):
         """
@@ -72,12 +74,15 @@ def inflate_arc(a, radius):
     assert radius == a.get_radius()
     p2, p4 = a.get_endpoints()
     p3 = a.get_center()
-    diff = (p2-p3)
-    p1 = p2 + diff
-    p5 = p4 - diff
+    p1 = p2 + p2 - p3
+    p5 = p4 + p4 - p3
     a1 = arc(radius, (p3, p1), p2)
     a2 = arc(radius, (p5, p3), p4)
     a3 = arc(2*radius, (p1, p5), p3)
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("inflating arc:")
+            tycat(a, p1, p2, p3, p4, p5)
     return pocket([a1, a2, a3])
 
 
@@ -111,11 +116,15 @@ def overlapping_area_exit_point(followed, other, radius, index):
     # compute points on followed reaching all these intersections
     on_path_points = []
     for p in intersections:
-        raise Exception("TODO: wrong, we need a 1:1 correspondance")
-        on_path_points.extend([
-            followed.points_at_distance(p, radius),
-            other.points_at_distance(p, radius),
-        ])
+        inner_points = other.points_at_distance(p, radius)
+        outer_points = followed.points_at_distance(p, radius)
+        if __debug__:
+            if not inner_points:
+                print(other)
+                tycat(followed, inflated_followed, other, inflated_other, p)
+        inner_point = inner_points[0] # we can keep any of inner points
+        for q in outer_points:
+            on_path_points.append([q, inner_point])
     if __debug__:
         if is_module_debugged(__name__):
             tycat(followed, inflated_followed, inflated_other,
@@ -124,7 +133,8 @@ def overlapping_area_exit_point(followed, other, radius, index):
     last_points = max(
         on_path_points, key=lambda p: followed.squared_distance_from_start(p[0])
     )
-    return path_position(last_points, followed, index)
+    outer_point, inner_point = last_points
+    return path_position(outer_point, inner_point, followed, index)
 
 
 def overlap_exit_position(outer_path, inner_path, milling_radius):
@@ -161,11 +171,11 @@ def merge_path(outer_path, inner_path, position):
     Note that since positions contains array indices you
     need to merge starting from last path.
     """
-    inner_path.change_starting_point(position.points[1])
+    inner_path.change_starting_point(position.inner_point)
     paths = outer_path.get_elementary_paths()
     arrival_path = paths[position.index]
     if arrival_path.get_endpoint(1) != position.p:
-        before, after = arrival_path.split_at([position.points[0]])
+        before, after = arrival_path.split_at([position.outer_point])
         sub_path = [before]
     else:
         sub_path = [arrival_path]

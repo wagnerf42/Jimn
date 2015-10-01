@@ -163,6 +163,11 @@ class arc(elementary_path):
     def inflate(self, radius):
         return inflate_arc(self, radius)
 
+    def __str__(self):
+        return "endpoints:" + str(self.endpoints[0]) \
+            + " " + str(self.endpoints[1]) \
+            + " radius " + str(self.radius)
+
 from jimn.bounding_box import bounding_box
 from jimn.point import point
 from jimn.segment import segment
