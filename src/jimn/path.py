@@ -48,6 +48,7 @@ class path:
         return box
 
     def save_svg_content(self, display, color):
+        self.get_start().save_svg_content(display, color)
         for p in self.elementary_paths:
             p.save_svg_content(display, color)
 

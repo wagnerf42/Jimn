@@ -86,6 +86,64 @@ def inflate_arc(a, radius):
     return pocket([a1, a2, a3])
 
 
+def segments_might_overlap(s1, s2):
+    """
+    returns if segments are aligned
+    """
+    rounder = coordinates_hash(2)
+    return s1.line_hash(rounder) == s2.line_hash(rounder)
+
+
+def arcs_might_overlap(a1, a2):
+    """
+    returns if arcs follow same circle
+    """
+    same_centers = a1.get_center().is_almost(a2.get_center())
+    same_radii = is_almost(a1.get_radius(), a2.get_radius())
+    return same_centers and same_radii
+
+
+def last_overlapping_point(followed, other):
+    """
+    if followed on others overlap returns the last point
+    of followed overlapping other.
+    else returns None.
+    overlapping means here overlapping on more than one point
+    """
+    if str(type(followed)) == "<class 'jimn.arc.arc'>" and \
+            str(type(other)) == "<class 'jimn.arc.arc'>":
+        if not arcs_might_overlap(followed, other):
+            return
+    elif str(type(followed)) == "<class 'jimn.arc.arc'>" and \
+            str(type(other)) == "<class 'jimn.arc.arc'>":
+        if not segments_might_overlap(followed, other):
+            return
+    else:
+        return
+    raise Exception("TODO")
+
+
+def last_points_reaching(followed, other, intersections, radius):
+    """
+    given two elementary paths followed and other
+    and a set of intersections of the pockets of size radius around them
+    return the last point of followed at distance radius of an intersection
+    together with a point at same distance of same intersection in other
+    """
+    # compute points on followed and others reaching all these intersections
+    on_path_points = []
+    for p in intersections:
+        inner_points = other.points_at_distance(p, radius)
+        outer_points = followed.points_at_distance(p, radius)
+        inner_point = inner_points[0]  # we can keep any of inner points
+        for q in outer_points:
+            on_path_points.append([q, inner_point])
+    # find path point nearest from followed.p2 and corresponding point in other
+    return max(
+        on_path_points, key=lambda p: followed.squared_distance_from_start(p[0])
+    )
+
+
 def overlapping_area_exit_point(followed, other, radius, index):
     """
     when we advance on 'followed' path with a drill of given radius
@@ -93,6 +151,12 @@ def overlapping_area_exit_point(followed, other, radius, index):
     if interference stops before end of followed,
     return last position of interference
     """
+    interference_point = last_overlapping_point(followed, other)
+    if interference_point:
+        return path_position(
+            interference_point, interference_point, followed, index
+        )
+
     # if distance from end to other is < radius return immediately
     end_distance = other.distance_to_point(followed.get_endpoint(1))
     if is_almost(end_distance, radius) or end_distance < radius:
@@ -113,27 +177,14 @@ def overlapping_area_exit_point(followed, other, radius, index):
     # if no intersection return
     if len(intersections) == 0:
         return
-    # compute points on followed reaching all these intersections
-    on_path_points = []
-    for p in intersections:
-        inner_points = other.points_at_distance(p, radius)
-        outer_points = followed.points_at_distance(p, radius)
-        if __debug__:
-            if not inner_points:
-                print(other)
-                tycat(followed, inflated_followed, other, inflated_other, p)
-        inner_point = inner_points[0] # we can keep any of inner points
-        for q in outer_points:
-            on_path_points.append([q, inner_point])
     if __debug__:
         if is_module_debugged(__name__):
-            tycat(followed, inflated_followed, inflated_other,
-                  intersections)
-    # find path point nearest from followed.p2
-    last_points = max(
-        on_path_points, key=lambda p: followed.squared_distance_from_start(p[0])
+            tycat(followed, other, inflated_followed,
+                  inflated_other, intersections)
+
+    outer_point, inner_point = last_points_reaching(
+        followed, other, intersections, radius
     )
-    outer_point, inner_point = last_points
     return path_position(outer_point, inner_point, followed, index)
 
 
@@ -144,6 +195,8 @@ def overlap_exit_position(outer_path, inner_path, milling_radius):
     with inner path.
     returns a marker for this position.
     """
+    print("doing")
+    tycat(outer_path, inner_path)
     outer_paths = outer_path.get_elementary_paths()
     inner_paths = inner_path.get_elementary_paths()
     # we start from end of outer path because we are interested in last
