@@ -153,7 +153,11 @@ class arc(elementary_path):
         """
         returns from all points on self between start and end
         all which are at given distance from p.
+        if p is our center and distance our radius, only return last point
         """
+        if p.is_almost(self.center) and is_almost(distance, self.radius):
+            return [self.endpoints[1]]
+
         rounder = coordinates_hash(2)
         intersections = circles_intersections(
             self.center, p, self.radius, distance, rounder

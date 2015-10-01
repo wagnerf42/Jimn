@@ -27,8 +27,6 @@ def circles_intersections(c1, c2, r1, r2, rounder):
         l = d/2
     else:
         l = (r1 * r1 - r2 * r2 + d * d) / (2 * d)
-    if r1 < l:
-        return []  # too far away
 
     if is_almost(r1, l):
         # only one intersection
@@ -38,6 +36,9 @@ def circles_intersections(c1, c2, r1, r2, rounder):
         ])
         return [rounder.hash_point(i)]
     else:
+        if r1 < l:
+            return []  # too far away
+
         if abs(r1) < abs(l):
             return []
         else:

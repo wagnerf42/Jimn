@@ -79,10 +79,6 @@ def inflate_arc(a, radius):
     a1 = arc(radius, (p3, p1), p2)
     a2 = arc(radius, (p5, p3), p4)
     a3 = arc(2*radius, (p1, p5), p3)
-    if __debug__:
-        if is_module_debugged(__name__):
-            print("inflating arc:")
-            tycat(a, p1, p2, p3, p4, p5)
     return pocket([a1, a2, a3])
 
 
@@ -135,6 +131,8 @@ def last_points_reaching(followed, other, intersections, radius):
     for p in intersections:
         inner_points = other.points_at_distance(p, radius)
         outer_points = followed.points_at_distance(p, radius)
+        if not inner_points:
+            tycat(followed, other, p)
         inner_point = inner_points[0]  # we can keep any of inner points
         for q in outer_points:
             on_path_points.append([q, inner_point])
