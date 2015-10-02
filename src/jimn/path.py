@@ -72,9 +72,10 @@ class path:
 
     def animate(self, *other_things):
         displayed = path([])
-        for p in self.elementary_paths:
+        for i, p in enumerate(self.elementary_paths):
             displayed.append(p)
-            tycat(displayed, other_things)
+            if i % 10 == 0:
+                tycat(displayed, other_things)
 
     def last_intersection_with(self, other):
         """
@@ -119,3 +120,6 @@ class path:
         new_cycle.extend(start)
         new_cycle.append(before)
         self.elementary_paths = new_cycle
+
+    def get_dot_label(self):
+        return str(id(self))

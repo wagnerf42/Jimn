@@ -3,7 +3,6 @@
 
 - use new caching functions
 - do path merging algorithm
-  -> we need to store two points in path_positions
 
 - use translated nodes in replacement of translated polygons
 
@@ -22,7 +21,6 @@
  * additional non-regression tests
  * misc
 
-- better bounding box for arcs
 - profiling
 - test ascii stl loader
 - rounders in arc class
@@ -45,4 +43,3 @@
  * bug fixes
 
 - there is a bug in pocket inclusion
-- rounding bug in arc creation (see interactive_tests/test_inflate.py)

@@ -233,7 +233,9 @@ def merge_path(outer_path, inner_path, position):
         sub_path = [arrival_path]
         after = None
 
+    sub_path.append(vertical_path(-1))
     sub_path.extend(inner_path.get_elementary_paths())
+    sub_path.append(vertical_path(1))
     if after:
         sub_path.append(after)
     paths[position.index:position.index] = sub_path
@@ -246,3 +248,4 @@ from jimn.pocket import pocket
 from jimn.utils.coordinates_hash import coordinates_hash
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost
+from jimn.vertical_path import vertical_path

@@ -72,9 +72,10 @@ class path_tree(tree):
         # recurse
         for c in self.children:
             c._merge_paths(milling_radius)
-            # now, insert merged paths in main one
-            for i, c in enumerate(self.children):
-                merge_path(self.content, c.content, positions[i])
+
+        # now, insert merged paths in main one
+        for i, c in enumerate(self.children):
+            merge_path(self.content, c.content, positions[i])
 
     def _sort_children_and_positions(self, positions):
         pairs = [
@@ -87,8 +88,9 @@ class path_tree(tree):
         for pair in sorted_pairs:
             sorted_positions.append(pair[0])
             sorted_children.append(pair[1])
-            self.children = sorted_children
-            return sorted_positions
+
+        self.children = sorted_children
+        return sorted_positions
 
     def _compute_toplevel_tour(self):
         """
@@ -102,7 +104,7 @@ class path_tree(tree):
         points = [point([0, 0])]
         for c in self.children:
             points.append(c.content.get_start())
-            return points
+        return points
 
 
 def _pocket_node_to_path_node(pocket_node, milling_radius):
