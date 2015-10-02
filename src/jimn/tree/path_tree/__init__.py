@@ -42,9 +42,9 @@ class path_tree(tree):
             end = toplevel_tour[i+1]
             if not start.is_almost(end):
                 final_paths.append(segment([start, end]))
-            # TODO: go down
+            final_paths.append(vertical_path(-1))
             final_paths.extend(self.children[i].content.get_elementary_paths())
-            # TODO: go back up
+            final_paths.append(vertical_path(1))
         # back to origin
         final_paths.append(segment([toplevel_tour[-1], toplevel_tour[0]]))
         return path(final_paths)
@@ -135,3 +135,4 @@ from jimn.point import point
 from jimn.pocket.graph_builder import build_graph
 from jimn.segment import segment
 from jimn.utils.debug import is_module_debugged
+from jimn.vertical_path import vertical_path

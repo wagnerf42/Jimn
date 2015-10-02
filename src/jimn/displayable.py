@@ -89,6 +89,14 @@ class displayed_thing(object):
     def get_color(self, index):
         return svg_colors[index % len(svg_colors)]
 
+    def get_color_after(self, color, shift):
+        """
+        returns 'shift' colors after given color
+        """
+        color_index = svg_colors.index(color)
+        color_index += shift
+        return svg_colors[color_index % len(svg_colors)]
+
     def stroke_width(self):
         min_dimension = min(svg_dimensions)
         expected_size = ceil(min_dimension / 100)

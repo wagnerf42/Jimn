@@ -1,5 +1,6 @@
 from jimn.bounding_box import bounding_box
 from jimn.displayable import tycat
+from collections import defaultdict
 
 """
 a path is a list of arcs or segments
@@ -49,17 +50,31 @@ class path:
 
     def save_svg_content(self, display, color):
         self.get_start().save_svg_content(display, color)
+        heights = defaultdict(list)
+        current_height = 0
         for p in self.elementary_paths:
-            p.save_svg_content(display, color)
+            current_height = p.update_height(current_height)
+            heights[current_height].append(p)
+
+        for height, paths in heights.items():
+            new_color = display.get_color_after(color, height)
+            for p in paths:
+                p.save_svg_content(display, new_color)
 
     def length(self):
         return sum([p.length() for p in self.elementary_paths])
 
+    def append(self, elementary_path):
+        self.elementary_paths.append(elementary_path)
+
+    def extend(self, paths):
+        self.elementary_paths.extend(paths)
+
     def animate(self, *other_things):
-        displayed_paths = []
+        displayed = path([])
         for p in self.elementary_paths:
-            displayed_paths.append(p)
-            tycat(displayed_paths, other_things)
+            displayed.append(p)
+            tycat(displayed, other_things)
 
     def last_intersection_with(self, other):
         """

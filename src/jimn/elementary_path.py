@@ -220,3 +220,9 @@ class elementary_path:
 
     def __hash__(self):
         return hash(tuple(self.endpoints))
+
+    def update_height(self, height):
+        """
+        height change by following this path (no change since horizontal)
+        """
+        return height

@@ -6,7 +6,7 @@ from jimn.tree.polygon_tree import polygon_tree
 from jimn.tree.pocket_tree import pocket_tree
 from jimn.tree.path_tree import path_tree
 
-milling_radius = 0.6
+milling_radius = 0.9
 # milling_radius = 0.1 #bug
 
 polygons = {}
@@ -34,4 +34,5 @@ print("path tree")
 #paths.animate()
 
 global_path = paths.global_path(milling_radius)
+global_path.animate()
 print("total length:", global_path.length())
