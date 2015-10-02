@@ -26,7 +26,7 @@ def circles_intersections(c1, c2, r1, r2, rounder):
     if is_almost(r1, r2):
         l = d/2
     else:
-        l = (r1 * r1 - r2 * r2 + d * d) / (2 * d)
+        l = (r1 * r1 - r2 * r2) / (2 * d) + d/2
 
     if is_almost(r1, l):
         # only one intersection
@@ -57,26 +57,26 @@ def circles_intersections(c1, c2, r1, r2, rounder):
 
 
 def line_circle_intersections(points, center, radius, rounder):
-        # take first point as origin
-        d = points[1] - points[0]
-        c = center - points[0]
-        xd, yd = d.get_coordinates()
-        xc, yc = c.get_coordinates()
-        # segment points are at alpha * d
-        # distance(alpha * d, center) = r
+    # take first point as origin
+    d = points[1] - points[0]
+    c = center - points[0]
+    xd, yd = d.get_coordinates()
+    xc, yc = c.get_coordinates()
+    # segment points are at alpha * d
+    # distance(alpha * d, center) = r
 
-        # (xc-alpha*xd)**2 + (yc-alpha*yd)**2 - r**2 = 0
+    # (xc-alpha*xd)**2 + (yc-alpha*yd)**2 - r**2 = 0
 
-        # xc**2 + alpha**2*xd**2 -2*alpha*xc*xd
-        # yc**2 + alpha**2*yd**2 -2*alpha*yc*yd
-        # - r**2 = 0
-        a = xd**2 + yd**2
-        b = -2*(xc*xd + yc*yd)
-        c = xc**2 + yc**2 - radius**2
+    # xc**2 + alpha**2*xd**2 -2*alpha*xc*xd
+    # yc**2 + alpha**2*yd**2 -2*alpha*yc*yd
+    # - r**2 = 0
+    a = xd**2 + yd**2
+    b = -2*(xc*xd + yc*yd)
+    c = xc**2 + yc**2 - radius**2
 
-        solutions = solve_quadratic_equation(a, b, c)
-        intersections = []
-        for s in solutions:
-            intersection = points[0] + d * s
-            intersections.append(rounder.hash_point(intersection))
-        return intersections
+    solutions = solve_quadratic_equation(a, b, c)
+    intersections = []
+    for s in solutions:
+        intersection = points[0] + d * s
+        intersections.append(rounder.hash_point(intersection))
+    return intersections

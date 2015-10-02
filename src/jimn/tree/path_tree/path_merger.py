@@ -72,7 +72,10 @@ def inflate_arc(a, radius):
     returns pocket around arc reachable by given radius
     """
     assert radius == a.get_radius()
-    p2, p4 = a.get_endpoints()
+    # get endpoints
+    # we need them in non-reversed order for inflating
+    # (inflation does not depend on direction)
+    p2, p4 = a.get_stored_endpoints()
     p3 = a.get_center()
     p1 = p2 + p2 - p3
     p5 = p4 + p4 - p3
@@ -129,10 +132,8 @@ def last_points_reaching(followed, other, intersections, radius):
     # compute points on followed and others reaching all these intersections
     on_path_points = []
     for p in intersections:
-        inner_points = other.points_at_distance(p, radius)
         outer_points = followed.points_at_distance(p, radius)
-        if not inner_points:
-            tycat(followed, other, p)
+        inner_points = other.points_at_distance(p, radius)
         inner_point = inner_points[0]  # we can keep any of inner points
         for q in outer_points:
             on_path_points.append([q, inner_point])
@@ -223,6 +224,7 @@ def merge_path(outer_path, inner_path, position):
     inner_path.change_starting_point(position.inner_point)
     paths = outer_path.get_elementary_paths()
     arrival_path = paths[position.index]
+    assert arrival_path == position.ep
     assert arrival_path.contains(position.outer_point), "no merging here"
     if not position.outer_point.is_almost(arrival_path.get_endpoint(1)):
         before, after = arrival_path.split_at([position.outer_point])

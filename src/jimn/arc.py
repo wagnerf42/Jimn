@@ -54,6 +54,15 @@ class arc(elementary_path):
         else:
             return self.endpoints
 
+    def get_stored_endpoints(self):
+        """
+        returns endpoints in stored order.
+        we do not care whether the arc is reversed
+        or not.
+        useful for operations independant from arc direction
+        """
+        return self.endpoints
+
     def get_endpoint(self, index):
         if self.reversed_direction:
             index = 1 - index
@@ -153,16 +162,20 @@ class arc(elementary_path):
         """
         returns from all points on self between start and end
         all which are at given distance from p.
-        if p is our center and distance our radius, only return last point
+        if end is at given distance from p only returns end
+        (handles overlapping cases)
         """
-        if p.is_almost(self.center) and is_almost(distance, self.radius):
+        if is_almost(p.distance_to(self.endpoints[1]), distance):
             return [self.endpoints[1]]
 
         rounder = coordinates_hash(2)
+        rounder.hash_point(self.endpoints[0])
+        rounder.hash_point(self.endpoints[1])
         intersections = circles_intersections(
             self.center, p, self.radius, distance, rounder
         )
-        return [i for i in intersections if self.contains(i)]
+        remaining_points = [i for i in intersections if self.contains(i)]
+        return remaining_points
 
     def inflate(self, radius):
         return inflate_arc(self, radius)
