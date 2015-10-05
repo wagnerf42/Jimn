@@ -76,6 +76,7 @@ class path:
             displayed.append(p)
             if i % 10 == 0:
                 tycat(displayed, other_things)
+        tycat(displayed, other_things)
 
     def last_intersection_with(self, other):
         """

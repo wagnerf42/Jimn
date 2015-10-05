@@ -31,8 +31,9 @@ pockets.tycat()
 
 paths = path_tree.build(pockets, milling_radius)
 print("path tree")
-#paths.animate()
+paths.tycat()
+paths.animate(polygons[0][2])
 
 global_path = paths.global_path(milling_radius)
-global_path.animate()
-print("total length:", global_path.length())
+global_path.animate(polygons[0][2])
+#print("total length:", global_path.length())

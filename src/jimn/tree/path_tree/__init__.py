@@ -14,10 +14,10 @@ class path_tree(tree):
         """
         return _pocket_node_to_path_node(pockets, milling_radius)
 
-    def animate(self):
+    def animate(self, *things):
         for n in self.depth_first_exploration():
             if n.content is not None:
-                n.content.animate()
+                n.content.animate(*things)
 
     def global_path(self, milling_radius):
         """
