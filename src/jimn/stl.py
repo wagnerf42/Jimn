@@ -37,7 +37,11 @@ class stl:
         for slice_number in range(slices_number):
             lower_boundary = max_height - (slice_number+1) * slice_size
             lower_boundary = self.heights_hash.hash_coordinate(0, lower_boundary)
-            current_slice = projection2d(self.horizontal_intersection(lower_boundary))
+            if lower_boundary < min_height + 0.01:
+                lower_boundary = min_height + 0.01
+            current_slice = projection2d(
+                self.horizontal_intersection(lower_boundary)
+            )
             slices[lower_boundary] = current_slice
         return slices
 

@@ -1,5 +1,6 @@
 from jimn.algorithms.offsetter import offset_holed_polygon
 from jimn.displayable import tycat
+from jimn.utils.debug import is_module_debugged
 from jimn.tree import tree
 
 
@@ -14,6 +15,10 @@ class pocket_tree(tree):
 
 
 def _offset_polygons(poly_tree, carving_radius):
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("building pockets tree from")
+            poly_tree.tycat()
     # start with children
     subtrees = []
     for n in poly_tree.get_children():
@@ -49,7 +54,7 @@ def _build_offsetted_tree(pockets, subtrees):
                 new_trees[id(p)].children.append(t)
                 break
         else:
-            tycat(t.content, p)
+            tycat(t.content, *pockets)
             raise Exception("subtree does not belong here")
 
     return list(new_trees.values())
