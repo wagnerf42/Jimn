@@ -3,6 +3,7 @@ from jimn.segment import segment
 from jimn.bounding_box import bounding_box
 from jimn.utils.precision import is_almost
 from jimn.utils.iterators import all_two_elements
+from jimn.displayable import tycat
 
 _squares_counter = 0
 
@@ -73,8 +74,13 @@ class polygon:
             p2 = p
         if not p1.is_aligned_with(p2, start_point):
             remaining_points.append(p2)
+        # only case left is first point
+        if remaining_points[-1].is_aligned_with(remaining_points[0],
+                                                remaining_points[1]):
+            self.points = remaining_points[1:]
+        else:
+            self.points = remaining_points
 
-        self.points = remaining_points
         if __debug__:
             if len(self.points) <= 2:
                 raise invalid_polygon("not enough points after simplifying")

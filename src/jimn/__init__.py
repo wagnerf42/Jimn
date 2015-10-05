@@ -4,6 +4,7 @@ from jimn.stl import stl
 from jimn.tree.polygon_tree import polygon_tree
 from jimn.pocket.builder import build_polygons
 from jimn.tree.pocket_tree import pocket_tree
+from jimn.tree.path_tree import path_tree
 from jimn.algorithms.segment_merger import merge_segments
 
 
@@ -24,6 +25,7 @@ def compute_carving_path(stl_file, slice_size, carving_radius):
     if __debug__:
         if is_module_debugged(__name__):
             print("model loaded")
+            print("slices are:")
 
     slices = model.compute_slices(slice_size)
 
@@ -39,7 +41,19 @@ def compute_carving_path(stl_file, slice_size, carving_radius):
         slice_polygons = build_polygons(simpler_slice)
         slices_polygons[height] = slice_polygons
 
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("building polygon tree")
     tree = polygon_tree.build(slices_polygons)
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("building pockets tree")
     pockets = pocket_tree.build(tree, carving_radius)
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("building paths tree")
     paths = path_tree.build(pockets, carving_radius)
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("merging all paths")
     return paths.global_path(carving_radius)

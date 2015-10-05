@@ -91,7 +91,7 @@ class point:
             p.get_coordinates() for p in (self, p2, p3)
         ]
         determinant = x1*y2 + y1*x3 + x2*y3 - (y2*x3 + y1*x2 + x1*y3)
-        return is_almost(determinant, 0)
+        return abs(determinant) < 10**-5  # TODO: why 5 ???
 
     def is_near(self, other, limit):
         distance = self.distance_to(other)
@@ -100,7 +100,8 @@ class point:
         return distance < limit
 
     def is_almost(self, other):
-        assert self.dimension() == other.dimension(), "comparing different points"
+        assert self.dimension() == other.dimension(), \
+            "comparing different points"
         for u1, u2 in zip(self.coordinates, other.coordinates):
             if not is_almost(u1, u2):
                 return False
