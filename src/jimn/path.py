@@ -100,7 +100,7 @@ class path:
         change starting point of cycle path.
         pre-requisite: given point is on path
         """
-        if p == self.get_start():
+        if p.is_almost(self.get_start()):
             return
 
         for i, ep in enumerate(self.elementary_paths):
@@ -112,14 +112,14 @@ class path:
         start = self.elementary_paths[:index]
         end = self.elementary_paths[index+1:]
         new_cycle = []
-        if not p.is_almost(self.elementary_paths[index].get_endpoint(1)):
-            before, after = self.elementary_paths[index].split_at([p])
+        before, after = self.elementary_paths[index].split_around(p)
+
+        if after is not None:
             new_cycle.append(after)
-        else:
-            before = self.elementary_paths[index]
         new_cycle.extend(end)
         new_cycle.extend(start)
-        new_cycle.append(before)
+        if before is not None:
+            new_cycle.append(before)
         self.elementary_paths = new_cycle
 
     def get_dot_label(self):

@@ -226,18 +226,19 @@ def merge_path(outer_path, inner_path, position):
     arrival_path = paths[position.index]
     assert arrival_path == position.ep
     assert arrival_path.contains(position.outer_point), "no merging here"
-    if not position.outer_point.is_almost(arrival_path.get_endpoint(1)):
-        before, after = arrival_path.split_at([position.outer_point])
-        sub_path = [before]
-    else:
-        sub_path = [arrival_path]
-        after = None
+
+    sub_path = []
+    before, after = arrival_path.split_around(position.outer_point)
+    if before is not None:
+        sub_path.append(before)
 
     sub_path.append(vertical_path(-1))
     sub_path.extend(inner_path.get_elementary_paths())
     sub_path.append(vertical_path(1))
-    if after:
+
+    if after is not None:
         sub_path.append(after)
+
     paths[position.index:position.index] = sub_path
     outer_path.set_elementary_paths(paths)
 

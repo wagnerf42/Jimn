@@ -100,6 +100,22 @@ class elementary_path:
                 tycat(self, *paths)
         return paths
 
+    def split_around(self, intermediate_point):
+        """
+        returns two subpaths: getting to intermediate and from intermediate
+        to end. if intermediate is one endpoint, one of the returned path
+        will be 'None'
+        """
+        after = None
+        before = None
+        if intermediate_point.is_almost(self.get_endpoint(0)):
+            after = self
+        elif intermediate_point.is_almost(self.get_endpoint(1)):
+            before = self
+        else:
+            before, after = self.split_at([intermediate_point])
+        return (before, after)
+
     def intersections_with(self, other, rounder):
         """compute intersections with some other path.
         works with any combination of arcs and segments
