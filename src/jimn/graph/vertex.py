@@ -19,6 +19,22 @@ class vertex:
     def to_point(self):
         return self.bound_object
 
+    def get_object(self):
+        """
+        returns object we stand for.
+        """
+        return self.bound_object
+
+    def get_edge_to(self, neighbor):
+        """
+        returns edge to given neighbor.
+        """
+        for e in self.edges:
+            if e.get_endpoint(1) == neighbor:
+                return e
+        raise Exception("no such neighbor")
+
+
     def get_edges(self):
         return self.edges
 

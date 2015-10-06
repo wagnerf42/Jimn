@@ -2,7 +2,7 @@
 
 from jimn.point import point
 from jimn.graph import graph
-from jimn.graph.tsp import min_spanning_tree
+from jimn.graph.tsp import tsp
 from jimn.displayable import tycat
 
 points = ([
@@ -16,5 +16,4 @@ points = ([
 ])
 
 g = graph.complete_graph(points)
-edges = min_spanning_tree(g)
-tycat(g, edges)
+tsp(g)

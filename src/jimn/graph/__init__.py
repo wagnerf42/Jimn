@@ -95,6 +95,17 @@ class graph:
         tmp = e.reverse()
         vertices[1].add_edge(tmp, frontier_edge=False)
 
+    def subgraph(self, vertices):
+        """
+        returns subgraph formed by given vertices.
+        """
+        subg = graph()
+        for v1, v2 in combinations(vertices, 2):
+            e = v1.get_edge_to(v2)
+            p = e.get_path()
+            subg.add_edge_between(v1.get_object(), v2.get_object(), p)
+        return subg
+
 from jimn.bounding_box import bounding_box
 from jimn.graph.edge import edge
 from jimn.graph.vertex import vertex

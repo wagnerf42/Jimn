@@ -1,5 +1,32 @@
 
 
+def tsp(g):
+    """
+    christofides algorithm.
+    """
+    e = min_spanning_tree(g)
+    tycat(g, e)
+    g2 = g.subgraph(_odd_degree_vertices(e))
+    tycat(g2, e)
+
+
+def _odd_degree_vertices(edges):
+    """
+    returns vertices with odd degree for given edges.
+    """
+    c = defaultdict(int)
+    for e in edges:
+        v1, v2 = e.get_endpoints()
+        c[v1] += 1
+        c[v2] += 1
+
+    odd_vertices = []
+    for v, count in c.items():
+        if count % 2 == 1:
+            odd_vertices.append(v)
+    return odd_vertices
+
+
 def min_spanning_tree(g):
     """
     prim minimum spanning tree algorithm.
@@ -27,6 +54,7 @@ def min_spanning_tree(g):
             _add_edges_in_heap(heap, v2)
     raise Exception("not enough edges")
 
+
 def _add_edges_in_heap(h, v):
     """
     add all edges starting at vertex v in heap h
@@ -37,3 +65,4 @@ def _add_edges_in_heap(h, v):
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from heapq import heappush, heappop
+from collections import defaultdict
