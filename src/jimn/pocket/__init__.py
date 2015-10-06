@@ -103,6 +103,14 @@ class pocket:
 
         return included
 
+    def nearest_points(self, other):
+        """
+        returns the two nearest points between given pockets.
+        first point in self, second one in other.
+        """
+        print("TODO: nearest points")
+        return (self.paths[0].get_endpoint(0), other.paths[0].get_endpoint(0))
+
     def _contains_point(self, tested_point):
         """
         returns true if point is strictly in self.

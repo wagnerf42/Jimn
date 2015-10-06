@@ -5,7 +5,7 @@ from jimn.bounding_box import bounding_box
 
 class graph:
     def __init__(self):
-        self.points = {}
+        self.vertices_objects = {}
         self.vertices = []
         self.vertices_number = 0
         self.max_vertices_number = 0
@@ -36,25 +36,25 @@ class graph:
     def get_bounding_box(self):
         box = bounding_box.empty_box(2)
         for p in self.get_vertices():
-            box.add_point(p)
+            box.add_point(p.bound_object)
         return box
 
     def save_svg_content(self, display, color):
         for p in self.get_vertices():
             p.save_svg_content(display, color)
 
-    def add_vertex(self, vertex_point):
+    def add_vertex(self, vertex_object):
         """
-        for the given points, check if we already have a vertex.
-        if yes, return it ; else add a new one.
+        adds a vertex corresponding to given object.
+        if one is already in graph then does not add but returns existing one
         """
-        if vertex_point not in self.points:
-            v = vertex(vertex_point, self.max_vertices_number)
-            self.points[vertex_point] = v
+        if vertex_object not in self.vertices_objects:
+            v = vertex(vertex_object, self.max_vertices_number)
+            self.vertices_objects[vertex_object] = v
             self.vertices.append(v)
             self.max_vertices_number += 1
             self.vertices_number += 1
-        return self.points[vertex_point]
+        return self.vertices_objects[vertex_object]
 
     def remove_vertex(self, v):
         self.vertices.remove(v)

@@ -1,18 +1,23 @@
-from jimn.point import point
 
 
-class vertex(point):
-    def __init__(self, position_point, number):
-        super().__init__(position_point.get_coordinates())
-        self.edges = [] #degree is very low so this is ok
+class vertex:
+    def __init__(self, bound_object, number):
+        self.bound_object = bound_object
+        self.edges = []  # degree is very low so this is ok
         self.frontier_edges = []
         self.number = number
+
+    def get_y(self):
+        """
+        used when bound object is point
+        """
+        return self.bound_object.get_y()
 
     def get_id(self):
         return self.number
 
     def to_point(self):
-        return point(self.coordinates)
+        return self.bound_object
 
     def get_edges(self):
         return self.edges
@@ -25,7 +30,7 @@ class vertex(point):
         return box
 
     def save_svg_content(self, display, color):
-        super(vertex, self).save_svg_content(display, color)
+        self.bound_object.save_svg_content(display, color)
         for e in self.edges:
             p = e.get_path()
             count = e.get_multiplicity()
@@ -51,7 +56,6 @@ class vertex(point):
         """
         for i, e in enumerate(self.edges):
             if e.get_endpoint(1) == destination:
-            #if e.get_endpoint(1).get_id() == destination.get_id():
                 self._delete_edge(i)
                 return
         else:
@@ -66,13 +70,11 @@ class vertex(point):
                 return i
         return None
 
-
     def add_edge(self, e, frontier_edge):
         """
         adds given edge.
         if already here, increases edge multiplicity
         """
-        #assert e.get_endpoint(0).get_id() == self.vertex_id
         e_index = self.edge_index(e)
         if e_index is not None:
             self.edges[e_index].change_multiplicity(1)
@@ -138,6 +140,24 @@ class vertex(point):
                 return e
         raise Exception("only one neighbor")
 
+    def __eq__(a, b):
+        """
+        comparison of vertices is based on bound objects
+        """
+        return a.bound_object == b.bound_object
+
+    def __lt__(a, b):
+        """
+        comparison of vertices is based on bound objects
+        """
+        return a.bound_object < b.bound_object
+
+    def __hash__(self):
+        """
+        hashing of vertices is based on bound objects
+        """
+        return hash(self.bound_object)
+
     def __str__(self):
-        return str(id(self)) + "\n\t" \
-                             + "\n\t".join([str(e) for e in self.get_edges()])
+        return str(id(self.bound_object)) + "\n\t" \
+            + "\n\t".join([str(e) for e in self.get_edges()])
