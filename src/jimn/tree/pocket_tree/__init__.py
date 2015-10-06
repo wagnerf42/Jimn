@@ -13,6 +13,9 @@ class pocket_tree(tree):
         """
         return _offset_polygons(poly_tree, carving_radius)
 
+    def is_empty(self):
+        return len(self.children) == 0
+
 
 def _offset_polygons(poly_tree, carving_radius):
     if __debug__:

@@ -6,6 +6,7 @@ from jimn.pocket.builder import build_polygons
 from jimn.tree.pocket_tree import pocket_tree
 from jimn.tree.path_tree import path_tree
 from jimn.algorithms.segment_merger import merge_segments
+import sys
 
 
 def compute_carving_path(stl_file, slice_size, carving_radius):
@@ -47,13 +48,19 @@ def compute_carving_path(stl_file, slice_size, carving_radius):
     tree = polygon_tree.build(slices_polygons)
     if __debug__:
         if is_module_debugged(__name__):
+            tree.tycat()
             print("building pockets tree")
     pockets = pocket_tree.build(tree, carving_radius)
+    if pockets.is_empty():
+        print("nothing left : milling radius is too high !")
+        sys.exit()
     if __debug__:
         if is_module_debugged(__name__):
+            pockets.tycat()
             print("building paths tree")
     paths = path_tree.build(pockets, carving_radius)
     if __debug__:
         if is_module_debugged(__name__):
+            paths.tycat()
             print("merging all paths")
     return paths.global_path(carving_radius)

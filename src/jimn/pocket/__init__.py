@@ -81,7 +81,7 @@ class pocket:
         """
         fast inclusion test.
         many pre-conditions.
-        returns true if we can find one point of self included in other
+        returns true if we can find one point of self included in other.
         """
         # loop trying points
         for p in self.paths:
@@ -91,7 +91,7 @@ class pocket:
                 included = test_result
                 break
         else:
-            assert False  # TODO: bug bug bug
+            # TODO: big bug here
             # there is not enough info to return true
             # all points of self are on edge of other
             included = True
@@ -104,16 +104,24 @@ class pocket:
         return included
 
     def _contains_point(self, tested_point):
+        """
+        returns true if point is strictly in self.
+        false if strictly out of self.
+        none if on self
+        """
         x, y = tested_point.get_coordinates()
-        above_paths = 0
+        above_paths = 0  # simple ray casting algorithm
         for p in self.paths:
             if p.contains(tested_point):
                 return None
             x1, x2 = sorted([end.get_x() for end in p.get_endpoints()])
-            if x1 == x2:
+            # skip vertical paths
+            if is_almost(x1, x2):
                 continue
-            if x > x1 and ((x < x2) or is_almost(x, x2)):
+            if (not is_almost(x, x1)) and x > x1 and ((x < x2) or
+                                                      is_almost(x, x2)):
                 # we only take paths over us
+                # first point not taken into account
                 intersection_y = p.vertical_intersection_at(x)
                 if intersection_y < y:
                     above_paths = above_paths + 1

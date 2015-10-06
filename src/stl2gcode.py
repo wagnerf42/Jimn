@@ -11,3 +11,4 @@ if len(sys.argv) != 4:
 
 p = compute_carving_path(stl_file, float(slice_size),
                          float(carving_radius))
+p.animate()

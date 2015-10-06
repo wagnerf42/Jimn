@@ -6,6 +6,12 @@
 
 - use translated nodes in replacement of translated polygons
 
+- re-think precision problems :
+	when 3 points are almost aligned, offseting using parallel segments
+	creates two segments separated with a very small arc
+	-> for now this should not happen due to polygons remove_useless_points
+	but is it really safe ?
+
  * code review
  * minor code improvements (readability)
 
@@ -23,7 +29,6 @@
 
 - profiling
 - test ascii stl loader
-- rounders in arc class
 - is_above_y : arcs ???
 - elementary_path : is_same : what about arcs ?? is it needed ?
 - path compression
@@ -33,7 +38,6 @@
  * calibration
 
 - what precision should be chosen in stl to round z coordinates ?
-- what to do with rounder when creating arcs ???
 - area_limit in poly builder
 
  * doc
@@ -43,3 +47,17 @@
  * bug fixes
 
 - there is a bug in pocket inclusion
+-> will not work in following case :
+
+  +--------------+
+  |              |
+  +--**------+   |
+     **      |   |
+     **      |   |
+  +--**------+   |
+  |              |
+  +--------------+
+
+ here all points of * are inside the other one
+ yet * is not included in other
+ -> either fix it or ensures this case can not happen
