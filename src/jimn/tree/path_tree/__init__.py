@@ -100,10 +100,19 @@ class path_tree(tree):
         This will also sort all children by order of visit of the tour
         and change each cycle starting point as the visited point
         """
-        print("TODO: TSP instead of dumb algorithm")
-        points = [point([0, 0])]
+        o = point([0, 0])
+        g = graph()
         for c in self.children:
-            points.append(c.content.get_start())
+            end = c.content.nearest_point(o)
+            g.add_edge_between(o, p, segment([o, end]))
+        for c1, c2 in two_arrays_combinations(self.children):
+            p1 = c1.content
+            p2 = c2.content
+            start, end = p1.nearest_points(p2)
+            g.add_edge_between(p1, p2, segment([start, end]))
+        cycle = g.tsp()
+        cycle.change_starting_point(o)
+        raise Exception("TODO")
         return points
 
 

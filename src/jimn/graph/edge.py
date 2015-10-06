@@ -67,12 +67,16 @@ class edge:
     def is_horizontal(self):
         return self.path.is_horizontal()
 
+    def __lt__(a, b):
+        return a.weight < b.weight
+
     def __hash__(self):
-        #TODO: change
+        # TODO: change
         return hash(id(self.vertices[1]))
 
     def __str__(self):
-        return str(id(self.vertices[0])) + " -> " + str(id(self.vertices[1])) + " " + str(self.multiplicity)
+        return str(id(self.vertices[0])) + " -> " + str(id(self.vertices[1])) \
+            + " " + str(self.multiplicity)
 
     def __eq__(self, other):
         return self.vertices[0] == other.vertices[0] \

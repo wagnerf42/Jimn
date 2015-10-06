@@ -7,6 +7,12 @@ class pocket:
     def __init__(self, paths):
         self.paths = paths
 
+    def get_first_point(self):
+        """
+        returns first point of first path.
+        """
+        return self.paths[0].get_endpoint(0)
+
     def get_points(self):
         for p in self.paths:
             yield p.get_endpoint(0)
@@ -109,7 +115,7 @@ class pocket:
         first point in self, second one in other.
         """
         print("TODO: nearest points")
-        return (self.paths[0].get_endpoint(0), other.paths[0].get_endpoint(0))
+        return (self.get_first_point(), other.get_first_point())
 
     def _contains_point(self, tested_point):
         """

@@ -1,6 +1,3 @@
-from jimn.graph.vertex import vertex
-from jimn.graph.edge import edge
-from jimn.bounding_box import bounding_box
 
 
 class graph:
@@ -9,6 +6,16 @@ class graph:
         self.vertices = []
         self.vertices_number = 0
         self.max_vertices_number = 0
+
+    @classmethod
+    def complete_graph(cls, points):
+        """
+        builds complete graph from set of points.
+        """
+        g = cls()
+        for p1, p2 in combinations(points, 2):
+            g.add_edge(segment([p1, p2]))
+        return g
 
     def is_empty(self):
         return self.vertices_number == 0
@@ -62,11 +69,21 @@ class graph:
 
     def add_edge(self, edge_path, frontier_edge=False):
         endpoints = edge_path.get_endpoints()
-        vertices = [self.add_vertex(p) for p in endpoints]
-        e = edge(vertices[0], vertices[1], edge_path)
-        vertices[0].add_edge(e, frontier_edge)
-        reversed_e = edge(vertices[1], vertices[0], edge_path.reverse())
-        vertices[1].add_edge(reversed_e, frontier_edge)
+        self.add_edge_between(endpoints[0], endpoints[1],
+                              edge_path, frontier_edge)
+
+    def add_edge_between(self, object1, object2, edge_path,
+                         frontier_edge=False):
+        """
+        creates or get vertices corresponding to given objects and add an edge
+        between them with the given path.
+        """
+        vertex1 = self.add_vertex(object1)
+        vertex2 = self.add_vertex(object2)
+        e = edge(vertex1, vertex2, edge_path)
+        vertex1.add_edge(e, frontier_edge)
+        reversed_e = edge(vertex2, vertex1, edge_path.reverse())
+        vertex2.add_edge(reversed_e, frontier_edge)
 
     def add_direct_edge(self, e):
         """
@@ -77,3 +94,9 @@ class graph:
         vertices[0].add_edge(e, frontier_edge=False)
         tmp = e.reverse()
         vertices[1].add_edge(tmp, frontier_edge=False)
+
+from jimn.bounding_box import bounding_box
+from jimn.graph.edge import edge
+from jimn.graph.vertex import vertex
+from jimn.segment import segment
+from itertools import combinations
