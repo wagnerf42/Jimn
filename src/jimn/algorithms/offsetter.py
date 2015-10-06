@@ -5,7 +5,7 @@ from jimn.pocket.elementary_paths import pocket_elementary_paths
 from jimn.pocket.builder import build_pockets
 from jimn.algorithms.sweeping_line_algorithms.sweeping_offsetter_selection\
     import select_offseted_paths
-from jimn.utils.coordinates_hash import coordinates_hash
+from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.iterators import all_two_elements
 from collections import defaultdict
@@ -98,13 +98,12 @@ def offset_holed_polygon(radius, *polygons):
     """
 
     # fill rounder with all coordinates
-    rounder = coordinates_hash(2)
     for p in polygons:
-        p.round_points(rounder)
+        p.round_points(rounder2d)
 
     overall_pocket = pocket([])
     for p in polygons:
-        overall_pocket.extend(_raw_offset(radius, p, rounder))
+        overall_pocket.extend(_raw_offset(radius, p, rounder2d))
 
     overall_pocket.remove_overlapping_segments()
     overall_pocket = pocket_elementary_paths(overall_pocket)

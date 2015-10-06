@@ -1,12 +1,10 @@
 from jimn.elementary_path import elementary_path
 from jimn.point import point
 from jimn.bounding_box import bounding_box
-from jimn.utils.coordinates_hash import coordinates_hash
+from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.precision import check_precision, is_almost
 from jimn.utils.math import line_circle_intersections
 from math import pi, cos, sin
-
-rounding_hash = coordinates_hash(3)
 
 
 class segment(elementary_path):
@@ -77,7 +75,7 @@ class segment(elementary_path):
         x = x1 + (z - z1)/(z2 - z1)*(x2 - x1)
         y = y1 + (z - z1)/(z2 - z1)*(y2 - y1)
 
-        return rounding_hash.hash_point(point([x, y, z]))
+        return rounder2d.hash_point(point([x, y]))
 
     def is_below(self, p):
         [a, b] = self.get_endpoints()
@@ -224,9 +222,8 @@ class segment(elementary_path):
         returns from all points on self between start and end
         all which are at given distance from p.
         """
-        rounder = coordinates_hash(2)
         intersections = line_circle_intersections(
-            self.endpoints, p, distance, rounder
+            self.endpoints, p, distance, rounder2d
         )
         return [i for i in intersections if self.contains(i)]
 

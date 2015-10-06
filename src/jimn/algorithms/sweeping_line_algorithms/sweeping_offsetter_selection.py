@@ -40,10 +40,15 @@ class sweeping_offsetter_selection(sweeping_line_algorithm):
 
     def winding_number(self, limit_path):
         winding_number = 0.5
-        above_paths = [
-            p for p in self.current_paths[0]
-            if p.is_above(limit_path)
-        ]
+        above_paths = []
+        for p in self.current_paths[0]:
+            try:
+                if p.is_above(limit_path):
+                    above_paths.append(p)
+            except:
+                print("failed to compute above paths for", limit_path, p)
+                tycat(self.paths, limit_path, p)
+                raise
         for p in above_paths:
             winding_number += _path_winding_number(p)
         return winding_number

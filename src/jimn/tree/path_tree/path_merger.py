@@ -46,9 +46,8 @@ def inflate_segment(s, radius):
     """
     returns pocket around segment reachable by given radius
     """
-    rounder = coordinates_hash(2)
     sides = [
-        s.parallel_segment(radius, rounder, side) for side in (-1, 1)
+        s.parallel_segment(radius, rounder2d, side) for side in (-1, 1)
     ]
     sides.append(
         arc(
@@ -89,8 +88,7 @@ def segments_might_overlap(s1, s2):
     """
     returns if segments are aligned
     """
-    rounder = coordinates_hash(2)
-    return s1.line_hash(rounder) == s2.line_hash(rounder)
+    return s1.line_hash(rounder_lines) == s2.line_hash(rounder_lines)
 
 
 def arcs_might_overlap(a1, a2):
@@ -246,7 +244,7 @@ def merge_path(outer_path, inner_path, position):
 from jimn.arc import arc
 from jimn.displayable import tycat
 from jimn.pocket import pocket
-from jimn.utils.coordinates_hash import coordinates_hash
+from jimn.utils.coordinates_hash import rounder2d, rounder_lines
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost
 from jimn.vertical_path import vertical_path

@@ -1,6 +1,5 @@
 from jimn.elementary_path import elementary_path
 
-
 class arc(elementary_path):
     def __init__(self, radius, points, center=None):
         """
@@ -23,12 +22,11 @@ class arc(elementary_path):
         middle = p2/2
         p = middle + p2.perpendicular_vector()
         # intersect with circle at origin
-        rounder = coordinates_hash(2)  # TODO : useless for now
         intersections = line_circle_intersections(
             [middle, p],
             point([0, 0]),
             self.radius,
-            rounder
+            rounder2d
         )
         assert len(intersections) == 2, "invalid arc"
         # pick center and translate back
@@ -81,10 +79,11 @@ class arc(elementary_path):
         if not is_almost(self.center.distance_to(p), self.radius):
             return False
         diff = self.endpoints[1] - self.endpoints[0]
-        diff_p = p - self.endpoints[0]
-        product = diff.cross_product(diff_p)
-        assert not is_almost(product, 0), "already tested at entry of method"
-        return (product < 0)
+        p_diff = p - self.endpoints[0]
+        product = diff.cross_product(p_diff)
+        if is_almost(product, 0):
+            return True
+        return product < 0
 
     def intersections_with_arc(self, other, rounder):
         """
@@ -136,9 +135,8 @@ class arc(elementary_path):
             return self.lowest_endpoint().get_y()
 
         line = [point([x, 0]), point([x, 1])]
-        rounder = coordinates_hash(2)  # TODO: what about this one ?
         intersections = \
-            line_circle_intersections(line, self.center, self.radius, rounder)
+            line_circle_intersections(line, self.center, self.radius, rounder2d)
 
         candidates = [i for i in intersections if self.contains(i)]
         assert candidates, "no intersection"
@@ -150,8 +148,7 @@ class arc(elementary_path):
         returns min distance from self to point
         """
         s = segment([self.center, p])
-        rounder = coordinates_hash(2)
-        intersections = self.intersections_with_segment(s, rounder)
+        intersections = self.intersections_with_segment(s, rounder2d)
         if len(intersections) == 1:
             return intersections[0].distance_to(p)
         else:
@@ -168,11 +165,8 @@ class arc(elementary_path):
         if is_almost(p.distance_to(self.endpoints[1]), distance):
             return [self.endpoints[1]]
 
-        rounder = coordinates_hash(2)
-        rounder.hash_point(self.endpoints[0])
-        rounder.hash_point(self.endpoints[1])
         intersections = circles_intersections(
-            self.center, p, self.radius, distance, rounder
+            self.center, p, self.radius, distance, rounder2d
         )
         remaining_points = [i for i in intersections if self.contains(i)]
         return remaining_points
@@ -188,7 +182,7 @@ class arc(elementary_path):
 from jimn.bounding_box import bounding_box
 from jimn.point import point
 from jimn.segment import segment
-from jimn.utils.coordinates_hash import coordinates_hash
+from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.math import circles_intersections, line_circle_intersections
 from jimn.utils.precision import is_almost
 from copy import copy

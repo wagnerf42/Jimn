@@ -4,7 +4,7 @@ from jimn.graph import graph
 from jimn.graph.even_degrees import make_degrees_even
 from jimn.graph.internal_edges import create_internal_edges
 from jimn.segment import segment
-from jimn.utils.coordinates_hash import coordinates_hash
+from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.debug import is_module_debugged
 from math import floor, ceil
 
@@ -14,11 +14,10 @@ def build_graph(milled_pocket, milling_diameter):
     returns graph which will be used to compute milling path
     """
     # round all points on intersecting lines
-    rounder = coordinates_hash(2)
     for y in _milling_heights(milled_pocket, milling_diameter):
-        rounder.hash_coordinate(1, y)
+        rounder2d.hash_coordinate(1, y)
 
-    milled_pocket.round_points(rounder)
+    milled_pocket.round_points(rounder2d)
 
     # fill all vertices
     g = graph()

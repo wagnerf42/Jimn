@@ -1,7 +1,7 @@
 from jimn.pocket import pocket
 from jimn.displayable import tycat
 from jimn.utils.iterators import two_arrays_combinations
-from jimn.utils.coordinates_hash import coordinates_hash
+from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.debug import is_module_debugged
 from collections import defaultdict
 from itertools import combinations
@@ -39,9 +39,8 @@ def _split_paths_at(raw_pocket, new_points):
 
 def _find_new_points(raw_pocket, paths_iterator):
     new_points = defaultdict(list)
-    rounder = coordinates_hash(dimension=2)
     for p1, p2 in paths_iterator:
-        intersections = p1.intersections_with(p2, rounder)
+        intersections = p1.intersections_with(p2, rounder2d)
         for i in intersections:
             new_points[p1].append(i)
             new_points[p2].append(i)

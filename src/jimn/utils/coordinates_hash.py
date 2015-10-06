@@ -1,6 +1,7 @@
 from jimn.point import point
 from jimn.utils.debug import is_module_debugged
-from jimn.utils.precision import coordinate_key, displaced_coordinate_key, precision
+from jimn.utils.precision import coordinate_key, displaced_coordinate_key, \
+    precision
 
 
 class coordinates_hash:
@@ -36,3 +37,6 @@ class coordinates_hash:
 
         new_point = point(new_coordinates)
         return new_point
+
+rounder2d = coordinates_hash(2)
+rounder_lines = coordinates_hash(2, precision-2)

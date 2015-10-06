@@ -73,8 +73,7 @@ class pocket:
         intersections = []
         for p1 in self.paths:
             for p2 in other.paths:
-                rounder = coordinates_hash(2)
-                i = p1.intersections_with(p2, rounder)
+                i = p1.intersections_with(p2, rounder2d)
                 intersections.extend(i)
         return intersections
 
@@ -120,7 +119,7 @@ class pocket:
                     above_paths = above_paths + 1
         return ((above_paths % 2) == 1)
 
-from jimn.utils.coordinates_hash import coordinates_hash
+from jimn.utils.coordinates_hash import rounder2d
 from jimn.bounding_box import bounding_box
 from jimn.polygon import polygon
 from jimn.segment import segment
