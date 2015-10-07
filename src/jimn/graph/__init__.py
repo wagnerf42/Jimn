@@ -34,6 +34,19 @@ class graph:
             for e in v.get_edges():
                 yield e
 
+    def get_non_oriented_edges(self):
+        """
+        iterates through edges.
+        in graph : existence of edge (a,b) implies existence of (b,a)
+        we only iterate here once on each edge (avoiding reversed edges)
+        """
+        seen_vertices = {}
+        for v in self.vertices:
+            seen_vertices[v] = True
+            for e in v.get_edges():
+                if e.get_endpoint(1) not in seen_vertices:
+                    yield e
+
     def get_any_vertex(self):
         """
         return a vertex
@@ -105,6 +118,16 @@ class graph:
             p = e.get_path()
             subg.add_edge_between(v1.get_object(), v2.get_object(), p)
         return subg
+
+    def get_double_edges(self):
+        """
+        returns list of our edges with multiplicity 2.
+        """
+        double_edges = []
+        for e in self.get_non_oriented_edges():
+            if e.get_multiplicity() == 2:
+                double_edges.append(e)
+        return double_edges
 
 from jimn.bounding_box import bounding_box
 from jimn.graph.edge import edge

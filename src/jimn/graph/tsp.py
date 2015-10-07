@@ -3,11 +3,36 @@
 def tsp(g):
     """
     christofides algorithm.
+    careful: this modifies initial graph.
     """
-    e = min_spanning_tree(g)
-    tycat(g, e)
-    g2 = g.subgraph(_odd_degree_vertices(e))
-    tycat(g2, e)
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("starting christofides")
+
+    st = min_spanning_tree(g)
+
+    left = g.subgraph(_odd_degree_vertices(st))
+    make_degrees_even(left)
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("christofides : matching")
+            tycat(left)
+
+    for e in left.get_double_edges():
+        e.change_multiplicity(-1)  # set multiplicity back to 1
+        st.append(e)
+    path_graph = graph()
+    for e in st:
+        objects = [v.get_object() for v in e.get_endpoints()]
+        path_graph.add_edge_between(*objects, edge_path=e.get_path())
+
+    c = find_eulerian_cycle(path_graph)
+    c.skip_seen_points()
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("cycle")
+            tycat(c)
+    return c
 
 
 def _odd_degree_vertices(edges):
@@ -44,6 +69,7 @@ def min_spanning_tree(g):
         if len(added_edges) == limit:
             if __debug__:
                 if is_module_debugged(__name__):
+                    print("spanning tree")
                     tycat(g, added_edges)
             return added_edges
         e = heappop(heap)
@@ -63,6 +89,9 @@ def _add_edges_in_heap(h, v):
         heappush(h, e)
 
 from jimn.displayable import tycat
+from jimn.graph import graph
+from jimn.graph.eulerian_cycle import find_eulerian_cycle
+from jimn.graph.even_degrees import make_degrees_even
 from jimn.utils.debug import is_module_debugged
 from heapq import heappush, heappop
 from collections import defaultdict

@@ -1,6 +1,3 @@
-from jimn.bounding_box import bounding_box
-from jimn.displayable import tycat
-from collections import defaultdict
 
 """
 a path is a list of arcs or segments
@@ -124,3 +121,30 @@ class path:
 
     def get_dot_label(self):
         return str(id(self))
+
+    def skip_seen_points(self):
+        """
+        changes cycle so that we do not pass twice at same point
+        (except for completing the cycle).
+        achieves that by shortcutting to next point.
+        only works on paths uniquely composed of segments.
+        """
+        seen_points = {}
+        start = self.get_start()
+        current_point = start
+        seen_points[current_point] = True
+        paths = []
+        for p in self.elementary_paths:
+            next_point = p.get_endpoint(1)
+            if next_point not in seen_points:
+                paths.append(segment([current_point, next_point]))
+                current_point = next_point
+                seen_points[current_point] = True
+        # add last segment to go back at start
+        paths.append(segment([current_point, start]))
+        self.elementary_paths = paths
+
+from jimn.bounding_box import bounding_box
+from jimn.displayable import tycat
+from jimn.segment import segment
+from collections import defaultdict
