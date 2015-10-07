@@ -114,40 +114,44 @@ class path_tree(tree):
             children[start] = c1
             children[end] = c2
             g.add_edge_between(p1, p2, segment([start, end]))
-        tycat(g)
         cycle = tsp(g)
-        tour = _convert_cycle_to_tour(cycle, children, o)
-        self.children = [children[p] for p in tour if p != o]
+        tour = self._convert_cycle_to_tour(cycle, children, o)
         return tour
 
+    def _convert_cycle_to_tour(self, cycle, children, origin):
+        """
+        loops on cycle ; keeps only one point for each sub_path :
+        the first one encountered in each.
+        also sets starting point as origin and for each sub path
+        sets the starting point as the one visited.
+        """
+        self.children = []
+        children_end = []
+        origin_seen = False
+        seen_children = {}
+        for step in [e.get_path().get_endpoints() for e in cycle]:
+            for p in step:
+                if p == origin:
+                    origin_seen = True
+                else:
+                    child = children[p]
+                    if child not in seen_children:
+                        seen_children[child] = True
+                        if origin_seen:
+                            self.children.append(child)
+                        else:
+                            children_end.append(child)
 
-def _convert_cycle_to_tour(cycle, children, origin):
-    """
-    loops on cycle ; keeps only one point for each sub_path :
-    the first one encountered in each.
-    also sets starting point as origin and for each sub path
-    sets the starting point as the one visited.
-    """
-    tour_start = [origin]
-    tour_end = []
-    origin_seen = False
-    seen_children = {}
-    for step in [e.get_path().get_endpoints() for e in cycle]:
-        for p in step:
-            if p == origin:
-                origin_seen = True
-            else:
-                child = children[p]
-                if child not in seen_children:
-                    seen_children[child] = True
-                    child.content.change_starting_point(p)
-                    if origin_seen:
-                        tour_start.append(p)
-                    else:
-                        tour_end.append(p)
+        self.children.extend(children_end)
 
-    tour_start.extend(tour_end)
-    return tour_start
+        tour = [origin]
+        previous_point = origin
+        for c in self.children:
+            next_point = c.content.nearest_point(previous_point)
+            c.content.change_starting_point(next_point)
+            tour.append(next_point)
+            previous_point = next_point
+        return tour
 
 
 def _pocket_node_to_path_node(pocket_node, milling_radius):

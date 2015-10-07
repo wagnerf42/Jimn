@@ -126,7 +126,7 @@ def tycat(*things):
     directory = "/tmp/{}".format(user)
     if not os.path.exists(directory):
         os.makedirs(directory)
-    filename = "{}/{}.svg".format(directory, str(file_count))
+    filename = "{}/{}.svg".format(directory, str(file_count).zfill(5))
 
     display._open_svg(filename)
 
