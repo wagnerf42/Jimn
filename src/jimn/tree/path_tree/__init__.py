@@ -102,19 +102,52 @@ class path_tree(tree):
         """
         o = point([0, 0])
         g = graph()
+        children = {}  # record to which child each point belongs
         for c in self.children:
             end = c.content.nearest_point(o)
+            children[end] = c
             g.add_edge_between(o, c.content, segment([o, end]))
         for c1, c2 in combinations(self.children, 2):
             p1 = c1.content
             p2 = c2.content
             start, end = p1.nearest_points(p2)
+            children[start] = c1
+            children[end] = c2
             g.add_edge_between(p1, p2, segment([start, end]))
         tycat(g)
         cycle = tsp(g)
-        cycle.change_starting_point(o)
-        tycat(cycle)
-        raise Exception("TODO")
+        tour = _convert_cycle_to_tour(cycle, children, o)
+        self.children = [children[p] for p in tour if p != o]
+        return tour
+
+
+def _convert_cycle_to_tour(cycle, children, origin):
+    """
+    loops on cycle ; keeps only one point for each sub_path :
+    the first one encountered in each.
+    also sets starting point as origin and for each sub path
+    sets the starting point as the one visited.
+    """
+    tour_start = [origin]
+    tour_end = []
+    origin_seen = False
+    seen_children = {}
+    for step in [e.get_path().get_endpoints() for e in cycle]:
+        for p in step:
+            if p == origin:
+                origin_seen = True
+            else:
+                child = children[p]
+                if child not in seen_children:
+                    seen_children[child] = True
+                    child.content.change_starting_point(p)
+                    if origin_seen:
+                        tour_start.append(p)
+                    else:
+                        tour_end.append(p)
+
+    tour_start.extend(tour_end)
+    return tour_start
 
 
 def _pocket_node_to_path_node(pocket_node, milling_radius):

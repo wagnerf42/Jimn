@@ -27,7 +27,7 @@ def tsp(g):
         path_graph.add_edge_between(*objects, edge_path=e.get_path())
 
     c = find_eulerian_cycle(path_graph)
-    c.skip_seen_points()
+    c = _skip_seen_vertices(c)
     if __debug__:
         if is_module_debugged(__name__):
             print("cycle")
@@ -78,6 +78,8 @@ def min_spanning_tree(g):
             added_edges.append(e)
             reached_vertices[v2] = True
             _add_edges_in_heap(heap, v2)
+    print("added", len(added_edges), "need", limit)
+    tycat(g, added_edges)
     raise Exception("not enough edges")
 
 
@@ -88,10 +90,47 @@ def _add_edges_in_heap(h, v):
     for e in v.get_edges():
         heappush(h, e)
 
+
+def _skip_seen_vertices(cycle):
+    """
+    changes cycle so that we do not pass twice at same vertex
+    (except for completing the cycle).
+    achieves that by shortcutting to next point using a segment.
+    CAREFUL: vertices are not updated in the process.
+    """
+    seen_vertices = {}
+    start = cycle[0].get_endpoint(0)
+    current_vertex = start
+    seen_vertices[current_vertex] = True
+    resulting_cycle = []
+    for e in cycle:
+        next_vertex = e.get_endpoint(1)
+        if next_vertex not in seen_vertices:
+            if current_vertex == e.get_endpoint(0):
+                resulting_cycle.append(e)
+            else:
+                objects = [
+                    v.get_object() for v in (current_vertex, next_vertex)
+                ]
+                p1, p2 = objects[0].nearest_points(objects[1])
+                resulting_cycle.append(
+                    edge(current_vertex, next_vertex, segment([p1, p2]))
+                )
+            current_vertex = next_vertex
+            seen_vertices[current_vertex] = True
+
+    # add last segment to go back at start
+    resulting_cycle.append(cycle[-1])
+    return resulting_cycle
+
+
 from jimn.displayable import tycat
 from jimn.graph import graph
+from jimn.graph.edge import edge
 from jimn.graph.eulerian_cycle import find_eulerian_cycle
 from jimn.graph.even_degrees import make_degrees_even
+from jimn.segment import segment
 from jimn.utils.debug import is_module_debugged
+from jimn.utils.iterators import all_two_elements
 from heapq import heappush, heappop
 from collections import defaultdict

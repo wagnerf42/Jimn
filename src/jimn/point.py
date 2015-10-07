@@ -134,6 +134,13 @@ class point:
     def is_on_slice(self, milling_diameter):
         return is_slice_height(self.get_y(), milling_diameter)
 
+    def nearest_points(self, other):
+        """
+        dummy procedure used in graphs.
+        re-defined for other more complex classes.
+        """
+        return (self, other)
+
     def __add__(a, b):
         return point([i + j for i, j in zip(a.coordinates, b.coordinates)])
 

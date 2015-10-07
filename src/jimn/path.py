@@ -100,28 +100,6 @@ class path:
     def get_dot_label(self):
         return str(id(self))
 
-    def skip_seen_points(self):
-        """
-        changes cycle so that we do not pass twice at same point
-        (except for completing the cycle).
-        achieves that by shortcutting to next point.
-        only works on paths uniquely composed of segments.
-        """
-        seen_points = {}
-        start = self.get_start()
-        current_point = start
-        seen_points[current_point] = True
-        paths = []
-        for p in self.elementary_paths:
-            next_point = p.get_endpoint(1)
-            if next_point not in seen_points:
-                paths.append(segment([current_point, next_point]))
-                current_point = next_point
-                seen_points[current_point] = True
-        # add last segment to go back at start
-        paths.append(segment([current_point, start]))
-        self.elementary_paths = paths
-
     def points(self):
         """
         iterates through all points.
@@ -133,7 +111,7 @@ class path:
         """
         returns nearest point on self from given point p.
         """
-        print("TODO: real nearest point")
+        #TODO: real nearest point
         best_distance = float("+inf")
         for p2 in self.points():
             d = p.distance_to(p2)
@@ -146,7 +124,7 @@ class path:
         """
         returns nearest point on self from other path.
         """
-        print("TODO: real nearests points")
+        #TODO: real nearests points
         best_distance = float("+inf")
         for p in self.points():
             for p2 in other.points():
@@ -162,5 +140,4 @@ class path:
 
 from jimn.bounding_box import bounding_box
 from jimn.displayable import tycat
-from jimn.segment import segment
 from collections import defaultdict
