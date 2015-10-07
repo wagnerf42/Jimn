@@ -56,7 +56,8 @@ class graph:
     def get_bounding_box(self):
         box = bounding_box.empty_box(2)
         for p in self.get_vertices():
-            box.add_point(p.bound_object)
+            small_box = p.get_object().get_bounding_box()
+            box.update(small_box)
         return box
 
     def save_svg_content(self, display, color):

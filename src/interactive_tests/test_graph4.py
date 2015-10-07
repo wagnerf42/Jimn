@@ -5,7 +5,7 @@ from jimn.polygon import polygon
 from jimn.pocket import pocket
 from jimn.pocket.graph_builder import build_graph
 from jimn.displayable import tycat, tycat_set_svg_dimensions
-from jimn.graph.eulerian_cycle import find_eulerian_cycle
+from jimn.graph.eulerian_cycle import find_eulerian_cycle, cycle_to_path
 
 tycat_set_svg_dimensions(640, 480)
 
@@ -40,5 +40,5 @@ hp = pocket(segments)
 print("complex case for internal edges")
 g = build_graph(hp, 4.0)
 tycat(g)
-p = find_eulerian_cycle(g)
+p = cycle_to_path(find_eulerian_cycle(g))
 p.animate(hp)

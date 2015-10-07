@@ -104,16 +104,17 @@ class path_tree(tree):
         g = graph()
         for c in self.children:
             end = c.content.nearest_point(o)
-            g.add_edge_between(o, p, segment([o, end]))
-        for c1, c2 in two_arrays_combinations(self.children):
+            g.add_edge_between(o, c.content, segment([o, end]))
+        for c1, c2 in combinations(self.children, 2):
             p1 = c1.content
             p2 = c2.content
             start, end = p1.nearest_points(p2)
             g.add_edge_between(p1, p2, segment([start, end]))
-        cycle = g.tsp()
+        tycat(g)
+        cycle = tsp(g)
         cycle.change_starting_point(o)
+        tycat(cycle)
         raise Exception("TODO")
-        return points
 
 
 def _pocket_node_to_path_node(pocket_node, milling_radius):
@@ -129,7 +130,7 @@ def _pocket_node_to_path_node(pocket_node, milling_radius):
                 print("into graph")
                 tycat(g)
 
-        path = find_eulerian_cycle(g)
+        path = cycle_to_path(find_eulerian_cycle(g))
 
     path_node = path_tree(path)
     path_node.children = [
@@ -139,7 +140,9 @@ def _pocket_node_to_path_node(pocket_node, milling_radius):
     return path_node
 
 from jimn.displayable import tycat
-from jimn.graph.eulerian_cycle import find_eulerian_cycle
+from jimn.graph import graph
+from jimn.graph.eulerian_cycle import find_eulerian_cycle, cycle_to_path
+from jimn.graph.tsp import tsp
 from jimn.path import path
 from jimn.tree.path_tree.path_merger import overlap_exit_position, merge_path
 from jimn.point import point
@@ -147,3 +150,4 @@ from jimn.pocket.graph_builder import build_graph
 from jimn.segment import segment
 from jimn.utils.debug import is_module_debugged
 from jimn.vertical_path import vertical_path
+from itertools import combinations

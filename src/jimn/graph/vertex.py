@@ -34,7 +34,6 @@ class vertex:
                 return e
         raise Exception("no such neighbor")
 
-
     def get_edges(self):
         return self.edges
 
@@ -160,7 +159,7 @@ class vertex:
         """
         comparison of vertices is based on bound objects
         """
-        return a.bound_object == b.bound_object
+        return id(a.bound_object) == id(b.bound_object)
 
     def __lt__(a, b):
         """

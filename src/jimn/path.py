@@ -17,28 +17,6 @@ class path:
     def get_start(self):
         return self.elementary_paths[0].get_endpoint(0)
 
-    def fuse_with(self, starts):
-        """
-        take a set of cycles, hashed by their starting points.
-        fuse them inside us.
-        this is the last step of an eulerian path algorithm.
-        """
-        final_paths = []
-        ongoing_paths = self.elementary_paths
-        while ongoing_paths:
-            # move on ongoing path
-            # reverse edges because we start from the end
-            p = ongoing_paths.pop().reverse()
-            final_paths.append(p)
-            current_vertex = p.get_endpoint(1)
-            if current_vertex in starts:
-                cycles = starts[current_vertex]
-                cycle = cycles.pop()
-                ongoing_paths.extend(cycle.elementary_paths)
-                if not cycles:
-                    del starts[current_vertex]
-        self.elementary_paths = final_paths
-
     def get_bounding_box(self):
         box = bounding_box.empty_box(2)
         for p in self.elementary_paths:
@@ -143,6 +121,44 @@ class path:
         # add last segment to go back at start
         paths.append(segment([current_point, start]))
         self.elementary_paths = paths
+
+    def points(self):
+        """
+        iterates through all points.
+        """
+        for p in self.elementary_paths:
+            yield p.get_endpoint(0)
+
+    def nearest_point(self, p):
+        """
+        returns nearest point on self from given point p.
+        """
+        print("TODO: real nearest point")
+        best_distance = float("+inf")
+        for p2 in self.points():
+            d = p.distance_to(p2)
+            if d < best_distance:
+                best_distance = d
+                best_point = p2
+        return best_point
+
+    def nearest_points(self, other):
+        """
+        returns nearest point on self from other path.
+        """
+        print("TODO: real nearests points")
+        best_distance = float("+inf")
+        for p in self.points():
+            for p2 in other.points():
+                d = p.distance_to(p2)
+                if d < best_distance:
+                    best_distance = d
+                    best_points = (p, p2)
+        return best_points
+
+    def __hash__(self):
+        return hash(id(self))
+
 
 from jimn.bounding_box import bounding_box
 from jimn.displayable import tycat
