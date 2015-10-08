@@ -49,6 +49,10 @@ class sweeping_offsetter_selection(sweeping_line_algorithm):
                 print("failed to compute above paths for", limit_path, p)
                 tycat(self.paths, limit_path, p)
                 raise
+        if __debug__:
+            if is_module_debugged(__name__):
+                print("above paths")
+                tycat(self.paths, limit_path, above_paths)
         for p in above_paths:
             winding_number += _path_winding_number(p)
         return winding_number

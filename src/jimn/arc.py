@@ -141,7 +141,7 @@ class arc(elementary_path):
         candidates = [i for i in intersections if self.contains(i)]
         assert candidates, "no intersection"
         ys = [i.get_y() for i in candidates]
-        return max(ys)
+        return min(ys)
 
     def distance_to_point(self, p):
         """
