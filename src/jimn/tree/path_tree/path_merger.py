@@ -100,24 +100,56 @@ def arcs_might_overlap(a1, a2):
     return same_centers and same_radii
 
 
+def last_arc_overlapping_point(followed, other):
+    """
+    if arcs followed and other overlap returns the last point
+    of followed overlapping other.
+    else returns None.
+    overlapping means here overlapping on more than one point
+    precondition: arcs have same center and radius
+    """
+    raise Exception("TODO")
+
+
+def last_segment_overlapping_point(followed, other):
+    """
+    if segments followed and other overlap returns the last point
+    of followed overlapping other.
+    else returns None.
+    overlapping means here overlapping on more than one point.
+    precondition : segments are aligned
+    """
+    start = followed.get_endpoint(0)
+    points = [(p, 0) for p in followed.get_endpoints()]
+    points.extend([(p, 1) for p in other.get_endpoints()])
+    points = sorted(points,
+                    key=lambda t: (t[0]-start).scalar_product(t[0]-start)
+    )
+    inside = [False, False]
+    entered = [False, False]
+    for p in points:
+        side = p[1]
+        inside[side] = not inside[side]
+        entered[side] = True
+        if entered[0] and entered[1] and not(inside[0] and inside[1]):
+            return p[0]
+
+
 def last_overlapping_point(followed, other):
     """
-    if followed on others overlap returns the last point
+    if followed and other overlap returns the last point
     of followed overlapping other.
     else returns None.
     overlapping means here overlapping on more than one point
     """
     if str(type(followed)) == "<class 'jimn.arc.arc'>" and \
             str(type(other)) == "<class 'jimn.arc.arc'>":
-        if not arcs_might_overlap(followed, other):
-            return
-    elif str(type(followed)) == "<class 'jimn.arc.arc'>" and \
-            str(type(other)) == "<class 'jimn.arc.arc'>":
-        if not segments_might_overlap(followed, other):
-            return
-    else:
-        return
-    raise Exception("TODO")
+        if arcs_might_overlap(followed, other):
+            return last_arc_overlapping_point(followed, other)
+    elif str(type(followed)) != "<class 'jimn.arc.arc'>" and \
+            str(type(other)) != "<class 'jimn.arc.arc'>":
+        if segments_might_overlap(followed, other):
+            return last_segment_overlapping_point(followed, other)
 
 
 def last_points_reaching(followed, other, intersections, radius):

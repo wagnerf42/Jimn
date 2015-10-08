@@ -39,10 +39,20 @@ class displayed_thing(object):
             a - b for a, b in zip(self.max_coordinates, self.min_coordinates)
         ]
         real_dimensions = [d-2*margin for d in svg_dimensions]
-        stretches = [a / b for a, b in zip(real_dimensions, dimensions)]
+        adjusted_dimensions = []
+        for d in dimensions:
+            if d == 0:
+                adjusted_dimensions.append(0.001)
+            else:
+                adjusted_dimensions.append(d)
+
+        stretches = [
+            a / b for a, b in zip(real_dimensions, adjusted_dimensions)
+        ]
         self.svg_stretch = min(stretches)
         self.margins = [
-            (a-b*self.svg_stretch)/2 for a, b in zip(svg_dimensions, dimensions)
+            (a-b*self.svg_stretch)/2
+            for a, b in zip(svg_dimensions, adjusted_dimensions)
         ]
 
     def _open_svg(self, filename):
@@ -120,11 +130,7 @@ def tycat(*things):
         w, h = [int(s) for s in dimensions.split("x")]
         tycat_set_svg_dimensions(w, h)
 
-    try:
-        display = displayed_thing(things)
-    except ZeroDivisionError:
-        print("*** svg display failed ***")
-        return
+    display = displayed_thing(things)
 
     user = getpass.getuser()
     directory = "/tmp/{}".format(user)
