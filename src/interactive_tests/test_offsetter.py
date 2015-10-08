@@ -5,6 +5,23 @@ from jimn.polygon import polygon
 from jimn.displayable import tycat
 from jimn.algorithms.offsetter import offset_holed_polygon
 
+# special case
+special_polygon = polygon([
+    point([-1.0864993963549738, 0.9135006036450262]),
+    point([-1.050676115570425, 1.0]),
+    point([-1.0864993963549738, 1.0864993963549738]),
+    point([-1.0, 1.050676115570425]),
+    point([-0.9135006036450262, 1.0864993963549738]),
+    point([-0.9493238248249302, 1.0]),
+    point([-0.9135006036450262, 0.9135006036450262]),
+    point([-1.0, 0.9493238248249302])
+])
+
+pockets = offset_holed_polygon(0.05, special_polygon)
+tycat(special_polygon, *pockets)
+
+# standard cases
+
 polygons = [
     polygon([
         point([4, 0]),

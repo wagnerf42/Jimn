@@ -115,6 +115,10 @@ def tycat(*things):
             * save_svg_content
     """
     global file_count
+    dimensions = os.environ.get("JIMN_TYCAT_SIZE")
+    if dimensions is not None:
+        w, h = [int(s) for s in dimensions.split("x")]
+        tycat_set_svg_dimensions(w, h)
 
     try:
         display = displayed_thing(things)
