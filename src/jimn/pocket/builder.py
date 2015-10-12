@@ -36,7 +36,8 @@ class pockets_builder:
         self.paths.extend(reversed_paths)
 
     def tycat(self):
-        tycat(self.pockets, self.points, self.current_path, self.paths, list(self.marked_paths.values()))
+        tycat(self.pockets, self.points, self.current_path, self.paths,
+              list(self.marked_paths.values()))
 
     def hash_points(self):
         """computes for each point the list of neighbouring points"""

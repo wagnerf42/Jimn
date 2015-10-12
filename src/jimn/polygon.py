@@ -1,3 +1,4 @@
+from jimn.displayable import tycat
 
 _squares_counter = 0
 
@@ -49,10 +50,21 @@ class polygon:
         and computations of further operations.
         WARNING : this operation reverses orientation
         """
-        self.points = list(reversed([
-            p2 for p1, p2, p3 in all_three_elements(self.points)
-            if not p1.is_almost(p2) and not p1.is_aligned_with(p2, p3)
-        ]))
+        self._remove_near_points()
+        self._set_non_removable_start()
+        p1 = self.points[0]
+        p2 = self.points[1]
+        kept_points = [p1]
+        self.points.append(p1) # go until start again
+        # follow edge of polygon, looking for useless points
+        for p3 in self.points[2:]:
+            if p1.is_aligned_with(p2, p3):
+                # if points are aligned, keep nearest one
+                distances = [p1.squared_distance_to(dest) for dest in (p2, p3)]
+                if distances[0] > distances[1]:
+                    p2 = p3
+            else:
+                kept_points.append(p2)
 
         if __debug__:
             if len(self.points) <= 2:
@@ -127,6 +139,30 @@ class polygon:
         display.write("<polygon points=\"{}\"".format(svg_formatted))
         display.write(" style=\"fill:{};stroke:{};\
                       stroke-width:1;opacity:0.4\" />".format(color, color))
+
+    def _remove_near_points(self):
+        """
+        keeps one of each almost identical points.
+        """
+        self.points = [
+            p1 for p1, p2 in all_two_elements(self.points)
+            if not p1.is_almost(p2)
+        ]
+
+    def _set_non_removable_start(self):
+        """
+        changes start point to one which cannot be removed when removing
+        useless points later on.
+        assumes no identical points in polygon.
+        """
+        for i, p in enumerate(self.points):
+            p_prec = self.points[i-1]
+            p_next = self.points[(i+1) % len(self.points)]
+            if not p_prec.is_aligned_with(p, p_next):
+                new_points = self.points[i:]
+                new_points.extend(self.points[:i])
+                return new_points
+        raise Exception("flat polygon")
 
 from jimn.point import point
 from jimn.segment import segment

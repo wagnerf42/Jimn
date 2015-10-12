@@ -16,6 +16,10 @@
 	-> maybe in relation with second pass
 
  * code review
+
+- more tests are needed for polygon simplification
+especially testing flat subparts
+
  * minor code improvements (readability)
 
 - rethink reversed arcs
