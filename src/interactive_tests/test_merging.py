@@ -5,7 +5,6 @@ from jimn.algorithms.offsetter import offset_holed_polygon
 from jimn.pocket.graph_builder import build_graph
 from jimn.graph.eulerian_cycle import find_eulerian_cycle, cycle_to_path
 from jimn.tree.path_tree.path_merger import overlap_exit_position, merge_path
-from jimn.displayable import tycat
 
 p1 = polygon.square(0, 0, 10)
 p1.orient(False)
@@ -20,5 +19,5 @@ path2 = cycle_to_path(find_eulerian_cycle(g2))
 
 pos = overlap_exit_position(path1, path2, 1)
 path1.animate(pos.outer_point, pos.inner_point, path2)
-res = merge_path(path1, path2, pos)
-res.animate()
+merge_path(path1, path2, pos)
+path1.animate()

@@ -268,9 +268,13 @@ def merge_path(outer_path, inner_path, position):
     if before is not None:
         sub_path.append(before)
 
+    sub_path.append(segment([position.outer_point, position.inner_point]))
+
     sub_path.append(vertical_path(-1))
     sub_path.extend(inner_path.get_elementary_paths())
     sub_path.append(vertical_path(1))
+
+    sub_path.append(segment([position.inner_point, position.outer_point]))
 
     if after is not None:
         sub_path.append(after)
@@ -282,6 +286,7 @@ def merge_path(outer_path, inner_path, position):
 from jimn.arc import arc
 from jimn.displayable import tycat
 from jimn.pocket import pocket
+from jimn.segment import segment
 from jimn.utils.coordinates_hash import rounder2d, rounder_lines
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost
