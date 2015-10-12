@@ -240,7 +240,13 @@ def overlap_exit_position(outer_path, inner_path, milling_radius):
             if new_position:
                 if position < new_position:
                     position = new_position
+
         if position.is_not_empty():
+            if __debug__:
+                if is_module_debugged(__name__):
+                    print("found exit point")
+                    tycat(outer_path, inner_path,
+                          position.ep, position.inner_point)
             return position
     raise Exception("no path intersection")
 

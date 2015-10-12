@@ -75,7 +75,12 @@ class path_tree(tree):
 
         # now, insert merged paths in main one
         for i, c in enumerate(self.children):
-            merge_path(self.content, c.content, positions[i])
+            try:
+                merge_path(self.content, c.content, positions[i])
+            except:
+                print("merging failed")
+                tycat(self.content, c.content, positions[i].inner_point)
+                raise
 
     def _sort_children_and_positions(self, positions):
         pairs = [

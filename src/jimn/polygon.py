@@ -1,9 +1,3 @@
-from jimn.point import point
-from jimn.segment import segment
-from jimn.bounding_box import bounding_box
-from jimn.utils.precision import is_almost
-from jimn.utils.iterators import all_two_elements
-from jimn.displayable import tycat
 
 _squares_counter = 0
 
@@ -55,31 +49,10 @@ class polygon:
         and computations of further operations.
         WARNING : this operation reverses orientation
         """
-        p1 = self.points.pop()
-        start_point = p1
-        p2 = self.points.pop()
-        remaining_points = [p1]
-        for p in reversed(self.points):
-            if not p1.is_aligned_with(p2, p):
-                remaining_points.append(p2)
-                p1 = p2
-            else:
-                try:
-                    d1 = segment([p1, p2]).squared_length()
-                    d2 = segment([p1, p]).squared_length()
-                except:
-                    raise invalid_polygon("coming back")
-                if d1 > d2:
-                    raise invalid_polygon("coming back 2")
-            p2 = p
-        if not p1.is_aligned_with(p2, start_point):
-            remaining_points.append(p2)
-        # only case left is first point
-        if remaining_points[-1].is_aligned_with(remaining_points[0],
-                                                remaining_points[1]):
-            self.points = remaining_points[1:]
-        else:
-            self.points = remaining_points
+        self.points = list(reversed([
+            p2 for p1, p2, p3 in all_three_elements(self.points)
+            if not p1.is_almost(p2) and not p1.is_aligned_with(p2, p3)
+        ]))
 
         if __debug__:
             if len(self.points) <= 2:
@@ -154,3 +127,9 @@ class polygon:
         display.write("<polygon points=\"{}\"".format(svg_formatted))
         display.write(" style=\"fill:{};stroke:{};\
                       stroke-width:1;opacity:0.4\" />".format(color, color))
+
+from jimn.point import point
+from jimn.segment import segment
+from jimn.bounding_box import bounding_box
+from jimn.utils.precision import is_almost
+from jimn.utils.iterators import all_two_elements, all_three_elements
