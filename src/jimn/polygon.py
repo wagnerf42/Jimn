@@ -55,16 +55,19 @@ class polygon:
         p1 = self.points[0]
         p2 = self.points[1]
         kept_points = [p1]
-        self.points.append(p1) # go until start again
+        self.points.append(p1)  # go until start again
         # follow edge of polygon, looking for useless points
         for p3 in self.points[2:]:
+            assert not p1.is_almost(p2)
             if p1.is_aligned_with(p2, p3):
-                # if points are aligned, keep nearest one
-                distances = [p1.squared_distance_to(dest) for dest in (p2, p3)]
-                if distances[0] > distances[1]:
-                    p2 = p3
+                p2 = p3
             else:
                 kept_points.append(p2)
+                p1 = p2
+                p2 = p3
+
+        # TODO: remove reversed
+        self.points = list(reversed(kept_points))
 
         if __debug__:
             if len(self.points) <= 2:
@@ -159,9 +162,8 @@ class polygon:
             p_prec = self.points[i-1]
             p_next = self.points[(i+1) % len(self.points)]
             if not p_prec.is_aligned_with(p, p_next):
-                new_points = self.points[i:]
-                new_points.extend(self.points[:i])
-                return new_points
+                self.points = self.points[i:] + self.points[:i]
+                return
         raise Exception("flat polygon")
 
 from jimn.point import point

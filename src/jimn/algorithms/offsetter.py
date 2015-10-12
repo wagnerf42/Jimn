@@ -41,8 +41,14 @@ class offsetter:
             edge.append(s1)
             if i is None:
                 # add arc
-                binding = arc(self.radius,
-                              [s1.get_endpoint(1), s2.get_endpoint(0)])
+                try:
+                    binding = arc(self.radius,
+                                  [s1.get_endpoint(1), s2.get_endpoint(0)])
+                except:
+                    print("failed joining segments")
+                    tycat(self.polygon, s1, s2)
+                    raise
+
                 edge.append(binding)
             else:
                 # stop at intersection
