@@ -33,6 +33,12 @@ def _offset_polygons(poly_tree, carving_radius):
         # now, offset ourselves (if we are not root)
         polygons = content.get_polygons()
         pockets = offset_holed_polygon(carving_radius, *polygons)
+        if __debug__:
+            if is_module_debugged(__name__):
+                print("offsetting")
+                tycat(polygons)
+                print("into")
+                tycat(pockets)
         return _build_offsetted_tree(pockets, subtrees)
     else:
         root = pocket_tree()
