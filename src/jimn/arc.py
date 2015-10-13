@@ -1,5 +1,6 @@
 from jimn.elementary_path import elementary_path
 
+
 class arc(elementary_path):
     def __init__(self, radius, points, center=None):
         """
@@ -178,6 +179,39 @@ class arc(elementary_path):
         return "endpoints:" + str(self.endpoints[0]) \
             + " " + str(self.endpoints[1]) \
             + " radius " + str(self.radius)
+
+    def __hash__(self):
+        return hash(tuple(self.endpoints)) ^ hash(self.radius) ^ \
+            hash(self.reversed_direction)
+
+    def __eq__(self, other):
+        if self.endpoints != other.endpoints:
+            return False
+        if self.radius != other.radius:
+            return False
+        if self.reversed_direction != other.reversed_direction:
+            return False
+        return True
+
+    def comparison(a, b):
+        """
+        returns if a < b.
+        order has no real meaning. it is just an arbitrary order.
+        precondition: both are arcs
+        """
+        if is_almost(a.radius, b.radius):
+            if a.reversed_direction == b.reversed_direction:
+                if a.endpoints[0].is_almost(b.endpoints[0]):
+                    if a.endpoints[1].is_almost(a.endpoints[1]):
+                        return
+                    else:
+                        return a.endpoints[1] < b.endpoints[1]
+                else:
+                    return a.endpoints[0] < b.endpoints[0]
+            else:
+                return a.reversed_direction
+        else:
+            return a.radius < b.radius
 
 from jimn.bounding_box import bounding_box
 from jimn.point import point

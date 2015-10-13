@@ -181,12 +181,6 @@ class segment(elementary_path):
         y /= denominator
         return point([x, y])
 
-    def __eq__(a, b):
-        return a.endpoints == b.endpoints
-
-    def __hash__(self):
-        return hash(tuple(self.endpoints))
-
     def parallel_segment(self, distance, rounder, side=1):
         a = self.endpoints[0].angle_with(self.endpoints[1])
         a += side*pi/2
@@ -229,5 +223,19 @@ class segment(elementary_path):
 
     def inflate(self, radius):
         return inflate_segment(self, radius)
+
+    def comparison(a, b):
+        """
+        returns if a < b.
+        order has no real meaning. it is just an arbitrary order.
+        precondition: both are segments
+        """
+        if a.endpoints[0].is_almost(b.endpoints[0]):
+            if a.endpoints[1].is_almost(b.endpoints[1]):
+                return
+            else:
+                return a.endpoints[1] < b.endpoints[1]
+        else:
+            return a.endpoints[0] < b.endpoints[0]
 
 from jimn.tree.path_tree.path_merger import inflate_segment

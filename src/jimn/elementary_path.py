@@ -237,6 +237,18 @@ class elementary_path:
     def __hash__(self):
         return hash(tuple(self.endpoints))
 
+    def __eq__(a, b):
+        return a.endpoints == b.endpoints
+
+    def __lt__(a, b):
+        types = [str(type(p)) == "<class 'jimn.arc.arc'>" for p in (a, b)]
+        if types[0] and not types[1]:
+            return True
+        if types[1] and not types[0]:
+            return False
+
+        return a.comparison(b)
+
     def update_height(self, height):
         """
         height change by following this path (no change since horizontal)

@@ -133,6 +133,23 @@ class pocket:
                     above_paths = above_paths + 1
         return ((above_paths % 2) == 1)
 
+    def __hash__(self):
+        h = hash(tuple(self.paths))
+        return h
+
+    def __eq__(self, other):
+        if len(self.paths) != len(other.paths):
+            return False
+        sorted_self = sorted(self.paths)
+        sorted_other = sorted(other.paths)
+        for i in range(len(sorted_self)):
+            if sorted_self[i] != sorted_other[i]:
+                return False
+        return True
+
+    def __str__(self):
+        return "\n".join([str(p) for p in self.paths])
+
 from jimn.utils.coordinates_hash import rounder2d
 from jimn.bounding_box import bounding_box
 from jimn.polygon import polygon

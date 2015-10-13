@@ -1,5 +1,6 @@
 from jimn.tree import tree
 
+paths_cache = {}  # small cache to avoid recomputing paths for identical pockets
 
 class path_tree(tree):
 
@@ -161,19 +162,26 @@ class path_tree(tree):
 
 
 def _pocket_node_to_path_node(pocket_node, milling_radius):
+    global paths_cache
+
     p = pocket_node.get_content()
     if p is None:
         path = None
     else:
-        g = build_graph(p, milling_radius)
-        if __debug__:
-            if is_module_debugged(__name__):
-                print("turned pocket")
-                tycat(p)
-                print("into graph")
-                tycat(g)
+        if p in paths_cache:
+            path = copy(paths_cache[p])
+        else:
+            g = build_graph(p, milling_radius)
+            if __debug__:
+                if is_module_debugged(__name__):
+                    print("turned pocket")
+                    print(p)
+                    tycat(p)
+                    print("into graph")
+                    tycat(g)
 
-        path = cycle_to_path(find_eulerian_cycle(g))
+            path = cycle_to_path(find_eulerian_cycle(g))
+            paths_cache[p] = path
 
     path_node = path_tree(path)
     path_node.children = [
@@ -182,6 +190,7 @@ def _pocket_node_to_path_node(pocket_node, milling_radius):
     ]
     return path_node
 
+from copy import copy
 from jimn.displayable import tycat
 from jimn.graph import graph
 from jimn.graph.eulerian_cycle import find_eulerian_cycle, cycle_to_path
