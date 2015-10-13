@@ -6,7 +6,7 @@ class path_position:
         records:
             - point on the followed path
             - interference point on the other path
-            - followed elementary path
+            - followed elementary path (on outer path)
             - the index of the elementary path in the followed path
         """
         self.outer_point = outer_point
@@ -15,6 +15,9 @@ class path_position:
         if index >= 0:
             self.distance = ep.squared_distance_from_start(outer_point)
         self.index = index
+        if __debug__:
+            if self.ep:
+                assert ep.contains(outer_point)
 
     @classmethod
     def empty_position(cls):
@@ -119,19 +122,32 @@ def last_segment_overlapping_point(followed, other):
     overlapping means here overlapping on more than one point.
     precondition : segments are aligned
     """
+    # sort all points following same direction as followed
+    # also remember to which segment each point belongs
     start = followed.get_endpoint(0)
-    points = [(p, 0) for p in followed.get_endpoints()]
-    points.extend([(p, 1) for p in other.get_endpoints()])
-    points = sorted(points,
-                    key=lambda t: (t[0]-start).scalar_product(t[0]-start)
-    )
+    named_points = [(p, 0) for p in followed.get_endpoints()]
+    named_points.extend([(p, 1) for p in other.get_endpoints()])
+
+    points = followed.get_endpoints() + other.get_endpoints()
+    if followed.get_endpoint(0) > followed.get_endpoint(1):
+        start = max(points)
+    else:
+        start = min(points)
+
+    named_points = sorted(named_points,
+                          key=lambda t: (start.squared_distance_to(t[0]))
+                          )
+
+    # now, move on points updating state (inside what we are)
     inside = [False, False]
-    entered = [False, False]
-    for p in points:
+    for p in named_points:
+        was_inside = sum(1 for i in inside if i)
         side = p[1]
         inside[side] = not inside[side]
-        entered[side] = True
-        if entered[0] and entered[1] and not(inside[0] and inside[1]):
+        is_inside = sum(1 for i in inside if i)
+        # when we were inside both but exit one
+        # we are on wanted point
+        if was_inside == 2 and is_inside == 1:
             return p[0]
 
 
@@ -268,13 +284,15 @@ def merge_path(outer_path, inner_path, position):
     if before is not None:
         sub_path.append(before)
 
-    sub_path.append(segment([position.outer_point, position.inner_point]))
+    if not position.outer_point.is_almost(position.inner_point):
+        sub_path.append(segment([position.outer_point, position.inner_point]))
 
     sub_path.append(vertical_path(-1))
     sub_path.extend(inner_path.get_elementary_paths())
     sub_path.append(vertical_path(1))
 
-    sub_path.append(segment([position.inner_point, position.outer_point]))
+    if not position.outer_point.is_almost(position.inner_point):
+        sub_path.append(segment([position.inner_point, position.outer_point]))
 
     if after is not None:
         sub_path.append(after)
