@@ -21,7 +21,8 @@ class segment(elementary_path):
         return segment(list(reversed(self.endpoints)))
 
     def __str__(self):
-        return "[{}]".format(';'.join(map(lambda p: str(p), self.endpoints)))
+        return "segment([" + str(self.endpoints[0]) + ", " + \
+            str(self.endpoints[1]) + "])"
 
     def get_bounding_box(self):
         boxes = [

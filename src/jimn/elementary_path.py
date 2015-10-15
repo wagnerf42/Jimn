@@ -43,6 +43,15 @@ class elementary_path:
     def get_endpoints(self):
         return self.endpoints
 
+    def get_stored_endpoints(self):
+        """
+        returns endpoints in stored order.
+        we do not care whether the arc is reversed
+        or not.
+        useful for operations independant from arc direction
+        """
+        return self.endpoints
+
     def sort_endpoints(self):
         """sort endpoints and return a new path (same type).
         this will also work in derived classes

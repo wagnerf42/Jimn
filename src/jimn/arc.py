@@ -2,7 +2,7 @@ from jimn.elementary_path import elementary_path
 
 
 class arc(elementary_path):
-    def __init__(self, radius, points, center=None):
+    def __init__(self, radius, points, center=None, reversed_direction=None):
         """
         builds an arc out of two endpoints and a radius.
         different ordering of endpoints give different arcs
@@ -12,9 +12,18 @@ class arc(elementary_path):
         assert self.radius > 0, "0 or negative radius"
         if center is None:
             self.center = self._compute_center()
+            self.reversed_direction = False  # QADH to handle reversed arcs
         else:
             self.center = center
-        self.reversed_direction = False  # QADH to handle reversed arcs
+            if reversed_direction is None:
+                a = self.center.angle_with(self.endpoints[0]) - \
+                    self.center.angle_with(self.endpoints[1])
+                a = a % (2*pi)
+                self.reversed_direction = (a > pi)
+                if self.reversed_direction:
+                    self.endpoints = list(reversed(self.endpoints))
+            else:
+                self.reversed_direction = reversed_direction
 
     def _compute_center(self):
         # take endpoints[0] as origin
@@ -52,15 +61,6 @@ class arc(elementary_path):
             return list(reversed(self.endpoints))
         else:
             return self.endpoints
-
-    def get_stored_endpoints(self):
-        """
-        returns endpoints in stored order.
-        we do not care whether the arc is reversed
-        or not.
-        useful for operations independant from arc direction
-        """
-        return self.endpoints
 
     def get_endpoint(self, index):
         if self.reversed_direction:
@@ -176,9 +176,10 @@ class arc(elementary_path):
         return inflate_arc(self, radius)
 
     def __str__(self):
-        return "endpoints:" + str(self.endpoints[0]) \
-            + " " + str(self.endpoints[1]) \
-            + " radius " + str(self.radius)
+        return "arc(" + str(self.radius) + ", [" + \
+            str(self.endpoints[0]) + ", " + str(self.endpoints[1]) \
+            + "], " + str(self.center) + ", " + str(self.reversed_direction) \
+            + ")"
 
     def __hash__(self):
         return hash(tuple(self.endpoints)) ^ hash(self.radius) ^ \
@@ -220,4 +221,5 @@ from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.math import circles_intersections, line_circle_intersections
 from jimn.utils.precision import is_almost
 from copy import copy
+from math import pi
 from jimn.tree.path_tree.path_merger import inflate_arc
