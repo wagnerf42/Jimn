@@ -42,30 +42,31 @@ class follower:
         if self.current_point in self.seen_points:
             self.results.append(self.remove_current_loop())
 
-        self.seen_points[self.current_point] = True
-        self.current_path.append(self.current_point)
+        self.seen_points[self.current_point] = len(self.current_path)
+        self.current_path.append(self.elementary_path)
 
     def move_on(self):
         """
         advances on current path.
         """
-        next_path = self.get_next_path()
-        assert self.current_point == next_path.get_endpoint(0)
-        self.current_point = next_path.get_endpoint(1)
+        self.elementary_path = self.get_next_path()
+        assert self.current_point == self.elementary_path.get_endpoint(0)
+        self.current_point = self.elementary_path.get_endpoint(1)
 
     def remove_current_loop(self):
         """
         current point is already in current path.
         removes from current path all part from current point to end.
         """
-        i = self.current_path.index(self.current_point)
+        i = self.seen_points[self.current_point]
+        assert self.current_path[i].get_endpoint(0) == self.current_point
         cycle = self.current_path[i:]
         self.current_path = self.current_path[:i]
 
         # re hash seen points
         self.seen_points = {}
-        for p in self.current_path:
-            self.seen_points[p] = True
+        for i, p in self.current_path:
+            self.seen_points[p.get_endpoint(0)] = i
 
         if __debug__:
             if is_module_debugged(__name__):
