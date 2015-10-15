@@ -5,7 +5,7 @@ from jimn.segment import segment
 from jimn.arc import arc
 from jimn.pocket import pocket
 from jimn.displayable import tycat
-from jimn.pocket.follow import split_pocket
+from jimn.pocket.builder import build_pockets
 
 print("test to follow all paths in a given pocket, building sub-pockets")
 p = pocket([
@@ -40,6 +40,7 @@ p = pocket([
 ])
 
 tycat(p)
-sub_pockets = split_pocket(p)
+
+sub_pockets = build_pockets(p.get_content())
 print("results")
 tycat(*sub_pockets)

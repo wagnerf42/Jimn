@@ -3,8 +3,6 @@ from jimn.arc import arc
 from jimn.pocket import pocket
 from jimn.pocket.elementary_paths import pocket_elementary_paths
 from jimn.pocket.builder import build_pockets
-from jimn.algorithms.sweeping_line_algorithms.sweeping_offsetter_selection\
-    import select_offseted_paths
 from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.iterators import all_two_elements
@@ -117,12 +115,7 @@ def offset_holed_polygon(radius, *polygons):
         if is_module_debugged(__name__):
             print("before path selection")
             tycat(overall_pocket)
-    remaining_paths = select_offseted_paths(overall_pocket.get_content())
-    if __debug__:
-        if is_module_debugged(__name__):
-            print("after path selection")
-            tycat(remaining_paths)
-    pockets = build_pockets(remaining_paths)
+    pockets = build_pockets(overall_pocket.get_content())
     final_pockets = _merge_included_pockets(pockets)
     if __debug__:
         if is_module_debugged(__name__):

@@ -10,7 +10,7 @@ area_limit = 10**-10 # TODO: what is the right value ??
 
 
 class pockets_builder:
-    def __init__(self, paths):
+    def __init__(self, paths, reversed_paths):
         # initialize various structs to hold info
         self.points = []
         self.pockets = []
@@ -20,7 +20,8 @@ class pockets_builder:
 
         # start
         self.paths = paths
-        self.add_reversed_paths()
+        if reversed_paths:
+            self.add_reversed_paths()
         self.marked_paths = {}  # we go only once through each (oriented) path
 
         # compute structures to easily enter and leave points
@@ -111,13 +112,13 @@ class pockets_builder:
         return pocket(self.paths)
 
 
-def build_pockets(paths):
+def build_pockets(paths, reverse_paths=True):
     """
     turns a set of paths into a set of pockets.
     works by following edges.
     pre-requisite: no paths intersect other than at endpoints.
     """
-    builder = pockets_builder(paths)
+    builder = pockets_builder(paths, reverse_paths)
     return builder.build_pockets()
 
 def build_polygons(paths):
