@@ -4,10 +4,14 @@ from jimn.displayable import tycat
 class holed_polygon:
     def __init__(self, polygon, height=None, holes=None):
         self.polygon = polygon
+        assert not self.polygon.is_oriented_clockwise()
         if holes is None:
             self.holes = []
         else:
             self.holes = holes
+            if __debug__:
+                for h in self.holes:
+                    assert h.is_oriented_clockwise()
         self.height = height
 
     def get_height(self):

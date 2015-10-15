@@ -1,5 +1,3 @@
-from jimn.displayable import tycat
-
 _squares_counter = 0
 
 
@@ -96,6 +94,7 @@ class polygon:
     def orient(self, clockwise=True):
         if self.is_oriented_clockwise() != clockwise:
             self.points.reverse()
+        return self
 
     def normalize_starting_point(self):
         smallest_point = self.points[0]
@@ -121,9 +120,9 @@ class polygon:
         self.points = [rounder.hash_point(p) for p in self.points]
 
     def __str__(self):
-        return "[{}/{}]".format(
-            self.label, ';'.join(map(lambda p: str(p), self.points))
-        )
+        strings = [str(p) for p in self.points]
+        return "[" + str(self.label) + "/\npolygon([\n    " + \
+            ",\n    ".join(strings) + "\n])\n]"
 
     def get_bounding_box(self):
         box = bounding_box.empty_box(2)
@@ -170,4 +169,4 @@ from jimn.point import point
 from jimn.segment import segment
 from jimn.bounding_box import bounding_box
 from jimn.utils.precision import is_almost
-from jimn.utils.iterators import all_two_elements, all_three_elements
+from jimn.utils.iterators import all_two_elements

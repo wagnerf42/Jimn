@@ -148,7 +148,8 @@ class pocket:
         return True
 
     def __str__(self):
-        return "\n".join([str(p) for p in self.paths])
+        return "pocket([\n    " + ",\n    ".join([str(p) for p in self.paths]) \
+            + "\n])"
 
 from jimn.utils.coordinates_hash import rounder2d
 from jimn.bounding_box import bounding_box

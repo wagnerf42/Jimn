@@ -12,7 +12,7 @@ class point:
 
     def __str__(self):
         """Prints "(x, y, ...)"."""
-        return "({})".format(','.join(map(lambda x: str(x), self.coordinates)))
+        return "point([" + ', '.join([str(c) for c in self.coordinates]) + "])"
 
     def squared_distance_to(self, other):
         """squared euclidean distance between two points"""

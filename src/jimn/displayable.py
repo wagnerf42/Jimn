@@ -125,6 +125,7 @@ def tycat(*things):
             * save_svg_content
     """
     global file_count
+    print("[", file_count, "]")
     dimensions = os.environ.get("JIMN_TYCAT_SIZE")
     if dimensions is not None:
         w, h = [int(s) for s in dimensions.split("x")]
