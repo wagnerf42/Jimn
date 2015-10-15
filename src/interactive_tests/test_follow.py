@@ -41,4 +41,5 @@ p = pocket([
 
 tycat(p)
 sub_pockets = split_pocket(p)
-tycat(sub_pockets)
+print("results")
+tycat(*sub_pockets)

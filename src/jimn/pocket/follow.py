@@ -20,7 +20,7 @@ class follower:
         """
         while self.points:
             start_point = self.get_starting_point()
-            self.seen_points = {}
+            self.seen_points = {} # to each point, hash index of ep leaving it
             self.current_point = start_point
             self.current_path = []
             while True:
@@ -31,6 +31,10 @@ class follower:
                 self.update_path()
                 self.move_on()
                 if self.current_point == start_point:
+                    if __debug__:
+                        if is_module_debugged(__name__):
+                            print("back to start, adding cycle")
+                            tycat(self.pocket, self.current_path)
                     self.results.append(self.current_path)
                     break
 
@@ -43,13 +47,13 @@ class follower:
             self.results.append(self.remove_current_loop())
 
         self.seen_points[self.current_point] = len(self.current_path)
-        self.current_path.append(self.elementary_path)
 
     def move_on(self):
         """
         advances on current path.
         """
         self.elementary_path = self.get_next_path()
+        self.current_path.append(self.elementary_path)
         assert self.current_point == self.elementary_path.get_endpoint(0)
         self.current_point = self.elementary_path.get_endpoint(1)
 
@@ -65,7 +69,7 @@ class follower:
 
         # re hash seen points
         self.seen_points = {}
-        for i, p in self.current_path:
+        for i, p in enumerate(self.current_path):
             self.seen_points[p.get_endpoint(0)] = i
 
         if __debug__:
