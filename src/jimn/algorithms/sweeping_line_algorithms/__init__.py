@@ -18,7 +18,8 @@ class sweeping_line_algorithm:
         - there is no orientation condition on paths
         """
         self.paths = paths
-        self.current_paths = defaultdict(list)  # currently crossed by sweeping line
+        # paths currently crossed by sweeping line
+        self.current_paths = defaultdict(list)
         self._create_events()
         self._run()
 
@@ -30,7 +31,7 @@ class sweeping_line_algorithm:
         # create all events
         events = {}
         for p in self.paths:
-            start, end = p.sort_endpoints().get_endpoints()
+            start, end = list(sorted(p.get_endpoints()))
             for path_type, extremity in enumerate([start, end]):
                 if extremity not in events:
                     events[extremity] = event(extremity)

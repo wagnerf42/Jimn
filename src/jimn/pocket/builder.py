@@ -70,12 +70,15 @@ class pockets_builder:
                 self.tycat()
                 raise
 
-            if not p.is_oriented_clockwise():  # discard outer edge
-                self.pockets.append(p)
-                if __debug__:
-                    if is_module_debugged(__name__):
-                        print("added pocket")
-                        self.tycat()
+            try:
+                if not p.is_oriented_clockwise():  # discard outer edge
+                    self.pockets.append(p)
+                    if __debug__:
+                        if is_module_debugged(__name__):
+                            print("added pocket")
+                            self.tycat()
+            except:
+                continue
         return self.pockets
 
     def find_next_path(self, current_point, previous_point):

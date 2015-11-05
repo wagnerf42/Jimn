@@ -6,6 +6,8 @@ from jimn.pocket.builder import build_pockets
 from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.iterators import all_two_elements
+from jimn.algorithms.sweeping_line_algorithms.sweeping_offsetter_selection \
+    import select_offseted_paths
 from collections import defaultdict
 
 """requires polygon to be oriented counter clockwise to carve the inside
@@ -20,28 +22,33 @@ class offsetter:
 
     def raw_offset(self):
         raw_segments = [
-            s.parallel_segment(self.radius, self.rounder)
+            (s.parallel_segment(self.radius, self.rounder), s)
             for s in self.polygon.segments()
         ]
 
         if __debug__:
             if is_module_debugged(__name__):
                 print("unjoined raw segments")
-                tycat(self.polygon, raw_segments)
+                segments = [t[0] for t in raw_segments]
+                tycat(self.polygon, segments)
 
         return self.join_raw_segments(raw_segments)
 
     def join_raw_segments(self, raw_segments):
 
         edge = []
-        for s1, s2 in all_two_elements(raw_segments):
+        for t1, t2 in all_two_elements(raw_segments):
+            s1 = t1[0] # get back displaced segments
+            s2 = t2[0]
             i = s1.intersection_with_segment(s2, self.rounder)
             edge.append(s1)
             if i is None:
                 # add arc
+                center_point = t1[1].get_endpoint(1) # rotate around orig point
                 try:
                     binding = arc(self.radius,
-                                  [s1.get_endpoint(1), s2.get_endpoint(0)])
+                                  [s1.get_endpoint(1), s2.get_endpoint(0)],
+                                  center_point)
                 except:
                     print("failed joining segments")
                     tycat(self.polygon, s1, s2)
@@ -115,7 +122,12 @@ def offset_holed_polygon(radius, *polygons):
         if is_module_debugged(__name__):
             print("before path selection")
             tycat(overall_pocket)
-    pockets = build_pockets(overall_pocket.get_content())
+    remaining_paths = select_offseted_paths(overall_pocket.get_content())
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("after path selection")
+            tycat(remaining_paths)
+    pockets = build_pockets(remaining_paths)
     final_pockets = _merge_included_pockets(pockets)
     if __debug__:
         if is_module_debugged(__name__):

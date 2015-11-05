@@ -14,13 +14,15 @@ class arc(elementary_path):
             self.center = self._compute_center()
             self.reversed_direction = False  # QADH to handle reversed arcs
         else:
+            # TODO: documentation
             self.center = center
             if reversed_direction is None:
                 a = self.center.angle_with(self.endpoints[0]) - \
                     self.center.angle_with(self.endpoints[1])
                 a = a % (2*pi)
-                self.reversed_direction = (a > pi)
-                if self.reversed_direction:
+                self.reversed_direction = False
+                reversed_direction = (a > pi)
+                if reversed_direction:
                     self.endpoints = list(reversed(self.endpoints))
             else:
                 self.reversed_direction = reversed_direction
@@ -223,3 +225,4 @@ from jimn.utils.precision import is_almost
 from copy import copy
 from math import pi
 from jimn.tree.path_tree.path_merger import inflate_arc
+from jimn.displayable import tycat
