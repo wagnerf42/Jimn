@@ -15,8 +15,10 @@ class arc(elementary_path):
             self.reversed_direction = False  # QADH to handle reversed arcs
         else:
             self.center = center
-            assert is_almost(radius*radius, self.center.distance_to(points[0]))
-            assert is_almost(radius*radius, self.center.distance_to(points[1]))
+            assert is_almost(radius*radius,
+                             self.center.squared_distance_to(points[0]))
+            assert is_almost(radius*radius,
+                             self.center.squared_distance_to(points[1]))
             self.reversed_direction = reversed_direction
 
     def correct_endpoints_order(self):
@@ -82,7 +84,8 @@ class arc(elementary_path):
         """return true if point p is inside arc"""
         if p.is_almost(self.endpoints[0]) or p.is_almost(self.endpoints[1]):
             return True
-        if not is_almost(self.center.distance_to(p), self.radius):
+        if not is_almost(self.center.squared_distance_to(p),
+                         self.radius*self.radius):
             return False
         diff = self.endpoints[1] - self.endpoints[0]
         p_diff = p - self.endpoints[0]
@@ -129,10 +132,11 @@ class arc(elementary_path):
         ]
         r = display.stretch() * self.radius
         self.center.save_svg_content(display, color)
+        stroke_width = display.stroke_width()
         display.write('<path d="M{},{} A{},{} 0 0,1 {},{}" \
                       fill="none" stroke="{}" \
-                      opacity="0.5" stroke-width="3"\
-                      />'.format(x1, y1, r, r, x2, y2, color))
+                      opacity="0.5" stroke-width="{}"\
+                      />'.format(x1, y1, r, r, x2, y2, color, stroke_width))
 
     def vertical_intersection_at(self, x):
         """return y of lowest intersection given vertical line"""

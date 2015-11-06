@@ -109,7 +109,7 @@ class displayed_thing(object):
 
     def stroke_width(self):
         min_dimension = min(svg_dimensions)
-        expected_size = ceil(min_dimension / 100)
+        expected_size = ceil(min_dimension / 150)
         return expected_size
 
 file_count = 0

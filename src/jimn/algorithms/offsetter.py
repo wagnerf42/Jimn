@@ -49,10 +49,10 @@ class offsetter:
                     binding = arc(self.radius,
                                   [s1.get_endpoint(1), s2.get_endpoint(0)],
                                   center_point)
-                    binding.correct_endpoints_order
+                    binding.correct_endpoints_order()
                 except:
                     print("failed joining segments")
-                    tycat(self.polygon, s1, s2)
+                    tycat(self.polygon, center_point, s1, s2)
                     raise
 
                 edge.append(binding)
