@@ -68,7 +68,7 @@ class point:
     def save_svg_content(self, display, color):
         svg_coordinates = display.convert_coordinates(self.coordinates)
         display.write("<circle cx=\"{}\" cy=\"{}\"".format(*svg_coordinates))
-        display.write(" r=\"5\" fill=\"{}\"/> opacity=\"0.5\"\n".format(color))
+        display.write(" r=\"5\" fill=\"{}\" opacity=\"0.5\"/>\n".format(color))
 
     def rotate(self, angle):
         """rotates a point around origin"""

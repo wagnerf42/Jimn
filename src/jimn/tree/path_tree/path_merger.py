@@ -184,7 +184,8 @@ def last_points_reaching(followed, other, intersections, radius):
             inner_point = inner_points[0]  # we can keep any of inner points
         except:
             print("failed", followed, other)
-            tycat(followed, other, intersections)
+            circles = [circle(i, radius) for i in intersections]
+            tycat(followed, other, intersections, circles)
             raise
         for q in outer_points:
             on_path_points.append([q, inner_point])
@@ -314,3 +315,4 @@ from jimn.utils.coordinates_hash import rounder2d, rounder_lines
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost
 from jimn.vertical_path import vertical_path
+from jimn.circle import circle
