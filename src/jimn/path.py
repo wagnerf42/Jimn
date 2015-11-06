@@ -1,8 +1,14 @@
+import os
 
 """
 a path is a list of arcs or segments
 """
 
+path_modulo = os.environ.get("JIMN_PATH_ANIMATION")
+if path_modulo is None:
+    path_modulo = 10
+else:
+    path_modulo = int(path_modulo)
 
 class path:
     def __init__(self, elementary_paths):
@@ -49,7 +55,7 @@ class path:
         displayed = path([])
         for i, p in enumerate(self.elementary_paths):
             displayed.append(p)
-            if i % 10 == 0:
+            if i % path_modulo == 0:
                 tycat(displayed, other_things)
         tycat(displayed, other_things)
 
