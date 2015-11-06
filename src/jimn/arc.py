@@ -2,7 +2,7 @@ from jimn.elementary_path import elementary_path
 
 
 class arc(elementary_path):
-    def __init__(self, radius, points, center=None, reversed_direction=None):
+    def __init__(self, radius, points, center=None, reversed_direction=False):
         """
         builds an arc out of two endpoints and a radius.
         different ordering of endpoints give different arcs
@@ -14,18 +14,19 @@ class arc(elementary_path):
             self.center = self._compute_center()
             self.reversed_direction = False  # QADH to handle reversed arcs
         else:
-            # TODO: documentation
             self.center = center
-            if reversed_direction is None:
-                a = self.center.angle_with(self.endpoints[0]) - \
-                    self.center.angle_with(self.endpoints[1])
-                a = a % (2*pi)
-                self.reversed_direction = False
-                reversed_direction = (a > pi)
-                if reversed_direction:
-                    self.endpoints = list(reversed(self.endpoints))
-            else:
-                self.reversed_direction = reversed_direction
+            self.reversed_direction = reversed_direction
+
+    def correct_endpoints_order(self):
+        """
+        when creating arcs in offsetter we need to invert points
+        order when distance is more than half of circle
+        """
+        a = self.center.angle_with(self.endpoints[0]) - \
+            self.center.angle_with(self.endpoints[1])
+        a = a % (2*pi)
+        if a > pi:
+            self.endpoints = list(reversed(self.endpoints))
 
     def _compute_center(self):
         # take endpoints[0] as origin

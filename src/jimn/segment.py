@@ -220,7 +220,13 @@ class segment(elementary_path):
         intersections = line_circle_intersections(
             self.endpoints, p, distance, rounder2d
         )
-        return [i for i in intersections if self.contains(i)]
+        intersections = [i for i in intersections if self.contains(i)]
+        # process endpoints independently (to avoid rounding problems)
+        for e in self.endpoints:
+            if is_almost(e.squared_distance_to(p), distance*distance):
+                if e not in intersections:
+                    intersections.append(e)
+        return intersections
 
     def inflate(self, radius):
         return inflate_segment(self, radius)

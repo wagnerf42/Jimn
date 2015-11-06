@@ -38,17 +38,18 @@ class offsetter:
 
         edge = []
         for t1, t2 in all_two_elements(raw_segments):
-            s1 = t1[0] # get back displaced segments
+            s1 = t1[0]  # get back displaced segments
             s2 = t2[0]
             i = s1.intersection_with_segment(s2, self.rounder)
             edge.append(s1)
             if i is None:
                 # add arc
-                center_point = t1[1].get_endpoint(1) # rotate around orig point
+                center_point = t1[1].get_endpoint(1)  # rotate around orig point
                 try:
                     binding = arc(self.radius,
                                   [s1.get_endpoint(1), s2.get_endpoint(0)],
                                   center_point)
+                    binding.correct_endpoints_order
                 except:
                     print("failed joining segments")
                     tycat(self.polygon, s1, s2)
