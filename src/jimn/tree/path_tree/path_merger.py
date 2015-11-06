@@ -180,7 +180,12 @@ def last_points_reaching(followed, other, intersections, radius):
     for p in intersections:
         outer_points = followed.points_at_distance(p, radius)
         inner_points = other.points_at_distance(p, radius)
-        inner_point = inner_points[0]  # we can keep any of inner points
+        try:
+            inner_point = inner_points[0]  # we can keep any of inner points
+        except:
+            print("failed", followed, other)
+            tycat(followed, other, intersections)
+            raise
         for q in outer_points:
             on_path_points.append([q, inner_point])
     # find path point nearest from followed.p2 and corresponding point in other
