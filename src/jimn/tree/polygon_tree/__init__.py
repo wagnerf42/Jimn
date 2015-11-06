@@ -21,7 +21,8 @@ class polygon_tree(tree):
         return poly_tree
 
     def add_child(self, polygon, height, holes):
-        new_child = polygon_tree(holed_polygon(polygon, height, holes))
+        new_child = polygon_tree(holed_polygon(polygon.orient(False),
+                                               height, holes))
         self.children.append(new_child)
         return new_child
 
@@ -44,7 +45,7 @@ def _convert_inclusion_tree(polygon_tree_node, inclusion_tree_node):
             # call holed_polygon constructor
             # first, get the holes to put inside
             holes = [
-                grandchild.get_polygon()
+                grandchild.get_polygon().orient(True)
                 for grandchild in inclusion_tree_child.get_children()
                 if not grandchild.is_a_polygon()
             ]

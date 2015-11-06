@@ -125,7 +125,7 @@ def build_pockets(paths, reverse_paths=True):
     return builder.build_pockets()
 
 def build_polygons(paths):
-    builder = pockets_builder(paths)
+    builder = pockets_builder(paths, True)
     pockets = builder.build_pockets()
     polygons = []
     for p in pockets:
