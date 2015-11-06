@@ -123,7 +123,14 @@ def offset_holed_polygon(radius, *polygons):
         if is_module_debugged(__name__):
             print("before path selection")
             tycat(overall_pocket)
-    remaining_paths = select_offseted_paths(overall_pocket.get_content())
+    try:
+        remaining_paths = select_offseted_paths(overall_pocket.get_content())
+    except:
+        print("failing paths selection for", radius, *polygons)
+        tycat(*polygons)
+        tycat(overall_pocket)
+        raise
+
     if __debug__:
         if is_module_debugged(__name__):
             print("after path selection")

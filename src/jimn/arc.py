@@ -15,6 +15,8 @@ class arc(elementary_path):
             self.reversed_direction = False  # QADH to handle reversed arcs
         else:
             self.center = center
+            assert is_almost(radius*radius, self.center.distance_to(points[0]))
+            assert is_almost(radius*radius, self.center.distance_to(points[1]))
             self.reversed_direction = reversed_direction
 
     def correct_endpoints_order(self):
