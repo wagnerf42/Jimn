@@ -1,3 +1,4 @@
+from jimn.bounding_box import bounding_box
 from jimn.displayable import tycat
 from jimn.arc import arc
 from jimn.pocket import pocket
@@ -110,8 +111,14 @@ def offset_holed_polygon(radius, *polygons):
     """
 
     # fill rounder with all coordinates
+    # quickly check we are not too small
+    b = bounding_box.empty_box(2)
     for p in polygons:
         p.round_points(rounder2d)
+        b.update(p.get_bounding_box())
+
+    if b.diameter() < 2 * radius:
+        return []
 
     overall_pocket = pocket([])
     for p in polygons:
