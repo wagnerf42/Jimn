@@ -87,6 +87,10 @@ class arc(elementary_path):
         if not is_almost(self.center.squared_distance_to(p),
                          self.radius*self.radius):
             return False
+        return self.contains_circle_point(p)
+
+    def contains_circle_point(self, p):
+        """returns true if point p (on circle) is inside arc"""
         diff = self.endpoints[1] - self.endpoints[0]
         p_diff = p - self.endpoints[0]
         product = diff.cross_product(p_diff)
@@ -103,7 +107,7 @@ class arc(elementary_path):
                                        self.radius, other.radius, rounder)
         intersections = []
         for p in points:
-            if self.contains(p) and other.contains(p):
+            if self.contains_circle_point(p) and other.contains_circle_point(p):
                 intersections.append(p)
         return intersections
 
@@ -178,7 +182,9 @@ class arc(elementary_path):
         intersections = circles_intersections(
             self.center, p, self.radius, distance, rounder2d
         )
-        remaining_points = [i for i in intersections if self.contains(i)]
+        remaining_points = [
+            i for i in intersections if self.contains_circle_point(i)
+        ]
         return remaining_points
 
     def inflate(self, radius):
