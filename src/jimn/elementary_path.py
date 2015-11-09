@@ -203,7 +203,15 @@ class elementary_path:
             if p < 0:
                 possibly_above = False
 
-        assert (possibly_below or possibly_above)
+        if __debug__:
+            if not (possibly_below or possibly_above):
+                print("failed above test: ", a, b)
+                print(common_abs)
+                print(ya)
+                print(yb)
+                tycat(a, b)
+                tycat(b, [point([common_abs[i], yb[i]]) for i in range(3)])
+                raise Exception("cannot see which path is above the other")
 
         s = sum(point_above)
         if s == 0:
@@ -263,3 +271,5 @@ class elementary_path:
         height change by following this path (no change since horizontal)
         """
         return height
+
+from jimn.point import point

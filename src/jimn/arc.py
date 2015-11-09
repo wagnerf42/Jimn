@@ -82,8 +82,6 @@ class arc(elementary_path):
 
     def contains(self, p):
         """return true if point p is inside arc"""
-        if p.is_almost(self.endpoints[0]) or p.is_almost(self.endpoints[1]):
-            return True
         if not is_almost(self.center.squared_distance_to(p),
                          self.radius*self.radius):
             return False
@@ -91,11 +89,11 @@ class arc(elementary_path):
 
     def contains_circle_point(self, p):
         """returns true if point p (on circle) is inside arc"""
+        if p.is_almost(self.endpoints[0]) or p.is_almost(self.endpoints[1]):
+            return True
         diff = self.endpoints[1] - self.endpoints[0]
         p_diff = p - self.endpoints[0]
         product = diff.cross_product(p_diff)
-        if is_almost(product, 0):
-            return True
         return product < 0
 
     def intersections_with_arc(self, other, rounder):
@@ -124,7 +122,8 @@ class arc(elementary_path):
         )
         intersections = []
         for p in points:
-            if self.contains(p) and intersecting_segment.contains(p):
+            if self.contains_circle_point(p) \
+                    and intersecting_segment.contains(p):
                 intersections.append(p)
 
         return intersections
@@ -152,7 +151,7 @@ class arc(elementary_path):
         intersections = \
             line_circle_intersections(line, self.center, self.radius, rounder2d)
 
-        candidates = [i for i in intersections if self.contains(i)]
+        candidates = [i for i in intersections if self.contains_circle_point(i)]
         assert candidates, "no intersection"
         ys = [i.get_y() for i in candidates]
         return min(ys)

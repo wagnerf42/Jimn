@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 import unittest
 from jimn.segment import segment
 from jimn.point import point
