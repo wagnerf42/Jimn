@@ -282,7 +282,6 @@ def merge_path(outer_path, inner_path, position):
     inner_path.change_starting_point(position.inner_point)
     paths = outer_path.get_elementary_paths()
     arrival_path = paths[position.index]
-    assert arrival_path == position.ep
     assert arrival_path.contains(position.outer_point), "no merging here"
 
     sub_path = []
