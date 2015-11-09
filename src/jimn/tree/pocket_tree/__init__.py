@@ -28,10 +28,10 @@ def _offset_polygons(poly_tree, carving_radius):
         pockets = _offset_polygons(n, carving_radius)
         subtrees.extend(pockets)
 
-    content = poly_tree.get_content()
-    if content is not None:
+    holed_poly = poly_tree.get_content()
+    if holed_poly is not None:
         # now, offset ourselves (if we are not root)
-        polygons = content.get_polygons()
+        polygons = holed_poly.get_polygons()
         pockets = offset_holed_polygon(carving_radius, *polygons)
         if __debug__:
             if is_module_debugged(__name__):

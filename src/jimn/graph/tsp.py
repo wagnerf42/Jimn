@@ -112,7 +112,7 @@ def _skip_seen_vertices(cycle):
                 objects = [
                     v.get_object() for v in (current_vertex, next_vertex)
                 ]
-                p1, p2 = objects[0].nearest_points(objects[1])
+                p1, p2 = nearest_points(objects[0], objects[1])
                 resulting_cycle.append(
                     edge(current_vertex, next_vertex, segment([p1, p2]))
                 )
@@ -132,5 +132,6 @@ from jimn.graph.even_degrees import make_degrees_even
 from jimn.segment import segment
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.iterators import all_two_elements
+from jimn.utils.points_containers import nearest_points
 from heapq import heappush, heappop
 from collections import defaultdict

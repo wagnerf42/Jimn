@@ -4,8 +4,9 @@ paths_cache = {}  # small cache to avoid recomputing paths for identical pockets
 
 class path_tree(tree):
 
-    def __init__(self, path=None):
+    def __init__(self, path=None, old_pocket=None):
         self.content = path
+        self.old_pocket = old_pocket
         self.children = []
 
     @classmethod
@@ -111,13 +112,13 @@ class path_tree(tree):
         g = graph()
         children = {}  # record to which child each point belongs
         for c in self.children:
-            end = c.content.nearest_point(o)
+            end = nearest_point(c.old_pocket, o)
             children[end] = c
             g.add_edge_between(o, c.content, segment([o, end]))
         for c1, c2 in combinations(self.children, 2):
             p1 = c1.content
             p2 = c2.content
-            start, end = p1.nearest_points(p2)
+            start, end = nearest_points(c1.old_pocket, c2.old_pocket)
             children[start] = c1
             children[end] = c2
             g.add_edge_between(p1, p2, segment([start, end]))
@@ -154,7 +155,7 @@ class path_tree(tree):
         tour = [origin]
         previous_point = origin
         for c in self.children:
-            next_point = c.content.nearest_point(previous_point)
+            next_point = nearest_point(c.content, previous_point)
             c.content.change_starting_point(next_point)
             tour.append(next_point)
             previous_point = next_point
@@ -183,7 +184,7 @@ def _pocket_node_to_path_node(pocket_node, milling_radius):
             path = cycle_to_path(find_eulerian_cycle(g))
             paths_cache[p] = path
 
-    path_node = path_tree(path)
+    path_node = path_tree(path, p)
     path_node.children = [
         _pocket_node_to_path_node(n, milling_radius)
         for n in pocket_node.get_children()
@@ -191,6 +192,7 @@ def _pocket_node_to_path_node(pocket_node, milling_radius):
     return path_node
 
 from copy import copy
+from jimn.utils.points_containers import nearest_point, nearest_points
 from jimn.displayable import tycat
 from jimn.graph import graph
 from jimn.graph.eulerian_cycle import find_eulerian_cycle, cycle_to_path

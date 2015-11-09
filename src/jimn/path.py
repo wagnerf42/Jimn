@@ -10,6 +10,7 @@ if path_modulo is None:
 else:
     path_modulo = int(path_modulo)
 
+
 class path:
     def __init__(self, elementary_paths):
         self.elementary_paths = elementary_paths
@@ -106,39 +107,12 @@ class path:
     def get_dot_label(self):
         return str(id(self))
 
-    def points(self):
+    def get_points(self):
         """
         iterates through all points.
         """
         for p in self.elementary_paths:
             yield p.get_endpoint(0)
-
-    def nearest_point(self, p):
-        """
-        returns nearest point on self from given point p.
-        """
-        #TODO: real nearest point
-        best_distance = float("+inf")
-        for p2 in self.points():
-            d = p.distance_to(p2)
-            if d < best_distance:
-                best_distance = d
-                best_point = p2
-        return best_point
-
-    def nearest_points(self, other):
-        """
-        returns nearest point on self from other path.
-        """
-        #TODO: real nearests points
-        best_distance = float("+inf")
-        for p in self.points():
-            for p2 in other.points():
-                d = p.distance_to(p2)
-                if d < best_distance:
-                    best_distance = d
-                    best_points = (p, p2)
-        return best_points
 
     def __hash__(self):
         return hash(id(self))
