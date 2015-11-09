@@ -190,10 +190,11 @@ class arc(elementary_path):
         return inflate_arc(self, radius)
 
     def __str__(self):
-        return "arc(" + str(self.radius) + ", [" + \
-            str(self.endpoints[0]) + ", " + str(self.endpoints[1]) \
-            + "], " + str(self.center) + ", " + str(self.reversed_direction) \
-            + ")"
+        return "arc(\n    " + str(self.radius) + ",\n    [\n        " + \
+            str(self.endpoints[0]) + ",\n        " + str(self.endpoints[1]) \
+            + "\n    ],\n    " + str(self.center) + ",\n    " \
+            + str(self.reversed_direction) \
+            + "\n)"
 
     def __hash__(self):
         return hash(tuple(self.endpoints)) ^ hash(self.radius) ^ \
