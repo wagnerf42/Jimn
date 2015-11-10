@@ -158,11 +158,14 @@ class segment(elementary_path):
         if i is None:
             return  # parallel lines
         # check validity
-        i = rounder.hash_point(i)
+        rounded_i = rounder.hash_point(i)
         for s in (self, other):
-            if not s.get_bounding_box().contains_point(i):
+            if not s.get_bounding_box().contains_point(rounded_i):
+                assert not s.get_bounding_box().contains_point(i)
+                assert not i.is_almost(s.endpoints[0])
+                assert not i.is_almost(s.endpoints[1])
                 return
-        return i
+        return rounded_i
 
     def line_intersection_with(self, other):
         """returns point intersecting with the two lines passing through the segments.

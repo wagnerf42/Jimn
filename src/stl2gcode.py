@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
-from jimn import compute_carving_path
+from jimn import compute_milling_path
 import sys
 
 if len(sys.argv) != 4:
-    print("please give following arguments: stl_file, slice_thickness, carving_radius")
+    print("please give following arguments: stl_file, slice_thickness, milling_radius")
     sys.exit()
 
-(bin_name, stl_file, slice_size, carving_radius) = sys.argv
+(bin_name, stl_file, slice_size, milling_radius) = sys.argv
 
-p = compute_carving_path(stl_file, float(slice_size),
-                         float(carving_radius))
+p = compute_milling_path(stl_file, float(slice_size),
+                         float(milling_radius))
 p.animate()

@@ -4,10 +4,8 @@ from jimn.graph import graph
 from jimn.graph.even_degrees import make_degrees_even
 from jimn.graph.internal_edges import create_internal_edges
 from jimn.segment import segment
-from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.debug import is_module_debugged
 from math import floor, ceil
-import os
 
 
 def build_graph(milled_pocket, milling_diameter):
@@ -69,4 +67,4 @@ def _milling_heights(p, milling_diameter):
     start = floor(ymin / milling_diameter)
     end = ceil(ymax / milling_diameter)
     for i in range(start, end+1):
-        yield rounder2d.hash_coordinate(1, i * milling_diameter)
+        yield i * milling_diameter
