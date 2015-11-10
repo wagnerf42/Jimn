@@ -2,6 +2,7 @@
 import unittest
 from jimn.segment import segment
 from jimn.point import point
+from jimn.utils.coordinates_hash import rounder2d
 
 
 class test_segments(unittest.TestCase):
@@ -26,6 +27,14 @@ class test_segments(unittest.TestCase):
             point([3, 4])
         ])
         self.assertEqual(s1, s2)
+
+    def test_intersection(self):
+        s1 = segment([point([1.31, 1.31]), point([1.31, -1.31])])
+        s2 = segment([point([-1.31, 1.2000000000000002]),
+                      point([1.31, 1.2000000000000002])])
+        intersections = s1.intersections_with(s2, rounder2d)
+        self.assertEqual(len(intersections), 1)
+
 
 if __name__ == '__main__':
     unittest.main()

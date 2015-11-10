@@ -38,7 +38,7 @@ class vertex:
         return self.edges
 
     def get_bounding_box(self):
-        box = super(vertex, self).get_bounding_box()
+        box = self.bound_object.get_bounding_box()
         for e in self.edges:
             edge_box = e.get_bounding_box()
             box.update(edge_box)
@@ -49,8 +49,7 @@ class vertex:
         for e in self.edges:
             p = e.get_path()
             count = e.get_multiplicity()
-            if p.is_sorted():
-                p.save_svg_content(display, display.get_color(count+7))
+            p.save_svg_content(display, display.get_color(count+7))
 
     def remove_any_edge(self):
         """
@@ -92,6 +91,7 @@ class vertex:
         """
         e_index = self.edge_index(e)
         if e_index is not None:
+            assert not frontier_edge, "frontier edge added twice"
             self.edges[e_index].change_multiplicity(1)
         else:
             self.edges.append(e)

@@ -1,6 +1,6 @@
 import sys
 
-precision = 10
+precision = 7
 limit = 10**-precision
 segment_limit = limit * limit
 precision_format = "{{0:.{}f}}".format(precision)

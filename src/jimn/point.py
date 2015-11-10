@@ -1,4 +1,4 @@
-from math import atan2, sqrt, cos, sin
+from math import atan2, sqrt, cos, sin, pi
 from jimn.bounding_box import bounding_box
 from jimn.utils.precision import is_almost
 
@@ -59,7 +59,10 @@ class point:
     def angle_with(self, other):
         """angles are computed with respect to svg orientation"""
         (x1, y1), (x2, y2) = [p.get_coordinates() for p in (self, other)]
-        return -atan2(y2 - y1, x2 - x1)
+        raw_angle = -atan2(y2 - y1, x2 - x1)
+        if raw_angle <= 0:
+            raw_angle += 2*pi
+        return raw_angle
 
     def get_bounding_box(self):
         return bounding_box(self.coordinates, self.coordinates)

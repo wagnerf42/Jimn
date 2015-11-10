@@ -53,6 +53,8 @@ especially testing flat subparts
 
  * bug fixes
 
+- edges in both directions are displayed twice
+
 - there is a bug in pocket inclusion
 -> will not work in following case :
 

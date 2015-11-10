@@ -7,17 +7,17 @@ from jimn.segment import segment
 from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.debug import is_module_debugged
 from math import floor, ceil
+import os
 
 
 def build_graph(milled_pocket, milling_diameter):
     """
     returns graph which will be used to compute milling path
     """
-    # round all points on intersecting lines
-    for y in _milling_heights(milled_pocket, milling_diameter):
-        rounder2d.hash_coordinate(1, y)
-
-    milled_pocket.round_points(rounder2d)
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("creating graph out of pocket")
+            tycat(milled_pocket)
 
     # fill all vertices
     g = graph()
@@ -52,13 +52,15 @@ def _create_vertices(milled_pocket, milling_diameter, built_graph):
     elementary_segments = split_pocket.get_content()
     # ok, now create graph, each segment point becomes a vertex
     # and we add all external edges
+    added = []
     for s in elementary_segments:
+        added.append(s)
         built_graph.add_edge(s, frontier_edge=True)
 
     if __debug__:
         if is_module_debugged(__name__):
             print("created vertices")
-            tycat(built_graph)
+            tycat(built_graph, cutting_lines)
 
 
 def _milling_heights(p, milling_diameter):
@@ -67,4 +69,4 @@ def _milling_heights(p, milling_diameter):
     start = floor(ymin / milling_diameter)
     end = ceil(ymax / milling_diameter)
     for i in range(start, end+1):
-        yield i * milling_diameter
+        yield rounder2d.hash_coordinate(1, i * milling_diameter)

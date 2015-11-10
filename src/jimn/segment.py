@@ -149,7 +149,7 @@ class segment(elementary_path):
         """
         assert self.dimension() == 2, "non 2d intersections"
         assert other.dimension() == 2, "non 2d intersections"
-        # prepare rounder
+        # prepare rounder # TODO: remove ?
         for s in (self, other):
             for p in s.get_endpoints():
                 rounder.hash_point(p)
