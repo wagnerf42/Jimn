@@ -41,7 +41,8 @@ def compute_milling_path(stl_file, slice_size, milling_radius):
 
     slices_polygons = {}  # polygons in each slice, indexed by height
 
-    for height, stl_slice in slices.items():
+    for height in sorted(slices):
+        stl_slice = slices[height]
         stl_slice.extend(border)
         if __debug__:
             if is_module_debugged(__name__):
