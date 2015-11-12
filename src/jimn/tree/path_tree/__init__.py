@@ -172,7 +172,7 @@ def _pocket_node_to_path_node(pocket_node, milling_radius):
         if p in paths_cache:
             path = copy(paths_cache[p])
         else:
-            g = build_graph(p, milling_radius)
+            g = build_graph(p, 2*milling_radius)
             if __debug__:
                 if is_module_debugged(__name__):
                     print("turned pocket")
