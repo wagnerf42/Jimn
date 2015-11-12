@@ -1,8 +1,6 @@
-
  * large goals
 
-- use new caching functions
-- do path merging algorithm
+- bug found in 0.2 0.05 : we go direcly down on left before finishing top surface
 
 - use translated nodes in replacement of translated polygons
 
@@ -24,6 +22,7 @@ especially testing flat subparts
 
 - rethink reversed arcs
 - document new segment merger
+- tidy vertical segments
 
  * minor code improvements (performance)
 

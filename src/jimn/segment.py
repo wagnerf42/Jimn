@@ -1,10 +1,5 @@
+from jimn.caching import cached
 from jimn.elementary_path import elementary_path
-from jimn.point import point
-from jimn.bounding_box import bounding_box
-from jimn.utils.coordinates_hash import rounder2d
-from jimn.utils.precision import check_precision, is_almost
-from jimn.utils.math import line_circle_intersections
-from math import pi, cos, sin
 
 
 class segment(elementary_path):
@@ -231,6 +226,7 @@ class segment(elementary_path):
                     intersections.append(e)
         return intersections
 
+    @cached
     def inflate(self, radius):
         return inflate_segment(self, radius)
 
@@ -248,4 +244,10 @@ class segment(elementary_path):
         else:
             return a.endpoints[0] < b.endpoints[0]
 
+from jimn.bounding_box import bounding_box
+from jimn.point import point
 from jimn.tree.path_tree.path_merger import inflate_segment
+from jimn.utils.coordinates_hash import rounder2d
+from jimn.utils.precision import check_precision, is_almost
+from jimn.utils.math import line_circle_intersections
+from math import pi, cos, sin
