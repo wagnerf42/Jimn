@@ -1,3 +1,24 @@
+class dual_position:
+    def __init__(self, outer_point, inner_point,
+                 outer_path, inner_path,
+                 outer_index, inner_index):
+        """
+        stores positions on two different paths.
+        used when switching between different paths.
+        """
+        self.outer_position = path_position(outer_point, outer_path,
+                                            outer_index)
+        self.inner_position = path_position(inner_point, inner_path,
+                                            inner_index)
+
+    def __lt__(self, other):
+        """
+        true if self's outer position is closer from start of path
+        than other's outer position.
+        both outer positions need to be on same outer path.
+        """
+        return self.outer_position < other.outer_position
+
 
 def inflate_segment(s, radius):
     """
@@ -159,8 +180,10 @@ def overlapping_area_exit_point(followed, other, radius,
     """
     interference_point = last_overlapping_point(followed, other)
     if interference_point:
-        return path_position(
-            interference_point, interference_point, followed, index
+        return dual_position(
+            interference_point, interference_point,
+            followed, other,
+            outer_index, inner_index
         )
 
     # if distance from end to other is < radius return immediately
@@ -187,7 +210,9 @@ def overlapping_area_exit_point(followed, other, radius,
     outer_point, inner_point = last_points_reaching(
         followed, other, intersections, radius
     )
-    return path_position(outer_point, inner_point, followed, index)
+    return dual_position(outer_point, inner_point,
+                         followed, other,
+                         outer_index, inner_index)
 
 
 def overlap_exit_position(outer_path, inner_path, milling_radius):
@@ -202,7 +227,7 @@ def overlap_exit_position(outer_path, inner_path, milling_radius):
     # we start from end of outer path because we are interested in last
     # place of overlapping
     for outer_index in reversed(range(len(outer_paths))):
-        position = path_position.empty_position()
+        position = None
         out = outer_paths[outer_index]
         # try overlap with all inner paths one by one
         # TODO: slow -> surely better algorithms are possible
@@ -211,10 +236,13 @@ def overlap_exit_position(outer_path, inner_path, milling_radius):
                 out, p, milling_radius, outer_index, inner_index
             )
             if new_position:
-                if position < new_position:
+                if position is None:
                     position = new_position
+                else:
+                    if position < new_position:
+                        position = new_position
 
-        if position.is_not_empty():
+        if position is not None:
             if __debug__:
                 if is_module_debugged(__name__):
                     print("found exit point at", position.outer_index)
@@ -231,32 +259,35 @@ def merge_path(outer_path, inner_path, position):
     need to merge starting from last path.
     """
     paths = outer_path.get_elementary_paths()
+    outer_point = position.outer_position.point
+    inner_point = position.inner_position.point
     if __debug__:
         if is_module_debugged(__name__):
-            print("merging at", position.outer_index)
-            tycat(outer_path, inner_path, position.ep)
-    arrival_path = paths[position.outer_index]
-    assert arrival_path.contains(position.outer_point), "no merging here"
+            print("merging at", position.outer_position.index)
+            tycat(outer_path, inner_path, position.outer_position.ep)
+    arrival_path = paths[position.outer_position.index]
+    assert arrival_path.contains(outer_point), "no merging here"
 
     sub_path = []
-    before, after = arrival_path.split_around(position.outer_point)
+    before, after = arrival_path.split_around(outer_point)
     if before is not None:
         sub_path.append(before)
 
-    if not position.outer_point.is_almost(position.inner_point):
-        sub_path.append(segment([position.outer_point, position.inner_point]))
+    if not outer_point.is_almost(inner_point):
+        sub_path.append(segment([outer_point, inner_point]))
 
     sub_path.append(vertical_path(-1))
     sub_path.extend(inner_path.get_elementary_paths())
     sub_path.append(vertical_path(1))
 
-    if not position.outer_point.is_almost(position.inner_point):
-        sub_path.append(segment([position.inner_point, position.outer_point]))
+    if not outer_point.is_almost(inner_point):
+        sub_path.append(segment([inner_point, outer_point]))
 
     if after is not None:
         sub_path.append(after)
 
-    paths[position.outer_index:position.outer_index] = sub_path
+    paths[position.outer_position.index:position.outer_position.index] = \
+        sub_path
     outer_path.set_elementary_paths(paths)
 
 

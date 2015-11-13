@@ -77,18 +77,25 @@ class path:
                     last_intersecting_indices = (i, j)
         return last_intersecting_indices, last_intersection
 
+    def find_position(self, p):
+        """
+        find first position of point p
+        """
+        for i, ep in enumerate(self.elementary_paths):
+            if ep.contains(p):
+                return path_position(p, ep, i)
+
+        raise Exception("point not found in path")
+
     def change_starting_point(self, p):
         """
         change starting point of cycle path.
         takes a position as argument.
-        we only use inner path in position.
         """
-        start = self.elementary_paths[:p.inner_index]
-        end = self.elementary_paths[p.inner_index+1:]
+        start = self.elementary_paths[:p.index]
+        end = self.elementary_paths[p.index+1:]
         new_cycle = []
-        before, after = self.elementary_paths[p.inner_index].split_around(
-            p.inner_point
-        )
+        before, after = self.elementary_paths[p.index].split_around(p.point)
 
         if after is not None:
             new_cycle.append(after)
@@ -112,6 +119,7 @@ class path:
         return hash(id(self))
 
 
+from jimn.path_position import path_position
 from jimn.bounding_box import bounding_box
 from jimn.displayable import tycat
 from collections import defaultdict

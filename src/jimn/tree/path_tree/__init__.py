@@ -74,7 +74,7 @@ class path_tree(tree):
 
         # change cycle starting point in each child
         for i, c in enumerate(self.children):
-            c.change_starting_point(positions[i])
+            c.content.change_starting_point(positions[i].inner_position)
 
         # recurse
         for c in self.children:

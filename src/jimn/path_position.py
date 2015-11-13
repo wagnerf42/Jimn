@@ -1,37 +1,23 @@
+from jimn.caching import cached
+
 class path_position:
-    def __init__(self, outer_point, inner_point, ep, outer_index, inner_index):
+    def __init__(self, position_point, ep, index):
         """
-        creates an object storing a interference position on two paths.
-        records:
-            - point on the followed path
-            - interference point on the other path
-            - followed elementary path (on outer path)
-            - the index of the elementary path in the followed path
+        creates an object storing a position on some path.
+        always fast modifications of path at given position later on.
+        TRICKY TO USE : be careful that index in position is not
+        update on path change
         """
-        self.outer_point = outer_point
-        self.inner_point = inner_point
+        self.point = position_point
         self.ep = ep
-        if outer_index >= 0:
-            self.distance = ep.squared_distance_from_start(outer_point)
-        self.outer_index = outer_index
-        self.inner_index = inner_index
+        self.index = index
         if __debug__:
             if self.ep:
-                assert ep.contains(outer_point)
+                assert self.ep.contains(self.point)
 
-    @classmethod
-    def empty_position(cls):
-        """
-        returns a non existing position which will always compare as
-        less than a real one
-        """
-        return cls(None, None, None, -1)
-
-    def is_not_empty(self):
-        """
-        returns true if position really contains something
-        """
-        return self.index >= 0
+    @cached
+    def distance(self):
+        return self.ep.squared_distance_from_start(self.point)
 
     def __lt__(self, other):
         """
@@ -42,6 +28,4 @@ class path_position:
             return True
         if self.index > other.index:
             return False
-        return self.distance < other.distance
-
-
+        return self.distance() < other.distance()
