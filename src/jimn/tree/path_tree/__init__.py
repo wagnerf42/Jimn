@@ -59,10 +59,17 @@ class path_tree(tree):
         # figure out on small paths where overlapping takes place
         # it will be way more faster than after we merged back
         # all subtrees
-        positions = [
-            overlap_exit_position(self.content, c.content, milling_radius)
-            for c in self.children
-        ]
+        positions = []
+        for c in self.children:
+            try:
+                p = overlap_exit_position(self.content, c.content,
+                                          milling_radius)
+            except:
+                print("overlapping positions failed for",
+                      self.content, c.content, milling_radius)
+                tycat(self.content, c.content)
+                raise
+            positions.append(p)
 
         # sort children by positions
         # from last overlapping to first overlapping

@@ -86,6 +86,8 @@ def last_arc_overlapping_point(followed, other):
     overlapping means here overlapping on more than one point
     precondition: arcs have same center and radius
     """
+    if followed == other:
+        return followed.get_endpoint(1)
     raise Exception("TODO")
 
 
@@ -207,9 +209,15 @@ def overlapping_area_exit_point(followed, other, radius,
     if len(intersections) == 0:
         return
 
-    outer_point, inner_point = last_points_reaching(
-        followed, other, intersections, radius
-    )
+    try:
+        outer_point, inner_point = last_points_reaching(
+            followed, other, intersections, radius
+        )
+    except:
+        print("we cannot find last points for")
+        tycat(followed, other, inflated_followed, inflated_other, intersections)
+        raise
+
     return dual_position(outer_point, inner_point,
                          followed, other,
                          outer_index, inner_index)
@@ -245,9 +253,17 @@ def overlap_exit_position(outer_path, inner_path, milling_radius):
         if position is not None:
             if __debug__:
                 if is_module_debugged(__name__):
-                    print("found exit point at", position.outer_index)
-                    tycat(outer_path, inner_path,
-                          position.ep, position.inner_point)
+                    print("found exit point at", position.outer_position.index)
+                    try:
+                        s = segment(
+                            [
+                                position.outer_position.point,
+                                position.inner_position.point
+                            ]
+                        )
+                        tycat(outer_path, inner_path, s)
+                    except:
+                        tycat(outer_path, inner_path)
             return position
     raise Exception("no path intersection")
 

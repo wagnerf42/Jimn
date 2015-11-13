@@ -118,6 +118,10 @@ class path:
     def __hash__(self):
         return hash(id(self))
 
+    def __str__(self):
+        path_strings = [str(p) for p in self.elementary_paths]
+        return "path([\n    " + ",\n    ".join(path_strings) + "\n])"
+
 
 from jimn.path_position import path_position
 from jimn.bounding_box import bounding_box

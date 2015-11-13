@@ -1,4 +1,3 @@
-from jimn.caching import cached
 from jimn.elementary_path import elementary_path
 
 
@@ -226,7 +225,6 @@ class segment(elementary_path):
                     intersections.append(e)
         return intersections
 
-    @cached
     def inflate(self, radius):
         return inflate_segment(self, radius)
 
