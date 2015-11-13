@@ -2,6 +2,7 @@ from jimn.tree import tree
 
 paths_cache = {}  # small cache to avoid recomputing paths for identical pockets
 
+
 class path_tree(tree):
 
     def __init__(self, path=None, old_pocket=None):
@@ -70,6 +71,10 @@ class path_tree(tree):
         # at the end then positions for adding steps at the beginning
         # will still be valid
         positions = self._sort_children_and_positions(positions)
+
+        # change cycle starting point in each child
+        for i, c in enumerate(self.children):
+            c.change_starting_point(positions[i])
 
         # recurse
         for c in self.children:
@@ -156,7 +161,9 @@ class path_tree(tree):
         previous_point = origin
         for c in self.children:
             next_point = nearest_point(c.content, previous_point)
-            c.content.change_starting_point(next_point)
+            # TODO: do everything in one pass instead of two
+            next_point_position = c.content.find_position(next_point)
+            c.content.change_starting_point(next_point_position)
             tour.append(next_point)
             previous_point = next_point
         return tour

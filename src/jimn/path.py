@@ -80,21 +80,15 @@ class path:
     def change_starting_point(self, p):
         """
         change starting point of cycle path.
-        pre-requisite: given point is on path
+        takes a position as argument.
+        we only use inner path in position.
         """
-        if p.is_almost(self.get_start()):
-            return
-
-        for i, ep in enumerate(self.elementary_paths):
-            if ep.contains(p):
-                index = i
-                break
-        else:
-            raise Exception("we do not contain given starting point")
-        start = self.elementary_paths[:index]
-        end = self.elementary_paths[index+1:]
+        start = self.elementary_paths[:p.inner_index]
+        end = self.elementary_paths[p.inner_index+1:]
         new_cycle = []
-        before, after = self.elementary_paths[index].split_around(p)
+        before, after = self.elementary_paths[p.inner_index].split_around(
+            p.inner_point
+        )
 
         if after is not None:
             new_cycle.append(after)

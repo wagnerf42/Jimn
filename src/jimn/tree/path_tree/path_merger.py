@@ -1,50 +1,4 @@
 
-class path_position:
-    def __init__(self, outer_point, inner_point, ep, index):
-        """
-        creates an object storing a interference position on two paths.
-        records:
-            - point on the followed path
-            - interference point on the other path
-            - followed elementary path (on outer path)
-            - the index of the elementary path in the followed path
-        """
-        self.outer_point = outer_point
-        self.inner_point = inner_point
-        self.ep = ep
-        if index >= 0:
-            self.distance = ep.squared_distance_from_start(outer_point)
-        self.index = index
-        if __debug__:
-            if self.ep:
-                assert ep.contains(outer_point)
-
-    @classmethod
-    def empty_position(cls):
-        """
-        returns a non existing position which will always compare as
-        less than a real one
-        """
-        return cls(None, None, None, -1)
-
-    def is_not_empty(self):
-        """
-        returns true if position really contains something
-        """
-        return self.index >= 0
-
-    def __lt__(self, other):
-        """
-        compares to position on same path.
-        true if self is reached before other when following path from its start
-        """
-        if self.index < other.index:
-            return True
-        if self.index > other.index:
-            return False
-        return self.distance < other.distance
-
-
 def inflate_segment(s, radius):
     """
     returns pocket around segment reachable by given radius
@@ -195,7 +149,8 @@ def last_points_reaching(followed, other, intersections, radius):
     )
 
 
-def overlapping_area_exit_point(followed, other, radius, index):
+def overlapping_area_exit_point(followed, other, radius,
+                                outer_index, inner_index):
     """
     when we advance on 'followed' path with a drill of given radius
     we might interfere with the drill of 'other'.
@@ -228,10 +183,6 @@ def overlapping_area_exit_point(followed, other, radius, index):
     # if no intersection return
     if len(intersections) == 0:
         return
-    if __debug__:
-        if is_module_debugged(__name__):
-            tycat(followed, other, inflated_followed,
-                  inflated_other, intersections)
 
     outer_point, inner_point = last_points_reaching(
         followed, other, intersections, radius
@@ -255,9 +206,9 @@ def overlap_exit_position(outer_path, inner_path, milling_radius):
         out = outer_paths[outer_index]
         # try overlap with all inner paths one by one
         # TODO: slow -> surely better algorithms are possible
-        for p in inner_paths:
+        for inner_index, p in enumerate(inner_paths):
             new_position = overlapping_area_exit_point(
-                out, p, milling_radius, outer_index
+                out, p, milling_radius, outer_index, inner_index
             )
             if new_position:
                 if position < new_position:
@@ -266,7 +217,7 @@ def overlap_exit_position(outer_path, inner_path, milling_radius):
         if position.is_not_empty():
             if __debug__:
                 if is_module_debugged(__name__):
-                    print("found exit point")
+                    print("found exit point at", position.outer_index)
                     tycat(outer_path, inner_path,
                           position.ep, position.inner_point)
             return position
@@ -279,9 +230,12 @@ def merge_path(outer_path, inner_path, position):
     Note that since positions contains array indices you
     need to merge starting from last path.
     """
-    inner_path.change_starting_point(position.inner_point)
     paths = outer_path.get_elementary_paths()
-    arrival_path = paths[position.index]
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("merging at", position.outer_index)
+            tycat(outer_path, inner_path, position.ep)
+    arrival_path = paths[position.outer_index]
     assert arrival_path.contains(position.outer_point), "no merging here"
 
     sub_path = []
@@ -302,7 +256,7 @@ def merge_path(outer_path, inner_path, position):
     if after is not None:
         sub_path.append(after)
 
-    paths[position.index:position.index] = sub_path
+    paths[position.outer_index:position.outer_index] = sub_path
     outer_path.set_elementary_paths(paths)
 
 
@@ -315,3 +269,4 @@ from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost
 from jimn.vertical_path import vertical_path
 from jimn.circle import circle
+from jimn.path_position import path_position
