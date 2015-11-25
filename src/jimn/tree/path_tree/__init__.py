@@ -63,6 +63,7 @@ class path_tree(tree):
         for c in self.children:
             try:
                 p = overlap_exit_position(self.content, c.content,
+                                          c.old_pocket,
                                           milling_radius)
             except:
                 print("overlapping positions failed for",

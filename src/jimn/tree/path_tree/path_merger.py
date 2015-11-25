@@ -223,15 +223,15 @@ def overlapping_area_exit_point(followed, other, radius,
                          outer_index, inner_index)
 
 
-def overlap_exit_position(outer_path, inner_path, milling_radius):
+def overlap_exit_pocket_position(outer_path, inner_pocket, milling_radius):
     """
     imagine we are following outer path.
     at some point we can guarantee that we will never interfere again
-    with inner path.
+    with inner pocket.
     returns a marker for this position.
     """
     outer_paths = outer_path.get_elementary_paths()
-    inner_paths = inner_path.get_elementary_paths()
+    inner_paths = inner_pocket.get_content()
     # we start from end of outer path because we are interested in last
     # place of overlapping
     for outer_index in reversed(range(len(outer_paths))):
@@ -251,21 +251,50 @@ def overlap_exit_position(outer_path, inner_path, milling_radius):
                         position = new_position
 
         if position is not None:
-            if __debug__:
-                if is_module_debugged(__name__):
-                    print("found exit point at", position.outer_position.index)
-                    try:
-                        s = segment(
-                            [
-                                position.outer_position.point,
-                                position.inner_position.point
-                            ]
-                        )
-                        tycat(outer_path, inner_path, s)
-                    except:
-                        tycat(outer_path, inner_path)
             return position
-    raise Exception("no path intersection")
+
+
+def update_inner_position(inner_path, position):
+    """
+    find where inner point is on given inner path and update position.
+    """
+    position.inner_position = \
+        inner_path.find_position(position.inner_position.point)
+    return position
+
+
+def overlap_exit_position(outer_path, inner_path, inner_pocket, milling_radius):
+    """
+    imagine we are following outer path.
+    at some point we can guarantee that we will never interfere again
+    with inner path.
+    returns a marker for this position.
+    knowing the pocket containing the inner path allows for computations
+    speed up since exit position belongs to the edge
+    """
+    pocket_position = overlap_exit_pocket_position(outer_path, inner_pocket,
+                                                   milling_radius)
+    if __debug__:
+        if not pocket_position:
+            raise Exception("no path intersection")
+
+    position = update_inner_position(inner_path, pocket_position)
+
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("found exit point at", position.outer_position.index)
+            try:
+                s = segment(
+                    [
+                        position.outer_position.point,
+                        position.inner_position.point
+                    ]
+                )
+                tycat(outer_path, inner_path, s)
+            except:
+                tycat(outer_path, inner_path)
+
+    return position
 
 
 def merge_path(outer_path, inner_path, position):
