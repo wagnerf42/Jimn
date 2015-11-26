@@ -45,13 +45,6 @@ class polygon_tree(tree):
         #TODO
         return True
 
-    def add_translation(self, translation_vector):
-        """
-        mark node (and whole subtree) as duplicated for
-        given translation vector.
-        """
-        self.translations.append(translation_vector)
-
     def compress(self):
         """
         find in the tree if some subtrees are the translation of

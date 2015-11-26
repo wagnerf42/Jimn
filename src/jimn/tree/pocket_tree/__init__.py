@@ -26,6 +26,8 @@ def _offset_polygons(poly_tree, carving_radius):
     subtrees = []
     for n in poly_tree.get_children():
         pockets = _offset_polygons(n, carving_radius)
+        for p in pockets:
+            p.copy_translations(n)
         subtrees.extend(pockets)
 
     holed_poly = poly_tree.get_content()

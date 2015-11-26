@@ -22,7 +22,7 @@ class pocket:
         """
         returns text label for display in dot file (see polygontree class)
         """
-        return ("\"{}\"".format(id(self)))
+        return str(id(self))
 
     def round_points(self, rounder):
         for p in self.paths:

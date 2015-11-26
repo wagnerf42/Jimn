@@ -6,9 +6,8 @@ paths_cache = {}  # small cache to avoid recomputing paths for identical pockets
 class path_tree(tree):
 
     def __init__(self, path=None, old_pocket=None):
-        self.content = path
+        super().__init__(path)
         self.old_pocket = old_pocket
-        self.children = []
 
     @classmethod
     def build(cls, pockets, milling_radius):
@@ -200,6 +199,7 @@ def _pocket_node_to_path_node(pocket_node, milling_radius):
             paths_cache[p] = path
 
     path_node = path_tree(path, p)
+    path_node.copy_translations(pocket_node)
     path_node.children = [
         _pocket_node_to_path_node(n, milling_radius)
         for n in pocket_node.get_children()

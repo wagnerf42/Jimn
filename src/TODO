@@ -3,7 +3,7 @@
 - use translated nodes in replacement of translated polygons
 -----> this work is ongoing
 -----> write jimn.tree.polygon_tree.is_translation_of
------> maintain translations when going through all trees
+-----> is translation tree in global path
 
 - re-think precision problems :
 	when 3 points are almost aligned, offseting using parallel segments

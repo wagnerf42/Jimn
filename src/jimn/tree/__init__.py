@@ -21,6 +21,20 @@ class tree:
         self.translations = []
         self.children = []
 
+    def add_translation(self, translation_vector):
+        """
+        mark node (and whole subtree) as duplicated for
+        given translation vector.
+        """
+        self.translations.append(translation_vector)
+
+    def copy_translations(self, other):
+        """
+        get same translations to apply as other.
+        used to keep translations when converting trees
+        """
+        self.translations = other.translations
+
     def get_children(self):
         """
         return children array of current node
@@ -82,7 +96,11 @@ class tree:
             if self.content is None:
                 label = "\"None\""
             else:
-                label = self.content.get_dot_label()
+                label = "\"" + self.content.get_dot_label()
+                if self.translations:
+                    label += "(" + \
+                        ",".join([str(t) for t in self.translations]) + ")"
+                label += "\""
 
             fd.write("n{} [label={}];\n".format(
                 id(self),

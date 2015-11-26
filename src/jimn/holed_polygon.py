@@ -22,12 +22,12 @@ class holed_polygon:
         returns text label for display in dot file (see polygontree class)
         """
         if not self.holes:
-            return ("\"{}, h={}\"".format(
+            return ("{}, h={}".format(
                 str(self.polygon.get_label()),
                 str(self.height))
             )
         else:
-            return ("\"{}, h={}, holes={}\"".format(
+            return ("{}, h={}, holes={}".format(
                 str(self.polygon.get_label()),
                 str(self.height),
                 str([h.label for h in self.holes]))
