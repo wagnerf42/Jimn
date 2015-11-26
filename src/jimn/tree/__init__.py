@@ -15,6 +15,10 @@ class tree:
 
     def __init__(self, content=None):
         self.content = content
+        # we all tree compression by translations
+        # apply following list if translations to self
+        # to find all real trees
+        self.translations = []
         self.children = []
 
     def get_children(self):

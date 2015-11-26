@@ -62,18 +62,20 @@ class holed_polygon:
             h.normalize_starting_point()
         self.holes = sorted(self.holes, key=lambda h: h.get_points()[0])
 
-    def is_translated(self, p2):
+    def translation_vector(self, p2):
         """
-        are we a translation of p2 ?
+        returns translation vector from self to obtain p2.
+        'none' if impossible.
         """
-        if not self.polygon.is_translated(p2.polygon):
-            return False
+        v = self.polygon.translation_vector(p2.polygon)
+        if not v:
+            return None
         if len(self.holes) != len(p2.holes):
-            return False
+            return None
         for h1, h2 in zip(self.holes, p2.holes):
-            if not h1.is_translated(h2):
+            if not h1.translation_vector(h2, v):
                 return False
-        return True
+        return v
 
     def round_points(self, rounder):
         """

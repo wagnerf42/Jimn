@@ -105,16 +105,20 @@ class polygon:
                 index = k
         self.points = self.points[index:] + self.points[:index]
 
-    # assumes the two polygons are normalized
-    def is_translated(self, p2):
-        translation_vector = None
+    def translation_vector(self, p2, vector=None):
+        """
+        returns translation vector from self to obtain p2.
+        'none' if impossible.
+        you can optionnaly give desired translation vector.
+        assumes the two polygons are normalized
+        """
         for a1, a2 in zip(self.get_points(), p2.get_points()):
-            if translation_vector is None:
-                translation_vector = a2 - a1
+            if vector is None:
+                vector = a2 - a1
             else:
-                if not (a2 - a1).is_almost(translation_vector):
-                    return False
-        return True
+                if not (a2 - a1).is_almost(vector):
+                    return None
+        return vector
 
     def round_points(self, rounder):
         self.points = [rounder.hash_point(p) for p in self.points]

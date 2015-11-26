@@ -9,6 +9,12 @@ class polygon_tree(tree):
 
     @classmethod
     def build(cls, polygons):
+        """
+        figures out which polygon is included in which other.
+        returns tree of all holed polygons to mill such that
+        each node contains a holed polygon (except root) and
+        each node cannot be milled before any of its ancestors.
+        """
         inclusion_tree = build_inclusion_tree(polygons)
         inclusion_tree.ascend_polygons()
         poly_tree = cls()
@@ -17,8 +23,56 @@ class polygon_tree(tree):
             if is_module_debugged(__name__):
                 poly_tree.tycat()
         poly_tree.normalize_polygons()
-        # TODO: compress tree
+        poly_tree.compress()
         return poly_tree
+
+    def find_translation(self, candidate_originals):
+        """
+        looks if content is translation of one of the original nodes (content).
+        if yes returns corresponding original node and translation vector.
+        """
+        for c in candidate_originals:
+            v = c.content.translation_vector(self.content)
+            if v:
+                return (c, v)
+        return (None, None)
+
+    def is_translation_of(self, other, vector):
+        """
+        returns true if applying translation of given vector to
+        all content of other gives self
+        """
+        #TODO
+        return True
+
+    def add_translation(self, translation_vector):
+        """
+        mark node (and whole subtree) as duplicated for
+        given translation vector.
+        """
+        self.translations.append(translation_vector)
+
+    def compress(self):
+        """
+        find in the tree if some subtrees are the translation of
+        some others. add to each node a list of translations
+        to apply and cut away all redundant branches.
+        """
+        older_brothers = []
+        for c in self.children:
+            c.compress()
+            translated_brother, translation_vector = \
+                c.find_translation(older_brothers)
+            keep_child = True
+            if translation_vector:
+                keep_child = not c.is_translation_of(
+                    translated_brother,
+                    translation_vector)
+            if keep_child:
+                older_brothers.append(c)
+            else:
+                translated_brother.add_translation(translation_vector)
+        self.children = older_brothers
 
     def add_child(self, polygon, height, holes):
         new_child = polygon_tree(holed_polygon(polygon.orient(False),
