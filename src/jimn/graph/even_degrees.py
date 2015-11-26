@@ -20,12 +20,12 @@ def _augment_path(g, v):
         if is_module_debugged(__name__):
             added_edges = []
     while current_point != v:
-        e = predecessors[current_point.get_id()]
+        e = predecessors[current_point.id]
         g.add_direct_edge(e)
         if __debug__:
             if is_module_debugged(__name__):
                 added_edges.append(e)
-        previous_point = e.get_endpoint(0)
+        previous_point = e.vertices[0]
         current_point = previous_point
     if __debug__:
         if is_module_debugged(__name__):
@@ -38,8 +38,8 @@ def _augment_path(g, v):
 def _find_nearest_odd_vertex(g, v, distances):
     current_distance = float("inf")
     for destination in g.get_vertices():
-        distance = distances[destination.get_id()]
-        if (destination.get_id() != v.get_id()) and (current_distance > distance):
+        distance = distances[destination.id]
+        if (destination.id != v.id) and (current_distance > distance):
             if destination.degree() % 2:
                 best_destination = destination
                 current_distance = distance

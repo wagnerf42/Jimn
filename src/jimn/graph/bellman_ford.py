@@ -7,22 +7,22 @@ def bellman_ford(searched_graph, source_vertex):
     assumes no negative cycles
     """
     g = searched_graph
-    source_id = source_vertex.get_id()
+    source_id = source_vertex.id
     predecessors = [None for i in range(g.get_max_vertices_number())]
     distances = [float("inf") for i in range(g.get_max_vertices_number())]
     # init
-    distances[source_vertex.get_id()] = 0
+    distances[source_vertex.id] = 0
     for e in source_vertex.get_edges():
         destination = e.get_destination()
-        predecessors[destination.get_id()] = e
+        predecessors[destination.id] = e
         w = e.get_weight()
-        distances[destination.get_id()] = w
+        distances[destination.id] = w
 
     # extract a maximum of operations out of main loop
     # precompute all weights and ids
     edges = []
     for e in g.get_all_edges():
-        v1, v2 = [p.get_id() for p in e.get_endpoints()]
+        v1, v2 = [p.id for p in e.get_endpoints()]
         w = e.get_weight()
         edges.append((v1, v2, w, e))
 
@@ -51,5 +51,5 @@ def _not_in_incoming_path(predecessors, start, end, to_avoid):
         if current_vertex == to_avoid:
             return False
         e = predecessors[current_vertex]
-        current_vertex = e.get_endpoint(0).get_id()
+        current_vertex = e.vertices[0].id
     return True

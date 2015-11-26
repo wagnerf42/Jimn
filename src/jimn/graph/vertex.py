@@ -5,16 +5,13 @@ class vertex:
         self.bound_object = bound_object
         self.edges = []  # degree is very low so this is ok
         self.frontier_edges = []
-        self.number = number
+        self.id = number
 
     def get_y(self):
         """
         used when bound object is point
         """
         return self.bound_object.get_y()
-
-    def get_id(self):
-        return self.number
 
     def to_point(self):
         return self.bound_object
@@ -30,7 +27,7 @@ class vertex:
         returns edge to given neighbor.
         """
         for e in self.edges:
-            if e.get_endpoint(1) == neighbor:
+            if e.vertices[1] == neighbor:
                 return e
         raise Exception("no such neighbor")
 
@@ -69,7 +66,7 @@ class vertex:
         (decreases multiplicity in case of multi-edges)
         """
         for i, e in enumerate(self.edges):
-            if e.get_endpoint(1) == destination:
+            if e.vertices[1] == destination:
                 self._delete_edge(i)
                 return
         else:
@@ -151,7 +148,7 @@ class vertex:
 
     def find_first_neighbor_not(self, neighbor):
         for e in self.edges:
-            if neighbor is None or e.get_endpoint(1) != neighbor:
+            if neighbor is None or e.vertices[1] != neighbor:
                 return e
         raise Exception("only one neighbor")
 

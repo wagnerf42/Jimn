@@ -37,7 +37,7 @@ def find_eulerian_cycle(g):
         if first_cycle is None:
             first_cycle = c
         else:
-            cycle_start = c[0].get_endpoint(0)
+            cycle_start = c[0].vertices[0]
             cycle_starts[cycle_start].append(c)
 
     final_cycle = _fuse_cycles(first_cycle, cycle_starts)
@@ -54,7 +54,7 @@ def _fuse_cycles(cycle, starts):
         # reverse edges because we start from the end
         e = cycle.pop().reverse()
         final_edges.append(e)
-        current_vertex = e.get_endpoint(1)
+        current_vertex = e.vertices[1]
         if current_vertex in starts:
             cycles = starts[current_vertex]
             sub_cycle = cycles.pop()

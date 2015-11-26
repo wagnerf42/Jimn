@@ -35,9 +35,6 @@ class edge:
     def get_path(self):
         return self.path
 
-    def get_endpoint(self, index):
-        return self.vertices[index]
-
     def get_endpoints(self):
         return self.vertices
 

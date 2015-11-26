@@ -51,7 +51,7 @@ class position:
         )
 
     def update(self, e):
-        start_vertex = e.get_endpoint(0)
+        start_vertex = e.vertices[0]
         # many cases here
         # we look at edges starting from start_vertex
         # to figure out current position

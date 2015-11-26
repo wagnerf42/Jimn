@@ -44,7 +44,7 @@ class graph:
         for v in self.vertices:
             seen_vertices[v] = True
             for e in v.get_edges():
-                if e.get_endpoint(1) not in seen_vertices:
+                if e.vertices[1] not in seen_vertices:
                     yield e
 
     def get_any_vertex(self):

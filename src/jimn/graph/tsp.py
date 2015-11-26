@@ -99,14 +99,14 @@ def _skip_seen_vertices(cycle):
     CAREFUL: vertices are not updated in the process.
     """
     seen_vertices = {}
-    start = cycle[0].get_endpoint(0)
+    start = cycle[0].vertices[0]
     current_vertex = start
     seen_vertices[current_vertex] = True
     resulting_cycle = []
     for e in cycle:
-        next_vertex = e.get_endpoint(1)
+        next_vertex = e.vertices[1]
         if next_vertex not in seen_vertices:
-            if current_vertex == e.get_endpoint(0):
+            if current_vertex == e.vertices[0]:
                 resulting_cycle.append(e)
             else:
                 objects = [
