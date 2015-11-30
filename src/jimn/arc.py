@@ -229,6 +229,13 @@ class arc(elementary_path):
         else:
             return a.radius < b.radius
 
+    def translate(self, translation):
+        """
+        translates arc by a given translation vector
+        """
+        return arc(self.radius, [p+translation for p in self.endpoints],
+                   self.center + translation, self.reversed_direction)
+
 from jimn.bounding_box import bounding_box
 from jimn.point import point
 from jimn.segment import segment

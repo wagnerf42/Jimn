@@ -242,6 +242,12 @@ class segment(elementary_path):
         else:
             return a.endpoints[0] < b.endpoints[0]
 
+    def translate(self, translation):
+        """
+        translates segment by a given translation vector
+        """
+        return segment([p+translation for p in self.endpoints])
+
 from jimn.bounding_box import bounding_box
 from jimn.point import point
 from jimn.tree.path_tree.path_merger import inflate_segment

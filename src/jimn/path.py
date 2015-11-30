@@ -18,6 +18,16 @@ class path:
     def get_elementary_paths(self):
         return self.elementary_paths
 
+    def translate(self, translation):
+        """
+        translates the whole path by a given translation vector.
+        returns new path if obtained path is different and same path
+        if translation vector is (0,0)
+        """
+        if translation.is_almost(point(0, 0)):
+            return self
+        return path([p.translate(translation) for p in self.elementary_paths])
+
     def set_elementary_paths(self, elementary_paths):
         self.elementary_paths = elementary_paths
 
