@@ -8,6 +8,16 @@ class pocket:
     def __init__(self, paths):
         self.paths = paths
 
+    def translate(self, translation):
+        """
+        translates the whole pocket by a given translation vector.
+        returns new pocket if obtained pocket is different and same pocket
+        if translation vector is (0,0)
+        """
+        if translation.is_almost(point([0, 0])):
+            return self
+        return pocket([p.translate(translation) for p in self.paths])
+
     def get_first_point(self):
         """
         returns first point of first path.
@@ -157,6 +167,7 @@ class pocket:
 from jimn.utils.coordinates_hash import rounder2d
 from jimn.bounding_box import bounding_box
 from jimn.polygon import polygon
+from jimn.point import point
 from jimn.segment import segment
 from jimn.algorithms.segment_merger import merge_segments
 from jimn.displayable import tycat

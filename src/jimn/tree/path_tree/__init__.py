@@ -25,6 +25,8 @@ class path_tree(tree):
         """
         flattens the tree into final path
         """
+        # switch back to real tree
+        self = self.uncompress(point([0, 0]))
         # start by computing toplevel tour
         toplevel_tour = self._compute_toplevel_tour()
         # now, process all subtrees
@@ -179,18 +181,27 @@ class path_tree(tree):
         """
         initializes an uncompressed_tree out of a compressed one
         """
-        if __debug__:
-            if is_module_debugged(__name__):
-                print("decompressing path tree before merging paths")
 
-        content = self.content.translate(translation)
-        old_pocket = self.old_pocket.translate(translation)
-        new_node = path_tree(content, old_pocket)
+        if self.content is not None:
+            translated_content = self.content.translate(translation)
+            translated_pocket = self.old_pocket.translate(translation)
+            new_node = path_tree(translated_content, translated_pocket)
+        else:
+            new_node = path_tree()
+
         # generate children
         for c in self.children:
-            for t in self.translations:
+            for t in c.translations:
                 new_translation = t + translation
-                new_node.children.append(path_tree(c, new_translation))
+                new_node.children.append(c.uncompress(new_translation))
+
+        if __debug__:
+            if is_module_debugged(__name__):
+                if self.content is None:
+                    # toplevel node
+                    print("decompressed path tree")
+                    new_node.tycat()
+
         return new_node
 
 
