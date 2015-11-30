@@ -175,6 +175,24 @@ class path_tree(tree):
             previous_point = next_point
         return tour
 
+    def uncompress(self, translation):
+        """
+        initializes an uncompressed_tree out of a compressed one
+        """
+        if __debug__:
+            if is_module_debugged(__name__):
+                print("decompressing path tree before merging paths")
+
+        content = self.content.translate(translation)
+        old_pocket = self.old_pocket.translate(translation)
+        new_node = path_tree(content, old_pocket)
+        # generate children
+        for c in self.children:
+            for t in self.translations:
+                new_translation = t + translation
+                new_node.children.append(path_tree(c, new_translation))
+        return new_node
+
 
 def _pocket_node_to_path_node(pocket_node, milling_radius):
     global paths_cache
