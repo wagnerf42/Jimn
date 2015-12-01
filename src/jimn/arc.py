@@ -43,13 +43,13 @@ class arc(elementary_path):
             [middle, p],
             point([0, 0]),
             self.radius,
-            rounder2d
         )
         assert len(intersections) == 2, "invalid arc"
         # pick center and translate back
         for i in intersections:
             if p2.cross_product(i) > 0:
-                return self.endpoints[0] + i
+                rounded_center = rounder2d.hash_point(self.endpoints[0] + i)
+                return rounded_center
         raise "no center found"
 
     def get_center(self):
@@ -94,7 +94,8 @@ class arc(elementary_path):
         diff = self.endpoints[1] - self.endpoints[0]
         p_diff = p - self.endpoints[0]
         product = diff.cross_product(p_diff)
-        return product < 0
+        sign = copysign(1, product)
+        return sign < 0
 
     def intersections_with_arc(self, other, rounder):
         """
@@ -102,7 +103,8 @@ class arc(elementary_path):
         returns up to two points.
         """
         points = circles_intersections(self.center, other.center,
-                                       self.radius, other.radius, rounder)
+                                       self.radius, other.radius)
+        points = [rounder2d.hash_point(p) for p in points]  # TODO: round here ?
         intersections = []
         for p in points:
             if self.contains_circle_point(p) and other.contains_circle_point(p):
@@ -179,12 +181,12 @@ class arc(elementary_path):
             return [self.endpoints[1]]
 
         intersections = circles_intersections(
-            self.center, p, self.radius, distance, rounder2d
+            self.center, p, self.radius, distance
         )
         remaining_points = [
             i for i in intersections if self.contains_circle_point(i)
         ]
-        return remaining_points
+        return [rounder2d.hash_point(r) for r in remaining_points]
 
     def inflate(self, radius):
         return inflate_arc(self, radius)
@@ -246,3 +248,4 @@ from copy import copy
 from math import pi
 from jimn.tree.path_tree.path_merger import inflate_arc
 from jimn.displayable import tycat
+from math import copysign

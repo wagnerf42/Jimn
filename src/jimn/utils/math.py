@@ -18,7 +18,7 @@ def solve_quadratic_equation(a, b, c):
             return [(-b-sqrt(delta))/(2*a), (-b+sqrt(delta))/(2*a)]
 
 
-def circles_intersections(c1, c2, r1, r2, rounder):
+def circles_intersections(c1, c2, r1, r2):
     d = c1.distance_to(c2)
     if is_almost(d, 0):
         return []  # common center
@@ -34,7 +34,7 @@ def circles_intersections(c1, c2, r1, r2, rounder):
             l/d * (x2 - x1) + x1,
             l/d * (y2 - y1) + y1
         ])
-        return [rounder.hash_point(i)]
+        return [i]
     else:
         if r1 < l:
             return []  # too far away
@@ -53,7 +53,7 @@ def circles_intersections(c1, c2, r1, r2, rounder):
                     l/d * (y2 - y1) + h/d * (x2 - x1) + y1
                 ])
             ]
-            return [rounder.hash_point(p) for p in points]
+            return points
 
 
 def line_circle_intersections(points, center, radius, rounder):

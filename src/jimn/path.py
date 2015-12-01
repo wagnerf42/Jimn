@@ -66,7 +66,7 @@ class path:
         displayed = path([])
         for i, p in enumerate(self.elementary_paths):
             displayed.append(p)
-            if i % path_modulo == 0:
+            if (i+1) % path_modulo == 0:
                 tycat(displayed, other_things)
         tycat(displayed, other_things)
 

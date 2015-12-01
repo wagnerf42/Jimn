@@ -1,9 +1,6 @@
  * large goals
 
-- use translated nodes in replacement of translated polygons
------> this work is ongoing
------> write jimn.tree.polygon_tree.is_translation_of
------> is translation tree in global path
+- reorganize hashed points : only hash min number of points required
 
 - re-think precision problems :
 	when 3 points are almost aligned, offseting using parallel segments

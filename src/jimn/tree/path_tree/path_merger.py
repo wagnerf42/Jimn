@@ -160,7 +160,7 @@ def last_points_reaching(followed, other, intersections, radius):
         try:
             inner_point = inner_points[0]  # we can keep any of inner points
         except:
-            print("failed", followed, other)
+            print("failed last points reaching : ", followed, other)
             circles = [circle(i, radius) for i in intersections]
             tycat(followed, other, intersections, circles)
             raise
