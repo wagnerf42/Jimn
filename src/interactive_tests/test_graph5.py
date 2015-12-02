@@ -8,7 +8,6 @@ from jimn.pocket.graph_builder import build_graph
 from jimn.graph.eulerian_cycle import find_eulerian_cycle, cycle_to_path
 
 print("tries fast algorithm for even edges")
-print("you can clearly see it is not optimal")
 
 tycat_set_svg_dimensions(640, 480)
 

@@ -17,15 +17,40 @@ def make_degrees_even_fast(g, milling_diameter):
     bad cases appear when there is a spike between two milling levels
     or when we have even number of slices
     """
-    for e in g.frontier_edges():
-        if not e.is_horizontal():
-            s = e.slice_number(milling_diameter)
-            if (s % 2) == 0:
+    def add_edges_in_slices(g, milling_diameter, slices_parity):
+        """
+        add edges for given parity
+        """
+        added_edges = []
+        value = 0
+        for e in g.frontier_edges():
+            if not e.is_horizontal():
+                s = e.slice_number(milling_diameter)
+                if (s % 2) == slices_parity:
+                    added_edges.append(e)
+                    value += e.get_path().length()
+                    g.add_direct_edge(e)
+
+        for e in g.get_non_oriented_edges():
+            vertices = e.get_endpoints()
+            if (not vertices[0].even_degree()) and \
+                    (not vertices[1].even_degree()):
                 g.add_direct_edge(e)
-    for e in g.get_non_oriented_edges():
-        vertices = e.get_endpoints()
-        if (not vertices[0].even_degree()) and (not vertices[1].even_degree()):
-            g.add_direct_edge(e)
+                value += e.get_path().length()
+                added_edges.append(e)
+
+        return (value, added_edges)
+
+    value, added_edges = add_edges_in_slices(g, milling_diameter, True)
+    # cancel and try other parity
+    for e in added_edges:
+        e.remove()
+    new_value, added_edges = add_edges_in_slices(g, milling_diameter, False)
+    if new_value > value:
+        # cancel again and revert to first parity
+        for e in added_edges:
+            e.remove()
+        add_edges_in_slices(g, milling_diameter, True)
 
 
 def _augment_path(g, v):

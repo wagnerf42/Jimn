@@ -60,7 +60,7 @@ class arc(elementary_path):
         return self.radius
 
     def reverse(self):
-        copied_self = copy(self)
+        copied_self = deepcopy(self)
         copied_self.reversed_direction = not self.reversed_direction
         return copied_self
 
@@ -258,7 +258,7 @@ from jimn.segment import segment
 from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.math import circles_intersections, line_circle_intersections
 from jimn.utils.precision import is_almost
-from copy import copy
+from copy import deepcopy
 from math import pi
 from jimn.tree.path_tree.path_merger import inflate_arc
 from jimn.displayable import tycat

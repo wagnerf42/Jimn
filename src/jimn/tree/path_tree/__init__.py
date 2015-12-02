@@ -213,7 +213,7 @@ def _pocket_node_to_path_node(pocket_node, milling_radius):
         path = None
     else:
         if p in paths_cache:
-            path = copy(paths_cache[p])
+            path = deepcopy(paths_cache[p])
         else:
             g = build_graph(p, 2*milling_radius, True)
             if __debug__:
@@ -235,7 +235,7 @@ def _pocket_node_to_path_node(pocket_node, milling_radius):
     ]
     return path_node
 
-from copy import copy
+from copy import deepcopy
 from jimn.utils.points_containers import nearest_point, nearest_points
 from jimn.displayable import tycat
 from jimn.graph import graph

@@ -76,6 +76,14 @@ class edge:
         index = floor(sum(indexes)/2)
         return index
 
+    def remove(self):
+        """
+        removes self from graph.
+        needs to be non-frontier
+        """
+        for i, v in enumerate(self.vertices):
+            v.remove_edge_to(self.vertices[1-i])
+
     def __lt__(a, b):
         return a.weight < b.weight
 

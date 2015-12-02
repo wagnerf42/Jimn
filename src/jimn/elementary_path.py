@@ -56,7 +56,7 @@ class elementary_path:
         """sort endpoints and return a new path (same type).
         this will also work in derived classes
         """
-        copied_path = copy.copy(self)
+        copied_path = copy.deepcopy(self)
         copied_path.endpoints = sorted(self.endpoints)
         return copied_path
 
