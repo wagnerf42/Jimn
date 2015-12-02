@@ -1,14 +1,14 @@
 from jimn.pocket.elementary_paths import pocket_intersect_paths
 from jimn.displayable import tycat
 from jimn.graph import graph
-from jimn.graph.even_degrees import make_degrees_even
+from jimn.graph.even_degrees import make_degrees_even, make_degrees_even_fast
 from jimn.graph.internal_edges import create_internal_edges
 from jimn.segment import segment
 from jimn.utils.debug import is_module_debugged
 from math import floor, ceil
 
 
-def build_graph(milled_pocket, milling_diameter):
+def build_graph(milled_pocket, milling_diameter, fast_algorithm=False):
     """
     returns graph which will be used to compute milling path
     """
@@ -29,7 +29,11 @@ def build_graph(milled_pocket, milling_diameter):
             tycat(g)
 
     # prepare for eulerian path
-    make_degrees_even(g)
+    if fast_algorithm:
+        make_degrees_even_fast(g, milling_diameter)
+    else:
+        make_degrees_even(g)
+
     if __debug__:
         if is_module_debugged(__name__):
             print("degrees made even")

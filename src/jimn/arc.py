@@ -43,6 +43,7 @@ class arc(elementary_path):
             [middle, p],
             point([0, 0]),
             self.radius,
+            rounder2d
         )
         assert len(intersections) == 2, "invalid arc"
         # pick center and translate back
@@ -91,11 +92,18 @@ class arc(elementary_path):
         """returns true if point p (on circle) is inside arc"""
         if p.is_almost(self.endpoints[0]) or p.is_almost(self.endpoints[1]):
             return True
-        diff = self.endpoints[1] - self.endpoints[0]
-        p_diff = p - self.endpoints[0]
-        product = diff.cross_product(p_diff)
-        sign = copysign(1, product)
-        return sign < 0
+        start_angle = self.center.angle_with(self.endpoints[1])
+        angles = [
+            self.center.angle_with(q) - start_angle
+            for q in (p, self.endpoints[0])
+        ]
+        adjusted_angles = []
+        for a in angles:
+            if a < 0:
+                a += 2*pi
+            adjusted_angles.append(a)
+        # assert adjusted_angles[1] <= pi : TODO : fix
+        return adjusted_angles[0] < adjusted_angles[1]
 
     def intersections_with_arc(self, other, rounder):
         """
@@ -186,7 +194,13 @@ class arc(elementary_path):
         remaining_points = [
             i for i in intersections if self.contains_circle_point(i)
         ]
-        return [rounder2d.hash_point(r) for r in remaining_points]
+        if remaining_points:
+            return [rounder2d.hash_point(r) for r in remaining_points]
+        else:
+            if is_almost(p.distance_to(self.endpoints[0]), distance):
+                return [self.endpoints[0]]
+            else:
+                return []
 
     def inflate(self, radius):
         return inflate_arc(self, radius)
@@ -248,4 +262,3 @@ from copy import copy
 from math import pi
 from jimn.tree.path_tree.path_merger import inflate_arc
 from jimn.displayable import tycat
-from math import copysign

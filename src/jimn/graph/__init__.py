@@ -7,6 +7,16 @@ class graph:
         self.vertices_number = 0
         self.max_vertices_number = 0
 
+    def frontier_edges(self):
+        """
+        iterator going through all frontier edges.
+        we only do non-oriented style : avoid seeing edge once in each direction
+        """
+        for v in self.vertices:
+            for e in v.frontier_edges:
+                if e.vertices[0].id < e.vertices[1].id:
+                    yield e
+
     @classmethod
     def complete_graph(cls, points):
         """
@@ -40,11 +50,9 @@ class graph:
         in graph : existence of edge (a,b) implies existence of (b,a)
         we only iterate here once on each edge (avoiding reversed edges)
         """
-        seen_vertices = {}
         for v in self.vertices:
-            seen_vertices[v] = True
             for e in v.get_edges():
-                if e.vertices[1] not in seen_vertices:
+                if e.vertices[0].id < e.vertices[1].id:
                     yield e
 
     def get_any_vertex(self):

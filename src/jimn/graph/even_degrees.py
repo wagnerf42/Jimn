@@ -9,6 +9,25 @@ def make_degrees_even(g):
             _augment_path(g, v)
 
 
+def make_degrees_even_fast(g, milling_diameter):
+    """
+    fast approximation algorithm to obtain even degrees.
+    loop on outer edge and duplicate edges between odd and even cut lines
+    then loop on inner edges and duplicate edges with non valid degrees.
+    bad cases appear when there is a spike between two milling levels
+    or when we have even number of slices
+    """
+    for e in g.frontier_edges():
+        if not e.is_horizontal():
+            s = e.slice_number(milling_diameter)
+            if (s % 2) == 0:
+                g.add_direct_edge(e)
+    for e in g.get_non_oriented_edges():
+        vertices = e.get_endpoints()
+        if (not vertices[0].even_degree()) and (not vertices[1].even_degree()):
+            g.add_direct_edge(e)
+
+
 def _augment_path(g, v):
     # this is a very simple way to find the best augmenting path
     # it is in no way optimized

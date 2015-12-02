@@ -14,6 +14,9 @@ class holed_polygon:
                     assert h.is_oriented_clockwise()
         self.height = height
 
+    def contains_holes(self):
+        return len(self.holes) > 0
+
     def get_height(self):
         return self.height
 

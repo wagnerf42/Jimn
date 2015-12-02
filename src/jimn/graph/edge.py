@@ -1,3 +1,4 @@
+from math import floor
 from jimn.elementary_path import elementary_path
 
 
@@ -63,6 +64,17 @@ class edge:
 
     def is_horizontal(self):
         return self.path.is_horizontal()
+
+    def slice_number(self, milling_diameter):
+        """
+        space is cut by milling diameter into slices.
+        each edge can only be contained in one slice.
+        return index of slice containing us.
+        """
+        points = [v.get_object() for v in self.vertices]
+        indexes = [p.get_y()/milling_diameter for p in points]
+        index = floor(sum(indexes)/2)
+        return index
 
     def __lt__(a, b):
         return a.weight < b.weight

@@ -35,6 +35,7 @@ def _offset_polygons(poly_tree, carving_radius):
         # now, offset ourselves (if we are not root)
         polygons = holed_poly.get_polygons()
         pockets = offset_holed_polygon(carving_radius, *polygons)
+
         if __debug__:
             if is_module_debugged(__name__):
                 print("offsetting")
