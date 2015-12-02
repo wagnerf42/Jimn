@@ -1,4 +1,4 @@
-from math import sqrt
+from math import sqrt, floor, ceil
 from jimn.utils.precision import is_almost
 from jimn.point import point
 
@@ -80,3 +80,31 @@ def line_circle_intersections(points, center, radius, rounder):
         intersection = points[0] + d * s
         intersections.append(rounder.hash_point(intersection))
     return intersections
+
+
+def milling_heights(y1, y2, milling_diameter, inclusive=False):
+    """
+    iterates in order on all y between y1 and y2 on milling heights
+    if inclusive possibly includes y1 and y2
+    """
+    if y1 < y2:
+        index = ceil(y1/milling_diameter)
+        step = 1
+    else:
+        index = floor(y1/milling_diameter)
+        step = -1
+
+    y = index * milling_diameter
+    if not inclusive:
+        if y == y1:
+            index += step
+            y = index * milling_diameter
+
+    while step*y < step*y2:
+        yield y
+        index += step
+        y = index * milling_diameter
+
+    if inclusive:
+        if y == y2:
+            yield y

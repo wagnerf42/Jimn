@@ -11,9 +11,6 @@ class path_position:
         self.point = position_point
         self.ep = ep
         self.index = index
-        if __debug__:
-            if self.ep:
-                assert self.ep.contains(self.point)
 
     @cached
     def distance(self):
@@ -29,3 +26,5 @@ class path_position:
         if self.index > other.index:
             return False
         return self.distance() < other.distance()
+
+from jimn.displayable import tycat

@@ -94,7 +94,8 @@ class vertex:
         """
         e_index = self.edge_index(e)
         if e_index is not None:
-            assert not frontier_edge, "frontier edge added twice"
+            assert not frontier_edge, \
+                "frontier edge {} added twice".format(str(e.path))
             self.edges[e_index].change_multiplicity(1)
         else:
             self.edges.append(e)

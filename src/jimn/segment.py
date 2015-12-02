@@ -1,4 +1,5 @@
 from jimn.elementary_path import elementary_path
+from jimn.caching import cached
 
 
 class segment(elementary_path):
@@ -9,6 +10,35 @@ class segment(elementary_path):
     def horizontal_segment(cls, xmin, xmax, y):
             coordinates = ([xmin, y], [xmax, y])
             return cls([point(c) for c in coordinates])
+
+    def split_at_milling_points(self, milling_diameter):
+        """
+        returns array of segments obtained when stopping at each milling height
+        """
+        y1, y2 = [p.get_y() for p in self.endpoints]
+        points = [self.endpoints[0]]
+        for y in milling_heights(y1, y2, milling_diameter):
+            points.append(self.horizontal_intersection_at(y))
+        points.append(self.endpoints[1])
+
+        chunks = [
+            segment([points[i], points[i+1]])
+            for i in range(len(points)-1)
+        ]
+        return chunks
+
+    def horizontal_intersection_at(self, y):
+        """
+        returns point on self at given y.
+        precondition : y is valid height in segment
+        """
+        (x1, y1), (x2, y2) = [p.get_coordinates() for p in self.endpoints]
+        if is_almost(x1, x2):
+            return point([x1, y])
+        else:
+            a = (y1 - y2)/(x1 - x2)
+            x = (y - y1) / a + x1
+            return point([x, y])
 
     def reverse(self):
         """invert endpoints"""
@@ -225,7 +255,9 @@ class segment(elementary_path):
                     intersections.append(e)
         return intersections
 
+    @cached
     def inflate(self, radius):
+        # TODO : triple check the caching is ok
         return inflate_segment(self, radius)
 
     def comparison(a, b):
@@ -253,5 +285,7 @@ from jimn.point import point
 from jimn.tree.path_tree.path_merger import inflate_segment
 from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.precision import check_precision, is_almost
-from jimn.utils.math import line_circle_intersections
+from jimn.utils.iterators import all_two_elements
+from jimn.utils.math import line_circle_intersections, milling_heights
+from jimn.displayable import tycat
 from math import pi, cos, sin

@@ -8,6 +8,15 @@ class pocket:
     def __init__(self, paths):
         self.paths = paths
 
+    def split_at_milling_points(self, milling_diameter):
+        """
+        splits each path of the pocket at milling heights
+        """
+        paths = []
+        for p in self.paths:
+            paths.extend(p.split_at_milling_points(milling_diameter))
+        return pocket(paths)
+
     def translate(self, translation):
         """
         translates the whole pocket by a given translation vector.

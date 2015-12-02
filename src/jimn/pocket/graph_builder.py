@@ -44,31 +44,13 @@ def build_graph(milled_pocket, milling_diameter, fast_algorithm=False):
 
 def _create_vertices(milled_pocket, milling_diameter, built_graph):
     # first cut by horizontal lines spaced by milling_diameter
-    box = milled_pocket.get_bounding_box()
-    xmin, xmax = box.limits(0)
-    cutting_lines = [
-        segment.horizontal_segment(xmin, xmax, y)
-        for y in _milling_heights(milled_pocket, milling_diameter)
-    ]
-    split_pocket = pocket_intersect_paths(milled_pocket, cutting_lines)
-    elementary_segments = split_pocket.get_content()
+    split_pocket = milled_pocket.split_at_milling_points(milling_diameter)
     # ok, now create graph, each segment point becomes a vertex
     # and we add all external edges
-    added = []
-    for s in elementary_segments:
-        added.append(s)
+    for s in split_pocket.paths:
         built_graph.add_edge(s, frontier_edge=True)
 
     if __debug__:
         if is_module_debugged(__name__):
             print("created vertices")
-            tycat(built_graph, cutting_lines)
-
-
-def _milling_heights(p, milling_diameter):
-    box = p.get_bounding_box()
-    ymin, ymax = box.limits(1)
-    start = floor(ymin / milling_diameter)
-    end = ceil(ymax / milling_diameter)
-    for i in range(start, end+1):
-        yield i * milling_diameter
+            tycat(built_graph)

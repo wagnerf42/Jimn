@@ -21,6 +21,27 @@ class arc(elementary_path):
                              self.center.squared_distance_to(points[1]))
             self.reversed_direction = reversed_direction
 
+    def horizontal_intersections_at(self, y, xmin, xmax):
+        """
+        intersections with horizontal line at given y.
+        returns array of points.
+        """
+        s = segment.horizontal_segment(xmin, xmax, y)
+        return self.intersections_with_segment(s, rounder2d)
+
+    def split_at_milling_points(self, milling_diameter):
+        """
+        returns array of arcs obtained when stopping at each milling height
+        """
+        box = self.get_bounding_box()
+        y1, y2 = box.limits(1)
+
+        points = []
+        for y in milling_heights(y1, y2, milling_diameter, inclusive=True):
+            points.extend(self.horizontal_intersections_at(y, *box.limits(0)))
+
+        return self.split_at(points)
+
     def correct_endpoints_order(self):
         """
         when creating arcs in offsetter we need to invert points
@@ -256,7 +277,8 @@ from jimn.bounding_box import bounding_box
 from jimn.point import point
 from jimn.segment import segment
 from jimn.utils.coordinates_hash import rounder2d
-from jimn.utils.math import circles_intersections, line_circle_intersections
+from jimn.utils.math import circles_intersections, line_circle_intersections, \
+    milling_heights
 from jimn.utils.precision import is_almost
 from copy import deepcopy
 from math import pi
