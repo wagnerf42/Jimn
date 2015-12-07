@@ -2,6 +2,7 @@ from jimn.bounding_box import bounding_box
 from jimn.displayable import tycat
 from jimn.arc import arc
 from jimn.pocket import pocket
+from jimn.holed_pocket import holed_pocket
 from jimn.pocket.elementary_paths import pocket_elementary_paths
 from jimn.pocket.builder import build_pockets
 from jimn.utils.coordinates_hash import rounder2d
@@ -95,10 +96,10 @@ def _merge_included_pockets(pockets):
 
     disjoint_pockets = []
     for pockets in included_pockets.values():
-        p = pockets.pop()
-        for merged_pocket in pockets:
-            p.extend(merged_pocket.get_content())
-        disjoint_pockets.append(p)
+        hp = holed_pocket(pockets[0])
+        for i in range(1, len(pockets)):
+            hp.add_inner_edge(pockets[i])
+        disjoint_pockets.append(hp)
 
     return disjoint_pockets
 

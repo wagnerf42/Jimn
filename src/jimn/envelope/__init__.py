@@ -24,7 +24,11 @@ class envelope:
         self.inside_content = inside_content  # for debug only
 
         if isinstance(inside_content, pocket):
-            self._fill_from_pocket(inside_content)
+            try:
+                self._fill_from_pocket(inside_content)
+            except:
+                print("failed compute envelope for", self.inside_content)
+                raise
         else:
             if isinstance(inside_content, arc):
                 self._fill_from_arc(inside_content)

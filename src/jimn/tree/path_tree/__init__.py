@@ -211,8 +211,11 @@ def _pocket_node_to_path_node(pocket_node, milling_radius):
     p = pocket_node.get_content()
     if p is None:
         path = None
+        outer_edge = None
     else:
+        outer_edge = p.outer_edge
         if p in paths_cache:
+            # TODO: careful with that stuff (what about orders in holed pockets)
             path = deepcopy(paths_cache[p])
         else:
             g = build_graph(p, 2*milling_radius, True)
@@ -227,7 +230,7 @@ def _pocket_node_to_path_node(pocket_node, milling_radius):
             path = cycle_to_path(find_eulerian_cycle(g))
             paths_cache[p] = path
 
-    path_node = path_tree(path, p)
+    path_node = path_tree(path, outer_edge)
     path_node.copy_translations(pocket_node)
     path_node.children = [
         _pocket_node_to_path_node(n, milling_radius)

@@ -76,6 +76,8 @@ class holed_polygon:
         if len(self.holes) != len(p2.holes):
             return None
         for h1, h2 in zip(self.holes, p2.holes):
+            # TODO: is this really ok ??? -> only if holes are generated in
+            # same order
             if not h1.translation_vector(h2, v):
                 return False
         return v
