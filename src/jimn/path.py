@@ -93,7 +93,7 @@ class path:
         """
         for i, ep in enumerate(self.elementary_paths):
             if ep.contains(p):
-                return path_position(p, ep, i)
+                return path_position(ep, p, i)
 
         raise Exception("point not found in path")
 

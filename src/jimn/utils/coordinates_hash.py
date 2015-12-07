@@ -1,5 +1,4 @@
 from jimn.point import point
-from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import coordinate_key, displaced_coordinate_key, \
     precision
 
@@ -31,9 +30,6 @@ class coordinates_hash:
         for i, c in enumerate(p.get_coordinates()):
             new_c = self.hash_coordinate(i, c)
             new_coordinates.append(new_c)
-            if __debug__:
-                if is_module_debugged(__name__):
-                    print("coordinate {} hashes to {}".format(c, new_c))
 
         new_point = point(new_coordinates)
         return new_point

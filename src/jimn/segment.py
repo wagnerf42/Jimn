@@ -1,5 +1,4 @@
 from jimn.elementary_path import elementary_path
-from jimn.caching import cached
 
 
 class segment(elementary_path):
@@ -255,11 +254,6 @@ class segment(elementary_path):
                     intersections.append(e)
         return intersections
 
-    @cached
-    def inflate(self, radius):
-        # TODO : triple check the caching is ok
-        return inflate_segment(self, radius)
-
     def comparison(a, b):
         """
         returns if a < b.
@@ -282,10 +276,7 @@ class segment(elementary_path):
 
 from jimn.bounding_box import bounding_box
 from jimn.point import point
-from jimn.tree.path_tree.path_merger import inflate_segment
 from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.precision import check_precision, is_almost
-from jimn.utils.iterators import all_two_elements
 from jimn.utils.math import line_circle_intersections, milling_heights
-from jimn.displayable import tycat
 from math import pi, cos, sin

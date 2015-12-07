@@ -1,7 +1,8 @@
 from jimn.caching import cached
 
+
 class path_position:
-    def __init__(self, position_point, ep, index):
+    def __init__(self, ep, position_point, index):
         """
         creates an object storing a position on some path.
         always fast modifications of path at given position later on.
@@ -26,5 +27,3 @@ class path_position:
         if self.index > other.index:
             return False
         return self.distance() < other.distance()
-
-from jimn.displayable import tycat

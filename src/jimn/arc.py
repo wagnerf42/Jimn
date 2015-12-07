@@ -223,9 +223,6 @@ class arc(elementary_path):
             else:
                 return []
 
-    def inflate(self, radius):
-        return inflate_arc(self, radius)
-
     def __str__(self):
         return "arc(\n    " + str(self.radius) + ",\n    [\n        " + \
             str(self.endpoints[0]) + ",\n        " + str(self.endpoints[1]) \
@@ -282,5 +279,4 @@ from jimn.utils.math import circles_intersections, line_circle_intersections, \
 from jimn.utils.precision import is_almost
 from copy import deepcopy
 from math import pi
-from jimn.tree.path_tree.path_merger import inflate_arc
 from jimn.displayable import tycat
