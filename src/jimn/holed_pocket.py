@@ -4,9 +4,12 @@ differentiate paths in a pocket between outer edge and inner edge.
 
 
 class holed_pocket:
-    def __init__(self, outer_edge):
+    def __init__(self, outer_edge, inner_edges=None):
         self.outer_edge = outer_edge
-        self.inner_edges = []
+        if inner_edges:
+            self.inner_edges = inner_edges
+        else:
+            self.inner_edges = []
 
     def add_inner_edge(self, inner_edge):
         self.inner_edges.append(inner_edge)
@@ -38,5 +41,14 @@ class holed_pocket:
         self.outer_edge.save_svg_content(displayer, color)
         for inner_edge in self.inner_edges:
             inner_edge.save_svg_content(displayer, color)
+
+    def __str__(self):
+        # TODO : better indentation
+        inner_strings = ["    " + str(p) for p in self.inner_edges]
+        return "holed_pocket([\n    " + \
+            ",\n    ".join([str(p) for p in self.outer_edge.paths]) \
+            + "\n], [" + "\n".join(inner_strings) \
+            + "])"
+
 
 from jimn.pocket import pocket

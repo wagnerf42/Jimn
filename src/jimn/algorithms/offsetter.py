@@ -112,14 +112,8 @@ def offset_holed_polygon(radius, *polygons):
     """
 
     # fill rounder with all coordinates
-    # quickly check we are not too small
-    b = bounding_box.empty_box(2)
     for p in polygons:
         p.round_points(rounder2d)
-        b.update(p.get_bounding_box())
-
-    if b.diameter() < 2 * radius:
-        return []
 
     overall_pocket = pocket([])
     for p in polygons:
@@ -143,7 +137,12 @@ def offset_holed_polygon(radius, *polygons):
         if is_module_debugged(__name__):
             print("after path selection")
             tycat(remaining_paths)
-    pockets = build_pockets(remaining_paths)
+    try:
+        pockets = build_pockets(remaining_paths)
+    except:
+        print("building pockets failed", *polygons)
+        tycat(*polygons)
+        raise
     final_pockets = _merge_included_pockets(pockets)
     if __debug__:
         if is_module_debugged(__name__):

@@ -218,14 +218,19 @@ def _pocket_node_to_path_node(pocket_node, milling_radius):
             # TODO: careful with that stuff (what about orders in holed pockets)
             path = deepcopy(paths_cache[p])
         else:
-            g = build_graph(p, 2*milling_radius, True)
-            if __debug__:
-                if is_module_debugged(__name__):
-                    print("turned pocket")
-                    print(p)
-                    tycat(p)
-                    print("into graph")
-                    tycat(g)
+            try:
+                g = build_graph(p, 2*milling_radius, True)
+                if __debug__:
+                    if is_module_debugged(__name__):
+                        print("turned pocket")
+                        print(p)
+                        tycat(p)
+                        print("into graph")
+                        tycat(g)
+            except:
+                print("failed building graph", p)
+                tycat(p)
+                raise
 
             path = cycle_to_path(find_eulerian_cycle(g))
             paths_cache[p] = path

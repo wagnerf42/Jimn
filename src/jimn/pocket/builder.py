@@ -64,6 +64,7 @@ class pockets_builder:
             try:
                 p = self.build_pocket(s)
             except:
+                print("failed building pocket")
                 tycat_set_svg_dimensions(1024, 768)
                 print(*self.points)
                 self.polygons = []
@@ -106,6 +107,8 @@ class pockets_builder:
         while self.current_point != self.start_point:
             # find where to go
             next_path = self.find_next_path(self.current_point, self.previous_point)
+            if next_path.reverse() == self.paths[-1]:
+                raise Exception("path going back")
             self.paths.append(next_path)
             self.marked_paths[next_path] = next_path
             # continue moving

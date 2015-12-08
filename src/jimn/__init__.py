@@ -54,7 +54,7 @@ def compute_milling_path(stl_file, slice_size, milling_radius):
     if __debug__:
         if is_module_debugged(__name__):
             print("building polygon tree")
-    tree = polygon_tree.build(slices_polygons)
+    tree = polygon_tree.build(milling_radius, slices_polygons)
     if __debug__:
         if is_module_debugged(__name__):
             tree.tycat()

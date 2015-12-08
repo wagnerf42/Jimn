@@ -1,5 +1,7 @@
  * large goals
 
+- jimn.tree.polygon_tree.is_translation_of
+
 - reorganize hashed points : only hash min number of points required
 
 - re-think precision problems :

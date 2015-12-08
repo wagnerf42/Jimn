@@ -8,7 +8,7 @@ from jimn.utils.debug import is_module_debugged
 class polygon_tree(tree):
 
     @classmethod
-    def build(cls, polygons):
+    def build(cls, milling_radius, polygons):
         """
         figures out which polygon is included in which other.
         returns tree of all holed polygons to mill such that
@@ -21,10 +21,28 @@ class polygon_tree(tree):
         _convert_inclusion_tree(poly_tree, inclusion_tree)
         if __debug__:
             if is_module_debugged(__name__):
+                print("initial holed polygon tree")
+                poly_tree.tycat()
+        poly_tree.prune(milling_radius)
+        if __debug__:
+            if is_module_debugged(__name__):
+                print("pruned holed polygon tree")
                 poly_tree.tycat()
         poly_tree.normalize_polygons()
         poly_tree.compress()
         return poly_tree
+
+    def prune(self, milling_radius):
+        """
+        remove all holed_polygons too small to be carved.
+        """
+        remaining_children = [
+            c for c in self.children
+            if c.content.large_enough_for(milling_radius)
+        ]
+        self.children = remaining_children
+        for c in self.children:
+            c.prune(milling_radius)
 
     def find_translation(self, candidate_originals):
         """

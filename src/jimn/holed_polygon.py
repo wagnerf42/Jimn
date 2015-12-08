@@ -1,6 +1,3 @@
-from jimn.displayable import tycat
-
-
 class holed_polygon:
     def __init__(self, polygon, height=None, holes=None):
         self.polygon = polygon
@@ -13,6 +10,13 @@ class holed_polygon:
                 for h in self.holes:
                     assert h.is_oriented_clockwise()
         self.height = height
+
+    def large_enough_for(self, milling_radius):
+        """
+        will anything be left if we mill with such a radius ?
+        """
+        min_required_area = pi * milling_radius * milling_radius
+        return abs(self.polygon.area()) > min_required_area
 
     def contains_holes(self):
         return len(self.holes) > 0
@@ -92,3 +96,6 @@ class holed_polygon:
 
     def tycat(self, border):
         tycat(border, self.polygon, *(self.holes))
+
+from jimn.displayable import tycat
+from math import pi
