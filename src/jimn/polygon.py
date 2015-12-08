@@ -120,9 +120,6 @@ class polygon:
                     return None
         return vector
 
-    def round_points(self, rounder):
-        self.points = [rounder.hash_point(p) for p in self.points]
-
     def __str__(self):
         strings = [str(p) for p in self.points]
         return "[" + str(self.label) + "/\npolygon([\n    " + \

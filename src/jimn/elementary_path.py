@@ -125,23 +125,20 @@ class elementary_path:
             before, after = self.split_at([intermediate_point])
         return (before, after)
 
-    def intersections_with(self, other, rounder):
+    def intersections_with(self, other):
         """compute intersections with some other path.
         works with any combination of arcs and segments
         """
-        points = [end for p in (self, other) for end in p.get_endpoints()]
-        for p in points:
-            rounder.hash_point(p)
         if str(type(self)) == "<class 'jimn.arc.arc'>":
             if str(type(other)) == "<class 'jimn.arc.arc'>":
-                intersections = self.intersections_with_arc(other, rounder)
+                intersections = self.intersections_with_arc(other)
             else:
-                intersections = self.intersections_with_segment(other, rounder)
+                intersections = self.intersections_with_segment(other)
         else:
             if str(type(other)) == "<class 'jimn.arc.arc'>":
-                intersections = other.intersections_with_segment(self, rounder)
+                intersections = other.intersections_with_segment(self)
             else:
-                i = self.intersection_with_segment(other, rounder)
+                i = self.intersection_with_segment(other)
                 if i is None:
                     intersections = []
                 else:
@@ -247,9 +244,6 @@ class elementary_path:
             return self.endpoints[0]
         else:
             return self.endpoints[1]
-
-    def round_points(self, rounder):
-        self.endpoints = [rounder.hash_point(p) for p in self.endpoints]
 
     def __hash__(self):
         return hash(tuple(self.endpoints))

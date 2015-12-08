@@ -56,7 +56,7 @@ def circles_intersections(c1, c2, r1, r2):
             return points
 
 
-def line_circle_intersections(points, center, radius, rounder):
+def line_circle_intersections(points, center, radius):
     # take first point as origin
     d = points[1] - points[0]
     c = center - points[0]
@@ -75,11 +75,7 @@ def line_circle_intersections(points, center, radius, rounder):
     c = xc**2 + yc**2 - radius**2
 
     solutions = solve_quadratic_equation(a, b, c)
-    intersections = []
-    for s in solutions:
-        intersection = points[0] + d * s
-        intersections.append(rounder.hash_point(intersection))
-    return intersections
+    return [points[0] + d * s for s in solutions]
 
 
 def milling_heights(y1, y2, milling_diameter, inclusive=False):

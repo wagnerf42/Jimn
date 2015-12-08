@@ -40,12 +40,13 @@ def _split_paths_at(raw_pocket, new_points):
 def _find_new_points(raw_pocket, paths_iterator):
     new_points = defaultdict(list)
     for p1, p2 in paths_iterator:
-        intersections = p1.intersections_with(p2, rounder2d)
+        intersections = p1.intersections_with(p2)
         for i in intersections:
-            new_points[p1].append(i)
-            new_points[p2].append(i)
+            j = rounder2d.hash_point(i)
+            new_points[p1].append(j)
+            new_points[p2].append(j)
             if __debug__:
                 if is_module_debugged(__name__):
                     print("splitting here:")
-                    tycat(raw_pocket, p1, i)
+                    tycat(raw_pocket, p1, j)
     return new_points

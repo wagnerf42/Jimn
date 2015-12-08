@@ -86,14 +86,6 @@ class holed_polygon:
                 return False
         return v
 
-    def round_points(self, rounder):
-        """
-        round all points through given rounder
-        """
-        self.polygon.round_points(rounder)
-        for h in self.holes:
-            h.round_points(rounder)
-
     def tycat(self, border):
         tycat(border, self.polygon, *(self.holes))
 

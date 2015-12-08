@@ -68,7 +68,7 @@ class path_tree(tree):
                                           milling_radius)
             except:
                 print("overlapping positions failed for",
-                      self.content, c.content, milling_radius)
+                      self.content, c.content, c.old_pocket, milling_radius)
                 tycat(self.content, c.content)
                 raise
             positions.append(p)

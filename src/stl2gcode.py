@@ -12,3 +12,4 @@ if len(sys.argv) != 4:
 p = compute_milling_path(stl_file, float(slice_size),
                          float(milling_radius))
 p.animate()
+print("done")

@@ -50,5 +50,10 @@ class holed_pocket:
             + "\n], [" + "\n".join(inner_strings) \
             + "])"
 
+    def get_dot_label(self):
+        """
+        returns text label for display in dot file (see polygontree class)
+        """
+        return str(id(self))
 
 from jimn.pocket import pocket

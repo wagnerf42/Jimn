@@ -35,7 +35,7 @@ class displaced_path:
         """
         interferences = _overlapping_points(self.path, other.path)
         interferences.extend(
-            self.path.intersections_with(other.path, rounder2d))
+            self.path.intersections_with(other.path))
         return interferences
 
 
@@ -53,7 +53,6 @@ def _overlapping_points(followed, other):
         if p.contains(ep)
     ]
 
-from jimn.utils.coordinates_hash import rounder2d
 from jimn.point import point
 from jimn.segment import segment
 from jimn.displayable import tycat

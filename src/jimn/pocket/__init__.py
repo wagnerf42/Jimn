@@ -36,16 +36,6 @@ class pocket:
         for p in self.paths:
             yield p.get_endpoint(0)
 
-    def get_dot_label(self):
-        """
-        returns text label for display in dot file (see polygontree class)
-        """
-        return str(id(self))
-
-    def round_points(self, rounder):
-        for p in self.paths:
-            p.round_points(rounder)
-
     def to_polygon(self):
         return polygon(list(self.get_points()))
 
@@ -90,19 +80,6 @@ class pocket:
         returns paths contained
         """
         return self.paths
-
-    def intersects(self, other):
-        """
-        computes list of intersections between paths in self
-        and paths in other.
-        does not care about overlappings
-        """
-        intersections = []
-        for p1 in self.paths:
-            for p2 in other.paths:
-                i = p1.intersections_with(p2, rounder2d)
-                intersections.extend(i)
-        return intersections
 
     def is_included_in(self, other):
         """
@@ -172,7 +149,6 @@ class pocket:
         return "pocket([\n    " + ",\n    ".join([str(p) for p in self.paths]) \
             + "\n])"
 
-from jimn.utils.coordinates_hash import rounder2d
 from jimn.bounding_box import bounding_box
 from jimn.polygon import polygon
 from jimn.point import point

@@ -35,15 +35,17 @@ class bounding_box:
             if c > self.max_coordinates[i]:
                 self.max_coordinates[i] = c
 
-    def contains_point(self, p):
+    def almost_contains_point(self, p):
         """
-        returns true if point p is inside box
+        returns true if point p is almost inside box
         """
         assert p.dimension() == len(self.min_coordinates), "invalid point size"
         for i, c in enumerate(p.get_coordinates()):
-            if c < self.min_coordinates[i]:
+            if c < self.min_coordinates[i] and \
+                    (not is_almost(c, self.min_coordinates[i])):
                 return False
-            if c > self.max_coordinates[i]:
+            if c > self.max_coordinates[i] and \
+                    (not is_almost(c, self.max_coordinates[i])):
                 return False
         return True
 
@@ -97,3 +99,4 @@ class bounding_box:
         return('[{}]-[{}]'.format(self.min_coordinates, self.max_coordinates))
 
 from jimn.point import point
+from jimn.utils.precision import is_almost

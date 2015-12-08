@@ -27,7 +27,10 @@ class arc(elementary_path):
         returns array of points.
         """
         s = segment.horizontal_segment(xmin, xmax, y)
-        return self.intersections_with_segment(s, rounder2d)
+        intersections = self.intersections_with_segment(s)
+        for i in intersections:
+            i.set_y(y)
+        return intersections
 
     def split_at_milling_points(self, milling_diameter):
         """
@@ -63,8 +66,7 @@ class arc(elementary_path):
         intersections = line_circle_intersections(
             [middle, p],
             point([0, 0]),
-            self.radius,
-            rounder2d
+            self.radius
         )
         assert len(intersections) == 2, "invalid arc"
         # pick center and translate back
@@ -126,21 +128,20 @@ class arc(elementary_path):
         # assert adjusted_angles[1] <= pi : TODO : fix
         return adjusted_angles[0] < adjusted_angles[1]
 
-    def intersections_with_arc(self, other, rounder):
+    def intersections_with_arc(self, other):
         """
         intersects with an arc.
         returns up to two points.
         """
         points = circles_intersections(self.center, other.center,
                                        self.radius, other.radius)
-        points = [rounder2d.hash_point(p) for p in points]  # TODO: round here ?
-        intersections = []
-        for p in points:
-            if self.contains_circle_point(p) and other.contains_circle_point(p):
-                intersections.append(p)
-        return intersections
+        return [
+            p for p in points
+            if self.contains_circle_point(p)
+            and other.contains_circle_point(p)
+        ]
 
-    def intersections_with_segment(self, intersecting_segment, rounder):
+    def intersections_with_segment(self, intersecting_segment):
         """
         intersects with a segment.
         returns up to two points.
@@ -149,15 +150,12 @@ class arc(elementary_path):
             intersecting_segment.get_endpoints(),
             self.center,
             self.radius,
-            rounder
         )
-        intersections = []
-        for p in points:
-            if self.contains_circle_point(p) \
-                    and intersecting_segment.contains(p):
-                intersections.append(p)
-
-        return intersections
+        return [
+            p for p in points
+            if self.contains_circle_point(p)
+            and intersecting_segment.contains(p)
+        ]
 
     def save_svg_content(self, display, color):
         x1, y1, x2, y2 = [
@@ -180,7 +178,11 @@ class arc(elementary_path):
 
         line = [point([x, 0]), point([x, 1])]
         intersections = \
-            line_circle_intersections(line, self.center, self.radius, rounder2d)
+            line_circle_intersections(line, self.center, self.radius)
+
+        # ensure obtained points are on vertical line
+        for i in intersections:
+            i.set_x(x)
 
         candidates = [i for i in intersections if self.contains_circle_point(i)]
         assert candidates, "no intersection"
@@ -198,30 +200,6 @@ class arc(elementary_path):
         else:
             assert len(intersections) == 0
             return min([p.distance_to(q) for q in self.endpoints])
-
-    def points_at_distance(self, p, distance):
-        """
-        returns from all points on self between start and end
-        all which are at given distance from p.
-        if end is at given distance from p only returns end
-        (handles overlapping cases)
-        """
-        if is_almost(p.distance_to(self.endpoints[1]), distance):
-            return [self.endpoints[1]]
-
-        intersections = circles_intersections(
-            self.center, p, self.radius, distance
-        )
-        remaining_points = [
-            i for i in intersections if self.contains_circle_point(i)
-        ]
-        if remaining_points:
-            return [rounder2d.hash_point(r) for r in remaining_points]
-        else:
-            if is_almost(p.distance_to(self.endpoints[0]), distance):
-                return [self.endpoints[0]]
-            else:
-                return []
 
     def __str__(self):
         return "arc(\n    " + str(self.radius) + ",\n    [\n        " + \
@@ -279,4 +257,3 @@ from jimn.utils.math import circles_intersections, line_circle_intersections, \
 from jimn.utils.precision import is_almost
 from copy import deepcopy
 from math import pi
-from jimn.displayable import tycat

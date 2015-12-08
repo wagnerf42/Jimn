@@ -88,7 +88,11 @@ class segment(elementary_path):
                       opacity=\"0.5\"/>\n".format(stroke_width, color))
 
     def horizontal_plane_intersection(self, h):
-        assert self.dimension() == 3
+        """
+        PREREQUISITE: 3d segment.
+        cut it with plane at given height.
+        requires h between hmin and hmax of segment
+        """
         p1, p2 = self.endpoints
         x1, y1, z1 = p1.get_coordinates()
         x2, y2, z2 = p2.get_coordinates()
@@ -165,30 +169,21 @@ class segment(elementary_path):
     def angle(self):
         return self.endpoints[0].angle_with(self.endpoints[1])
 
-    def intersection_with_segment(self, other, rounder):
+    def intersection_with_segment(self, other):
         """
-        intersect two segments.
+        intersect two 2d segments.
         only return point if included on the two segments.
         """
-        assert self.dimension() == 2, "non 2d intersections"
-        assert other.dimension() == 2, "non 2d intersections"
-        # prepare rounder # TODO: remove ?
-        for s in (self, other):
-            for p in s.get_endpoints():
-                rounder.hash_point(p)
         # compute point
         i = self.line_intersection_with(other)
         if i is None:
             return  # parallel lines
+
         # check validity
-        rounded_i = rounder.hash_point(i)
         for s in (self, other):
-            if not s.get_bounding_box().contains_point(rounded_i):
-                assert not s.get_bounding_box().contains_point(i)
-                assert not i.is_almost(s.endpoints[0])
-                assert not i.is_almost(s.endpoints[1])
+            if not s.get_bounding_box().almost_contains_point(i):
                 return
-        return rounded_i
+        return i
 
     def line_intersection_with(self, other):
         """returns point intersecting with the two lines passing through the segments.
@@ -238,22 +233,6 @@ class segment(elementary_path):
         y = y1 + a*(x-x1)
         return y
 
-    def points_at_distance(self, p, distance):
-        """
-        returns from all points on self between start and end
-        all which are at given distance from p.
-        """
-        intersections = line_circle_intersections(
-            self.endpoints, p, distance, rounder2d
-        )
-        intersections = [i for i in intersections if self.contains(i)]
-        # process endpoints independently (to avoid rounding problems)
-        for e in self.endpoints:
-            if is_almost(e.squared_distance_to(p), distance*distance):
-                if e not in intersections:
-                    intersections.append(e)
-        return intersections
-
     def comparison(a, b):
         """
         returns if a < b.
@@ -278,5 +257,5 @@ from jimn.bounding_box import bounding_box
 from jimn.point import point
 from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.precision import check_precision, is_almost
-from jimn.utils.math import line_circle_intersections, milling_heights
+from jimn.utils.math import milling_heights
 from math import pi, cos, sin

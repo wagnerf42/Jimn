@@ -17,14 +17,13 @@ and clockwise to carve the outside"""
 
 
 class offsetter:
-    def __init__(self, radius, polygon, rounder):
+    def __init__(self, radius, polygon):
         self.polygon = polygon
         self.radius = radius
-        self.rounder = rounder
 
     def raw_offset(self):
         raw_segments = [
-            (s.parallel_segment(self.radius, self.rounder), s)
+            (s.parallel_segment(self.radius, rounder2d), s)
             for s in self.polygon.segments()
         ]
 
@@ -42,7 +41,7 @@ class offsetter:
         for t1, t2 in all_two_elements(raw_segments):
             s1 = t1[0]  # get back displaced segments
             s2 = t2[0]
-            i = s1.intersection_with_segment(s2, self.rounder)
+            i = s1.intersection_with_segment(s2)
             edge.append(s1)
             if i is None:
                 # add arc
@@ -60,6 +59,7 @@ class offsetter:
                 edge.append(binding)
             else:
                 # stop at intersection
+                i = rounder2d.hash_point(i)
                 s1.set_endpoint(1, i)
                 s2.set_endpoint(0, i)
         if __debug__:
@@ -69,8 +69,8 @@ class offsetter:
         return edge
 
 
-def _raw_offset(radius, polygon_to_offset, rounder):
-    o = offsetter(radius, polygon_to_offset, rounder)
+def _raw_offset(radius, polygon_to_offset):
+    o = offsetter(radius, polygon_to_offset)
     segments = o.raw_offset()
     if len(segments) < 2:
         return []
@@ -111,13 +111,9 @@ def offset_holed_polygon(radius, *polygons):
     a set of disjoint pockets
     """
 
-    # fill rounder with all coordinates
-    for p in polygons:
-        p.round_points(rounder2d)
-
     overall_pocket = pocket([])
     for p in polygons:
-        overall_pocket.extend(_raw_offset(radius, p, rounder2d))
+        overall_pocket.extend(_raw_offset(radius, p))
 
     overall_pocket.remove_overlapping_segments()
     overall_pocket = pocket_elementary_paths(overall_pocket)
