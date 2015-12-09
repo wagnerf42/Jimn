@@ -27,7 +27,7 @@ tycat(polygons[1])
 tycat(polygons[0])
 
 print("corresponding tree")
-tree = polygon_tree.build(polygons)
+tree = polygon_tree.build(0.1, polygons)
 tree.tycat()
 
 pockets = pocket_tree.build(tree, 0.1)

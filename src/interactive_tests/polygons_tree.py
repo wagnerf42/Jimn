@@ -66,6 +66,6 @@ tycat(poly2)
 tycat(poly3, poly4, poly5, poly6, poly7)
 tycat(poly8, poly9, poly10)
 
-tree = polygon_tree.build(polygons)
+tree = polygon_tree.build(0.01, polygons)
 print("simulating depth first carving")
 tree.display_depth_first()

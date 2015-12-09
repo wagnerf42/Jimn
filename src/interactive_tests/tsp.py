@@ -4,9 +4,9 @@ from jimn.point import point
 from jimn.graph import graph
 from jimn.graph.tsp import tsp
 from jimn.displayable import tycat
-import os
+from jimn.utils.debug import add_module_to_debug
 
-os.environ["JIMN_DEBUG"] = "jimn.graph.tsp";
+add_module_to_debug("jimn.graph.tsp")
 
 
 points = ([

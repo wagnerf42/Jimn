@@ -18,10 +18,10 @@ polygons = [
 for p in polygons:
     p.orient(False)
 
-pockets = [offset_holed_polygon(1, p) for p in polygons]
-graphs = [build_graph(p[0], 1) for p in pockets]
+pockets = [offset_holed_polygon(1, p)[0] for p in polygons]
+graphs = [build_graph(p, 1) for p in pockets]
 paths = [cycle_to_path(find_eulerian_cycle(g)) for g in graphs]
-trees = [path_tree(p) for p in paths]
+trees = [path_tree(paths[i], pockets[i].outer_edge) for i in range(len(paths))]
 
 print("fully overlapping")
 t = path_tree()
