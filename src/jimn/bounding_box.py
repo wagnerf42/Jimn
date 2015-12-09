@@ -81,6 +81,14 @@ class bounding_box:
         """
         return (self.min_coordinates[index], self.max_coordinates[index])
 
+    def inflate(self, distance):
+        """
+        get bigger box containing original box + any point outside
+        original at distance less than given
+        """
+        self.min_coordinates = [c - distance for c in self.min_coordinates]
+        self.max_coordinates = [c + distance for c in self.max_coordinates]
+
     def get_arrays(self):
         """
         returns arrays of limits

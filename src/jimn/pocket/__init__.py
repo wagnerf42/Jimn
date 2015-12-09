@@ -1,4 +1,3 @@
-from jimn.caching import cached, invalidate_cache
 """
 set of paths defining a pocket to mill.
 """
@@ -36,7 +35,6 @@ class pocket:
     def is_oriented_clockwise(self):
         return self.to_polygon().is_oriented_clockwise()
 
-    @cached
     def get_bounding_box(self):
         box = bounding_box.empty_box(2)
         for p in self.paths:
@@ -62,7 +60,6 @@ class pocket:
         self.paths = merge_segments(segments)
         self.paths.extend(arcs)
 
-    @invalidate_cache
     def extend(self, additional_paths):
         """
         adds some more paths

@@ -1,10 +1,9 @@
 
-- bouding box intersections to avoid segments intersections
-- remove dead code
 - remove read only accessors
 - check that we decompress the branch after the whole path for
 the branch has been created
 - check we can remove arcs from envelope
+- fix again arcs orientation in offsetter
 - bug for 0.1 0.05
 
 

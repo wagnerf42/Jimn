@@ -7,17 +7,21 @@ def overlap_exit_pocket_position(outer_path, inner_pocket, milling_radius):
     """
     outer_paths = outer_path.elementary_paths
     inner_envelope = envelope(inner_pocket, milling_radius)
+    inner_box = inner_pocket.get_bounding_box()
     # we start from end of outer path because we are interested in last
     # place of overlapping
     for outer_index in reversed(range(len(outer_paths))):
         out = outer_paths[outer_index]
-        outer_envelope = envelope(out, milling_radius)
-
-        outer_point, inner_point = \
-            outer_envelope.junction_points(inner_envelope)
-
-        if outer_point:
-            return dual_position(out, outer_point, inner_point, outer_index)
+        outer_box = out.get_bounding_box()
+        outer_box.inflate(milling_radius)
+        # before doing the real intersections (which is computation heavy)
+        # we can first intersect bounding boxes
+        if inner_box.intersects(outer_box):
+            outer_envelope = envelope(out, milling_radius)
+            outer_point, inner_point = \
+                outer_envelope.junction_points(inner_envelope)
+            if outer_point:
+                return dual_position(out, outer_point, inner_point, outer_index)
 
 
 def update_inner_position(inner_path, position):
