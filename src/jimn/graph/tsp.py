@@ -27,6 +27,11 @@ def tsp(g):
         path_graph.add_edge_between(*objects, edge_path=e.get_path())
 
     c = find_eulerian_cycle(path_graph)
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("cycle with duplicated vertices")
+            tycat(c)
+
     c = _skip_seen_vertices(c)
     if __debug__:
         if is_module_debugged(__name__):
@@ -112,7 +117,12 @@ def _skip_seen_vertices(cycle):
                 objects = [
                     v.get_object() for v in (current_vertex, next_vertex)
                 ]
-                p1, p2 = nearest_points(objects[0], objects[1])
+                if isinstance(objects[0], point) \
+                        and isinstance(objects[0], point):
+                    p1, p2 = objects
+                else:
+                    p1, p2 = nearest_points(objects[0], objects[1])
+
                 resulting_cycle.append(
                     edge(current_vertex, next_vertex, segment([p1, p2]))
                 )
@@ -124,6 +134,7 @@ def _skip_seen_vertices(cycle):
     return resulting_cycle
 
 
+from jimn.point import point
 from jimn.displayable import tycat
 from jimn.graph import graph
 from jimn.graph.edge import edge

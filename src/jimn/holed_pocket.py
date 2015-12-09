@@ -11,9 +11,6 @@ class holed_pocket:
         else:
             self.inner_edges = []
 
-    def add_inner_edge(self, inner_edge):
-        self.inner_edges.append(inner_edge)
-
     def is_included_in(self, possible_includer):
         """
         are we included in other ?

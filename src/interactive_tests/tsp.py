@@ -4,6 +4,10 @@ from jimn.point import point
 from jimn.graph import graph
 from jimn.graph.tsp import tsp
 from jimn.displayable import tycat
+import os
+
+os.environ["JIMN_DEBUG"] = "jimn.graph.tsp";
+
 
 points = ([
     point([0, 0]),
@@ -16,4 +20,5 @@ points = ([
 ])
 
 g = graph.complete_graph(points)
+tycat(g)
 tsp(g)

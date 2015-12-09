@@ -32,12 +32,14 @@ def make_degrees_even_fast(g, milling_diameter):
                     g.add_direct_edge(e)
 
         for e in g.get_non_oriented_edges():
-            vertices = e.get_endpoints()
-            if (not vertices[0].even_degree()) and \
-                    (not vertices[1].even_degree()):
-                g.add_direct_edge(e)
-                value += e.get_path().length()
-                added_edges.append(e)
+            if e.is_horizontal():
+                vertices = e.get_endpoints()
+                for v in vertices:
+                    if (not vertices[0].even_degree()) and \
+                            (not vertices[1].even_degree()):
+                        g.add_direct_edge(e)
+                        value += e.get_path().length()
+                        added_edges.append(e)
 
         return (value, added_edges)
 
