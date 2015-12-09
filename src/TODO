@@ -1,3 +1,13 @@
+
+- bouding box intersections to avoid segments intersections
+- remove dead code
+- remove read only accessors
+- check that we decompress the branch after the whole path for
+the branch has been created
+- check we can remove arcs from envelope
+- bug for 0.1 0.05
+
+
  * large goals
 
 - jimn.tree.polygon_tree.is_translation_of
@@ -25,9 +35,6 @@ especially testing flat subparts
 - tidy vertical segments
 
  * minor code improvements (performance)
-
-- sweeping line algo for last_intersection_with
-
  * additional non-regression tests
  * misc
 

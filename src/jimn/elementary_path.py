@@ -24,15 +24,6 @@ class elementary_path:
         """squared distance between endpoints"""
         return self.endpoints[0].squared_distance_to(self.endpoints[1])
 
-    def has_extremity(self, searched_point):
-        """do we have this endpoint ?"""
-        for p in self.endpoints:
-            if p == searched_point:
-                return True
-            else:
-                assert not p.is_almost(searched_point), "precision pb"
-        return False
-
     def set_endpoint(self, index, new_point):
         """set new_point as endpoint numbered index"""
         self.endpoints[index] = new_point

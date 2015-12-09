@@ -1,6 +1,5 @@
 from jimn.pocket import pocket
 from jimn.displayable import tycat
-from jimn.utils.iterators import two_arrays_combinations
 from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.debug import is_module_debugged
 from collections import defaultdict
@@ -13,16 +12,6 @@ def pocket_elementary_paths(raw_pocket):
     intersection_points = _find_new_points(
         raw_pocket,
         combinations(raw_pocket.paths, r=2)
-    )
-    return _split_paths_at(raw_pocket, intersection_points)
-
-
-def pocket_intersect_paths(raw_pocket, intersecting_paths):
-    """brute force algorithm splitting all paths in pocket by paths
-    in intersecting_paths into elementary paths"""
-    intersection_points = _find_new_points(
-        raw_pocket,
-        two_arrays_combinations(raw_pocket.paths, intersecting_paths)
     )
     return _split_paths_at(raw_pocket, intersection_points)
 

@@ -1,9 +1,6 @@
-from jimn.displayable import tycat
-from jimn.graph.edge import edge
-from jimn.point import is_slice_height
-from jimn.segment import segment
-from jimn.utils.debug import is_module_debugged
-from collections import defaultdict
+"""
+fill pocket with internal paths
+"""
 
 
 def create_internal_edges(g, milling_diameter):
@@ -42,7 +39,6 @@ class position:
         self.outside = outside
         self.on_edge = False
         self.on_edge_inside_is_above = None
-        self.graph = g
         self.y = y
 
     def __str__(self):
@@ -104,3 +100,11 @@ def _horizontal_edges(aligned_vertices):
         p1 = v1.to_point()
         p2 = v2.to_point()
         yield edge(v1, v2, segment([p1, p2]))
+
+
+from jimn.displayable import tycat
+from jimn.graph.edge import edge
+from jimn.utils.math import is_slice_height
+from jimn.segment import segment
+from jimn.utils.debug import is_module_debugged
+from collections import defaultdict

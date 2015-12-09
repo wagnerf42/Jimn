@@ -104,3 +104,8 @@ def milling_heights(y1, y2, milling_diameter, inclusive=False):
     if inclusive:
         if y == y2:
             yield y
+
+
+def is_slice_height(y, milling_diameter):
+    d = milling_diameter
+    return is_almost(y/d, round(y/d))

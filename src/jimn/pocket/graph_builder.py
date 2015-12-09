@@ -1,11 +1,7 @@
-from jimn.pocket.elementary_paths import pocket_intersect_paths
-from jimn.displayable import tycat
-from jimn.graph import graph
-from jimn.graph.even_degrees import make_degrees_even, make_degrees_even_fast
-from jimn.graph.internal_edges import create_internal_edges
-from jimn.segment import segment
-from jimn.utils.debug import is_module_debugged
-from math import floor, ceil
+"""
+build graph out of a pocket (external edges following pocket's edge
+and internal edges etching pocket's surface)
+"""
 
 
 def build_graph(milled_pocket, milling_diameter, fast_algorithm=False):
@@ -54,3 +50,10 @@ def _create_vertices(milled_pocket, milling_diameter, built_graph):
         if is_module_debugged(__name__):
             print("created vertices")
             tycat(built_graph)
+
+
+from jimn.displayable import tycat
+from jimn.graph import graph
+from jimn.graph.even_degrees import make_degrees_even, make_degrees_even_fast
+from jimn.graph.internal_edges import create_internal_edges
+from jimn.utils.debug import is_module_debugged

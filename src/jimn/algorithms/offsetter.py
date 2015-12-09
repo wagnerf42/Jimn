@@ -96,9 +96,7 @@ def _merge_included_pockets(pockets):
 
     disjoint_pockets = []
     for pockets in included_pockets.values():
-        hp = holed_pocket(pockets[0])
-        for i in range(1, len(pockets)):
-            hp.add_inner_edge(pockets[i])
+        hp = holed_pocket(pockets[0], pockets[1:])
         disjoint_pockets.append(hp)
 
     return disjoint_pockets

@@ -26,12 +26,6 @@ class pocket:
             return self
         return pocket([p.translate(translation) for p in self.paths])
 
-    def get_first_point(self):
-        """
-        returns first point of first path.
-        """
-        return self.paths[0].get_endpoint(0)
-
     def get_points(self):
         for p in self.paths:
             yield p.get_endpoint(0)

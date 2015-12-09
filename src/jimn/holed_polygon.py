@@ -18,9 +18,6 @@ class holed_polygon:
         min_required_area = pi * milling_radius * milling_radius
         return abs(self.polygon.area()) > min_required_area
 
-    def contains_holes(self):
-        return len(self.holes) > 0
-
     def get_height(self):
         return self.height
 

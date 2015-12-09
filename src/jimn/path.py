@@ -70,23 +70,6 @@ class path:
                 tycat(displayed, other_things)
         tycat(displayed, other_things)
 
-    def last_intersection_with(self, other):
-        """
-        loop on self, finding the last elementary path (in current order)
-        intersecting with other.
-        for now brute force quadratic algorithm.
-        returns the two indices of intersecting elementary paths together
-        with the last intersection point.
-        """
-        for i, p in enumerate(self.elementary_paths):
-            for j, p2 in enumerate(other.elementary_paths):
-                intersections = p.intersections_with(p2)
-                if intersections:
-                    last_intersection = intersections[-1]
-                    assert False  # TODO : check this is good
-                    last_intersecting_indices = (i, j)
-        return last_intersecting_indices, last_intersection
-
     def find_position(self, p):
         """
         find first position of point p

@@ -27,7 +27,7 @@ def bellman_ford(searched_graph, source_vertex):
         edges.append((v1, v2, w, e))
 
     # go
-    for useless in range(g.get_vertices_number()-1):
+    for _ in range(g.get_vertices_number()-1):
         for v1, v2, w, e in edges:
             new_distance = distances[v1] + w
             if distances[v2] > new_distance:

@@ -71,6 +71,6 @@ p = polygon([
     point([-1.005, 0.002071000039577484])
 ])
 
-tycat(p)
+tycat(p, p.points)
 p.remove_useless_points()
-tycat(p)
+tycat(p, p.points)

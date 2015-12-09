@@ -16,10 +16,6 @@ b = a.reverse()
 print("reversed arc")
 tycat(b, b.get_center(), *b.get_endpoints())
 
-c = arc(1, [point([0, -1]), point([-1, 0])], point([0, 0]))
-print("arc reversed on creation")
-tycat(c, c.get_center(), *c.get_endpoints())
-
 print("now split them at midpoint")
 midpoint = point([-sqrt(2)/2, -sqrt(2)/2])
 
@@ -32,8 +28,3 @@ print("continue with reversed")
 split_b = b.split_at([midpoint])
 points = [p for s in split_b for p in s.get_endpoints()]
 tycat(*split_b, *points)
-
-print("continue with originally reversed")
-split_c = c.split_at([midpoint])
-points = [p for s in split_c for p in s.get_endpoints()]
-tycat(*split_c, *points)

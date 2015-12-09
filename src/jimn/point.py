@@ -1,8 +1,3 @@
-from math import atan2, sqrt, cos, sin, pi
-from jimn.bounding_box import bounding_box
-from jimn.utils.precision import is_almost
-
-
 class point:
     """A point is defined as a vector of any given dimension."""
 
@@ -139,9 +134,6 @@ class point:
         assert self.dimension() == 2
         return point([self.get_y(), -self.get_x()])
 
-    def is_on_slice(self, milling_diameter):
-        return is_slice_height(self.get_y(), milling_diameter)
-
     def nearest_points(self, other):
         """
         dummy procedure used in graphs.
@@ -175,6 +167,7 @@ class point:
         return a.coordinates < b.coordinates
 
 
-def is_slice_height(y, milling_diameter):
-    d = milling_diameter
-    return is_almost(y/d, round(y/d))
+
+from math import atan2, sqrt, cos, sin, pi
+from jimn.bounding_box import bounding_box
+from jimn.utils.precision import is_almost

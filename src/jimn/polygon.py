@@ -39,9 +39,6 @@ class polygon:
         _squares_counter += 1
         return square_polygon
 
-    def points_number(self):
-        return len(self.points)
-
     def remove_useless_points(self):
         """when 3 consecutive points are aligned the middle one is useless.
         we remove here all useless points in order to decrease cost of storage

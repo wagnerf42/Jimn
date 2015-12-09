@@ -79,9 +79,6 @@ class arc(elementary_path):
     def get_center(self):
         return self.center
 
-    def get_radius(self):
-        return self.radius
-
     def reverse(self):
         copied_self = deepcopy(self)
         copied_self.reversed_direction = not self.reversed_direction
@@ -188,18 +185,6 @@ class arc(elementary_path):
         assert candidates, "no intersection"
         ys = [i.get_y() for i in candidates]
         return min(ys)
-
-    def distance_to_point(self, p):
-        """
-        returns min distance from self to point
-        """
-        s = segment([self.center, p])
-        intersections = self.intersections_with_segment(s, rounder2d)
-        if len(intersections) == 1:
-            return intersections[0].distance_to(p)
-        else:
-            assert len(intersections) == 0
-            return min([p.distance_to(q) for q in self.endpoints])
 
     def __str__(self):
         return "arc(\n    " + str(self.radius) + ",\n    [\n        " + \

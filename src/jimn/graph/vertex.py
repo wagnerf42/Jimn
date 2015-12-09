@@ -13,12 +13,6 @@ class vertex:
         """
         return self.bound_object.get_y()
 
-    def get_first_edge_not_going_to(self, v):
-        for e in self.edges:
-            if e.get_destination().id != v.id:
-                return e
-        raise Exception("all edges going to" + str(v))
-
     def to_point(self):
         return self.bound_object
 
@@ -152,12 +146,6 @@ class vertex:
             if not e.is_horizontal():
                 return e
         raise Exception("only horizontal edges")
-
-    def find_first_neighbor_not(self, neighbor):
-        for e in self.edges:
-            if neighbor is None or e.vertices[1] != neighbor:
-                return e
-        raise Exception("only one neighbor")
 
     def __eq__(a, b):
         """

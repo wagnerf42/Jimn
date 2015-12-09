@@ -87,16 +87,7 @@ class bounding_box:
         """
         return (self.min_coordinates, self.max_coordinates)
 
-    def diameter(self):
-        """
-        returns diameter of box
-        """
-        pmin = point(self.min_coordinates)
-        pmax = point(self.max_coordinates)
-        return pmin.distance_to(pmax)
-
     def __str__(self):
         return('[{}]-[{}]'.format(self.min_coordinates, self.max_coordinates))
 
-from jimn.point import point
 from jimn.utils.precision import is_almost
