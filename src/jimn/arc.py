@@ -55,6 +55,7 @@ class arc(elementary_path):
         a = a % (2*pi)
         if a > pi:
             self.endpoints = list(reversed(self.endpoints))
+            self.reversed_direction = True
 
     def _compute_center(self):
         # take endpoints[0] as origin
@@ -155,6 +156,10 @@ class arc(elementary_path):
         ]
 
     def save_svg_content(self, display, color):
+        # display first point to know orientation
+        self.get_endpoint(0).save_svg_content(display, color)
+
+        # display arc
         x1, y1, x2, y2 = [
             c for p in self.endpoints
             for c in display.convert_coordinates(p.get_coordinates())

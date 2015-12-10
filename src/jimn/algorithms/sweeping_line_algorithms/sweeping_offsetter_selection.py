@@ -9,6 +9,10 @@ class sweeping_offsetter_selection(sweeping_line_algorithm):
     def __init__(self, paths):
         self.kept_paths = []
         super().__init__(paths)
+        if __debug__:
+            if is_module_debugged(__name__):
+                print("kept paths")
+                tycat(self.paths, self.kept_paths)
 
     def handle_new_paths(self, new_paths):
         for p in new_paths:

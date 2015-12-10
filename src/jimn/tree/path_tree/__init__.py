@@ -28,7 +28,10 @@ class path_tree(tree):
         # switch back to real tree
         self = self.uncompress(point([0, 0]))
         # start by computing toplevel tour
-        toplevel_tour = self._compute_toplevel_tour()
+        if len(self.children > 20):
+            toplevel_tour = self._compute_toplevel_tour_fast()
+        else:
+            toplevel_tour = self._compute_toplevel_tour()
         # now, process all subtrees
         for c in self.children:
             c._merge_paths(milling_radius)
@@ -139,6 +142,12 @@ class path_tree(tree):
         cycle = tsp(g)
         tour = self._convert_cycle_to_tour(cycle, children, o)
         return tour
+
+    def _compute_toplevel_tour_fast(self):
+        """
+        fast and dumb algorithm
+        """
+        return [c.content.get_first_point() for c in self.children]
 
     def _convert_cycle_to_tour(self, cycle, children, origin):
         """
