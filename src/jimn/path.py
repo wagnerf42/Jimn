@@ -15,6 +15,9 @@ class path:
     def __init__(self, elementary_paths):
         self.elementary_paths = elementary_paths
 
+    def get_first_point(self):
+        return self.elementary_paths[0].get_endpoint(0)
+
     def get_elementary_paths(self):
         return self.elementary_paths
 

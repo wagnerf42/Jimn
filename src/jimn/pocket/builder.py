@@ -31,10 +31,7 @@ class pockets_builder:
         self.sort_neighbours_by_angle()
 
     def add_reversed_paths(self):
-        reversed_paths = []
-        for p in self.paths:
-            reversed_path = p.reverse()
-            reversed_paths.append(reversed_path)
+        reversed_paths = [p.reverse() for p in self.paths]
         self.paths.extend(reversed_paths)
 
     def tycat(self, *others):
@@ -75,8 +72,14 @@ class pockets_builder:
                 raise
 
             try:
-                if not p.is_oriented_clockwise() and not p.of_reversed_arcs():
+                if self.reversed_paths:
                     # discard outer edge
+                    keeping_pocket = not p.is_oriented_clockwise()
+                else:
+                    # discard only "reversed arcs bubbles"
+                    keeping_pocket = not p.of_reversed_arcs()
+
+                if keeping_pocket:
                     self.pockets.append(p)
                     if __debug__:
                         if is_module_debugged(__name__):
@@ -104,24 +107,28 @@ class pockets_builder:
         # find first outgoing path not cancelled
         to_skip = 0
         for i in range(length-1):
-            current_index = (index + i + 1) % length
-            current_path = neighbours[current_index]
-            if current_path.get_endpoint(0) == current_point:
+            tested_index = (index + i + 1) % length
+            tested_path = neighbours[tested_index]
+            if tested_path.get_endpoint(0) == current_point:
                 # we leave
                 if to_skip == 0:
-                    return current_path
+                    return tested_path
                 else:
                     to_skip -= 1
             else:
                 # we arrive
                 to_skip += 1
+
+        print("we are at", current_point, "coming from", previous_point,
+              "available paths are", *neighbours)
+        self.tycat(current_point, previous_point)
         raise Exception("cannot leave")
 
     def build_pocket(self, start_path):
-        self.paths = []
+        self.current_path = []
 
         self.start_point, self.current_point = start_path.get_endpoints()
-        self.paths.append(start_path)
+        self.current_path.append(start_path)
         self.marked_paths[start_path] = start_path
 
         self.previous_point = self.start_point
@@ -129,15 +136,15 @@ class pockets_builder:
         while self.current_point != self.start_point:
             # find where to go
             next_path = self.find_next_path(self.current_point, self.previous_point)
-            if next_path.reverse() == self.paths[-1]:
+            if next_path.reverse() == self.current_path[-1]:
                 raise Exception("path going back")
-            self.paths.append(next_path)
+            self.current_path.append(next_path)
             self.marked_paths[next_path] = next_path
             # continue moving
             self.previous_point = self.current_point
             self.current_point = next_path.get_endpoint(1)
 
-        return pocket(self.paths)
+        return pocket(self.current_path)
 
 
 def build_pockets(paths, reverse_paths=True):

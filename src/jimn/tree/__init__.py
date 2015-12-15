@@ -99,8 +99,11 @@ class tree:
             else:
                 label = "\"" + self.content.get_dot_label()
                 if self.translations:
-                    label += "(" + \
-                        ",".join([str(t) for t in self.translations]) + ")"
+                    if len(self.translations) < 10:
+                        label += "(" + \
+                            ",".join([str(t) for t in self.translations]) + ")"
+                    else:
+                        label += "(...)"
                 label += "\""
 
             fd.write("n{} [label={}];\n".format(

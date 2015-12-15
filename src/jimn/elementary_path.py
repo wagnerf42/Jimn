@@ -101,8 +101,11 @@ class elementary_path:
             if inside and not p1.is_almost(p2):
                 new_path = copy.copy(self)
                 new_path.endpoints = [p1, p2]
-                assert new_path.squared_length() > segment_limit,\
-                    "very small path when splitting"
+                if __debug__:
+                    if new_path.squared_length() < segment_limit:
+                        print("splitting", self, "at", *points)
+                        tycat(self, *points)
+                        raise Exception("very small path when splitting")
                 paths.append(new_path)
 
         if __debug__:
@@ -251,6 +254,14 @@ class elementary_path:
         return hash(tuple(self.endpoints))
 
     def __eq__(a, b):
+        types = [str(type(p)) == "<class 'jimn.arc.arc'>" for p in (a, b)]
+        if types[0] and not types[1]:
+            return False
+        if types[1] and not types[0]:
+            return False
+        if types[0] and types[1]:
+            return a.equals(b)
+
         return a.endpoints == b.endpoints
 
     def __lt__(a, b):

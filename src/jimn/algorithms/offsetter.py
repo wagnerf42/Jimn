@@ -83,19 +83,23 @@ def _merge_included_pockets(pockets):
     returns a set of independent pockets
     """
     included_pockets = defaultdict(list)
+    for p in pockets:
+        included_pockets[id(p)].append(p)
+
     for p1 in pockets:
         for p2 in pockets:
             if id(p1) != id(p2):
                 if p1.is_included_in(p2):
+                    assert len(included_pockets[id(p1)]) == 1
+                    del included_pockets[id(p1)]
                     included_pockets[id(p2)].append(p1)
                     break
-        else:
-            included_pockets[id(p1)].append(p1)
 
     disjoint_pockets = []
     for pockets in included_pockets.values():
-        hp = holed_pocket(pockets[0], pockets[1:])
-        disjoint_pockets.append(hp)
+        if not pockets[0].is_oriented_clockwise():
+            hp = holed_pocket(pockets[0], pockets[1:])
+            disjoint_pockets.append(hp)
 
     return disjoint_pockets
 
@@ -121,7 +125,7 @@ def offset_holed_polygon(radius, *polygons):
         pockets = build_pockets(overall_pocket.get_content(), False)
     except:
         print("building pockets failed", *polygons)
-        tycat(*polygons)
+        tycat(overall_pocket, *polygons)
         raise
     final_pockets = _merge_included_pockets(pockets)
     if __debug__:

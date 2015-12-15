@@ -201,7 +201,7 @@ class arc(elementary_path):
         return hash(tuple(self.endpoints)) ^ hash(self.radius) ^ \
             hash(self.reversed_direction)
 
-    def __eq__(self, other):
+    def equals(self, other):
         if self.endpoints != other.endpoints:
             return False
         if self.radius != other.radius:

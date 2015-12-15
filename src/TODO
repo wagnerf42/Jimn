@@ -1,4 +1,5 @@
 
+- better docs for new pocket builder
 - check if vertical intersections are still needed in arcs
 - avoid creating reversed arcs : change offsetter to avoid them directly
 - use pockets to avoid full n^2 cost for intersections in creating elementary paths in offsetter

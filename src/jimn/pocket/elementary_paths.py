@@ -22,7 +22,12 @@ def _split_paths_at(raw_pocket, new_points):
         if p not in new_points:
             elementary_paths.append(p)
         else:
-            elementary_paths.extend(p.split_at(new_points[p]))
+            try:
+                elementary_paths.extend(p.split_at(new_points[p]))
+            except:
+                print("failed elementary paths on ", raw_pocket, "for", p)
+                tycat(raw_pocket, p)
+                raise
     return pocket(elementary_paths)
 
 

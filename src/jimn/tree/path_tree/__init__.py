@@ -28,7 +28,7 @@ class path_tree(tree):
         # switch back to real tree
         self = self.uncompress(point([0, 0]))
         # start by computing toplevel tour
-        if len(self.children > 20):
+        if len(self.children) > 20:
             toplevel_tour = self._compute_toplevel_tour_fast()
         else:
             toplevel_tour = self._compute_toplevel_tour()

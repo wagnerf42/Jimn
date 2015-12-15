@@ -20,10 +20,14 @@ class segment(elementary_path):
             points.append(self.horizontal_intersection_at(y))
         points.append(self.endpoints[1])
 
-        chunks = [
-            segment([points[i], points[i+1]])
-            for i in range(len(points)-1)
-        ]
+        try:
+            chunks = [
+                segment([points[i], points[i+1]])
+                for i in range(len(points)-1)
+            ]
+        except:
+            print("failed splitting", self, "for diameter", milling_diameter)
+            raise
         return chunks
 
     def horizontal_intersection_at(self, y):

@@ -26,16 +26,18 @@ class holed_polygon:
         returns text label for display in dot file (see polygontree class)
         """
         if not self.holes:
-            return ("{}, h={}".format(
+            string = "{}, h={}".format(
                 str(self.polygon.get_label()),
-                str(self.height))
+                str(self.height)
             )
         else:
-            return ("{}, h={}, holes={}".format(
+            string = "{}, h={}, holes={}".format(
                 str(self.polygon.get_label()),
                 str(self.height),
-                str([h.label for h in self.holes]))
+                str([h.label for h in self.holes])
             )
+
+        return string
 
     def get_polygons(self):
         """
