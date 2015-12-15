@@ -8,8 +8,6 @@ from jimn.pocket.builder import build_pockets
 from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.iterators import all_two_elements
-from jimn.algorithms.sweeping_line_algorithms.sweeping_offsetter_selection \
-    import select_offseted_paths
 from collections import defaultdict
 
 """requires polygon to be oriented counter clockwise to carve the inside
@@ -118,21 +116,9 @@ def offset_holed_polygon(radius, *polygons):
     if __debug__:
         if is_module_debugged(__name__):
             print("before path selection")
-            tycat(overall_pocket)
+            tycat(overall_pocket, polygons)
     try:
-        remaining_paths = select_offseted_paths(overall_pocket.get_content())
-    except:
-        print("failing paths selection for", radius, *polygons)
-        tycat(*polygons)
-        tycat(overall_pocket)
-        raise
-
-    if __debug__:
-        if is_module_debugged(__name__):
-            print("after path selection")
-            tycat(remaining_paths)
-    try:
-        pockets = build_pockets(remaining_paths)
+        pockets = build_pockets(overall_pocket.get_content(), False)
     except:
         print("building pockets failed", *polygons)
         tycat(*polygons)

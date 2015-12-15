@@ -4,13 +4,39 @@ from jimn.point import point
 from jimn.polygon import polygon
 from jimn.displayable import tycat
 from jimn.algorithms.offsetter import offset_holed_polygon
+from jimn.utils.debug import add_module_to_debug
+
+
+print("polygon with hole reaching border")
+
+outer = polygon.square(0, 0, 10).orient(False)
+inner = polygon.square(1, 1, 3).orient(True)
+
+tycat(outer, inner)
+pockets = offset_holed_polygon(2, outer, inner)
+tycat(outer, inner, *pockets)
+
+print("polygon with thin part")
+
+outer = polygon([
+    point([0, 0]),
+    point([0, 1]),
+    point([3, 1]),
+    point([3, 10]),
+    point([10, 10]),
+    point([10, 0]),
+])
+
+tycat(outer)
+pockets = offset_holed_polygon(2, outer)
+tycat(outer, *pockets)
 
 # special cases
 descriptions = [
     "square, carved with radius small enough",
     "square, carved with radius too big",
-    "foo",
-    "bar"
+    "foo (radius too big)",
+    "bar (radius barely small enough)"
 ]
 special = [
     polygon.square(0, 0, 3).orient(False),
@@ -40,6 +66,8 @@ special = [
 sizes = (1, 1, 0.5, 0.05)
 for i, poly in enumerate(special):
     print(descriptions[i])
+    #if i == 2:
+    #    add_module_to_debug("jimn.algorithms.sweeping_line_algorithms.sweeping_offsetter_selection")
     tycat(list(poly.segments()))
     pockets = offset_holed_polygon(sizes[i], poly)
     tycat(poly, *pockets)

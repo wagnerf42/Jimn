@@ -17,10 +17,11 @@ class pockets_builder:
         self.previous_point = None
         self.current_point = None
         self.current_path = None
+        self.reversed_paths = reversed_paths
 
         # start
         self.paths = paths
-        if reversed_paths:
+        if self.reversed_paths:
             self.add_reversed_paths()
         self.marked_paths = {}  # we go only once through each (oriented) path
 
@@ -36,23 +37,25 @@ class pockets_builder:
             reversed_paths.append(reversed_path)
         self.paths.extend(reversed_paths)
 
-    def tycat(self):
+    def tycat(self, *others):
         tycat(self.pockets, self.points, self.current_path, self.paths,
-              list(self.marked_paths.values()))
+              list(self.marked_paths.values()), *others)
 
     def hash_points(self):
         """computes for each point the list of neighbouring points"""
         self.points_neighbours = defaultdict(list)
         for p in self.paths:
-            start = p.get_endpoint(0)
+            start, end = p.get_endpoints()
             self.points_neighbours[start].append(p)
+            if not self.reversed_paths:
+                self.points_neighbours[end].append(p)
 
     def sort_neighbours_by_angle(self):
         """sorts all neighbours so that we can easily turn around a point"""
         for p, neighbour_paths in self.points_neighbours.items():
             sorted_neighbours = sorted(
                 neighbour_paths,
-                key=lambda neighbour: p.angle_with(neighbour.get_endpoint(1)),
+                key=lambda n: p.angle_with(n.get_endpoint_not(p)),
                 reverse=True
             )
             self.points_neighbours[p] = sorted_neighbours
@@ -72,7 +75,8 @@ class pockets_builder:
                 raise
 
             try:
-                if not p.is_oriented_clockwise():  # discard outer edge
+                if not p.is_oriented_clockwise() and not p.of_reversed_arcs():
+                    # discard outer edge
                     self.pockets.append(p)
                     if __debug__:
                         if is_module_debugged(__name__):
@@ -86,14 +90,32 @@ class pockets_builder:
         neighbours = self.points_neighbours[current_point]
         length = len(neighbours)
         for i, p in enumerate(neighbours):
-            if p.get_endpoint(1) == previous_point:
+            if p.get_endpoint_not(current_point) == previous_point:
                 index = i
                 break
         else:
+            print("previous point not leading here")
+            self.tycat(current_point, previous_point)
             raise Exception("previous point not leading here")
-        next_index = (index+1) % length
-        next_path = neighbours[next_index]
-        return next_path
+
+        # now, find next index ; it's tricky
+        # we need to loop increasing index
+        # each incoming path cancels an outgoing path
+        # find first outgoing path not cancelled
+        to_skip = 0
+        for i in range(length-1):
+            current_index = (index + i + 1) % length
+            current_path = neighbours[current_index]
+            if current_path.get_endpoint(0) == current_point:
+                # we leave
+                if to_skip == 0:
+                    return current_path
+                else:
+                    to_skip -= 1
+            else:
+                # we arrive
+                to_skip += 1
+        raise Exception("cannot leave")
 
     def build_pocket(self, start_path):
         self.paths = []

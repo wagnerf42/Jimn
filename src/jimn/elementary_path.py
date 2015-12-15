@@ -31,6 +31,17 @@ class elementary_path:
     def get_endpoint(self, index):
         return self.endpoints[index]
 
+    def get_endpoint_not(self, p):
+        """
+        returns endpoint not p.
+        requires other endpoint to be p
+        """
+        if self.endpoints[0] == p:
+            return self.endpoints[1]
+        if self.endpoints[1] == p:
+            return self.endpoints[0]
+        raise Exception("no given endpoint ; cannot find other")
+
     def get_endpoints(self):
         return self.endpoints
 

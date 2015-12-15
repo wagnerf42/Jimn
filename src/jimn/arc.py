@@ -178,16 +178,15 @@ class arc(elementary_path):
             assert x == self.endpoints[0].get_x()
             return self.lowest_endpoint().get_y()
 
-        line = [point([x, 0]), point([x, 1])]
+        squared_radius = self.radius * self.radius
         intersections = \
-            line_circle_intersections(line, self.center, self.radius)
-
-        # ensure obtained points are on vertical line
-        for i in intersections:
-            i.set_x(x)
+            vline_circle_intersections(x, self.center, squared_radius)
 
         candidates = [i for i in intersections if self.contains_circle_point(i)]
-        assert candidates, "no intersection"
+        if __debug__ and not candidates:
+            print(self, x, *intersections)
+            tycat(self, intersections)
+            raise Exception("no intersections")
         ys = [i.get_y() for i in candidates]
         return min(ys)
 
@@ -243,7 +242,8 @@ from jimn.point import point
 from jimn.segment import segment
 from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.math import circles_intersections, line_circle_intersections, \
-    milling_heights
+    milling_heights, vline_circle_intersections
 from jimn.utils.precision import is_almost
+from jimn.displayable import tycat
 from copy import deepcopy
 from math import pi

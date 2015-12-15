@@ -98,6 +98,27 @@ class pocket:
 
         return included
 
+    def of_reversed_arcs(self):
+        """
+        returns true if we are made only of reversed arcs.
+        returns false if we contain no reversed arcs
+        raises an exception if we contain some reversed arcs
+        """
+        seen_reversed_arcs = False
+        seen_non_reversed = False
+        for p in self.paths:
+            if isinstance(p, arc):
+                if p.reversed_direction:
+                    seen_reversed_arcs = True
+                else:
+                    seen_non_reversed = True
+            else:
+                seen_non_reversed = True
+
+        if seen_reversed_arcs and seen_non_reversed:
+            raise Exception("both reversed and non reversed")
+        return seen_reversed_arcs
+
     def _contains_point(self, tested_point):
         """
         returns true if point is strictly in self.
@@ -143,6 +164,7 @@ class pocket:
 from jimn.bounding_box import bounding_box
 from jimn.polygon import polygon
 from jimn.point import point
+from jimn.arc import arc
 from jimn.segment import segment
 from jimn.algorithms.segment_merger import merge_segments
 from jimn.displayable import tycat
