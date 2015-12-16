@@ -10,6 +10,8 @@ def solve_quadratic_equation(a, b, c):
     do not use if you do not understand what it does"""
     delta = b * b - 4 * a * c
     if is_almost(delta, 0):
+        if is_almost(a, 0):
+            return []
         return [-b/(2*a)]
     else:
         if delta < 0:

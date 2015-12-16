@@ -36,7 +36,7 @@ class pockets_builder:
 
     def tycat(self, *others):
         tycat(self.pockets, self.points, self.current_path, self.paths,
-              list(self.marked_paths.values()), *others)
+              *others)
 
     def hash_points(self):
         """computes for each point the list of neighbouring points"""

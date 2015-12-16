@@ -109,6 +109,8 @@ def offset_holed_polygon(radius, *polygons):
     # remove overlapping segments
     for p1, p2 in combinations(pockets, r=2):
         p1.remove_overlap_with(p2)
+    for p in pockets:
+        p.remove_overlap_with(p)
 
     # compute intersections
     intersections = defaultdict(list) # to each path a list of intersections

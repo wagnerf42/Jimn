@@ -232,9 +232,55 @@ class segment(elementary_path):
         """
         return segment([p+translation for p in self.endpoints])
 
+    def remove_overlap_with(self, other):
+        """
+        if self and other overlap return array of arrays containing non common
+        parts (for self and for other). if no overlap returns None
+        """
+        if id(self) == id(other):
+            return  # abort if with self
+        if self.line_hash(rounder_lines) != other.line_hash(rounder_lines):
+            return  # abort if segments are not aligned
+
+        sides = (self, other)
+        events = defaultdict(list)
+        for side_number, side in enumerate(sides):
+            for j, p in enumerate(side.endpoints):
+                events[p].append((side_number, 2*j-1))
+
+        inside = [0, 0]
+        results = [[], []]
+        entered = [None, None]
+        overlap = False
+        for p in sorted(list(events.keys())):
+            old_inside = list(inside)
+            for e in events[p]:
+                inside[e[0]] += e[1]
+
+            if abs(sum(old_inside)) == 1:
+                # we were on only 1 path
+                for side, count in enumerate(old_inside):
+                    if abs(count) == 1:
+                        # we are leaving kept part
+                        if count == 1:
+                            results[side].append(segment([p, entered[side]]))
+                        else:
+                            results[side].append(segment([entered[side], p]))
+
+            if abs(inside[0]) == 1 and abs(inside[1]) == 1:
+                overlap = True
+
+            for side, count in enumerate(inside):
+                if abs(count) == 1:
+                    entered[side] = p
+
+        if overlap:
+            return results
+
 from jimn.bounding_box import bounding_box
 from jimn.point import point
-from jimn.utils.coordinates_hash import rounder2d
+from jimn.utils.coordinates_hash import rounder2d, rounder_lines
 from jimn.utils.precision import check_precision, is_almost
 from jimn.utils.math import milling_heights
 from math import pi, cos, sin
+from collections import defaultdict
