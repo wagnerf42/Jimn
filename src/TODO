@@ -1,8 +1,8 @@
 
+- warning in poly builder if two paths leaving a point have an extremely small angle between them
 - better docs for new pocket builder
 - check if vertical intersections are still needed in arcs
 - avoid creating reversed arcs : change offsetter to avoid them directly
-- use pockets to avoid full n^2 cost for intersections in creating elementary paths in offsetter
 - remove read only accessors
 - check that we decompress the branch after the whole path for
 the branch has been created

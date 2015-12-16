@@ -46,20 +46,6 @@ class pocket:
         for p in self.paths:
             p.save_svg_content(display, color)
 
-    def remove_overlapping_segments(self):
-        """remove overlapping parts of segments
-        leaves arcs untouched
-        """
-        arcs = []
-        segments = []
-        for p in self.paths:
-            if isinstance(p, segment):
-                segments.append(p)
-            else:
-                arcs.append(p)
-        self.paths = merge_segments(segments)
-        self.paths.extend(arcs)
-
     def extend(self, additional_paths):
         """
         adds some more paths
@@ -119,6 +105,60 @@ class pocket:
             raise Exception("both reversed and non reversed")
         return seen_reversed_arcs
 
+    def remove_overlap_with(self, other):
+        """
+        cancel all overlapping parts in segments
+        """
+        if not self.get_bounding_box().intersects(other.get_bounding_box()):
+            return
+        # filter arcs
+        arcs = [[], []]
+        segments = [[], []]
+        for i, paths in enumerate([self.paths, other.paths]):
+            for p in paths:
+                if isinstance(p, segment):
+                    segments[i].append(p)
+                else:
+                    arcs[i].append(p)
+
+        # now remove overlap in segments
+        kept_segments = []  # kept segments in self
+        while(segments[0]):
+            s1 = segments[0].pop()
+            for s2 in segments[1]:
+                remains = s1.remove_overlap_with(s2)  # TODO: good enough ?
+                if remains:
+                    segments[1].remove(s2)
+                    for s, r in zip(segments, remains):
+                        s.extend(r)
+                    break
+            else:
+                kept_segments.append(s1)
+        arcs[0].extend(kept_segments)
+        arcs[1].extend(segments[1])
+        self.paths = arcs[0]
+        other.paths = arcs[1]
+
+    def intersections_with(self, other, results):
+        """
+        intersect self and other.
+        results is a hash table associating to each path a list of
+        intersection points.
+        also works when self is other
+        """
+        if not self.get_bounding_box().intersects(other.get_bounding_box()):
+            return
+        for p1 in self.paths:
+            for p2 in other.paths:
+                intersections = p1.intersections_with(p2)
+                if intersections:
+                    rounded_intersections = [
+                        rounder2d.hash_point(i) for i in intersections
+                    ]
+                    results[id(p1)].extend(rounded_intersections)
+                    if id(p1) != id(p2):
+                        results[id(p2)].extend(rounded_intersections)
+
     def _contains_point(self, tested_point):
         """
         returns true if point is strictly in self.
@@ -166,7 +206,7 @@ from jimn.polygon import polygon
 from jimn.point import point
 from jimn.arc import arc
 from jimn.segment import segment
-from jimn.algorithms.segment_merger import merge_segments
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost
+from jimn.utils.coordinates_hash import rounder2d

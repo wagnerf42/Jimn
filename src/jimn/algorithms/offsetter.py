@@ -1,15 +1,3 @@
-from jimn.bounding_box import bounding_box
-from jimn.displayable import tycat
-from jimn.arc import arc
-from jimn.pocket import pocket
-from jimn.holed_pocket import holed_pocket
-from jimn.pocket.elementary_paths import pocket_elementary_paths
-from jimn.pocket.builder import build_pockets
-from jimn.utils.coordinates_hash import rounder2d
-from jimn.utils.debug import is_module_debugged
-from jimn.utils.iterators import all_two_elements
-from collections import defaultdict
-
 """requires polygon to be oriented counter clockwise to carve the inside
 and clockwise to carve the outside"""
 
@@ -67,13 +55,13 @@ class offsetter:
         return edge
 
 
-def _raw_offset(radius, polygon_to_offset):
+def _offset(radius, polygon_to_offset):
     o = offsetter(radius, polygon_to_offset)
-    segments = o.raw_offset()
-    if len(segments) < 2:
+    edge = o.raw_offset()
+    if len(edge) < 2:
         return []
     else:
-        return segments
+        return pocket(edge)
 
 
 def _merge_included_pockets(pockets):
@@ -96,7 +84,11 @@ def _merge_included_pockets(pockets):
                     break
 
     disjoint_pockets = []
-    for pockets in included_pockets.values():
+    for top_id, pockets in included_pockets.items():
+        assert top_id == id(pockets[0])
+        # discard holes here
+        # we do that here and not before because they might now contain content
+        # which will be discarded too
         if not pockets[0].is_oriented_clockwise():
             hp = holed_pocket(pockets[0], pockets[1:])
             disjoint_pockets.append(hp)
@@ -111,25 +103,56 @@ def offset_holed_polygon(radius, *polygons):
     a set of disjoint pockets
     """
 
-    overall_pocket = pocket([])
-    for p in polygons:
-        overall_pocket.extend(_raw_offset(radius, p))
+    # offset each polygon
+    pockets = [_offset(radius, p) for p in polygons]
 
-    overall_pocket.remove_overlapping_segments()
-    overall_pocket = pocket_elementary_paths(overall_pocket)
+    # remove overlapping segments
+    for p1, p2 in combinations(pockets, r=2):
+        p1.remove_overlap_with(p2)
+
+    # compute intersections
+    intersections = defaultdict(list) # to each path a list of intersections
+    for p1, p2 in combinations(pockets, r=2):
+        p1.intersections_with(p2, intersections)
+
+    # compute self intersections and generate elementary paths
+    paths = []
+    for po in pockets:
+        po.intersections_with(po, intersections)
+        for p in po.paths:
+            if id(p) in intersections:
+                paths.extend(p.split_at(intersections[id(p)]))
+            else:
+                paths.append(p)
+
     if __debug__:
         if is_module_debugged(__name__):
-            print("before path selection")
-            tycat(overall_pocket, polygons)
+            print("elementary paths")
+            tycat(paths)
+
     try:
-        pockets = build_pockets(overall_pocket.get_content(), False)
+        pockets = build_pockets(paths, False)
     except:
         print("building pockets failed", *polygons)
-        tycat(overall_pocket, *polygons)
+        tycat(paths, *polygons)
         raise
+
     final_pockets = _merge_included_pockets(pockets)
     if __debug__:
         if is_module_debugged(__name__):
             print("final pockets")
             tycat(final_pockets)
     return final_pockets
+
+from jimn.bounding_box import bounding_box
+from jimn.displayable import tycat
+from jimn.arc import arc
+from jimn.pocket import pocket
+from jimn.holed_pocket import holed_pocket
+from jimn.pocket.elementary_paths import pocket_elementary_paths
+from jimn.pocket.builder import build_pockets
+from jimn.utils.coordinates_hash import rounder2d
+from jimn.utils.debug import is_module_debugged
+from jimn.utils.iterators import all_two_elements
+from collections import defaultdict
+from itertools import combinations

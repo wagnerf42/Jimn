@@ -66,8 +66,6 @@ special = [
 sizes = (1, 1, 0.5, 0.05)
 for i, poly in enumerate(special):
     print(descriptions[i])
-    #if i == 2:
-    #    add_module_to_debug("jimn.algorithms.sweeping_line_algorithms.sweeping_offsetter_selection")
     tycat(list(poly.segments()))
     pockets = offset_holed_polygon(sizes[i], poly)
     tycat(poly, *pockets)
