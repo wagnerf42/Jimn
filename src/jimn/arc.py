@@ -21,6 +21,16 @@ class arc(elementary_path):
                              self.center.squared_distance_to(points[1]))
             self.reversed_direction = reversed_direction
 
+    def inflate(self):
+        """
+        push arc towards outside by radius (double the radius)
+        """
+        new_radius = 2 * self.radius
+        new_points = [p*2-self.center for p in self.endpoints]
+        rounded_points = [rounder2d.hash_point(p) for p in new_points]
+        return arc(new_radius, rounded_points,
+                   self.center, self.reversed_direction)
+
     def horizontal_intersections_at(self, y, xmin, xmax):
         """
         intersections with horizontal line at given y.

@@ -152,7 +152,6 @@ from jimn.displayable import tycat
 from jimn.arc import arc
 from jimn.pocket import pocket
 from jimn.holed_pocket import holed_pocket
-from jimn.pocket.elementary_paths import pocket_elementary_paths
 from jimn.pocket.builder import build_pockets
 from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.debug import is_module_debugged

@@ -36,6 +36,11 @@ class envelope:
                 self._fill_from_segment(inside_content)
 
         if __debug__:
+            if not self.paths:
+                print("cannot create envelope out of", self.inside_content)
+                tycat(self.inside_content)
+
+        if __debug__:
             if is_module_debugged(__name__):
                 print("inflating")
                 tycat(self)
@@ -103,40 +108,33 @@ class envelope:
         creates envelope by inflating pocket
         """
         self.paths = []
-        # just follow path, ignoring arcs, moving away segments
-        # and reconnecting everything.
-        # we need to remember previous segment to do the reconnecting
-        last_path = inside_pocket.paths[-1]
-        if isinstance(last_path, segment):
-            previous_segment = \
-                last_path.parallel_segment(self.distance, rounder2d, -1)
-        else:
-            previous_segment = None
-
+        # just follow path, moving away
+        # and then reconnecting everything.
+        raw_paths = []
         for p in inside_pocket.paths:
             if isinstance(p, segment):
-                current_segment = (
-                    p.parallel_segment(self.distance, rounder2d, -1))
-                if previous_segment is not None:
-                    center = p.get_endpoint(0)
-                    dp = displaced_path(
-                        arc(
-                            self.distance,
-                            [
-                                current_segment.get_endpoint(0),
-                                previous_segment.get_endpoint(1)
-                            ],
-                            center,
-                            True
-                        ),
-                        center
-                    )
-                    self.paths.append(dp)
-
-                self.paths.append(displaced_path(current_segment, p))
-                previous_segment = current_segment
+                dp = displaced_path(
+                    p.parallel_segment(self.distance, rounder2d, -1), p
+                )
             else:
-                previous_segment = None
+                dp = displaced_path(p.inflate(), p)
+            raw_paths.append(dp)
+
+        # now do the reconnections if path is disconnected
+        previous_path = raw_paths[-1]
+        for current_path in raw_paths:
+            previous_point = previous_path.path.get_endpoint(1)
+            current_point = current_path.path.get_endpoint(0)
+            if previous_point != current_point:
+                center = previous_path.origin.get_endpoint(1)
+                dp = displaced_path(
+                    arc(self.distance, [previous_point, current_point], center),
+                    center
+                )
+                self.paths.append(dp)
+
+            previous_path = current_path
+            self.paths.append(current_path)
 
     def junction_points(self, inner_envelope):
         """

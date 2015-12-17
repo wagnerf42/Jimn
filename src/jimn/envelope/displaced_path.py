@@ -18,7 +18,11 @@ class displaced_path:
         elif isinstance(self.origin, segment):
             result = self.origin.point_projection(p)
         else:
-            raise Exception("TODO: arcs")
+            intersections = self.origin.intersections_with_segment(
+                segment([self.origin.center, p])
+            )
+            assert len(intersections) == 1
+            result = intersections[0]
 
         if __debug__:
             if is_module_debugged(__name__):
