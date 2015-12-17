@@ -137,7 +137,9 @@ class pocket:
         arcs[0].extend(kept_segments)
         arcs[1].extend(segments[1])
         self.paths = arcs[0]
-        other.paths = arcs[1]
+
+        if id(self) != id(other):
+            other.paths = arcs[1]
 
     def intersections_with(self, other, results):
         """

@@ -27,6 +27,7 @@ class elementary_path:
     def set_endpoint(self, index, new_point):
         """set new_point as endpoint numbered index"""
         self.endpoints[index] = new_point
+        assert self.squared_length() > segment_limit, "very small path"
 
     def get_endpoint(self, index):
         return self.endpoints[index]

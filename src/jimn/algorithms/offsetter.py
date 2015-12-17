@@ -29,7 +29,8 @@ class offsetter:
             s2 = t2[0]
             i = s1.intersection_with_segment(s2)
             edge.append(s1)
-            if i is None:
+            if i is None or s1.endpoints[0].is_almost(i) \
+                    or s2.endpoints[1].is_almost(i):
                 # add arc
                 center_point = t1[1].get_endpoint(1)  # rotate around orig point
                 try:
