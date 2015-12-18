@@ -113,9 +113,13 @@ class envelope:
         raw_paths = []
         for p in inside_pocket.paths:
             if isinstance(p, segment):
-                dp = displaced_path(
-                    p.parallel_segment(self.distance, rounder2d, -1), p
-                )
+                try:
+                    dp = displaced_path(
+                        p.parallel_segment(self.distance, rounder2d, -1), p)
+                except:
+                    print("failed // segment for pocket", inside_pocket)
+                    print("failed segment was", p)
+                    tycat(inside_pocket, p)
             else:
                 dp = displaced_path(p.inflate(), p)
             raw_paths.append(dp)
@@ -128,7 +132,8 @@ class envelope:
             if previous_point != current_point:
                 center = previous_path.origin.get_endpoint(1)
                 dp = displaced_path(
-                    arc(self.distance, [previous_point, current_point], center),
+                    arc(self.distance, [current_point, previous_point],
+                        center, True),
                     center
                 )
                 self.paths.append(dp)
