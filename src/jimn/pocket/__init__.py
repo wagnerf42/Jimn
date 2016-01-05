@@ -2,6 +2,17 @@
 set of paths defining a pocket to mill.
 """
 
+from itertools import combinations
+from jimn.bounding_box import bounding_box
+from jimn.polygon import polygon
+from jimn.point import point
+from jimn.arc import arc
+from jimn.segment import segment
+from jimn.displayable import tycat
+from jimn.utils.debug import is_module_debugged
+from jimn.utils.precision import is_almost
+from jimn.utils.iterators import all_combinations
+
 
 class pocket:
     def __init__(self, paths):
@@ -12,8 +23,8 @@ class pocket:
         splits each path of the pocket at milling heights.
         adds results to given paths array
         """
-        for p in self.paths:
-            paths.extend(p.split_at_milling_points(milling_diameter))
+        for path in self.paths:
+            paths.extend(path.split_at_milling_points(milling_diameter))
 
     def translate(self, translation):
         """
@@ -26,25 +37,44 @@ class pocket:
         return pocket([p.translate(translation) for p in self.paths])
 
     def get_points(self):
-        for p in self.paths:
-            yield p.get_endpoint(0)
+        """
+        iterates through each point in the pocket
+        """
+        for path in self.paths:
+            yield path.get_endpoint(0)
 
     def to_polygon(self):
+        """
+        turn into a polygon by joining all points.
+        only meaningful if paths inside are sorted
+        in the right order
+        """
         return polygon(list(self.get_points()))
 
     def is_oriented_clockwise(self):
+        """
+        true if we are oriented clockwise.
+        only meaningful if paths inside are sorted
+        in the right order
+        """
         return self.to_polygon().is_oriented_clockwise()
 
     def get_bounding_box(self):
+        """
+        returns min bounding box containing pocket
+        """
         box = bounding_box.empty_box(2)
-        for p in self.paths:
-            pbox = p.get_bounding_box()
+        for path in self.paths:
+            pbox = path.get_bounding_box()
             box.update(pbox)
         return box
 
     def save_svg_content(self, display, color):
-        for p in self.paths:
-            p.save_svg_content(display, color)
+        """
+        svg code for tycat
+        """
+        for path in self.paths:
+            path.save_svg_content(display, color)
 
     def extend(self, additional_paths):
         """
@@ -65,9 +95,9 @@ class pocket:
         returns true if we can find one point of self included in other.
         """
         # loop trying points
-        for p in self.paths:
-            tested_point = p.get_endpoint(0)
-            test_result = other._contains_point(tested_point)
+        for path in self.paths:
+            tested_point = path.get_endpoint(0)
+            test_result = other.contains_point(tested_point)
             if test_result is not None:
                 included = test_result
                 break
@@ -92,9 +122,9 @@ class pocket:
         """
         seen_reversed_arcs = False
         seen_non_reversed = False
-        for p in self.paths:
-            if isinstance(p, arc):
-                if p.reversed_direction:
+        for path in self.paths:
+            if isinstance(path, arc):
+                if path.reversed_direction:
                     seen_reversed_arcs = True
                 else:
                     seen_non_reversed = True
@@ -115,15 +145,15 @@ class pocket:
         arcs = [[], []]
         segments = [[], []]
         for i, paths in enumerate([self.paths, other.paths]):
-            for p in paths:
-                if isinstance(p, segment):
-                    segments[i].append(p)
+            for path in paths:
+                if isinstance(path, segment):
+                    segments[i].append(path)
                 else:
-                    arcs[i].append(p)
+                    arcs[i].append(path)
 
         # now remove overlap in segments
         kept_segments = []  # kept segments in self
-        while(segments[0]):
+        while segments[0]:
             s1 = segments[0].pop()
             for s2 in segments[1]:
                 remains = s1.remove_overlap_with(s2)  # TODO: good enough ?
@@ -141,27 +171,30 @@ class pocket:
         if id(self) != id(other):
             other.paths = arcs[1]
 
+    def self_intersections(self, results):
+        return _iterated_intersections(results, combinations(self.paths, 2))
+
     def intersections_with(self, other, results):
         """
         intersect self and other.
         results is a hash table associating to each path a list of
         intersection points.
-        also works when self is other
         """
         if not self.get_bounding_box().intersects(other.get_bounding_box()):
             return
-        for p1 in self.paths:
-            for p2 in other.paths:
-                intersections = p1.intersections_with(p2)
-                if intersections:
-                    rounded_intersections = [
-                        rounder2d.hash_point(i) for i in intersections
-                    ]
-                    results[id(p1)].extend(rounded_intersections)
-                    if id(p1) != id(p2):
-                        results[id(p2)].extend(rounded_intersections)
+        return _iterated_intersections(results, all_combinations(self.paths,
+                                                                 other.paths))
 
-    def _contains_point(self, tested_point):
+    def split_at(self, intersections):
+        new_paths = []
+        for p in self.paths:
+            if id(p) in intersections:
+                new_paths.extend(p.split_at(intersections[id(p)]))
+            else:
+                new_paths.append(p)
+        self.paths = new_paths
+
+    def contains_point(self, tested_point):
         """
         returns true if point is strictly in self.
         false if strictly out of self.
@@ -203,12 +236,18 @@ class pocket:
         return "pocket([\n    " + ",\n    ".join([str(p) for p in self.paths]) \
             + "\n])"
 
-from jimn.bounding_box import bounding_box
-from jimn.polygon import polygon
-from jimn.point import point
-from jimn.arc import arc
-from jimn.segment import segment
-from jimn.displayable import tycat
-from jimn.utils.debug import is_module_debugged
-from jimn.utils.precision import is_almost
-from jimn.utils.coordinates_hash import rounder2d
+
+def _iterated_intersections(results, iterator):
+    for p1, p2 in iterator:
+        intersections = p1.intersections_with(p2)
+        if intersections:
+            for i in intersections:
+                if not(p1.endpoints[0].is_almost(i)
+                       or p1.endpoints[1].is_almost(i)):
+                    results[id(p1)].append(i)
+
+            if id(p1) != id(p2):
+                for i in intersections:
+                    if not(p2.endpoints[0].is_almost(i)
+                           or p2.endpoints[1].is_almost(i)):
+                        results[id(p2)].append(i)

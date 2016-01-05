@@ -6,3 +6,8 @@ def all_two_elements(array):
         e1 = array[i]
         e2 = array[(i+1) % len(array)]
         yield e1, e2
+
+def all_combinations(a, b):
+    for i in a:
+        for j in b:
+            yield i, j

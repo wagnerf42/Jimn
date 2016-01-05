@@ -121,12 +121,10 @@ class segment(elementary_path):
     def line_hash(self, rounder):
         assert self.dimension() == 2, 'only works on 2d points segment'
         (x1, y1), (x2, y2) = [p.get_coordinates() for p in self.endpoints]
-        if x1 == x2:
+        if is_almost(x1, x2):
             key = rounder.hash_coordinate(0, x1)
             return ':{}'.format(key)
         else:
-            if __debug__:
-                check_precision(x1, x2, 'line_hash')
             a = (y2-y1)/(x2-x1)
             b = y1 - a * x1
             key_a = rounder.hash_coordinate(1, a)
@@ -182,16 +180,14 @@ class segment(elementary_path):
         y /= denominator
         return point([x, y])
 
-    def parallel_segment(self, distance, rounder, side=1):
+    def parallel_segment(self, distance, side=1):
         a = self.endpoints[0].angle_with(self.endpoints[1])
         a += side*pi/2
         displacement = point([
             distance * cos(-a),
             distance * sin(-a)
         ])
-        return segment([
-            rounder.hash_point(p + displacement) for p in self.endpoints
-        ])
+        return segment([p + displacement for p in self.endpoints])
 
     def contains(self, possible_point):
         distance = sum([possible_point.distance_to(p) for p in self.endpoints])

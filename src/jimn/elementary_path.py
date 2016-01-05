@@ -88,9 +88,10 @@ class elementary_path:
         """
         start_point, end_point = self.endpoints
 
-        points.extend(self.endpoints)
+        all_points = list(points)
+        all_points.extend(self.endpoints)
         sorted_points = sorted(
-            points, key=lambda p: self.squared_distance_from_start(p)
+            all_points, key=lambda p: self.squared_distance_from_start(p)
         )
         paths = []
         inside = False
