@@ -1,4 +1,14 @@
+"""
+segment between two points
+"""
+from math import pi, cos, sin
+from collections import defaultdict
 from jimn.elementary_path import elementary_path
+from jimn.bounding_box import bounding_box
+from jimn.point import point
+from jimn.utils.coordinates_hash import rounder2d, rounder_lines
+from jimn.utils.precision import check_precision, is_almost
+from jimn.utils.math import milling_heights
 
 
 class segment(elementary_path):
@@ -6,18 +16,21 @@ class segment(elementary_path):
         super().__init__(points)
 
     @classmethod
-    def horizontal_segment(cls, xmin, xmax, y):
-            coordinates = ([xmin, y], [xmax, y])
-            return cls([point(c) for c in coordinates])
+    def horizontal_segment(cls, xmin, xmax, y_coordinate):
+        """
+        constructor: creates an horizontal segment
+        """
+        coordinates = ([xmin, y_coordinate], [xmax, y_coordinate])
+        return cls([point(c) for c in coordinates])
 
     def split_at_milling_points(self, milling_diameter):
         """
         returns array of segments obtained when stopping at each milling height
         """
-        y1, y2 = [p.get_y() for p in self.endpoints]
+        y_1, y_2 = [p.get_y() for p in self.endpoints]
         points = [self.endpoints[0]]
-        for y in milling_heights(y1, y2, milling_diameter):
-            points.append(self.horizontal_intersection_at(y))
+        for intersecting_y in milling_heights(y_1, y_2, milling_diameter):
+            points.append(self.horizontal_intersection_at(intersecting_y))
         points.append(self.endpoints[1])
 
         try:
@@ -30,18 +43,18 @@ class segment(elementary_path):
             raise
         return chunks
 
-    def horizontal_intersection_at(self, y):
+    def horizontal_intersection_at(self, intersecting_y):
         """
         returns point on self at given y.
         precondition : y is valid height in segment
         """
-        (x1, y1), (x2, y2) = [p.get_coordinates() for p in self.endpoints]
-        if is_almost(x1, x2):
-            return point([x1, y])
+        (x_1, y_1), (x_2, y_2) = [p.get_coordinates() for p in self.endpoints]
+        if is_almost(x_1, x_2):
+            return point([x_1, intersecting_y])
         else:
-            a = (y1 - y2)/(x1 - x2)
-            x = (y - y1) / a + x1
-            return point([x, y])
+            slope = (y_1 - y_2) / (x_1 - x_2)
+            intersecting_x = (intersecting_y - y_1) / slope + x_1
+            return point([intersecting_x, intersecting_y])
 
     def reverse(self):
         """invert endpoints"""
@@ -52,6 +65,9 @@ class segment(elementary_path):
             str(self.endpoints[1]) + "])"
 
     def get_bounding_box(self):
+        """
+        return min bounding box containing self
+        """
         boxes = [
             bounding_box(p.get_coordinates(), p.get_coordinates())
             for p in self.endpoints
@@ -60,6 +76,9 @@ class segment(elementary_path):
         return boxes[0]
 
     def save_svg_content(self, display, color):
+        """
+        svg for tycat
+        """
         svg_coordinates = [
             c for point in self.endpoints
             for c in display.convert_coordinates(point.get_coordinates())
@@ -91,59 +110,73 @@ class segment(elementary_path):
         display.write(" stroke-width=\"{}\" stroke=\"{}\"\
                       opacity=\"0.5\"/>\n".format(stroke_width, color))
 
-    def horizontal_plane_intersection(self, h):
+    def horizontal_plane_intersection(self, intersecting_z):
         """
         PREREQUISITE: 3d segment.
         cut it with plane at given height.
         requires h between hmin and hmax of segment
         """
-        p1, p2 = self.endpoints
-        x1, y1, z1 = p1.get_coordinates()
-        x2, y2, z2 = p2.get_coordinates()
+        p_1, p_2 = self.endpoints
+        x_1, y_1, z_1 = p_1.get_coordinates()
+        x_2, y_2, z_2 = p_2.get_coordinates()
 
         if __debug__:
-            check_precision(z1, z2, 'horizontal_plane_intersection')
-        z = h
-        x = x1 + (z - z1)/(z2 - z1)*(x2 - x1)
-        y = y1 + (z - z1)/(z2 - z1)*(y2 - y1)
+            check_precision(z_1, z_2, 'horizontal_plane_intersection')
+        intersecting_x = x_1 + (intersecting_z - z_1)/(z_2 - z_1)*(x_2 - x_1)
+        intersecting_y = y_1 + (intersecting_z - z_1)/(z_2 - z_1)*(y_2 - y_1)
 
-        return rounder2d.hash_point(point([x, y]))
+        return rounder2d.hash_point(point([intersecting_x, intersecting_y]))
 
     def is_vertical_3d(self):
-        xa, xb = [p.get_x() for p in self.endpoints]
-        ya, yb = [p.get_y() for p in self.endpoints]
-        if xa == xb and ya == yb:
+        """
+        is 3d segment vertical ?
+        """
+        x_1, x_2 = [p.get_x() for p in self.endpoints]
+        y_1, y_2 = [p.get_y() for p in self.endpoints]
+        if x_1 == x_2 and y_1 == y_2:
             return True
-        assert not(is_almost(xa, xb) and is_almost(ya, yb)),  "near vertical 3d"
+        assert not(is_almost(x_1, x_2) and is_almost(y_1, y_2)), \
+            "near vertical 3d"
         return False
 
-    # return unique id of line on which is segment
     def line_hash(self, rounder):
+        """
+        return unique id of line on which is segment
+        given rounder rounds the id so nearly aligned segments will hash
+        on same value
+        """
         assert self.dimension() == 2, 'only works on 2d points segment'
-        (x1, y1), (x2, y2) = [p.get_coordinates() for p in self.endpoints]
-        if is_almost(x1, x2):
-            key = rounder.hash_coordinate(0, x1)
+        (x_1, y_1), (x_2, y_2) = [p.get_coordinates() for p in self.endpoints]
+        if is_almost(x_1, x_2):
+            key = rounder.hash_coordinate(0, x_1)
             return ':{}'.format(key)
         else:
-            a = (y2-y1)/(x2-x1)
-            b = y1 - a * x1
-            key_a = rounder.hash_coordinate(1, a)
-            key_b = rounder.hash_coordinate(1, b)
-            return '{}:{}'.format(key_a, key_b)
+            slope = (y_2-y_1)/(x_2-x_1)
+            height_at_origin = y_1 - slope * x_1
+            slope_key = rounder.hash_coordinate(1, slope)
+            height_key = rounder.hash_coordinate(1, height_at_origin)
+            return '{}:{}'.format(slope_key, height_key)
 
     def projection2d(self):
-        p1, p2 = self.endpoints
-        return segment([p1.projection2d(), p2.projection2d()])
+        """
+        project 3d segment to 2d
+        """
+        return segment([p.projection2d() for p in self.endpoints])
 
-    def point_projection(self, p):
+    def point_projection(self, projected_point):
         """
-        project p on line going through self
+        project point on line going through self
         """
-        s = self.endpoints[1] - self.endpoints[0]
-        v = p - self.endpoints[0]
-        return self.endpoints[0] + s * (v.scalar_product(s)/s.scalar_product(s))
+        directing_vector = self.endpoints[1] - self.endpoints[0]
+        outer_vector = projected_point - self.endpoints[0]
+        return self.endpoints[0] + directing_vector * \
+            (outer_vector.scalar_product(directing_vector) /
+             directing_vector.scalar_product(directing_vector))
 
     def angle(self):
+        """
+        return angle from origin between endpoints
+        """
         return self.endpoints[0].angle_with(self.endpoints[1])
 
     def intersection_with_segment(self, other):
@@ -157,8 +190,8 @@ class segment(elementary_path):
             return  # parallel lines
 
         # check validity
-        for s in (self, other):
-            if not s.get_bounding_box().almost_contains_point(i):
+        for box in [s.get_bounding_box() for s in (self, other)]:
+            if not box.almost_contains_point(i):
                 return
         return i
 
@@ -181,46 +214,55 @@ class segment(elementary_path):
         return point([x, y])
 
     def parallel_segment(self, distance, side=1):
-        a = self.endpoints[0].angle_with(self.endpoints[1])
-        a += side*pi/2
+        """
+        return segment parallel to self at given ditance,
+        on given side
+        """
+        angle = self.endpoints[0].angle_with(self.endpoints[1])
+        angle += side*pi/2
         displacement = point([
-            distance * cos(-a),
-            distance * sin(-a)
+            distance * cos(-angle),
+            distance * sin(-angle)
         ])
         return segment([p + displacement for p in self.endpoints])
 
     def contains(self, possible_point):
+        """
+        is given point inside us ?
+        """
         distance = sum([possible_point.distance_to(p) for p in self.endpoints])
         return is_almost(distance,
                          self.endpoints[0].distance_to(self.endpoints[1]))
 
-    def vertical_intersection_at(self, x):
-        x1, y1 = self.endpoints[0].get_coordinates()
-        x2, y2 = self.endpoints[1].get_coordinates()
-        if x1 == x2:
-            if not is_almost(x, x1):
+    def vertical_intersection_at(self, intersecting_x):
+        """
+        intersect with vertical line at given x. (return y)
+        if we are a vertical segment at give x, return y with highest value
+        """
+        x_1, y_1 = self.endpoints[0].get_coordinates()
+        x_2, y_2 = self.endpoints[1].get_coordinates()
+        if x_1 == x_2:
+            if not is_almost(intersecting_x, x_1):
                 return None
             # when vertical, we return coordinate of lowest point
             return self.lowest_endpoint().get_y()
         if __debug__:
-            check_precision(x1, x2, 'vertical_intersection_at')
-        a = (y2-y1)/(x2-x1)
-        y = y1 + a*(x-x1)
-        return y
+            check_precision(x_1, x_2, 'vertical_intersection_at')
+        slope = (y_2-y_1)/(x_2-x_1)
+        return y_1 + slope*(intersecting_x-x_1)
 
-    def comparison(a, b):
+    def comparison(self, other):
         """
-        returns if a < b.
+        returns if self < other.
         order has no real meaning. it is just an arbitrary order.
-        precondition: both are segments
         """
-        if a.endpoints[0].is_almost(b.endpoints[0]):
-            if a.endpoints[1].is_almost(b.endpoints[1]):
+        if self.endpoints[0].is_almost(other.endpoints[0]):
+            if self.endpoints[1].is_almost(other.endpoints[1]):
                 return
             else:
-                return a.endpoints[1] < b.endpoints[1]
+                return self.endpoints[1] < other.endpoints[1]
         else:
-            return a.endpoints[0] < b.endpoints[0]
+            return self.endpoints[0] < other.endpoints[0]
 
     def translate(self, translation):
         """
@@ -272,11 +314,3 @@ class segment(elementary_path):
 
         if overlap:
             return results
-
-from jimn.bounding_box import bounding_box
-from jimn.point import point
-from jimn.utils.coordinates_hash import rounder2d, rounder_lines
-from jimn.utils.precision import check_precision, is_almost
-from jimn.utils.math import milling_heights
-from math import pi, cos, sin
-from collections import defaultdict

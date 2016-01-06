@@ -1,4 +1,7 @@
 
+-----> move things out of segment and into elementary_path (comparison ?)
+-----> simplify jimn.segment.remove_overlap_with
+
 - warning in poly builder if two paths leaving a point have an extremely small angle between them
 - better docs for new pocket builder
 - check if vertical intersections are still needed in arcs
