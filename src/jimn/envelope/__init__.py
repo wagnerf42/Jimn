@@ -3,7 +3,6 @@ from jimn.arc import arc
 from jimn.segment import segment
 from jimn.pocket import pocket
 from jimn.displayable import tycat
-from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.debug import is_module_debugged
 from jimn.envelope.displaced_path import displaced_path
 
@@ -61,7 +60,7 @@ class envelope:
         creates envelope by inflating segment
         """
         sides = [
-            s.parallel_segment(self.distance, rounder2d, side)
+            s.parallel_segment(self.distance, side)
             for side in (-1, 1)
         ]
         # TODO: I think we don't need the arcs
@@ -115,7 +114,7 @@ class envelope:
             if isinstance(p, segment):
                 try:
                     dp = displaced_path(
-                        p.parallel_segment(self.distance, rounder2d, -1), p)
+                        p.parallel_segment(self.distance, -1), p)
                 except:
                     print("failed // segment for pocket", inside_pocket)
                     print("failed segment was", p)

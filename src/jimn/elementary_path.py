@@ -235,12 +235,7 @@ class elementary_path:
     def is_horizontal(self):
         """are endpoints aligned horizontally"""
         ya, yb = [p.get_y() for p in self.endpoints]
-        if ya == yb:
-            return True
-        else:
-            if is_almost(ya, yb):
-                raise RuntimeError("almost horizontal")
-            return False
+        return is_almost(ya, yb)
 
     def lowest_endpoint(self):
         """
@@ -251,6 +246,16 @@ class elementary_path:
             return self.endpoints[0]
         else:
             return self.endpoints[1]
+
+    def adjust_points_at_milling_height(self, milling_height):
+        """
+        slightly move endpoints so that if they are very close
+        from a milling height then they will be exactly at milling height.
+        careful : we do not change arc's center point so this might lead
+        to rounding errors
+        """
+        self.endpoints = [p.adjust_at_milling_height(milling_height)
+                          for p in self.endpoints]
 
     def __hash__(self):
         return hash(tuple(self.endpoints))

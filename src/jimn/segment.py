@@ -27,6 +27,7 @@ class segment(elementary_path):
         """
         returns array of segments obtained when stopping at each milling height
         """
+        self.adjust_points_at_milling_height(milling_diameter)
         y_1, y_2 = [p.get_y() for p in self.endpoints]
         points = [self.endpoints[0]]
         for intersecting_y in milling_heights(y_1, y_2, milling_diameter):

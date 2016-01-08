@@ -27,8 +27,7 @@ class arc(elementary_path):
         """
         new_radius = 2 * self.radius
         new_points = [p*2-self.center for p in self.endpoints]
-        rounded_points = [rounder2d.hash_point(p) for p in new_points]
-        return arc(new_radius, rounded_points,
+        return arc(new_radius, new_points,
                    self.center, self.reversed_direction)
 
     def horizontal_intersections_at(self, y, xmin, xmax):
@@ -46,6 +45,7 @@ class arc(elementary_path):
         """
         returns array of arcs obtained when stopping at each milling height
         """
+        self.adjust_points_at_milling_height(milling_diameter)
         box = self.get_bounding_box()
         y1, y2 = box.limits(1)
 
@@ -68,6 +68,7 @@ class arc(elementary_path):
             self.reversed_direction = True
 
     def _compute_center(self):
+        raise Exception("not working")
         # take endpoints[0] as origin
         p2 = self.endpoints[1] - self.endpoints[0]
         # find bisector
@@ -83,8 +84,7 @@ class arc(elementary_path):
         # pick center and translate back
         for i in intersections:
             if p2.cross_product(i) > 0:
-                rounded_center = rounder2d.hash_point(self.endpoints[0] + i)
-                return rounded_center
+                return self.endpoints[0] + i
         raise "no center found"
 
     def get_center(self):
@@ -250,7 +250,6 @@ class arc(elementary_path):
 from jimn.bounding_box import bounding_box
 from jimn.point import point
 from jimn.segment import segment
-from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.math import circles_intersections, line_circle_intersections, \
     milling_heights, vline_circle_intersections
 from jimn.utils.precision import is_almost
