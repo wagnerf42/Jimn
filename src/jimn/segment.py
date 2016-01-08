@@ -11,7 +11,10 @@ from jimn.utils.precision import check_precision, is_almost
 from jimn.utils.math import milling_heights
 
 
-class segment(elementary_path):
+class Segment(elementary_path):
+    """
+    oriented segment between two points
+    """
     def __init__(self, points):
         super().__init__(points)
 
@@ -36,7 +39,7 @@ class segment(elementary_path):
 
         try:
             chunks = [
-                segment([points[i], points[i+1]])
+                Segment([points[i], points[i+1]])
                 for i in range(len(points)-1)
             ]
         except:
@@ -59,10 +62,10 @@ class segment(elementary_path):
 
     def reverse(self):
         """invert endpoints"""
-        return segment(list(reversed(self.endpoints)))
+        return Segment(list(reversed(self.endpoints)))
 
     def __str__(self):
-        return "segment([" + str(self.endpoints[0]) + ", " + \
+        return "Segment([" + str(self.endpoints[0]) + ", " + \
             str(self.endpoints[1]) + "])"
 
     def get_bounding_box(self):
@@ -162,7 +165,7 @@ class segment(elementary_path):
         """
         project 3d segment to 2d
         """
-        return segment([p.projection2d() for p in self.endpoints])
+        return Segment([p.projection2d() for p in self.endpoints])
 
     def point_projection(self, projected_point):
         """
@@ -225,7 +228,7 @@ class segment(elementary_path):
             distance * cos(-angle),
             distance * sin(-angle)
         ])
-        return segment([p + displacement for p in self.endpoints])
+        return Segment([p + displacement for p in self.endpoints])
 
     def contains(self, possible_point):
         """
@@ -269,7 +272,7 @@ class segment(elementary_path):
         """
         translates segment by a given translation vector
         """
-        return segment([p+translation for p in self.endpoints])
+        return Segment([p+translation for p in self.endpoints])
 
     def remove_overlap_with(self, other):
         """
@@ -302,9 +305,9 @@ class segment(elementary_path):
                     if abs(count) == 1:
                         # we are leaving kept part
                         if count == 1:
-                            results[side].append(segment([p, entered[side]]))
+                            results[side].append(Segment([p, entered[side]]))
                         else:
-                            results[side].append(segment([entered[side], p]))
+                            results[side].append(Segment([entered[side], p]))
 
             if abs(inside[0]) == 1 and abs(inside[1]) == 1:
                 overlap = True

@@ -19,7 +19,7 @@ class displaced_path:
             result = self.origin.point_projection(p)
         else:
             intersections = self.origin.intersections_with_segment(
-                segment([self.origin.center, p])
+                Segment([self.origin.center, p])
             )
             assert len(intersections) == 1
             result = intersections[0]
@@ -58,6 +58,6 @@ def _overlapping_points(followed, other):
     ]
 
 from jimn.point import Point
-from jimn.segment import segment
+from jimn.segment import Segment
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged

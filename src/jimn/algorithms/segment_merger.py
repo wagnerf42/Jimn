@@ -1,4 +1,4 @@
-from jimn.segment import segment
+from jimn.segment import Segment
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import precision
@@ -63,9 +63,9 @@ class segment_merger:
                 now_on = now_on - self.counters[END][p]
             if currently_on % 2 == 1:
                 if currently_on > 0:
-                    odd_segments.append(segment([previous_point, p]))
+                    odd_segments.append(Segment([previous_point, p]))
                 else:
-                    odd_segments.append(segment([p, previous_point]))
+                    odd_segments.append(Segment([p, previous_point]))
             previous_point = p
             currently_on = now_on
 

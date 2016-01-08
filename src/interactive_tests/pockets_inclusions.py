@@ -3,7 +3,7 @@
 from jimn.point import Point
 from jimn.displayable import tycat
 from jimn.utils.iterators import all_two_elements
-from jimn.segment import segment
+from jimn.segment import Segment
 from jimn.pocket import pocket
 from jimn.polygon import polygon
 
@@ -29,7 +29,7 @@ not_including = [
 ]
 
 not_including_pocket = pocket([
-    segment([a, b]) for a, b in all_two_elements(not_including)
+    Segment([a, b]) for a, b in all_two_elements(not_including)
 ])
 
 vertically_aligned = [
@@ -42,7 +42,7 @@ vertically_aligned = [
 ]
 
 va_pocket = pocket([
-    segment([a, b]) for a, b in all_two_elements(vertically_aligned)
+    Segment([a, b]) for a, b in all_two_elements(vertically_aligned)
 ])
 
 if tested_pocket.is_included_in(including_pocket):

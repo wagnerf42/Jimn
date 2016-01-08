@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from jimn.segment import segment
+from jimn.segment import Segment
 from jimn.arc import arc
 from jimn.point import Point
 
@@ -8,7 +8,7 @@ from jimn.point import Point
 class test_above(unittest.TestCase):
 
     def test_above(self):
-        s = segment(
+        s = Segment(
             [
                 Point([-0.42275514588561586, -1.026519556967341]),
                 Point([-0.49377030153582446, -1.1979593675717173])

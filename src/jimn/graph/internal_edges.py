@@ -99,12 +99,12 @@ def _horizontal_edges(aligned_vertices):
         v2 = aligned_vertices[(i+1) % len(aligned_vertices)]
         p1 = v1.to_point()
         p2 = v2.to_point()
-        yield edge(v1, v2, segment([p1, p2]))
+        yield edge(v1, v2, Segment([p1, p2]))
 
 
 from jimn.displayable import tycat
 from jimn.graph.edge import edge
 from jimn.utils.math import is_slice_height
-from jimn.segment import segment
+from jimn.segment import Segment
 from jimn.utils.debug import is_module_debugged
 from collections import defaultdict

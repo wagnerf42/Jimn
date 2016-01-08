@@ -24,7 +24,7 @@ class graph:
         """
         g = cls()
         for p1, p2 in combinations(points, 2):
-            g.add_edge(segment([p1, p2]))
+            g.add_edge(Segment([p1, p2]))
         return g
 
     def is_empty(self):
@@ -141,5 +141,5 @@ class graph:
 from jimn.bounding_box import bounding_box
 from jimn.graph.edge import edge
 from jimn.graph.vertex import vertex
-from jimn.segment import segment
+from jimn.segment import Segment
 from itertools import combinations

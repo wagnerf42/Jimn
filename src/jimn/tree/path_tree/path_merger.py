@@ -54,7 +54,7 @@ def overlap_exit_position(outer_path, inner_path, inner_pocket, milling_radius):
         if is_module_debugged(__name__):
             print("found exit point at", position.outer_position.index)
             try:
-                s = segment(
+                s = Segment(
                     [
                         position.outer_position.point,
                         position.inner_position.point
@@ -89,14 +89,14 @@ def merge_path(outer_path, inner_path, position):
         sub_path.append(before)
 
     if not outer_point.is_almost(inner_point):
-        sub_path.append(segment([outer_point, inner_point]))
+        sub_path.append(Segment([outer_point, inner_point]))
 
     sub_path.append(vertical_path(-1))
     sub_path.extend(inner_path.get_elementary_paths())
     sub_path.append(vertical_path(1))
 
     if not outer_point.is_almost(inner_point):
-        sub_path.append(segment([inner_point, outer_point]))
+        sub_path.append(Segment([inner_point, outer_point]))
 
     if after is not None:
         sub_path.append(after)
@@ -107,7 +107,7 @@ def merge_path(outer_path, inner_path, position):
 
 
 from jimn.displayable import tycat
-from jimn.segment import segment
+from jimn.segment import Segment
 from jimn.utils.debug import is_module_debugged
 from jimn.vertical_path import vertical_path
 from jimn.dual_position import dual_position

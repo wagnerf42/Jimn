@@ -48,12 +48,12 @@ class path_tree(tree):
             start = toplevel_tour[i]
             end = toplevel_tour[i+1]
             if not start.is_almost(end):
-                final_paths.append(segment([start, end]))
+                final_paths.append(Segment([start, end]))
             final_paths.append(vertical_path(-1))
             final_paths.extend(self.children[i].content.get_elementary_paths())
             final_paths.append(vertical_path(1))
         # back to origin
-        final_paths.append(segment([toplevel_tour[-1], toplevel_tour[0]]))
+        final_paths.append(Segment([toplevel_tour[-1], toplevel_tour[0]]))
         return path(final_paths)
 
     def _merge_paths(self, milling_radius):
@@ -131,14 +131,14 @@ class path_tree(tree):
         for c in self.children:
             end = nearest_point(c.old_pocket, o)
             children[end] = c
-            g.add_edge_between(o, c.content, segment([o, end]))
+            g.add_edge_between(o, c.content, Segment([o, end]))
         for c1, c2 in combinations(self.children, 2):
             p1 = c1.content
             p2 = c2.content
             start, end = nearest_points(c1.old_pocket, c2.old_pocket)
             children[start] = c1
             children[end] = c2
-            g.add_edge_between(p1, p2, segment([start, end]))
+            g.add_edge_between(p1, p2, Segment([start, end]))
         cycle = tsp(g)
         tour = self._convert_cycle_to_tour(cycle, children, o)
         return tour
@@ -262,7 +262,7 @@ from jimn.path import path
 from jimn.tree.path_tree.path_merger import overlap_exit_position, merge_path
 from jimn.point import Point
 from jimn.pocket.graph_builder import build_graph
-from jimn.segment import segment
+from jimn.segment import Segment
 from jimn.utils.debug import is_module_debugged
 from jimn.vertical_path import vertical_path
 from itertools import combinations

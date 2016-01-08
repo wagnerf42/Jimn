@@ -124,7 +124,7 @@ def _skip_seen_vertices(cycle):
                     p1, p2 = nearest_points(objects[0], objects[1])
 
                 resulting_cycle.append(
-                    edge(current_vertex, next_vertex, segment([p1, p2]))
+                    edge(current_vertex, next_vertex, Segment([p1, p2]))
                 )
             current_vertex = next_vertex
             seen_vertices[current_vertex] = True
@@ -140,7 +140,7 @@ from jimn.graph import graph
 from jimn.graph.edge import edge
 from jimn.graph.eulerian_cycle import find_eulerian_cycle
 from jimn.graph.even_degrees import make_degrees_even
-from jimn.segment import segment
+from jimn.segment import Segment
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.iterators import all_two_elements
 from jimn.utils.points_containers import nearest_points

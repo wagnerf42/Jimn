@@ -1,8 +1,8 @@
-from jimn.segment import segment
+from jimn.segment import Segment
 from jimn.utils.precision import check_precision
 
 
-class polygonsegment(segment):
+class polygonsegment(Segment):
     """two additional attributes to basic segments : height and polygon id"""
 
     def __init__(self, points, height, polygon_we_belong_to):
@@ -65,6 +65,6 @@ class polygonsegment(segment):
         return hash(tuple(to_hash))
 
     def __str__(self):
-        s = segment.__str__(self)
+        s = Segment.__str__(self)
         s += str(self.get_height())
         return s

@@ -35,7 +35,7 @@ class arc(elementary_path):
         intersections with horizontal line at given y.
         returns array of points.
         """
-        s = segment.horizontal_segment(xmin, xmax, y)
+        s = Segment.horizontal_segment(xmin, xmax, y)
         intersections = self.intersections_with_segment(s)
         for i in intersections:
             i.set_y(y)
@@ -249,7 +249,7 @@ class arc(elementary_path):
 
 from jimn.bounding_box import bounding_box
 from jimn.point import Point
-from jimn.segment import segment
+from jimn.segment import Segment
 from jimn.utils.math import circles_intersections, line_circle_intersections, \
     milling_heights, vline_circle_intersections
 from jimn.utils.precision import is_almost

@@ -1,7 +1,7 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
 from jimn.point import Point
-from jimn.segment import segment
+from jimn.segment import Segment
 from jimn.utils.precision import is_almost
 
 
@@ -21,7 +21,7 @@ class facet:
         returns the three segments forming the facet
         """
         p1, p2, p3 = self.points
-        return [segment([p1, p2]), segment([p1, p3]), segment([p2, p3])]
+        return [Segment([p1, p2]), Segment([p1, p3]), Segment([p2, p3])]
 
     def is_vertical(self):
         """
@@ -70,7 +70,7 @@ class facet:
             return
 
         traversing_segments = [
-            segment([p, isolated_point]) for p in together_points
+            Segment([p, isolated_point]) for p in together_points
         ]
         intersection_points = [
             s.horizontal_plane_intersection(h) for s in traversing_segments
@@ -81,7 +81,7 @@ class facet:
         # check it to avoid creating a one point segment
         if intersection_points[0] == intersection_points[1]:
             return
-        intersection_segment = segment(intersection_points)
+        intersection_segment = Segment(intersection_points)
         # sort endpoints for remaining algorithms
         segments.append(intersection_segment.sort_endpoints())
 

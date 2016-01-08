@@ -15,7 +15,7 @@ class Point:
 
     def __str__(self):
         """print code generating the point"""
-        return "point([" + ', '.join([str(c) for c in self.coordinates]) + "])"
+        return "Point([" + ', '.join([str(c) for c in self.coordinates]) + "])"
 
     def squared_distance_to(self, other):
         """squared euclidean distance between two points"""

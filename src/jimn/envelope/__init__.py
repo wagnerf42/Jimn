@@ -1,6 +1,6 @@
 from jimn.bounding_box import bounding_box
 from jimn.arc import arc
-from jimn.segment import segment
+from jimn.segment import Segment
 from jimn.pocket import pocket
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
@@ -111,7 +111,7 @@ class envelope:
         # and then reconnecting everything.
         raw_paths = []
         for p in inside_pocket.paths:
-            if isinstance(p, segment):
+            if isinstance(p, Segment):
                 try:
                     dp = displaced_path(
                         p.parallel_segment(self.distance, -1), p)

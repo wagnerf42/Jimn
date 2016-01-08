@@ -73,7 +73,7 @@ class polygon:
 
     def segments(self):
         for p1, p2 in all_two_elements(self.points):
-            yield segment([p1, p2])
+            yield Segment([p1, p2])
 
     def area(self):
         a = 0
@@ -164,7 +164,7 @@ class polygon:
         raise Exception("flat polygon")
 
 from jimn.point import Point
-from jimn.segment import segment
+from jimn.segment import Segment
 from jimn.bounding_box import bounding_box
 from jimn.utils.precision import is_almost
 from jimn.utils.iterators import all_two_elements

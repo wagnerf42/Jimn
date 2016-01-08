@@ -1,6 +1,6 @@
 from math import ceil
 from jimn.point import Point
-from jimn.segment import segment
+from jimn.segment import Segment
 from jimn.facet import facet, binary_facet
 from jimn.bounding_box import bounding_box
 from jimn.utils.coordinates_hash import coordinates_hash
@@ -107,7 +107,7 @@ class stl:
         # build four segments
         border_segments = []
         for i in range(4):
-            s = segment([points[i], points[i+1]])
+            s = Segment([points[i], points[i+1]])
             border_segments.append(s.sort_endpoints())
         return border_segments
 
