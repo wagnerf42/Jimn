@@ -1,4 +1,4 @@
-from jimn.point import point
+from jimn.point import Point
 from jimn.displayable import tycat
 from collections import deque
 import os
@@ -19,7 +19,7 @@ class tree:
         # we all tree compression by translations
         # apply following list if translations to self
         # to find all real trees
-        self.translations = [point([0, 0])]
+        self.translations = [Point([0, 0])]
         self.children = []
 
     def add_translation(self, translation_vector):

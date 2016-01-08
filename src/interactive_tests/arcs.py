@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from jimn.point import point
+from jimn.point import Point
 from jimn.segment import segment
 from jimn.arc import arc
 from jimn.displayable import tycat
@@ -14,24 +14,24 @@ labels = (
 )
 
 a1 = arc(
-    3, [point([0, 0]), point([3, 3])]
+    3, [Point([0, 0]), Point([3, 3])]
 )
 
 arcs = (
     arc(
-        3, [point([1, 2]), point([4, -1])]
+        3, [Point([1, 2]), Point([4, -1])]
     ),
     arc(
-        3, [point([3, 3]), point([6, 0])]
+        3, [Point([3, 3]), Point([6, 0])]
     ),
     arc(
-        3, [point([4, 3]), point([7, 0])]
+        3, [Point([4, 3]), Point([7, 0])]
     ),
     arc(
-        2, [point([0, 1]), point([2, 3])]
+        2, [Point([0, 1]), Point([2, 3])]
     ),
     arc(
-        3, [point([1, -0.5]), point([4, -3.5])]
+        3, [Point([1, -0.5]), Point([4, -3.5])]
     )
 )
 
@@ -43,10 +43,10 @@ for i, a in enumerate(arcs):
     tycat(a1, a, intersection)
 
 segments = (
-    segment([point([-1, 2]), point([3, 1])]),
-    segment([point([3.2, 3]), point([0.2, 0])]),
-    segment([point([5.2, 3]), point([2.2, 0])]),
-    segment([point([-1, 0]), point([3, 0])]),
+    segment([Point([-1, 2]), Point([3, 1])]),
+    segment([Point([3.2, 3]), Point([0.2, 0])]),
+    segment([Point([5.2, 3]), Point([2.2, 0])]),
+    segment([Point([-1, 0]), Point([3, 0])]),
 )
 s_labels = (
     "single intersection",

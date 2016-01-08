@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from jimn.point import point
+from jimn.point import Point
 from jimn.segment import segment
 from jimn.displayable import tycat
 from jimn.displayable import tycat_set_svg_dimensions
@@ -11,24 +11,24 @@ tycat_set_svg_dimensions(800, 600)
 
 s = [
     segment([
-        point([1, 1]),
-        point([2, 2])
+        Point([1, 1]),
+        Point([2, 2])
     ]),
     segment([
-        point([0, 0]),
-        point([4, 4])
+        Point([0, 0]),
+        Point([4, 4])
     ]),
     segment([
-        point([4, 4]),
-        point([5, 5])
+        Point([4, 4]),
+        Point([5, 5])
     ]),
     segment([
-        point([5, 5]),
-        point([7, 7])
+        Point([5, 5]),
+        Point([7, 7])
     ]),
     segment([
-        point([6, 6]),
-        point([8, 8])
+        Point([6, 6]),
+        Point([8, 8])
     ]),
 ]
 

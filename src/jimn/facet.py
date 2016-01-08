@@ -1,6 +1,6 @@
 # vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
-from jimn.point import point
+from jimn.point import Point
 from jimn.segment import segment
 from jimn.utils.precision import is_almost
 
@@ -95,7 +95,7 @@ def binary_facet(all_coordinates, heights_hash, box):
     for i in range(3):
         coordinates = list(all_coordinates[3+3*i:6+3*i])
         coordinates[2] = heights_hash.hash_coordinate(0, coordinates[2])
-        p = point(coordinates)
+        p = Point(coordinates)
         box.add_point(p)
         points.append(p)
     f = facet(points)

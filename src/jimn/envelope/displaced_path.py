@@ -13,7 +13,7 @@ class displaced_path:
         """
         find where p on stored path projects itself on origin
         """
-        if isinstance(self.origin, point):
+        if isinstance(self.origin, Point):
             result = self.origin
         elif isinstance(self.origin, segment):
             result = self.origin.point_projection(p)
@@ -57,7 +57,7 @@ def _overlapping_points(followed, other):
         if p.contains(ep)
     ]
 
-from jimn.point import point
+from jimn.point import Point
 from jimn.segment import segment
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged

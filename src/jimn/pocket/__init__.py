@@ -5,7 +5,7 @@ set of paths defining a pocket to mill.
 from itertools import combinations
 from jimn.bounding_box import bounding_box
 from jimn.polygon import polygon
-from jimn.point import point
+from jimn.point import Point
 from jimn.arc import arc
 from jimn.segment import segment
 from jimn.displayable import tycat
@@ -32,7 +32,7 @@ class pocket:
         returns new pocket if obtained pocket is different and same pocket
         if translation vector is (0,0)
         """
-        if translation.is_almost(point([0, 0])):
+        if translation.is_almost(Point([0, 0])):
             return self
         return pocket([p.translate(translation) for p in self.paths])
 

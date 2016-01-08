@@ -77,7 +77,7 @@ class arc(elementary_path):
         # intersect with circle at origin
         intersections = line_circle_intersections(
             [middle, p],
-            point([0, 0]),
+            Point([0, 0]),
             self.radius
         )
         assert len(intersections) == 2, "invalid arc"
@@ -108,8 +108,8 @@ class arc(elementary_path):
 
     def get_bounding_box(self):
         box = bounding_box.empty_box(2)
-        box.add_point(self.center + point([self.radius, self.radius]))
-        box.add_point(self.center - point([self.radius, self.radius]))
+        box.add_point(self.center + Point([self.radius, self.radius]))
+        box.add_point(self.center - Point([self.radius, self.radius]))
         return box
 
     def contains(self, p):
@@ -248,7 +248,7 @@ class arc(elementary_path):
                    self.center + translation, self.reversed_direction)
 
 from jimn.bounding_box import bounding_box
-from jimn.point import point
+from jimn.point import Point
 from jimn.segment import segment
 from jimn.utils.math import circles_intersections, line_circle_intersections, \
     milling_heights, vline_circle_intersections

@@ -27,7 +27,7 @@ class path:
         returns new path if obtained path is different and same path
         if translation vector is (0,0)
         """
-        if translation.is_almost(point([0, 0])):
+        if translation.is_almost(Point([0, 0])):
             return self
         return path([p.translate(translation) for p in self.elementary_paths])
 
@@ -122,5 +122,5 @@ class path:
 from jimn.path_position import path_position
 from jimn.bounding_box import bounding_box
 from jimn.displayable import tycat
-from jimn.point import point
+from jimn.point import Point
 from collections import defaultdict

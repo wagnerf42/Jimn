@@ -26,7 +26,7 @@ class path_tree(tree):
         flattens the tree into final path
         """
         # switch back to real tree
-        self = self.uncompress(point([0, 0]))
+        self = self.uncompress(Point([0, 0]))
         # start by computing toplevel tour
         if len(self.children) > 20:
             toplevel_tour = self._compute_toplevel_tour_fast()
@@ -125,7 +125,7 @@ class path_tree(tree):
         This will also sort all children by order of visit of the tour
         and change each cycle starting point as the visited point
         """
-        o = point([0, 0])
+        o = Point([0, 0])
         g = graph()
         children = {}  # record to which child each point belongs
         for c in self.children:
@@ -260,7 +260,7 @@ from jimn.graph.eulerian_cycle import find_eulerian_cycle, cycle_to_path
 from jimn.graph.tsp import tsp
 from jimn.path import path
 from jimn.tree.path_tree.path_merger import overlap_exit_position, merge_path
-from jimn.point import point
+from jimn.point import Point
 from jimn.pocket.graph_builder import build_graph
 from jimn.segment import segment
 from jimn.utils.debug import is_module_debugged

@@ -5,7 +5,7 @@ from math import pi, cos, sin
 from collections import defaultdict
 from jimn.elementary_path import elementary_path
 from jimn.bounding_box import bounding_box
-from jimn.point import point
+from jimn.point import Point
 from jimn.utils.coordinates_hash import rounder2d, rounder_lines
 from jimn.utils.precision import check_precision, is_almost
 from jimn.utils.math import milling_heights
@@ -21,7 +21,7 @@ class segment(elementary_path):
         constructor: creates an horizontal segment
         """
         coordinates = ([xmin, y_coordinate], [xmax, y_coordinate])
-        return cls([point(c) for c in coordinates])
+        return cls([Point(c) for c in coordinates])
 
     def split_at_milling_points(self, milling_diameter):
         """
@@ -51,11 +51,11 @@ class segment(elementary_path):
         """
         (x_1, y_1), (x_2, y_2) = [p.get_coordinates() for p in self.endpoints]
         if is_almost(x_1, x_2):
-            return point([x_1, intersecting_y])
+            return Point([x_1, intersecting_y])
         else:
             slope = (y_1 - y_2) / (x_1 - x_2)
             intersecting_x = (intersecting_y - y_1) / slope + x_1
-            return point([intersecting_x, intersecting_y])
+            return Point([intersecting_x, intersecting_y])
 
     def reverse(self):
         """invert endpoints"""
@@ -126,7 +126,7 @@ class segment(elementary_path):
         intersecting_x = x_1 + (intersecting_z - z_1)/(z_2 - z_1)*(x_2 - x_1)
         intersecting_y = y_1 + (intersecting_z - z_1)/(z_2 - z_1)*(y_2 - y_1)
 
-        return rounder2d.hash_point(point([intersecting_x, intersecting_y]))
+        return rounder2d.hash_point(Point([intersecting_x, intersecting_y]))
 
     def is_vertical_3d(self):
         """
@@ -212,7 +212,7 @@ class segment(elementary_path):
         x /= denominator
         y = y2*(x1*(y4-y3)-x3*y4+x4*y3) + y1*(x3*y4+x2*(y3-y4)-x4*y3)
         y /= denominator
-        return point([x, y])
+        return Point([x, y])
 
     def parallel_segment(self, distance, side=1):
         """
@@ -221,7 +221,7 @@ class segment(elementary_path):
         """
         angle = self.endpoints[0].angle_with(self.endpoints[1])
         angle += side*pi/2
-        displacement = point([
+        displacement = Point([
             distance * cos(-angle),
             distance * sin(-angle)
         ])

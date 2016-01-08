@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from jimn.point import point
+from jimn.point import Point
 from jimn.segment import segment
 from jimn.polygon import polygon
 from jimn.pocket import pocket
@@ -12,7 +12,7 @@ s.orient(False)
 path_in = pocket(list(s.segments()))
 
 path_out = segment([
-    point([-3, 3]), point([12, 5])
+    Point([-3, 3]), Point([12, 5])
 ])
 
 e1 = envelope(path_in, 1)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from jimn.point import point
+from jimn.point import Point
 from jimn.graph import graph
 from jimn.graph.tsp import tsp
 from jimn.displayable import tycat
@@ -10,13 +10,13 @@ add_module_to_debug("jimn.graph.tsp")
 
 
 points = ([
-    point([0, 0]),
-    point([1, 1]),
-    point([2, 4]),
-    point([2, 7]),
-    point([3, 5]),
-    point([3, 4]),
-    point([3, 0]),
+    Point([0, 0]),
+    Point([1, 1]),
+    Point([2, 4]),
+    Point([2, 7]),
+    Point([3, 5]),
+    Point([3, 4]),
+    Point([3, 0]),
 ])
 
 g = graph.complete_graph(points)

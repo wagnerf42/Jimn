@@ -6,7 +6,7 @@ from jimn.bounding_box import bounding_box
 from jimn.utils.precision import is_almost
 
 
-class point:
+class Point:
     """A point is defined as a vector of any given dimension."""
 
     def __init__(self, coordinates):
@@ -102,9 +102,9 @@ class point:
             assert self.dimension() == 2, "2d rotation only"
         cosinus = cos(-angle)
         sinus = sin(-angle)
-        return point([
-            self.scalar_product(point([cosinus, -sinus])),
-            self.scalar_product(point([sinus, cosinus]))
+        return Point([
+            self.scalar_product(Point([cosinus, -sinus])),
+            self.scalar_product(Point([sinus, cosinus]))
         ])
 
     def rotate_around(self, center, angle):
@@ -147,7 +147,7 @@ class point:
         Returns the projection of the point on the first 2 dimensions.
         Assumes the point has at least 2 dimensions.
         """
-        return point(self.coordinates[0:2])
+        return Point(self.coordinates[0:2])
 
     def scalar_product(self, other):
         """
@@ -182,7 +182,7 @@ class point:
         below_height = milling_diameter * ceil(point_y/milling_diameter)
         for height in (above_height, below_height):
             if is_almost(point_y, height):
-                return point([self.get_x(), height])
+                return Point([self.get_x(), height])
 
         return self
 
@@ -190,27 +190,27 @@ class point:
         """
         addition operator. (useful for translations)
         """
-        return point([i + j
+        return Point([i + j
                       for i, j in zip(self.coordinates, other.coordinates)])
 
     def __sub__(self, other):
         """
         substraction operator. (useful for translations)
         """
-        return point([i - j
+        return Point([i - j
                       for i, j in zip(self.coordinates, other.coordinates)])
 
     def __mul__(self, factor):
         """
         multiplication by scalar operator. (useful for scaling)
         """
-        return point([c*factor for c in self.coordinates])
+        return Point([c*factor for c in self.coordinates])
 
     def __truediv__(self, factor):
         """
         division by scalar operator. (useful for scaling)
         """
-        return point([c/factor for c in self.coordinates])
+        return Point([c/factor for c in self.coordinates])
 
     def __eq__(self, other):
         """

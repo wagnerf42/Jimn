@@ -214,7 +214,7 @@ class elementary_path:
                 print(ya)
                 print(yb)
                 tycat(a, b)
-                tycat(b, [point([common_abs[i], yb[i]]) for i in range(3)])
+                tycat(b, [Point([common_abs[i], yb[i]]) for i in range(3)])
                 raise Exception("cannot see which path is above the other")
 
         s = sum(point_above)
@@ -286,4 +286,4 @@ class elementary_path:
         """
         return height
 
-from jimn.point import point
+from jimn.point import Point

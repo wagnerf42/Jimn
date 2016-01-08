@@ -1,6 +1,6 @@
 from math import sqrt, floor, ceil
 from jimn.utils.precision import is_almost
-from jimn.point import point
+from jimn.point import Point
 
 
 def solve_quadratic_equation(a, b, c):
@@ -32,7 +32,7 @@ def circles_intersections(c1, c2, r1, r2):
 
     if is_almost(r1, l):
         # only one intersection
-        i = point([
+        i = Point([
             l/d * (x2 - x1) + x1,
             l/d * (y2 - y1) + y1
         ])
@@ -46,11 +46,11 @@ def circles_intersections(c1, c2, r1, r2):
         else:
             h = sqrt(r1 * r1 - l * l)
             points = [
-                point([
+                Point([
                     l/d * (x2 - x1) + h/d * (y2 - y1) + x1,
                     l/d * (y2 - y1) - h/d * (x2 - x1) + y1
                 ]),
-                point([
+                Point([
                     l/d * (x2 - x1) - h/d * (y2 - y1) + x1,
                     l/d * (y2 - y1) + h/d * (x2 - x1) + y1
                 ])
@@ -65,11 +65,11 @@ def vline_circle_intersections(x, center, squared_radius):
     distance = x - center.get_x()
     squared_distance = distance * distance
     if is_almost(squared_radius, squared_distance):
-        return [point([x, center.get_y()])]
+        return [Point([x, center.get_y()])]
     if squared_distance > squared_radius:
         return []
     y = sqrt(squared_radius - squared_distance)
-    return [point([x, center.get_y() + y]), point([x, center.get_y() - y])]
+    return [Point([x, center.get_y() + y]), Point([x, center.get_y() - y])]
 
 
 def line_circle_intersections(points, center, radius):

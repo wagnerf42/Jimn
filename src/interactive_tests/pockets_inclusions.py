@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from jimn.point import point
+from jimn.point import Point
 from jimn.displayable import tycat
 from jimn.utils.iterators import all_two_elements
 from jimn.segment import segment
@@ -18,14 +18,14 @@ including = polygon.square(-1, 4, 3)
 including_pocket = pocket(list(including.segments()))
 
 not_including = [
-    point([-2.0, 3.0]),
-    point([-2.0, 2.0]),
-    point([9.0, 2.0]),
-    point([9.0, 10.0]),
-    point([-2.0, 10.0]),
-    point([-2.0, 9.0]),
-    point([8.0, 9.0]),
-    point([8.0, 3.0]),
+    Point([-2.0, 3.0]),
+    Point([-2.0, 2.0]),
+    Point([9.0, 2.0]),
+    Point([9.0, 10.0]),
+    Point([-2.0, 10.0]),
+    Point([-2.0, 9.0]),
+    Point([8.0, 9.0]),
+    Point([8.0, 3.0]),
 ]
 
 not_including_pocket = pocket([
@@ -33,12 +33,12 @@ not_including_pocket = pocket([
 ])
 
 vertically_aligned = [
-    point([-1, 3.5]),
-    point([2, 3.5]),
-    point([4, 5.5]),
-    point([2, 7.5]),
-    point([-1, 7.5]),
-    point([-4, 5.5]),
+    Point([-1, 3.5]),
+    Point([2, 3.5]),
+    Point([4, 5.5]),
+    Point([2, 7.5]),
+    Point([-1, 7.5]),
+    Point([-4, 5.5]),
 ]
 
 va_pocket = pocket([

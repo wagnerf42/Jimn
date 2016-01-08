@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from jimn.point import point
+from jimn.point import Point
 from jimn.polygon import polygon
 from jimn.displayable import tycat
 from jimn.algorithms.offsetter import offset_holed_polygon
@@ -19,12 +19,12 @@ tycat(outer, inner, *pockets)
 print("polygon with thin part")
 
 outer = polygon([
-    point([0, 0]),
-    point([0, 1]),
-    point([3, 1]),
-    point([3, 10]),
-    point([10, 10]),
-    point([10, 0]),
+    Point([0, 0]),
+    Point([0, 1]),
+    Point([3, 1]),
+    Point([3, 10]),
+    Point([10, 10]),
+    Point([10, 0]),
 ])
 
 tycat(outer)
@@ -43,23 +43,23 @@ special = [
     polygon.square(0, 0, 0.5).orient(False),
 
     polygon([
-        point([0.5996499807015012, 4.0]),
-        point([0.65139999270438, 4.125000018626526]),
-        point([0.776400011330862, 4.073250066228293]),
-        point([0.806750015504649, 4.0]),
-        point([0.776400011330862, 3.926750052981086]),
-        point([0.65139999270438, 3.8749999813734735])
+        Point([0.5996499807015012, 4.0]),
+        Point([0.65139999270438, 4.125000018626526]),
+        Point([0.776400011330862, 4.073250066228293]),
+        Point([0.806750015504649, 4.0]),
+        Point([0.776400011330862, 3.926750052981086]),
+        Point([0.65139999270438, 3.8749999813734735])
     ]).orient(False),
 
     polygon([
-        point([-1.0864993963549738, 0.9135006036450262]),
-        point([-1.050676115570425, 1.0]),
-        point([-1.0864993963549738, 1.0864993963549738]),
-        point([-1.0, 1.050676115570425]),
-        point([-0.9135006036450262, 1.0864993963549738]),
-        point([-0.9493238248249302, 1.0]),
-        point([-0.9135006036450262, 0.9135006036450262]),
-        point([-1.0, 0.9493238248249302])
+        Point([-1.0864993963549738, 0.9135006036450262]),
+        Point([-1.050676115570425, 1.0]),
+        Point([-1.0864993963549738, 1.0864993963549738]),
+        Point([-1.0, 1.050676115570425]),
+        Point([-0.9135006036450262, 1.0864993963549738]),
+        Point([-0.9493238248249302, 1.0]),
+        Point([-0.9135006036450262, 0.9135006036450262]),
+        Point([-1.0, 0.9493238248249302])
     ]).orient(False)
 ]
 
@@ -74,35 +74,35 @@ for i, poly in enumerate(special):
 
 polygons = [
     polygon([
-        point([4, 0]),
-        point([3, -2]),
-        point([2, -0.6]),
-        point([1, -2]),
-        point([0, 0]),
+        Point([4, 0]),
+        Point([3, -2]),
+        Point([2, -0.6]),
+        Point([1, -2]),
+        Point([0, 0]),
     ]),
 
     polygon([
-        point([0, 0]),
-        point([3, 0]),
-        point([3, -3]),
-        point([0, -3]),
+        Point([0, 0]),
+        Point([3, 0]),
+        Point([3, -3]),
+        Point([0, -3]),
     ]),
 
     polygon([
-        point([0, 0]),
-        point([-2, 1]),
-        point([-0.6, 2]),
-        point([-2, 3]),
-        point([0, 4]),
+        Point([0, 0]),
+        Point([-2, 1]),
+        Point([-0.6, 2]),
+        Point([-2, 3]),
+        Point([0, 4]),
     ]),
 
     polygon([
-        point([0, 0]),
-        point([0.5, 0]),
-        point([0.5, -2]),
-        point([1.5, -5]),
-        point([-0.5, -5]),
-        point([0, -2]),
+        Point([0, 0]),
+        Point([0.5, 0]),
+        Point([0.5, -2]),
+        Point([1.5, -5]),
+        Point([-0.5, -5]),
+        Point([0, -2]),
     ])
 ]
 

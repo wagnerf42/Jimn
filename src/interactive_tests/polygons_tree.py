@@ -1,34 +1,34 @@
 #!/usr/bin/env python3
 
-from jimn.point import point
+from jimn.point import Point
 from jimn.polygon import polygon
 from jimn.displayable import tycat
 from jimn.tree.polygon_tree import polygon_tree
 
-a = point([0.0, 0.0])
-b = point([9.0, 0.0])
-c = point([9.0, 8.0])
-d = point([0.0, 8.0])
+a = Point([0.0, 0.0])
+b = Point([9.0, 0.0])
+c = Point([9.0, 8.0])
+d = Point([0.0, 8.0])
 
-e = point([1.0, 5.0])
-f = point([4.0, 3.0])
-g = point([8.0, 5.0])
-h = point([4.0, 7.0])
+e = Point([1.0, 5.0])
+f = Point([4.0, 3.0])
+g = Point([8.0, 5.0])
+h = Point([4.0, 7.0])
 
-i = point([2.0, 4.5])
-j = point([3.0, 4.5])
-k = point([3.0, 5.5])
-l = point([2.0, 5.5])
+i = Point([2.0, 4.5])
+j = Point([3.0, 4.5])
+k = Point([3.0, 5.5])
+l = Point([2.0, 5.5])
 
-m = point([5.0, 4.5])
-n = point([6.0, 4.5])
-o = point([6.0, 5.5])
-p = point([5.0, 5.5])
+m = Point([5.0, 4.5])
+n = Point([6.0, 4.5])
+o = Point([6.0, 5.5])
+p = Point([5.0, 5.5])
 
-q = point([6.0, 1.0])
-r = point([7.0, 1.0])
-s = point([7.0, 2.0])
-t = point([6.0, 2.0])
+q = Point([6.0, 1.0])
+r = Point([7.0, 1.0])
+s = Point([7.0, 2.0])
+t = Point([6.0, 2.0])
 
 points1 = [a, b, c, d]
 points4 = [e, f, g, h]

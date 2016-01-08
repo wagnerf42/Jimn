@@ -117,8 +117,8 @@ def _skip_seen_vertices(cycle):
                 objects = [
                     v.get_object() for v in (current_vertex, next_vertex)
                 ]
-                if isinstance(objects[0], point) \
-                        and isinstance(objects[0], point):
+                if isinstance(objects[0], Point) \
+                        and isinstance(objects[0], Point):
                     p1, p2 = objects
                 else:
                     p1, p2 = nearest_points(objects[0], objects[1])
@@ -134,7 +134,7 @@ def _skip_seen_vertices(cycle):
     return resulting_cycle
 
 
-from jimn.point import point
+from jimn.point import Point
 from jimn.displayable import tycat
 from jimn.graph import graph
 from jimn.graph.edge import edge

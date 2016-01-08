@@ -1,4 +1,4 @@
-from jimn.point import point
+from jimn.point import Point
 from jimn.utils.precision import coordinate_key, displaced_coordinate_key, \
     precision
 
@@ -31,7 +31,7 @@ class coordinates_hash:
             new_c = self.hash_coordinate(i, c)
             new_coordinates.append(new_c)
 
-        new_point = point(new_coordinates)
+        new_point = Point(new_coordinates)
         return new_point
 
 rounder2d = coordinates_hash(2)

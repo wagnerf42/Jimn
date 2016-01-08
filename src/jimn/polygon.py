@@ -27,12 +27,12 @@ class polygon:
         used in many test scripts as a quick way to get polygons
         """
         global _squares_counter
-        starting_point = point([start_x, start_y])
+        starting_point = Point([start_x, start_y])
         points = [
-            point([0.0, 0.0]),
-            point([side, 0.0]),
-            point([side, side]),
-            point([0.0, side]),
+            Point([0.0, 0.0]),
+            Point([side, 0.0]),
+            Point([side, side]),
+            Point([0.0, side]),
         ]
         points = [p + starting_point for p in points]
         square_polygon = cls(points, _squares_counter)
@@ -163,7 +163,7 @@ class polygon:
                 return
         raise Exception("flat polygon")
 
-from jimn.point import point
+from jimn.point import Point
 from jimn.segment import segment
 from jimn.bounding_box import bounding_box
 from jimn.utils.precision import is_almost

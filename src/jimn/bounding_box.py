@@ -18,22 +18,21 @@ class bounding_box:
         """
         min_coordinates = []
         max_coordinates = []
-        for i in range(dimension):
+        for _ in range(dimension):
             min_coordinates.append(float('+inf'))
             max_coordinates.append(float('-inf'))
         return cls(min_coordinates, max_coordinates)
 
-    def add_point(self, p):
+    def add_point(self, added_point):
         """
         register a point inside the box.
         update box limits if needed.
         """
-        assert p.dimension() == len(self.min_coordinates), "invalid point size"
-        for i, c in enumerate(p.get_coordinates()):
-            if c < self.min_coordinates[i]:
-                self.min_coordinates[i] = c
-            if c > self.max_coordinates[i]:
-                self.max_coordinates[i] = c
+        for i, added_coordinate in enumerate(added_point.get_coordinates()):
+            if added_coordinate < self.min_coordinates[i]:
+                self.min_coordinates[i] = added_coordinate
+            if added_coordinate > self.max_coordinates[i]:
+                self.max_coordinates[i] = added_coordinate
 
     def almost_contains_point(self, p):
         """

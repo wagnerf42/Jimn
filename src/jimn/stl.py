@@ -1,5 +1,5 @@
 from math import ceil
-from jimn.point import point
+from jimn.point import Point
 from jimn.segment import segment
 from jimn.facet import facet, binary_facet
 from jimn.bounding_box import bounding_box
@@ -79,7 +79,7 @@ class stl:
                 m = re.search('^\s*(-?\d+(\.\d+)?)\s+(-?\d+(\.\d+)?)\s+(-?\d+(\.\d+)?)', point_string)
                 (x, y, z) = (float(m.group(1)), float(m.group(3)), float(m.group(5)))
                 z = self.heights_hash.hash_coordinate(0, z)
-                p = point([x, y , z])
+                p = Point([x, y , z])
                 self.bounding_box.add_point(p)
                 points.append(p)
 
@@ -98,10 +98,10 @@ class stl:
 
         # build four points
         points = []
-        points.append(point([xmin, ymin]))
-        points.append(point([xmin, ymax]))
-        points.append(point([xmax, ymax]))
-        points.append(point([xmax, ymin]))
+        points.append(Point([xmin, ymin]))
+        points.append(Point([xmin, ymax]))
+        points.append(Point([xmax, ymax]))
+        points.append(Point([xmax, ymin]))
         points.append(points[0])
 
         # build four segments
