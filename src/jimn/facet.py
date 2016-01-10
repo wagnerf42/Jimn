@@ -1,61 +1,64 @@
-# vim : tabstop=4 expandtab shiftwidth=4 softtabstop=4
-
+"""
+facet in stl file (three ordered 3d points)
+"""
 from jimn.point import Point
 from jimn.segment import Segment
+from jimn.utils.iterators import all_two_elements
 from jimn.utils.precision import is_almost
 
 
-class facet:
+class Facet:
     """
-    facet from stl file.
-    3 3D points
+    facet in stl file (three ordered 3d points)
     """
     def __init__(self, points):
         self.points = points
 
     def __str__(self):
-        return "[{}]".format(';'.join(map(lambda p: str(p), self.points)))
+        points_strings = [str(p) for p in self.points]
+        return "Facet([{}])".format(', '.join(points_strings))
 
     def segments(self):
         """
         returns the three segments forming the facet
         """
-        p1, p2, p3 = self.points
-        return [Segment([p1, p2]), Segment([p1, p3]), Segment([p2, p3])]
+        return list(Segment([p, q]) for p, q in all_two_elements(self.points))
 
     def is_vertical(self):
         """
         are we vertical (in 3d) ?
         """
-        p1, p2, p3 = [p.projection2d() for p in self.points]
-        return p1.is_aligned_with(p2, p3)
+        point1, point2, point3 = [p.projection2d() for p in self.points]
+        return point1.is_aligned_with(point2, point3)
 
-    def is_near(self, p, limit):
+    def is_near(self, point, limit):
         """
-        are we near a given point p ?
+        are we near a given point ? (when seen from above)
         useful to filter facets near a point generating bugs
         """
         points = [q.projection2d() for q in self.points]
-        for p2 in points:
-            if not p2.is_near(p, limit):
+        for our_point in points:
+            if not our_point.is_near(point, limit):
                 return False
         return True
 
-    def _find_points_above_and_below(self, h):
+    def _find_points_above_and_below(self, height):
         """
-        used in plane intersection
+        used in plane intersection.
+        return facet's points above given height
+        and facet's points below
         """
         points = [[], []]
-        for p in self.points:
-            points[p.is_above(h)].append(p)
+        for point in self.points:
+            points[point.is_above(height)].append(point)
         return points
 
-    def intersect(self, h, segments, remaining_facets):
-        """intersect facet at height h
+    def intersect(self, height, segments, remaining_facets):
+        """intersect facet at given height
         if intersection is a segment add it to segments list
         if facet is not strictly above plane add it to remaining_facets
         for later use"""
-        lower_points, higher_points = self._find_points_above_and_below(h)
+        lower_points, higher_points = self._find_points_above_and_below(height)
         if len(higher_points) != 3:  # are we reused later ?
             remaining_facets.append(self)
         if len(lower_points) == 2:
@@ -64,7 +67,7 @@ class facet:
         elif len(higher_points) == 2:
             together_points = higher_points
             isolated_point = lower_points[0]
-            if(is_almost(isolated_point.get_z(), h)):
+            if is_almost(isolated_point.get_z(), height):
                 return
         else:
             return
@@ -73,7 +76,7 @@ class facet:
             Segment([p, isolated_point]) for p in together_points
         ]
         intersection_points = [
-            s.horizontal_plane_intersection(h) for s in traversing_segments
+            s.horizontal_plane_intersection(height) for s in traversing_segments
         ]
 
         # because we round coordinates in intersection
@@ -95,8 +98,8 @@ def binary_facet(all_coordinates, heights_hash, box):
     for i in range(3):
         coordinates = list(all_coordinates[3+3*i:6+3*i])
         coordinates[2] = heights_hash.hash_coordinate(0, coordinates[2])
-        p = Point(coordinates)
-        box.add_point(p)
-        points.append(p)
-    f = facet(points)
-    return f
+        point = Point(coordinates)
+        box.add_point(point)
+        points.append(point)
+
+    return Facet(points)

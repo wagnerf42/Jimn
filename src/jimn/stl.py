@@ -1,7 +1,7 @@
 from math import ceil
 from jimn.point import Point
 from jimn.segment import Segment
-from jimn.facet import facet, binary_facet
+from jimn.facet import Facet, binary_facet
 from jimn.bounding_box import bounding_box
 from jimn.utils.coordinates_hash import coordinates_hash
 from jimn.utils.debug import is_module_debugged
@@ -83,7 +83,7 @@ class stl:
                 self.bounding_box.add_point(p)
                 points.append(p)
 
-            self.facets.append(facet(points))
+            self.facets.append(Facet(points))
 
     def border_2d(self):
         """returns list of 2d segments encompassing projection of stl"""

@@ -15,7 +15,7 @@ class displaced_path:
         """
         if isinstance(self.origin, Point):
             result = self.origin
-        elif isinstance(self.origin, segment):
+        elif isinstance(self.origin, Segment):
             result = self.origin.point_projection(p)
         else:
             intersections = self.origin.intersections_with_segment(
