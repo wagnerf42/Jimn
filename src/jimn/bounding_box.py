@@ -1,12 +1,13 @@
-
 """
 bounding boxes are rectangular boxes
 delimiting a set of items.
 they are usually used in display to compute image sizes.
 """
 
+from jimn.utils.precision import is_almost
 
-class bounding_box:
+
+class Bounding_Box:
     def __init__(self, min_coordinates, max_coordinates):
         self.min_coordinates = list(min_coordinates)
         self.max_coordinates = list(max_coordinates)
@@ -34,17 +35,18 @@ class bounding_box:
             if added_coordinate > self.max_coordinates[i]:
                 self.max_coordinates[i] = added_coordinate
 
-    def almost_contains_point(self, p):
+    def almost_contains_point(self, point):
         """
-        returns true if point p is almost inside box
+        returns true if point is almost inside box
         """
-        assert p.dimension() == len(self.min_coordinates), "invalid point size"
-        for i, c in enumerate(p.get_coordinates()):
-            if c < self.min_coordinates[i] and \
-                    (not is_almost(c, self.min_coordinates[i])):
+        assert point.dimension() == len(self.min_coordinates), \
+            "invalid point size"
+        for i, coordinate in enumerate(point.coordinates):
+            if coordinate < self.min_coordinates[i] and \
+                    (not is_almost(coordinate, self.min_coordinates[i])):
                 return False
-            if c > self.max_coordinates[i] and \
-                    (not is_almost(c, self.max_coordinates[i])):
+            if coordinate > self.max_coordinates[i] and \
+                    (not is_almost(coordinate, self.max_coordinates[i])):
                 return False
         return True
 
@@ -52,11 +54,11 @@ class bounding_box:
         """
         returns if the two boxes intersect (even only on edge)
         """
-        for d in range(len(self.min_coordinates)):
-            small = self.min_coordinates[d]
-            big = self.max_coordinates[d]
-            other_small = other.min_coordinates[d]
-            other_big = other.max_coordinates[d]
+        for i in range(len(self.min_coordinates)):
+            small = self.min_coordinates[i]
+            big = self.max_coordinates[i]
+            other_small = other.min_coordinates[i]
+            other_big = other.max_coordinates[i]
             if (other_small > big) or (other_big < small):
                 return False
         return True
@@ -67,12 +69,12 @@ class bounding_box:
         """
         assert len(self.min_coordinates) == len(other.min_coordinates), \
             'merge different boxes'
-        for i, c in enumerate(other.min_coordinates):
-            if self.min_coordinates[i] > c:
-                self.min_coordinates[i] = c
-        for i, c in enumerate(other.max_coordinates):
-            if self.max_coordinates[i] < c:
-                self.max_coordinates[i] = c
+        for i, coordinate in enumerate(other.min_coordinates):
+            if self.min_coordinates[i] > coordinate:
+                self.min_coordinates[i] = coordinate
+        for i, coordinate in enumerate(other.max_coordinates):
+            if self.max_coordinates[i] < coordinate:
+                self.max_coordinates[i] = coordinate
 
     def limits(self, index):
         """
@@ -95,6 +97,5 @@ class bounding_box:
         return (self.min_coordinates, self.max_coordinates)
 
     def __str__(self):
-        return('[{}]-[{}]'.format(self.min_coordinates, self.max_coordinates))
-
-from jimn.utils.precision import is_almost
+        return('Bounding_Box([{}], [{}])'.format(self.min_coordinates,
+                                                 self.max_coordinates))
