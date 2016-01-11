@@ -125,3 +125,27 @@ def milling_heights(y1, y2, milling_diameter, inclusive=False):
 def is_slice_height(y, milling_diameter):
     d = milling_diameter
     return is_almost(y/d, round(y/d))
+
+
+def compute_arc_centers(radius, points):
+    raise Exception("TODO")
+        raise Exception("not working")
+        # take endpoints[0] as origin
+        p2 = self.endpoints[1] - self.endpoints[0]
+        # find bisector
+        middle = p2/2
+        p = middle + p2.perpendicular_vector()
+        # intersect with circle at origin
+        intersections = line_circle_intersections(
+            [middle, p],
+            Point([0, 0]),
+            self.radius
+        )
+        assert len(intersections) == 2, "invalid arc"
+        # pick center and translate back
+        for i in intersections:
+            if p2.cross_product(i) > 0:
+                return self.endpoints[0] + i
+        raise "no center found"
+
+    return centers

@@ -10,11 +10,11 @@ print("first create and display some")
 
 a = arc(1, [Point([-1, 0]), Point([0, -1])], Point([0, 0]))
 print("original arc")
-tycat(a, a.get_center(), *a.get_endpoints())
+tycat(a, a.center, *a.get_endpoints())
 
 b = a.reverse()
 print("reversed arc")
-tycat(b, b.get_center(), *b.get_endpoints())
+tycat(b, b.center, *b.get_endpoints())
 
 print("now split them at midpoint")
 midpoint = Point([-sqrt(2)/2, -sqrt(2)/2])

@@ -91,7 +91,7 @@ class envelope:
         # we need them in non-reversed order for inflating
         # (inflation does not depend on direction)
         p2, p4 = a.get_stored_endpoints()
-        p3 = a.get_center()
+        p3 = a.center
         p1 = p2 + p2 - p3
         p5 = p4 + p4 - p3
         a1 = arc(self.distance, (p3, p1), p2)
