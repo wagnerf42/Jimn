@@ -1,4 +1,4 @@
-from jimn.bounding_box import bounding_box
+from jimn.bounding_box import Bounding_Box
 from jimn.arc import arc
 from jimn.segment import Segment
 from jimn.pocket import pocket
@@ -45,7 +45,7 @@ class envelope:
                 tycat(self)
 
     def get_bounding_box(self):
-        box = bounding_box.empty_box(2)
+        box = Bounding_Box.empty_box(2)
         for p in self.paths:
             box.update(p.path.get_bounding_box())
         return box

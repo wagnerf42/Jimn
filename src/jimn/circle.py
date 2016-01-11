@@ -18,10 +18,10 @@ class circle:
     def get_bounding_box(self):
         min_point = self.center + Point([-self.radius, -self.radius])
         max_point = self.center + Point([self.radius, self.radius])
-        return bounding_box(
+        return Bounding_Box(
             min_point.get_coordinates(),
             max_point.get_coordinates(),
         )
 
 from jimn.point import Point
-from jimn.bounding_box import bounding_box
+from jimn.bounding_box import Bounding_Box

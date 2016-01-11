@@ -107,7 +107,7 @@ class arc(elementary_path):
         return self.endpoints[index]
 
     def get_bounding_box(self):
-        box = bounding_box.empty_box(2)
+        box = Bounding_Box.empty_box(2)
         box.add_point(self.center + Point([self.radius, self.radius]))
         box.add_point(self.center - Point([self.radius, self.radius]))
         return box
@@ -247,7 +247,7 @@ class arc(elementary_path):
         return arc(self.radius, [p+translation for p in self.endpoints],
                    self.center + translation, self.reversed_direction)
 
-from jimn.bounding_box import bounding_box
+from jimn.bounding_box import Bounding_Box
 from jimn.point import Point
 from jimn.segment import Segment
 from jimn.utils.math import circles_intersections, line_circle_intersections, \

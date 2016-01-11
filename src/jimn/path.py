@@ -38,7 +38,7 @@ class path:
         return self.elementary_paths[0].get_endpoint(0)
 
     def get_bounding_box(self):
-        box = bounding_box.empty_box(2)
+        box = Bounding_Box.empty_box(2)
         for p in self.elementary_paths:
             box.update(p.get_bounding_box())
         return box
@@ -120,7 +120,7 @@ class path:
 
 
 from jimn.path_position import path_position
-from jimn.bounding_box import bounding_box
+from jimn.bounding_box import Bounding_Box
 from jimn.displayable import tycat
 from jimn.point import Point
 from collections import defaultdict

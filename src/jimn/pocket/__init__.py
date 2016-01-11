@@ -3,7 +3,7 @@ set of paths defining a pocket to mill.
 """
 
 from itertools import combinations
-from jimn.bounding_box import bounding_box
+from jimn.bounding_box import Bounding_Box
 from jimn.polygon import polygon
 from jimn.point import Point
 from jimn.arc import arc
@@ -63,7 +63,7 @@ class pocket:
         """
         returns min bounding box containing pocket
         """
-        box = bounding_box.empty_box(2)
+        box = Bounding_Box.empty_box(2)
         for path in self.paths:
             pbox = path.get_bounding_box()
             box.update(pbox)

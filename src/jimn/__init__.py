@@ -1,6 +1,6 @@
 from jimn.utils.debug import is_module_debugged
 from jimn.displayable import tycat
-from jimn.stl import stl
+from jimn.stl import Stl
 from jimn.tree.polygon_tree import polygon_tree
 from jimn.pocket.builder import build_polygons
 from jimn.tree.pocket_tree import pocket_tree

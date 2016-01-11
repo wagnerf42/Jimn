@@ -62,7 +62,7 @@ class graph:
         return self.vertices[0]
 
     def get_bounding_box(self):
-        box = bounding_box.empty_box(2)
+        box = Bounding_Box.empty_box(2)
         for p in self.get_vertices():
             small_box = p.get_object().get_bounding_box()
             box.update(small_box)
@@ -138,7 +138,7 @@ class graph:
                 double_edges.append(e)
         return double_edges
 
-from jimn.bounding_box import bounding_box
+from jimn.bounding_box import Bounding_Box
 from jimn.graph.edge import edge
 from jimn.graph.vertex import vertex
 from jimn.segment import Segment

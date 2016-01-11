@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from jimn.stl import stl
+from jimn.stl import Stl
 from jimn.displayable import tycat
 from jimn.algorithms.segment_merger import merge_segments
 import sys

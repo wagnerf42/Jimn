@@ -123,7 +123,7 @@ class polygon:
             ",\n    ".join(strings) + "\n])\n]"
 
     def get_bounding_box(self):
-        box = bounding_box.empty_box(2)
+        box = Bounding_Box.empty_box(2)
         for p in self.points:
             box.add_point(p)
         return box
@@ -165,6 +165,6 @@ class polygon:
 
 from jimn.point import Point
 from jimn.segment import Segment
-from jimn.bounding_box import bounding_box
+from jimn.bounding_box import Bounding_Box
 from jimn.utils.precision import is_almost
 from jimn.utils.iterators import all_two_elements

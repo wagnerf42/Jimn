@@ -4,7 +4,7 @@ segment between two points
 from math import pi, cos, sin
 from collections import defaultdict
 from jimn.elementary_path import elementary_path
-from jimn.bounding_box import bounding_box
+from jimn.bounding_box import Bounding_Box
 from jimn.point import Point
 from jimn.utils.coordinates_hash import rounder2d, rounder_lines
 from jimn.utils.precision import check_precision, is_almost
@@ -73,7 +73,7 @@ class Segment(elementary_path):
         return min bounding box containing self
         """
         boxes = [
-            bounding_box(p.get_coordinates(), p.get_coordinates())
+            Bounding_Box(p.get_coordinates(), p.get_coordinates())
             for p in self.endpoints
         ]
         boxes[0].update(boxes[1])

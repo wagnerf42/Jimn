@@ -1,6 +1,6 @@
 import os
 import getpass
-from jimn.bounding_box import bounding_box
+from jimn.bounding_box import Bounding_Box
 from math import ceil
 
 svg_dimensions = (400, 200)
@@ -18,7 +18,7 @@ svg_colors = tuple('red green blue purple orange saddlebrown mediumseagreen\
 
 class displayed_thing(object):
     def __init__(self, things):
-        self.bounding_box = bounding_box.empty_box(2)
+        self.bounding_box = Bounding_Box.empty_box(2)
         for thing in things:
             if (type(thing) is list) or (type(thing) is tuple):
                 for subthing in thing:

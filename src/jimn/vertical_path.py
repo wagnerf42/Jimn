@@ -9,7 +9,7 @@ class vertical_path:
         return
 
     def get_bounding_box(self):
-        return bounding_box.empty_box(2)
+        return Bounding_Box.empty_box(2)
 
     def contains(self, p):
         """
@@ -17,4 +17,4 @@ class vertical_path:
         """
         return False
 
-from jimn.bounding_box import bounding_box
+from jimn.bounding_box import Bounding_Box

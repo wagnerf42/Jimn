@@ -2,7 +2,7 @@
 points (2d or 3d) or vectors
 """
 from math import atan2, sqrt, cos, sin, pi, floor, ceil
-from jimn.bounding_box import bounding_box
+from jimn.bounding_box import Bounding_Box
 from jimn.utils.precision import is_almost
 
 
@@ -84,7 +84,7 @@ class Point:
         return min bounding box containing point.
         this method is defined on any displayable object.
         """
-        return bounding_box(self.coordinates, self.coordinates)
+        return Bounding_Box(self.coordinates, self.coordinates)
 
     def save_svg_content(self, display, color):
         """
