@@ -12,7 +12,7 @@ class coordinates_hash:
 
     def hash_coordinate(self, index, c):
         key = coordinate_key(c, self.precision)
-        displaced_key = displaced_coordinate_key(c)
+        displaced_key = displaced_coordinate_key(c, self.precision)
 
         if key in self.hashes[index]:
             c = self.hashes[index][key]

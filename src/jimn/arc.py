@@ -30,22 +30,31 @@ class Arc(elementary_path):
         self.center = center
         self.reversed_direction = reversed_direction
 
-    @classmethod
-    def compute_arc(cls, radius, points, approximate_center):
+    def adjust_center(self):
         """
-        compute arc given endpoints and approximate center point
+        center was not completely right.
+        recompute it
         """
-        possible_centers = compute_arc_centers(radius, points)
+        possible_centers = compute_arc_centers(self.radius, self.endpoints)
         distances = [
-            c.squared_distance_to(approximate_center) for c in possible_centers
+            c.squared_distance_to(self.center) for c in possible_centers
         ]
         if distances[0] < distances[1]:
-            center = possible_centers[0]
-            reversed_direction = False
+            self.center = possible_centers[0]
         else:
-            center = possible_centers[1]
-            reversed_direction = True
-        return cls(radius, points, center, reversed_direction)
+            self.center = possible_centers[1]
+
+    def correct_endpoints_order(self):
+        """
+        when creating arcs in offsetter we need to invert points
+        order when distance is more than half of circle
+        """
+        angle = self.center.angle_with(self.endpoints[0]) - \
+            self.center.angle_with(self.endpoints[1])
+        angle = angle % (2*pi)
+        if angle > pi:
+            self.endpoints = list(reversed(self.endpoints))
+            self.reversed_direction = True
 
     def inflate(self):
         """

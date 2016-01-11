@@ -22,7 +22,7 @@ def compute_milling_path(stl_file, slice_size, milling_radius):
             print("computing path ; thickness is", slice_size, "radius is",
                   milling_radius)
 
-    model = stl(stl_file)
+    model = Stl(stl_file)
     border = model.border_2d()
 
     if __debug__:

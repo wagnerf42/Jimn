@@ -4,10 +4,11 @@ and clockwise to carve the outside"""
 from collections import defaultdict
 from itertools import combinations
 from jimn.displayable import tycat
-from jimn.arc import arc
+from jimn.arc import Arc
 from jimn.pocket import pocket
 from jimn.holed_pocket import holed_pocket
 from jimn.pocket.builder import build_pockets
+from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.iterators import all_two_elements
 
@@ -26,7 +27,7 @@ class Offsetter:
         and reconnect pieces.
         """
         raw_segments = [
-            (s.parallel_segment(self.radius), s)
+            (s.parallel_segment(self.radius).hash_endpoints(rounder2d), s)
             for s in self.polygon.segments()
         ]
 
@@ -62,7 +63,8 @@ class Offsetter:
                 center_point = neighbouring_tuples[0][1].endpoints[1]
                 # add arc
                 try:
-                    binding = arc(self.radius, [end, start], center_point)
+                    binding = Arc(self.radius, [end, start], center_point)
+                    binding.adjust_center()
                     binding.correct_endpoints_order()
                 except:
                     print("failed joining segments")

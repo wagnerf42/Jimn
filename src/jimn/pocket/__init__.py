@@ -6,12 +6,13 @@ from itertools import combinations
 from jimn.bounding_box import Bounding_Box
 from jimn.polygon import polygon
 from jimn.point import Point
-from jimn.arc import arc
+from jimn.arc import Arc
 from jimn.segment import Segment
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost
 from jimn.utils.iterators import all_combinations
+from jimn.utils.coordinates_hash import rounder2d
 
 
 class pocket:
@@ -123,7 +124,7 @@ class pocket:
         seen_reversed_arcs = False
         seen_non_reversed = False
         for path in self.paths:
-            if isinstance(path, arc):
+            if isinstance(path, Arc):
                 if path.reversed_direction:
                     seen_reversed_arcs = True
                 else:
@@ -244,10 +245,10 @@ def _iterated_intersections(results, iterator):
             for i in intersections:
                 if not(p1.endpoints[0].is_almost(i)
                        or p1.endpoints[1].is_almost(i)):
-                    results[id(p1)].append(i)
+                    results[id(p1)].append(rounder2d.hash_point(i))
 
             if id(p1) != id(p2):
                 for i in intersections:
                     if not(p2.endpoints[0].is_almost(i)
                            or p2.endpoints[1].is_almost(i)):
-                        results[id(p2)].append(i)
+                        results[id(p2)].append(rounder2d.hash_point(i))

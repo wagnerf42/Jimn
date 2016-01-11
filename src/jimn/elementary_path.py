@@ -136,13 +136,13 @@ class elementary_path:
         """compute intersections with some other path.
         works with any combination of arcs and segments
         """
-        if str(type(self)) == "<class 'jimn.arc.arc'>":
-            if str(type(other)) == "<class 'jimn.arc.arc'>":
+        if str(type(self)) == "<class 'jimn.arc.Arc'>":
+            if str(type(other)) == "<class 'jimn.arc.Arc'>":
                 intersections = self.intersections_with_arc(other)
             else:
                 intersections = self.intersections_with_segment(other)
         else:
-            if str(type(other)) == "<class 'jimn.arc.arc'>":
+            if str(type(other)) == "<class 'jimn.arc.Arc'>":
                 intersections = other.intersections_with_segment(self)
             else:
                 i = self.intersection_with_segment(other)
@@ -261,7 +261,7 @@ class elementary_path:
         return hash(tuple(self.endpoints))
 
     def __eq__(a, b):
-        types = [str(type(p)) == "<class 'jimn.arc.arc'>" for p in (a, b)]
+        types = [str(type(p)) == "<class 'jimn.arc.Arc'>" for p in (a, b)]
         if types[0] and not types[1]:
             return False
         if types[1] and not types[0]:
@@ -272,7 +272,7 @@ class elementary_path:
         return a.endpoints == b.endpoints
 
     def __lt__(a, b):
-        types = [str(type(p)) == "<class 'jimn.arc.arc'>" for p in (a, b)]
+        types = [str(type(p)) == "<class 'jimn.arc.Arc'>" for p in (a, b)]
         if types[0] and not types[1]:
             return True
         if types[1] and not types[0]:

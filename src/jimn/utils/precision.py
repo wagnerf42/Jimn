@@ -13,18 +13,19 @@ def is_almost(c1, c2):
 
 def coordinate_key(c, wanted_precision=precision):
     if wanted_precision == precision:
-        key = precision_format.format(c)
+        used_format = precision_format
     else:
-        wanted_format = "{{0:.{}f}}".format(wanted_precision)
-        key = wanted_format.format(c)
+        used_format = "{{0:.{}f}}".format(wanted_precision)
 
+    key = used_format.format(c)
     if float(key) == 0.0: #change any eventual -0 to +0
-        key = precision_format.format(0.0)
+        key = used_format.format(0.0)
     return key
 
 
-def displaced_coordinate_key(c):
-    return coordinate_key(c+limit)
+def displaced_coordinate_key(c, wanted_precision):
+    wanted_limit = 10**-wanted_precision
+    return coordinate_key(c+wanted_limit, wanted_precision)
 
 
 def print_debug(c):

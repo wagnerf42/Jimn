@@ -274,6 +274,10 @@ class Segment(elementary_path):
         """
         return Segment([p+translation for p in self.endpoints])
 
+    def hash_endpoints(self, rounder):
+        self.endpoints = [rounder.hash_point(p) for p in self.endpoints]
+        return self
+
     def remove_overlap_with(self, other):
         """
         if self and other overlap return array of arrays containing non common

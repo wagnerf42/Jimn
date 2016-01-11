@@ -1,5 +1,5 @@
 from jimn.bounding_box import Bounding_Box
-from jimn.arc import arc
+from jimn.arc import Arc
 from jimn.segment import Segment
 from jimn.pocket import pocket
 from jimn.displayable import tycat
@@ -29,7 +29,7 @@ class envelope:
                 print("failed compute envelope for", self.inside_content)
                 raise
         else:
-            if isinstance(inside_content, arc):
+            if isinstance(inside_content, Arc):
                 self._fill_from_arc(inside_content)
             else:
                 self._fill_from_segment(inside_content)
@@ -65,14 +65,14 @@ class envelope:
         ]
         # TODO: I think we don't need the arcs
         sides.append(
-            arc(
+            Arc(
                 self.distance,
                 [sides[0].get_endpoint(0), sides[1].get_endpoint(0)],
                 s.get_endpoint(0)
             )
         )
         sides.append(
-            arc(
+            Arc(
                 self.distance,
                 [sides[1].get_endpoint(1), sides[0].get_endpoint(1)],
                 s.get_endpoint(1)
@@ -94,9 +94,9 @@ class envelope:
         p3 = a.center
         p1 = p2 + p2 - p3
         p5 = p4 + p4 - p3
-        a1 = arc(self.distance, (p3, p1), p2)
-        a2 = arc(self.distance, (p5, p3), p4)
-        a3 = arc(2*self.distance, (p1, p5), p3)
+        a1 = Arc(self.distance, (p3, p1), p2)
+        a2 = Arc(self.distance, (p5, p3), p4)
+        a3 = Arc(2*self.distance, (p1, p5), p3)
         # TODO: I don't think we need a1 and a2 here
         self.paths = [
             displaced_path(p, o) for p, o in zip([a1, a2, a3], [p2, p4, a])
@@ -131,7 +131,7 @@ class envelope:
             if previous_point != current_point:
                 center = previous_path.origin.get_endpoint(1)
                 dp = displaced_path(
-                    arc(self.distance, [current_point, previous_point],
+                    Arc(self.distance, [current_point, previous_point],
                         center, True),
                     center
                 )

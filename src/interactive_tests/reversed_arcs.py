@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
 from jimn.point import Point
-from jimn.arc import arc
+from jimn.arc import Arc
 from jimn.displayable import tycat
 from math import sqrt
 
 print("this files test reversed arcs")
 print("first create and display some")
 
-a = arc(1, [Point([-1, 0]), Point([0, -1])], Point([0, 0]))
+a = Arc(1, [Point([-1, 0]), Point([0, -1])], Point([0, 0]))
 print("original arc")
 tycat(a, a.center, *a.get_endpoints())
 

@@ -2,8 +2,10 @@
 
 from jimn.point import Point
 from jimn.segment import Segment
-from jimn.arc import arc
+from jimn.arc import Arc
 from jimn.displayable import tycat
+
+raise Exception("REDO")
 
 labels = (
     "testing with double intersections",
@@ -13,24 +15,25 @@ labels = (
     "testing with no intersection (but close enough)",
 )
 
-a1 = arc(
-    3, [Point([0, 0]), Point([3, 3])]
+a1 = Arc(
+    3, [Point([0, 0]), Point([3, 3])], Point([0, 3])
 )
+tycat(a1)
 
 arcs = (
-    arc(
+    Arc(
         3, [Point([1, 2]), Point([4, -1])]
     ),
-    arc(
+    Arc(
         3, [Point([3, 3]), Point([6, 0])]
     ),
-    arc(
+    Arc(
         3, [Point([4, 3]), Point([7, 0])]
     ),
-    arc(
+    Arc(
         2, [Point([0, 1]), Point([2, 3])]
     ),
-    arc(
+    Arc(
         3, [Point([1, -0.5]), Point([4, -3.5])]
     )
 )

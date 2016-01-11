@@ -186,6 +186,10 @@ class Point:
 
         return self
 
+    def perpendicular_vector(self):
+        "return a vector perpendicular to given one"
+        return Point([-self.coordinates[1], self.coordinates[0]])
+
     def __add__(self, other):
         """
         addition operator. (useful for translations)
