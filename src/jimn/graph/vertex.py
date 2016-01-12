@@ -1,5 +1,4 @@
 
-
 class vertex:
     def __init__(self, bound_object, number):
         self.bound_object = bound_object
@@ -46,7 +45,7 @@ class vertex:
         for e in self.edges:
             p = e.get_path()
             count = e.get_multiplicity()
-            p.save_svg_content(display, display.get_color(count+7))
+            p.save_svg_content(display, display.svg_color(count+7))
 
     def remove_any_edge(self):
         """

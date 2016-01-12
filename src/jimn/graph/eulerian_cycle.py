@@ -1,5 +1,5 @@
 from jimn.displayable import tycat
-from jimn.path import path
+from jimn.path import Path
 from jimn.utils.debug import is_module_debugged
 from collections import defaultdict
 
@@ -10,7 +10,7 @@ def cycle_to_path(c):
     adds missing moves when needed.
     """
     paths = [e.get_path() for e in c]
-    return path(paths)
+    return Path(paths)
 
 def find_eulerian_cycle(g):
     """

@@ -73,7 +73,7 @@ def merge_path(outer_path, inner_path, position):
     Note that since positions contains array indices you
     need to merge starting from last path.
     """
-    paths = outer_path.get_elementary_paths()
+    paths = outer_path.elementary_paths
     outer_point = position.outer_position.point
     inner_point = position.inner_position.point
     if __debug__:
@@ -92,7 +92,7 @@ def merge_path(outer_path, inner_path, position):
         sub_path.append(Segment([outer_point, inner_point]))
 
     sub_path.append(vertical_path(-1))
-    sub_path.extend(inner_path.get_elementary_paths())
+    sub_path.extend(inner_path.elementary_paths)
     sub_path.append(vertical_path(1))
 
     if not outer_point.is_almost(inner_point):

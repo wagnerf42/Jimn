@@ -1,3 +1,20 @@
+"""
+path trees are created from pockets tree by milling pockets
+"""
+from copy import deepcopy
+from jimn.utils.points_containers import nearest_point, nearest_points
+from jimn.displayable import tycat
+from jimn.graph import graph
+from jimn.graph.eulerian_cycle import find_eulerian_cycle, cycle_to_path
+from jimn.graph.tsp import tsp
+from jimn.path import Path
+from jimn.tree.path_tree.path_merger import overlap_exit_position, merge_path
+from jimn.point import Point
+from jimn.pocket.graph_builder import build_graph
+from jimn.segment import Segment
+from jimn.utils.debug import is_module_debugged
+from jimn.vertical_path import vertical_path
+from itertools import combinations
 from jimn.tree import tree
 
 paths_cache = {}  # small cache to avoid recomputing paths for identical pockets
@@ -50,11 +67,11 @@ class path_tree(tree):
             if not start.is_almost(end):
                 final_paths.append(Segment([start, end]))
             final_paths.append(vertical_path(-1))
-            final_paths.extend(self.children[i].content.get_elementary_paths())
+            final_paths.extend(self.children[i].content.elementary_paths)
             final_paths.append(vertical_path(1))
         # back to origin
         final_paths.append(Segment([toplevel_tour[-1], toplevel_tour[0]]))
-        return path(final_paths)
+        return Path(final_paths)
 
     def _merge_paths(self, milling_radius):
         """
@@ -251,18 +268,3 @@ def _pocket_node_to_path_node(pocket_node, milling_radius):
         for n in pocket_node.get_children()
     ]
     return path_node
-
-from copy import deepcopy
-from jimn.utils.points_containers import nearest_point, nearest_points
-from jimn.displayable import tycat
-from jimn.graph import graph
-from jimn.graph.eulerian_cycle import find_eulerian_cycle, cycle_to_path
-from jimn.graph.tsp import tsp
-from jimn.path import path
-from jimn.tree.path_tree.path_merger import overlap_exit_position, merge_path
-from jimn.point import Point
-from jimn.pocket.graph_builder import build_graph
-from jimn.segment import Segment
-from jimn.utils.debug import is_module_debugged
-from jimn.vertical_path import vertical_path
-from itertools import combinations
