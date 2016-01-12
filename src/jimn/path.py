@@ -9,6 +9,7 @@ from jimn.path_position import path_position
 from jimn.bounding_box import Bounding_Box
 from jimn.point import Point
 from jimn.envelope import Envelope
+from jimn.displayable import tycat_start, tycat_end, tycat
 
 
 PATH_IMAGES = os.environ.get("JIMN_PATH_ANIMATION")
@@ -62,7 +63,7 @@ class Path:
         """
         self.get_first_point().save_svg_content(display, color)
         horizontal_paths = self.hash_horizontal_paths_by_height()
-        for height in sorted(list(horizontal_paths.keys())):
+        for height in sorted(list(horizontal_paths.keys()), reverse=True):
             paths = horizontal_paths[height]
             new_color = display.svg_color_after(color, height)
             for path in paths:
@@ -110,10 +111,7 @@ class Path:
             if isinstance(path, vertical_path):
                 current_height = path.update_height(current_height)
             else:
-                horizontal_paths.append(
-                    path,
-                    current_height
-                )
+                horizontal_paths.append((path, current_height))
 
         total_length = self.length()
         steps_length = total_length / PATH_IMAGES
@@ -125,6 +123,7 @@ class Path:
             if floor(current_length / steps_length) != \
                     floor(new_length / steps_length):
                 _display_animation(displayed_envelopes, path)
+            current_length = new_length
 
     def find_position(self, point):
         """
@@ -178,5 +177,19 @@ class Path:
         return "Path([\n    " + ",\n    ".join(path_strings) + "\n])"
 
 
-def _display_animation(displayed_envelopes):
-    raise Exception("TODO")
+def _display_animation(displayed_envelopes, current_path):
+    """
+    one step of animation process
+    """
+    display = tycat_start(list(displayed_envelopes.values()))
+    color_index = 1
+    for height in sorted(list(displayed_envelopes.keys()), reverse=True):
+        color = display.svg_color(color_index)
+        color_index += 1
+        envelopes = displayed_envelopes[height]
+        for envelope in envelopes:
+            path_string = envelope.get_display_string(display, color)
+            display.write(path_string)
+
+    current_path.save_svg_content(display, display.svg_color(0))
+    tycat_end(display)

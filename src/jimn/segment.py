@@ -114,6 +114,14 @@ class Segment(elementary_path):
         display.write(" stroke-width=\"{}\" stroke=\"{}\"\
                       opacity=\"0.5\"/>\n".format(stroke_width, color))
 
+    def get_display_string(self, display):
+        """
+        return svg code for including segment in a svg path
+        """
+        real_coordinates = self.endpoints[1].coordinates
+        coordinates = display.convert_coordinates(real_coordinates)
+        return "L {},{}".format(*coordinates)
+
     def horizontal_plane_intersection(self, intersecting_z):
         """
         PREREQUISITE: 3d segment.

@@ -17,4 +17,10 @@ class vertical_path:
         """
         return False
 
+    def length(self):
+        """
+        return distance to cross path
+        """
+        return 0
+
 from jimn.bounding_box import Bounding_Box

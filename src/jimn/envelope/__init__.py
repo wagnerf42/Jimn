@@ -14,7 +14,6 @@ from jimn.utils.debug import is_module_debugged
 from jimn.envelope.displaced_path import Displaced_path
 
 
-
 class Envelope:
     """
     region of spaced reached around a given path set with a circular mill
@@ -64,9 +63,15 @@ class Envelope:
         the string instead of directly displaying it allows for caching
         """
         head = ("<path d=\"")
+
+        first_point = self.paths[0].path.get_endpoint(0)
+        first_coordinates = display.convert_coordinates(first_point.coordinates)
+        initial_move = "M {},{}".format(*first_coordinates)
+
         paths_strings = [p.path.get_display_string(display) for p in self.paths]
-        foot = ("\" fill=\"{}\" stroke=\"none\"/>".format(color))
-        return head + " ".join(paths_strings) + foot
+
+        foot = ("\" fill=\"{}\" stroke=\"none\"/>\n".format(color))
+        return head + initial_move + " ".join(paths_strings) + foot
 
     def save_svg_content(self, display, color):
         """
@@ -76,30 +81,30 @@ class Envelope:
             displaced_path.path.save_svg_content(display, color)
         self.inside_content.save_svg_content(display, color)
 
-
     def _fill_from_segment(self, segment):
         """
         creates envelope by inflating segment
         """
-        sides = [
-            segment.parallel_segment(self.distance, side)
-            for side in (-1, 1)
-        ]
+        sides = []
+        sides.append(segment.parallel_segment(self.distance, -1))
+        sides.append(segment.parallel_segment(self.distance, 1).reverse())
         # TODO: I think we don't need the arcs
         point_1, point_2 = segment.endpoints
         arcs = []
         arcs.append(
             Arc(
                 self.distance,
-                [sides[0].get_endpoint(0), sides[1].get_endpoint(0)],
-                point_1
+                [sides[1].get_endpoint(0), sides[0].get_endpoint(1)],
+                point_1,
+                reversed_direction=True
             )
         )
         arcs.append(
             Arc(
                 self.distance,
-                [sides[1].get_endpoint(1), sides[0].get_endpoint(1)],
-                point_2
+                [sides[0].get_endpoint(0), sides[1].get_endpoint(1)],
+                point_2,
+                reversed_direction=True
             )
         )
         self.paths = [

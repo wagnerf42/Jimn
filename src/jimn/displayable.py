@@ -130,7 +130,7 @@ class Displayer:
         return self.svg_colors[color_index % len(self.svg_colors)]
 
 
-def tycat_start(*things):
+def tycat_start(things):
     """
     open svg file ; prepare display
     """
@@ -146,7 +146,8 @@ def tycat_start(*things):
     directory = "/tmp/{}".format(user)
     if not os.path.exists(directory):
         os.makedirs(directory)
-        filename = "{}/{}.svg".format(directory, str(FILE_COUNT).zfill(5))
+
+    filename = "{}/{}.svg".format(directory, str(FILE_COUNT).zfill(5))
     FILE_COUNT += 1
 
     display = Displayer(filename, things)
