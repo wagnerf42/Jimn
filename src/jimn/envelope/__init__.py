@@ -1,11 +1,3 @@
-from jimn.bounding_box import Bounding_Box
-from jimn.arc import Arc
-from jimn.segment import Segment
-from jimn.pocket import pocket
-from jimn.displayable import tycat
-from jimn.utils.debug import is_module_debugged
-from jimn.envelope.displaced_path import displaced_path
-
 """
 envelope contains the edge of a pocket (no holes) and its limit surroundings
 at given distance.
@@ -13,8 +5,20 @@ it allows to quickly find for any given position at limit which position
 in paths it corresponds to
 """
 
+from jimn.bounding_box import Bounding_Box
+from jimn.arc import Arc
+from jimn.segment import Segment
+from jimn.pocket import pocket
+from jimn.displayable import tycat
+from jimn.utils.debug import is_module_debugged
+from jimn.envelope.displaced_path import Displaced_path
 
-class envelope:
+
+
+class Envelope:
+    """
+    region of spaced reached around a given path set with a circular mill
+    """
     def __init__(self, inside_content, distance):
         """
         inflates path by given distance
@@ -45,61 +49,89 @@ class envelope:
                 tycat(self)
 
     def get_bounding_box(self):
+        """
+        smallest bounding box containing envelope
+        """
         box = Bounding_Box.empty_box(2)
-        for p in self.paths:
-            box.update(p.path.get_bounding_box())
+        for displaced_path in self.paths:
+            box.update(displaced_path.path.get_bounding_box())
         return box
 
+    def get_display_string(self, display, color):
+        """
+        return svg string used for displaying envelope in final display.
+        there is less info than in the standard tycat and returning
+        the string instead of directly displaying it allows for caching
+        """
+        head = ("<path d=\"")
+        paths_strings = [p.path.get_display_string(display) for p in self.paths]
+        foot = ("\" fill=\"{}\" stroke=\"none\"/>".format(color))
+        return head + " ".join(paths_strings) + foot
+
     def save_svg_content(self, display, color):
-        for p in self.paths:
-            p.path.save_svg_content(display, color)
+        """
+        svg for tycat
+        """
+        for displaced_path in self.paths:
+            displaced_path.path.save_svg_content(display, color)
         self.inside_content.save_svg_content(display, color)
 
-    def _fill_from_segment(self, s):
+
+    def _fill_from_segment(self, segment):
         """
         creates envelope by inflating segment
         """
         sides = [
-            s.parallel_segment(self.distance, side)
+            segment.parallel_segment(self.distance, side)
             for side in (-1, 1)
         ]
         # TODO: I think we don't need the arcs
-        sides.append(
+        point_1, point_2 = segment.endpoints
+        arcs = []
+        arcs.append(
             Arc(
                 self.distance,
                 [sides[0].get_endpoint(0), sides[1].get_endpoint(0)],
-                s.get_endpoint(0)
+                point_1
             )
         )
-        sides.append(
+        arcs.append(
             Arc(
                 self.distance,
                 [sides[1].get_endpoint(1), sides[0].get_endpoint(1)],
-                s.get_endpoint(1)
+                point_2
             )
         )
         self.paths = [
-            displaced_path(a, b)
-            for a, b in zip(sides, [s, s, s.get_endpoint(0), s.get_endpoint(1)])
+            Displaced_path(a, b)
+            for a, b in zip([arcs[0], sides[1], arcs[1], sides[0]],
+                            [point_1, segment, point_2, segment])
         ]
 
-    def _fill_from_arc(self, a):
+    def _fill_from_arc(self, arc):
         """
         creates envelope by inflating arc
         """
         # get endpoints
         # we need them in non-reversed order for inflating
         # (inflation does not depend on direction)
-        p2, p4 = a.get_stored_endpoints()
-        p3 = a.center
-        p1 = p2 + p2 - p3
-        p5 = p4 + p4 - p3
-        a1 = Arc(self.distance, (p3, p1), p2)
-        a2 = Arc(self.distance, (p5, p3), p4)
-        a3 = Arc(2*self.distance, (p1, p5), p3)
-        # TODO: I don't think we need a1 and a2 here
+        arc_point_1, arc_point_2 = arc.endpoints
+        displaced_point_1 = arc_point_1 * 2 - arc.center
+        displaced_point_2 = arc_point_2 * 2 - arc.center
+        side_arc_point_1 = Arc(self.distance, (arc.center, displaced_point_1),
+                               arc_point_1)
+        side_arc_point_2 = Arc(self.distance, (displaced_point_2, arc.center),
+                               arc_point_2)
+        displaced_main_arc = Arc(2*self.distance,
+                                 (displaced_point_1, displaced_point_2),
+                                 arc.center)
+        # TODO: I don't think we need the side arcs
         self.paths = [
-            displaced_path(p, o) for p, o in zip([a1, a2, a3], [p2, p4, a])
+            Displaced_path(p, o)
+            for p, o in zip(
+                [side_arc_point_1, displaced_main_arc, side_arc_point_2],
+                [arc_point_1, arc, arc_point_2]
+            )
         ]
 
     def _fill_from_pocket(self, inside_pocket):
@@ -110,18 +142,18 @@ class envelope:
         # just follow path, moving away
         # and then reconnecting everything.
         raw_paths = []
-        for p in inside_pocket.paths:
-            if isinstance(p, Segment):
+        for path in inside_pocket.paths:
+            if isinstance(path, Segment):
                 try:
-                    dp = displaced_path(
-                        p.parallel_segment(self.distance, -1), p)
+                    displaced_path = Displaced_path(
+                        path.parallel_segment(self.distance, -1), path)
                 except:
                     print("failed // segment for pocket", inside_pocket)
-                    print("failed segment was", p)
-                    tycat(inside_pocket, p)
+                    print("failed segment was", path)
+                    tycat(inside_pocket, path)
             else:
-                dp = displaced_path(p.inflate(), p)
-            raw_paths.append(dp)
+                displaced_path = Displaced_path(path.inflate(), path)
+            raw_paths.append(displaced_path)
 
         # now do the reconnections if path is disconnected
         previous_path = raw_paths[-1]
@@ -130,12 +162,12 @@ class envelope:
             current_point = current_path.path.get_endpoint(0)
             if previous_point != current_point:
                 center = previous_path.origin.get_endpoint(1)
-                dp = displaced_path(
+                displaced_path = Displaced_path(
                     Arc(self.distance, [current_point, previous_point],
                         center, True),
                     center
                 )
-                self.paths.append(dp)
+                self.paths.append(displaced_path)
 
             previous_path = current_path
             self.paths.append(current_path)
@@ -147,17 +179,18 @@ class envelope:
         first one is furthest possible interference point in outer enveloppe
         """
         points_couples = []
-        for p in self.paths:
-            for q in inner_envelope.paths:
-                interferences = p.interferences_with(q)
+        for our_path in self.paths:
+            for envelope_path in inner_envelope.paths:
+                interferences = our_path.interferences_with(envelope_path)
                 if __debug__:
                     if is_module_debugged(__name__) and interferences:
                         print("interferences")
                         tycat(self, inner_envelope,
-                              p.path, q.path, interferences)
+                              our_path.path, envelope_path.path, interferences)
 
                 for i in interferences:
-                    points_couples.append((p.project(i), q.project(i)))
+                    points_couples.append((our_path.project(i),
+                                           envelope_path.project(i)))
 
         if not points_couples:
             return None, None

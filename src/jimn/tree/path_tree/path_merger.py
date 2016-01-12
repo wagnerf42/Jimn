@@ -6,7 +6,7 @@ def overlap_exit_pocket_position(outer_path, inner_pocket, milling_radius):
     returns a marker for this position.
     """
     outer_paths = outer_path.elementary_paths
-    inner_envelope = envelope(inner_pocket, milling_radius)
+    inner_envelope = Envelope(inner_pocket, milling_radius)
     inner_box = inner_pocket.get_bounding_box()
     # we start from end of outer path because we are interested in last
     # place of overlapping
@@ -17,7 +17,7 @@ def overlap_exit_pocket_position(outer_path, inner_pocket, milling_radius):
         # before doing the real intersections (which is computation heavy)
         # we can first intersect bounding boxes
         if inner_box.intersects(outer_box):
-            outer_envelope = envelope(out, milling_radius)
+            outer_envelope = Envelope(out, milling_radius)
             outer_point, inner_point = \
                 outer_envelope.junction_points(inner_envelope)
             if outer_point:
@@ -111,4 +111,4 @@ from jimn.segment import Segment
 from jimn.utils.debug import is_module_debugged
 from jimn.vertical_path import vertical_path
 from jimn.dual_position import dual_position
-from jimn.envelope import envelope
+from jimn.envelope import Envelope

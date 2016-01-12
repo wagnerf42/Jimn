@@ -4,7 +4,7 @@ object generating the envelope.
 """
 
 
-class displaced_path:
+class Displaced_path:
     def __init__(self, envelope_path, origin):
         self.path = envelope_path
         self.origin = origin
