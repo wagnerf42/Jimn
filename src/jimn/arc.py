@@ -11,6 +11,7 @@ from jimn.utils.math import circles_intersections, line_circle_intersections, \
 from jimn.utils.precision import is_almost
 from jimn.displayable import tycat
 from jimn.segment import Segment
+from jimn.utils.debug import is_module_debugged
 
 
 class Arc(Elementary_Path):
@@ -300,3 +301,18 @@ class Arc(Elementary_Path):
         """
         return Arc(self.radius, [p+translation for p in self.endpoints],
                    self.center + translation, self.reversed_direction)
+
+    def intersections_with(self, other):
+        """
+        return array of intersections with arc or segment.
+        """
+        if isinstance(other, Segment):
+            intersections = self.intersections_with_segment(other)
+        else:
+            intersections = self.intersections_with_arc(other)
+
+        if __debug__:
+            if is_module_debugged(__name__):
+                print("intersections are:")
+                tycat(self, other, intersections)
+        return intersections

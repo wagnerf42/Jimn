@@ -9,6 +9,8 @@ from jimn.point import Point
 from jimn.utils.coordinates_hash import rounder2d, rounder_lines
 from jimn.utils.precision import check_precision, is_almost
 from jimn.utils.math import milling_heights
+from jimn.displayable import tycat
+from jimn.utils.debug import is_module_debugged
 
 
 class Segment(Elementary_Path):
@@ -336,3 +338,23 @@ class Segment(Elementary_Path):
 
         if overlap:
             return results
+
+    def intersections_with(self, other):
+        """
+        return array of intersections with arc or segment.
+        """
+        if isinstance(other, Segment):
+            intersections = other.intersections_with_segment(self)
+        else:
+            i = self.intersection_with_segment(other)
+            if i is None:
+                intersections = []
+            else:
+                intersections = [i]
+
+        if __debug__:
+            if is_module_debugged(__name__):
+                print("intersections are:")
+                tycat(self, other, intersections)
+
+        return intersections

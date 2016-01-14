@@ -142,32 +142,6 @@ class Elementary_Path:
             before, after = split_path[0:2]
         return (before, after)
 
-    def intersections_with(self, other):
-        """compute intersections with some other path.
-        works with any combination of arcs and segments
-        """
-        if str(type(self)) == "<class 'jimn.arc.Arc'>":
-            if str(type(other)) == "<class 'jimn.arc.Arc'>":
-                intersections = self.intersections_with_arc(other)
-            else:
-                intersections = self.intersections_with_segment(other)
-        else:
-            if str(type(other)) == "<class 'jimn.arc.Arc'>":
-                intersections = other.intersections_with_segment(self)
-            else:
-                i = self.intersection_with_segment(other)
-                if i is None:
-                    intersections = []
-                else:
-                    intersections = [i]
-
-        if __debug__:
-            if is_module_debugged(__name__):
-                print("intersections are:")
-                tycat(self, other, intersections)
-
-        return intersections
-
     def get_polygon_id(self):
         """
         return id of polygon we belong to.
