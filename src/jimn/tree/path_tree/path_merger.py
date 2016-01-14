@@ -1,3 +1,17 @@
+"""
+all functions related to merging paths together.
+we can detect positions to do the merge.
+and do the merge.
+"""
+
+from jimn.displayable import tycat
+from jimn.segment import Segment
+from jimn.utils.debug import is_module_debugged
+from jimn.vertical_path import vertical_path
+from jimn.dual_position import Dual_Position
+from jimn.envelope import Envelope
+
+
 def overlap_exit_pocket_position(outer_path, inner_pocket, milling_radius):
     """
     imagine we are following outer path.
@@ -21,7 +35,7 @@ def overlap_exit_pocket_position(outer_path, inner_pocket, milling_radius):
             outer_point, inner_point = \
                 outer_envelope.junction_points(inner_envelope)
             if outer_point:
-                return dual_position(out, outer_point, inner_point, outer_index)
+                return Dual_Position(out, outer_point, inner_point, outer_index)
 
 
 def update_inner_position(inner_path, position):
@@ -104,11 +118,3 @@ def merge_path(outer_path, inner_path, position):
     paths[position.outer_position.index:position.outer_position.index] = \
         sub_path
     outer_path.set_elementary_paths(paths)
-
-
-from jimn.displayable import tycat
-from jimn.segment import Segment
-from jimn.utils.debug import is_module_debugged
-from jimn.vertical_path import vertical_path
-from jimn.dual_position import dual_position
-from jimn.envelope import Envelope

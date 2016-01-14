@@ -142,7 +142,7 @@ class vertex:
         which is not horizontal
         """
         for e in self.frontier_edges:
-            if not e.is_horizontal():
+            if not e.is_almost_horizontal():
                 return e
         raise Exception("only horizontal edges")
 

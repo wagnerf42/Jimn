@@ -1,85 +1,93 @@
+"""
+base class for segments or arcs.
+basic path between two endpoints (oriented).
+"""
+from math import sqrt
+from copy import copy
 from jimn.displayable import tycat
 from jimn.utils.iterators import all_two_elements
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost, segment_limit
-from math import sqrt
-import copy
+from jimn.point import Point
 
 
-class elementary_path:
-
+class Elementary_Path:
     """
     elementary path is a small path between two endpoints.
     class is further refined into segments and arcs
     """
-
     def __init__(self, points):
         self.endpoints = points
         assert self.squared_length() > segment_limit, "very small path"
 
     def length(self):
+        """
+        return length of path.
+        """
         return sqrt(self.squared_length())
 
     def squared_length(self):
         """squared distance between endpoints"""
         return self.endpoints[0].squared_distance_to(self.endpoints[1])
 
-    def set_endpoint(self, index, new_point):
-        """set new_point as endpoint numbered index"""
-        self.endpoints[index] = new_point
-        assert self.squared_length() > segment_limit, "very small path"
+    def change_endpoint(self, index, new_point):
+        """
+        return new path with given indexed endpoint changed.
+        """
+        new_path = copy(self)
+        new_path.endpoints[index] = new_point
+        assert new_path.squared_length() > segment_limit, "very small path"
+        return new_path
 
     def get_endpoint(self, index):
+        """
+        getter for endpoint.
+        needed here because arc endpoints are not necessarily stored
+        in right order.
+        """
         return self.endpoints[index]
 
-    def get_endpoint_not(self, p):
+    def get_endpoint_not(self, point):
         """
-        returns endpoint not p.
-        requires other endpoint to be p
+        return endpoint not given point.
+        requires path to contain given point.
         """
-        if self.endpoints[0] == p:
+        if self.endpoints[0] == point:
             return self.endpoints[1]
-        if self.endpoints[1] == p:
+        if self.endpoints[1] == point:
             return self.endpoints[0]
         raise Exception("no given endpoint ; cannot find other")
 
     def get_endpoints(self):
-        return self.endpoints
-
-    def get_stored_endpoints(self):
         """
-        returns endpoints in stored order.
-        we do not care whether the arc is reversed
-        or not.
-        useful for operations independant from arc direction
+        getter for endpoints.
+        needed here because arc endpoints are not necessarily stored
+        in right order.
         """
         return self.endpoints
-
-    def sort_endpoints(self):
-        """sort endpoints and return a new path (same type).
-        this will also work in derived classes
-        """
-        copied_path = copy.deepcopy(self)
-        copied_path.endpoints = sorted(self.endpoints)
-        return copied_path
 
     def is_sorted(self):
-        sorted_self = self.sort_endpoints()
-        return sorted_self.endpoints == self.endpoints
+        """
+        are endpoints sorted from small to big ?
+        """
+        return self.get_endpoint(0) < self.get_endpoint(1)
 
     def dimension(self):
-        """returns dimension of space containing the points"""
+        """
+        returns dimension of space containing the points
+        """
         return self.endpoints[0].dimension()
 
-    def squared_distance_from_start(self, p):
+    def squared_distance_from_start(self, point):
         """
         returns scalar used for comparing points on path.
         the higher the scalar, the closer to endpoint.
         """
-        return self.endpoints[0].squared_distance_to(p)
+        return self.endpoints[0].squared_distance_to(point)
 
     def split_at(self, points):
-        """split path at given points.
+        """
+        split path at given points.
         returns list of same type objects ;
         orientation is kept ;
         assumes points are on path ;
@@ -91,18 +99,19 @@ class elementary_path:
         all_points = list(points)
         all_points.extend(self.endpoints)
         sorted_points = sorted(
-            all_points, key=lambda p: self.squared_distance_from_start(p)
+            all_points, key=self.squared_distance_from_start
         )
-        paths = []
+        paths = [] # result
         inside = False
-        for p1, p2 in all_two_elements(sorted_points):
-            if p1 == start_point:
+        for p_1, p_2 in all_two_elements(sorted_points):
+            if p_1 == start_point:
                 inside = True
-            if p1 == end_point:
+            if p_1 == end_point:
                 inside = False
-            if inside and not p1.is_almost(p2):
-                new_path = copy.copy(self)
-                new_path.endpoints = [p1, p2]
+            if inside and not p_1.is_almost(p_2):
+                raise Exception("not ok for reversed arcs")
+                new_path = copy(self)
+                new_path.endpoints = [p_1, p_2]
                 if __debug__:
                     if new_path.squared_length() < segment_limit:
                         print("splitting", self, "at", *points)
@@ -129,7 +138,8 @@ class elementary_path:
         elif intermediate_point.is_almost(self.get_endpoint(1)):
             before = self
         else:
-            before, after = self.split_at([intermediate_point])
+            split_path = self.split_at([intermediate_point])
+            before, after = split_path[0:2]
         return (before, after)
 
     def intersections_with(self, other):
@@ -159,90 +169,99 @@ class elementary_path:
         return intersections
 
     def get_polygon_id(self):
-        """returns id of polygon we belong to.
-        0 unless overloaded in subclasses
+        """
+        return id of polygon we belong to.
+        0 unless overloaded in subclasses.
         """
         return 0
 
-    def _find_common_xrange(a, b):
+    def _find_common_xrange(self, other):
         """
         find three different x belonging to both paths
         """
-        xa = sorted([p.get_x() for p in a.endpoints])
-        xb = sorted([p.get_x() for p in b.endpoints])
-        x1max = max(xa[0], xb[0])
-        x2min = min(xa[1], xb[1])
-        assert x1max <= x2min
-        return [x1max, x1max + (x2min-x1max)/2, x2min]
+        self_x = sorted([p.get_x() for p in self.endpoints])
+        other_x = sorted([p.get_x() for p in other.endpoints])
+        max_x_of_starts = max(self_x[0], other_x[0])
+        min_x_of_ends = min(self_x[1], other_x[1])
+        return [
+            max_x_of_starts,
+            (max_x_of_starts + min_x_of_ends) / 2,
+            min_x_of_ends
+        ]
 
-    def is_above(a, b):
+    def is_above(self, other):
         """
-        returns true if a is strictly above b
+        returns true if self is strictly above other.
+        will not work on overlapping vertical segments.
         """
         # take three common x
         # we need three because arcs are not flat
         # and need therefore three comparison points
-        common_abs = a._find_common_xrange(b)
+        common_abs = self._find_common_xrange(other)
         # compute y intersections
-        ya, yb = [
+        self_y, other_y = [
             [s.vertical_intersection_at(x) for x in common_abs]
-            for s in (a, b)
+            for s in (self, other)
         ]
         # who is above whom
         point_above = [0, 0, 0]
         for i in range(3):
-            if is_almost(ya[i], yb[i]):
+            if is_almost(self_y[i], other_y[i]):
                 point_above[i] = 0
             else:
-                if ya[i] < yb[i]:
+                if self_y[i] < other_y[i]:
                     point_above[i] = 1
                 else:
                     point_above[i] = -1
         # assert all points are on one same side
         possibly_below = True
         possibly_above = True
-        for p in point_above:
-            if p > 0:
+        for being_above in point_above:
+            if being_above > 0:
                 possibly_below = False
-            if p < 0:
+            if being_above < 0:
                 possibly_above = False
 
         if __debug__:
             if not (possibly_below or possibly_above):
-                print("failed above test: ", a, b)
+                print("failed above test: ", self, other)
                 print(common_abs)
-                print(ya)
-                print(yb)
-                tycat(a, b)
-                tycat(b, [Point([common_abs[i], yb[i]]) for i in range(3)])
+                print(self_y)
+                print(other_y)
+                tycat(self, other)
+                tycat(other,
+                      [Point([common_abs[i], other_y[i]]) for i in range(3)])
                 raise Exception("cannot see which path is above the other")
 
-        s = sum(point_above)
-        if s == 0:
+        globaly_above = sum(point_above)
+        if globaly_above == 0:
             return False
-        return (s > 0)
+        return globaly_above > 0
 
     def is_vertical(self):
-        """are endpoints aligned vertically"""
-        xa, xb = [p.get_x() for p in self.endpoints]
-        if xa == xb:
+        """
+        are endpoints aligned vertically ?
+        """
+        x_1, x_2 = [p.get_x() for p in self.endpoints]
+        if x_1 == x_2:
             return True
         else:
-            if is_almost(xa, xb):
+            if is_almost(x_1, x_2):
                 raise RuntimeError("almost vertical")
             return False
 
-    def is_horizontal(self):
-        """are endpoints aligned horizontally"""
-        ya, yb = [p.get_y() for p in self.endpoints]
-        return is_almost(ya, yb)
+    def is_almost_horizontal(self):
+        """
+        are endpoints almost aligned horizontally
+        """
+        return is_almost(*[p.get_y() for p in self.endpoints])
 
     def lowest_endpoint(self):
         """
-        return one of lowest endpoints (y maximized)
+        return one of lowest endpoints (y maximized).
         """
-        ya, yb = [p.get_y() for p in self.endpoints]
-        if ya > yb:
+        y_1, y_2 = [p.get_y() for p in self.endpoints]
+        if y_1 > y_2:
             return self.endpoints[0]
         else:
             return self.endpoints[1]
@@ -252,7 +271,7 @@ class elementary_path:
         slightly move endpoints so that if they are very close
         from a milling height then they will be exactly at milling height.
         careful : we do not change arc's center point so this might lead
-        to rounding errors
+        to rounding errors.
         """
         self.endpoints = [p.adjust_at_milling_height(milling_height)
                           for p in self.endpoints]
@@ -260,30 +279,30 @@ class elementary_path:
     def __hash__(self):
         return hash(tuple(self.endpoints))
 
-    def __eq__(a, b):
-        types = [str(type(p)) == "<class 'jimn.arc.Arc'>" for p in (a, b)]
+    def __eq__(self, other):
+        types = [str(type(p)) == "<class 'jimn.arc.Arc'>"
+                 for p in (self, other)]
         if types[0] and not types[1]:
             return False
         if types[1] and not types[0]:
             return False
         if types[0] and types[1]:
-            return a.equals(b)
+            return self.equals(other)
 
-        return a.endpoints == b.endpoints
+        return self.endpoints == other.endpoints
 
-    def __lt__(a, b):
-        types = [str(type(p)) == "<class 'jimn.arc.Arc'>" for p in (a, b)]
+    def __lt__(self, other):
+        types = [str(type(p)) == "<class 'jimn.arc.Arc'>"
+                 for p in (self, other)]
         if types[0] and not types[1]:
             return True
         if types[1] and not types[0]:
             return False
 
-        return a.comparison(b)
+        return self.comparison(other)
 
     def update_height(self, height):
         """
-        height change by following this path (no change since horizontal)
+        height change by following this path (no change since horizontal).
         """
         return height
-
-from jimn.point import Point

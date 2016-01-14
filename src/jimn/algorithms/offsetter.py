@@ -57,7 +57,7 @@ class Offsetter:
             end = first_segment.endpoints[1]
             start = second_segment.endpoints[0]
             if end.is_almost(start):
-                first_segment.set_endpoint(1, start)
+                first_segment = first_segment.change_endpoint(1, start)
             else:
                 # original point connecting the original segments
                 center_point = neighbouring_tuples[0][1].endpoints[1]

@@ -1,9 +1,22 @@
-class circle:
+"""
+draw circles (mainly for debugging purposes).
+"""
+from jimn.point import Point
+from jimn.bounding_box import Bounding_Box
+
+
+class Circle:
+    """
+    circle object (center + radius).
+    """
     def __init__(self, center, radius):
         self.center = center
         self.radius = radius
 
     def save_svg_content(self, display, color):
+        """
+        svg content for tycat.
+        """
         svg_coordinates = display.convert_coordinates(
             self.center.get_coordinates()
         )
@@ -16,12 +29,12 @@ class circle:
         ))
 
     def get_bounding_box(self):
+        """
+        min bounding box containing circle.
+        """
         min_point = self.center + Point([-self.radius, -self.radius])
         max_point = self.center + Point([self.radius, self.radius])
         return Bounding_Box(
             min_point.get_coordinates(),
             max_point.get_coordinates(),
         )
-
-from jimn.point import Point
-from jimn.bounding_box import Bounding_Box

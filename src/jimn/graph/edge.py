@@ -1,5 +1,5 @@
 from math import floor
-from jimn.elementary_path import elementary_path
+from jimn.elementary_path import Elementary_Path
 
 
 class edge:
@@ -8,7 +8,7 @@ class edge:
         self.path = real_path
         self.multiplicity = 1
         self.weight = self.path.length()
-        assert isinstance(self.path, elementary_path)
+        assert isinstance(self.path, Elementary_Path)
 
     def change_multiplicity(self, change):
         assert change == 1 or change == -1
@@ -62,8 +62,8 @@ class edge:
         assert non_limit_y is not None, "horizontal path"
         return non_limit_y < y_limit
 
-    def is_horizontal(self):
-        return self.path.is_horizontal()
+    def is_almost_horizontal(self):
+        return self.path.is_almost_horizontal()
 
     def slice_number(self, milling_diameter):
         """

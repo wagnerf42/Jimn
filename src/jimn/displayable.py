@@ -8,8 +8,6 @@ import os
 import getpass
 from jimn.bounding_box import Bounding_Box
 
-FILE_COUNT = 0
-
 
 class Displayer:
     """
@@ -25,6 +23,7 @@ class Displayer:
                        royalblue tan tomato springgreen pink orchid\
                        saddlebrown moccasin mistyrose cornflowerblue\
                        darkgrey'.split())
+    file_count = 0
 
     def __init__(self, filename, things):
         self.filename = filename
@@ -134,8 +133,7 @@ def tycat_start(things):
     """
     open svg file ; prepare display
     """
-    global FILE_COUNT
-    print("[", FILE_COUNT, "]")
+    print("[", Displayer.file_count, "]")
     dimensions = os.environ.get("JIMN_TYCAT_SIZE")
 
     if dimensions is not None:
@@ -147,8 +145,8 @@ def tycat_start(things):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    filename = "{}/{}.svg".format(directory, str(FILE_COUNT).zfill(5))
-    FILE_COUNT += 1
+    filename = "{}/{}.svg".format(directory, str(Displayer.file_count).zfill(5))
+    Displayer.file_count += 1
 
     display = Displayer(filename, things)
     display.open_svg(filename)

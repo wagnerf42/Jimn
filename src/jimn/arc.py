@@ -3,7 +3,7 @@ arc segment
 """
 from math import pi
 from copy import deepcopy
-from jimn.elementary_path import elementary_path
+from jimn.elementary_path import Elementary_Path
 from jimn.bounding_box import Bounding_Box
 from jimn.point import Point
 from jimn.utils.math import circles_intersections, line_circle_intersections, \
@@ -13,7 +13,7 @@ from jimn.displayable import tycat
 from jimn.segment import Segment
 
 
-class Arc(elementary_path):
+class Arc(Elementary_Path):
     """
     arc segment
     """
@@ -24,11 +24,11 @@ class Arc(elementary_path):
         with center and direction.
         in doubt, use "compute arc".
         """
-        super().__init__(points)
         self.radius = radius
-        assert self.radius > 0, "0 or negative radius"
         self.center = center
         self.reversed_direction = reversed_direction
+        super().__init__(points)
+        assert self.radius > 0, "0 or negative radius"
 
     def adjust_center(self):
         """
@@ -44,15 +44,34 @@ class Arc(elementary_path):
         else:
             self.center = possible_centers[1]
 
+    def squared_length(self):
+        """
+        return square of arc length.
+        """
+        length = self.length()
+        return length * length
+
+    def length(self):
+        """
+        return arc length.
+        """
+        return self.radius*self.angle()
+
+    def angle(self):
+        """
+        return normalized angle of points with center.
+        """
+        angle = self.center.angle_with(self.endpoints[0]) - \
+            self.center.angle_with(self.endpoints[1])
+        angle = angle % (2*pi)
+        return angle
+
     def correct_endpoints_order(self):
         """
         when creating arcs in offsetter we need to invert points
         order when distance is more than half of circle
         """
-        angle = self.center.angle_with(self.endpoints[0]) - \
-            self.center.angle_with(self.endpoints[1])
-        angle = angle % (2*pi)
-        if angle > pi:
+        if self.angle() > pi:
             self.endpoints = list(reversed(self.endpoints))
             self.reversed_direction = True
 

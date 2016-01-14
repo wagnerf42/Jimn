@@ -3,7 +3,7 @@ segment between two points
 """
 from math import pi, cos, sin
 from collections import defaultdict
-from jimn.elementary_path import elementary_path
+from jimn.elementary_path import Elementary_Path
 from jimn.bounding_box import Bounding_Box
 from jimn.point import Point
 from jimn.utils.coordinates_hash import rounder2d, rounder_lines
@@ -11,12 +11,18 @@ from jimn.utils.precision import check_precision, is_almost
 from jimn.utils.math import milling_heights
 
 
-class Segment(elementary_path):
+class Segment(Elementary_Path):
     """
     oriented segment between two points
     """
     def __init__(self, points):
         super().__init__(points)
+
+    def sort_endpoints(self):
+        """
+        sort endpoints and return a new path (same type).
+        """
+        return Segment(list(sorted(self.endpoints)))
 
     @classmethod
     def horizontal_segment(cls, xmin, xmax, y_coordinate):

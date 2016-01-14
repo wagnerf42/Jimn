@@ -1,9 +1,15 @@
 """
 position simultaneous on two different paths.
 """
+from jimn.path_position import path_position
 
 
-class dual_position:
+class Dual_Position:
+    """
+    position simultaneous on two different paths.
+    we can use it to mark on position impacted by mill on path2
+    while following path1.
+    """
     def __init__(self, outer_path, outer_point, inner_point, outer_index):
         """
         stores positions on two different paths.
@@ -20,6 +26,3 @@ class dual_position:
         both outer positions need to be on same outer path.
         """
         return self.outer_position < other.outer_position
-
-
-from jimn.path_position import path_position
