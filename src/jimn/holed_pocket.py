@@ -1,9 +1,14 @@
 """
 differentiate paths in a pocket between outer edge and inner edge.
 """
+from jimn.pocket import pocket
 
 
-class holed_pocket:
+class HoledPocket:
+    """
+    pocket with (possibly) holes inside.
+    always special operations on the outer edge.
+    """
     def __init__(self, outer_edge, inner_edges=None):
         self.outer_edge = outer_edge
         if inner_edges:
@@ -26,15 +31,24 @@ class holed_pocket:
             yield inner_edge
 
     def split_at_milling_points(self, milling_diameter):
+        """
+        split all paths inside pocket on milling lines.
+        """
         split_paths = []
-        for p in self.subpockets():
-            p.split_at_milling_points(milling_diameter, split_paths)
+        for subpocket in self.subpockets():
+            subpocket.split_at_milling_points(milling_diameter, split_paths)
         return pocket(split_paths)
 
     def get_bounding_box(self):
+        """
+        min bounding box containing pocket.
+        """
         return self.outer_edge.get_bounding_box()
 
     def save_svg_content(self, displayer, color):
+        """
+        svg content for tycat.
+        """
         self.outer_edge.save_svg_content(displayer, color)
         for inner_edge in self.inner_edges:
             inner_edge.save_svg_content(displayer, color)
@@ -52,5 +66,3 @@ class holed_pocket:
         returns text label for display in dot file (see polygontree class)
         """
         return str(id(self))
-
-from jimn.pocket import pocket

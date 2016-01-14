@@ -6,7 +6,7 @@ from itertools import combinations
 from jimn.displayable import tycat
 from jimn.arc import Arc
 from jimn.pocket import pocket
-from jimn.holed_pocket import holed_pocket
+from jimn.holed_pocket import HoledPocket
 from jimn.pocket.builder import build_pockets
 from jimn.utils.coordinates_hash import rounder2d
 from jimn.utils.debug import is_module_debugged
@@ -117,7 +117,7 @@ def _merge_included_pockets(pockets):
         # we do that here and not before because they might now contain content
         # which will be discarded too
         if not pockets[0].is_oriented_clockwise():
-            hp = holed_pocket(pockets[0], pockets[1:])
+            hp = HoledPocket(pockets[0], pockets[1:])
             disjoint_pockets.append(hp)
 
     return disjoint_pockets

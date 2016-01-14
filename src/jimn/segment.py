@@ -344,13 +344,13 @@ class Segment(Elementary_Path):
         return array of intersections with arc or segment.
         """
         if isinstance(other, Segment):
-            intersections = other.intersections_with_segment(self)
-        else:
             i = self.intersection_with_segment(other)
             if i is None:
                 intersections = []
             else:
                 intersections = [i]
+        else:
+            intersections = other.intersections_with_segment(self)
 
         if __debug__:
             if is_module_debugged(__name__):

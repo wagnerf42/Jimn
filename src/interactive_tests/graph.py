@@ -4,7 +4,7 @@ from jimn.point import Point
 from jimn.polygon import polygon
 from jimn.displayable import tycat, tycat_set_svg_dimensions
 from jimn.pocket import pocket
-from jimn.holed_pocket import holed_pocket
+from jimn.holed_pocket import HoledPocket
 from jimn.pocket.graph_builder import build_graph
 from jimn.graph.eulerian_cycle import find_eulerian_cycle, cycle_to_path
 
@@ -21,12 +21,12 @@ f = Point([0.8, 1.0])
 
 outer_edge = pocket(list(polygon([a, b, c]).segments()))
 hole = pocket(list(polygon([d, e, f]).segments()))
-abc = holed_pocket(outer_edge, [hole])
+abc = HoledPocket(outer_edge, [hole])
 
 g = build_graph(abc, 0.3)
 tycat(g)
 p = cycle_to_path(find_eulerian_cycle(g))
-p.animate(abc)
+p.animate(0.3)
 
 print("top vertex is lying on a cut line")
 
@@ -35,12 +35,12 @@ b = Point([0.0, 1.2])
 c = Point([1.2, 1.2])
 
 segments = list(polygon([a, b, c]).segments())  # outer edge
-abc = holed_pocket(pocket(segments))
+abc = HoledPocket(pocket(segments))
 
 g = build_graph(abc, 0.3)
 tycat(g)
 p = cycle_to_path(find_eulerian_cycle(g))
-p.animate(abc)
+p.animate(0.3)
 
 print("some more extreme graphs")
 a = Point([0.6, 0.0])
@@ -48,12 +48,12 @@ b = Point([0.0, 0.3])
 c = Point([1.2, 0.3])
 
 segments = list(polygon([a, b, c]).segments())  # outer edge
-abc = holed_pocket(pocket(segments))
+abc = HoledPocket(pocket(segments))
 
 g = build_graph(abc, 0.3)
 tycat(g)
 p = cycle_to_path(find_eulerian_cycle(g))
-p.animate(abc)
+p.animate(0.3)
 
 print("complex case for internal edges")
 a = Point([0.0, 4.0])
@@ -79,7 +79,7 @@ q = Point([7.0, 8.0])
 r = Point([7.0, 4.0])
 
 hole = polygon([o, p, q, r])
-hp = holed_pocket(
+hp = HoledPocket(
     pocket(
         list(polygon([a, b, c, d, e, f, g, h, i, j, k, l, m, n]).segments())
     ),
@@ -89,7 +89,7 @@ hp = holed_pocket(
 g = build_graph(hp, 4.0)
 tycat(g)
 p = cycle_to_path(find_eulerian_cycle(g))
-p.animate(hp)
+p.animate(4.0)
 
 
 print("tries fast algorithm for even edges")
@@ -102,9 +102,9 @@ e = Point([4.0, 4.0])
 f = Point([4.0, 0.0])
 
 segments = list(polygon([a, b, c, d, e, f]).segments())  # outer edge
-abc = holed_pocket(pocket(segments))
+abc = HoledPocket(pocket(segments))
 
 g = build_graph(abc, 1, True)
 tycat(g)
 p = cycle_to_path(find_eulerian_cycle(g))
-p.animate()
+p.animate(1)

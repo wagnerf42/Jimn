@@ -1,4 +1,7 @@
 
+SPLIT AT SEEMS NOT OK WITH REVERSED ARCS
+
+
 -----> move things out of segment and into elementary_path (comparison ?)
 -----> simplify jimn.segment.remove_overlap_with
 

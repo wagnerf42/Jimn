@@ -1,4 +1,13 @@
-class holed_polygon:
+"""
+class for polygons with holes inside.
+"""
+from math import pi
+
+
+class HoledPolygon:
+    """
+    polygons with holes inside. contains polygons without holes.
+    """
     def __init__(self, polygon, height=None, holes=None):
         self.polygon = polygon
         assert not self.polygon.is_oriented_clockwise()
@@ -7,8 +16,8 @@ class holed_polygon:
         else:
             self.holes = holes
             if __debug__:
-                for h in self.holes:
-                    assert h.is_oriented_clockwise()
+                for hole in self.holes:
+                    assert hole.is_oriented_clockwise()
         self.height = height
 
     def large_enough_for(self, milling_radius):
@@ -19,6 +28,9 @@ class holed_polygon:
         return abs(self.polygon.area()) > min_required_area
 
     def get_height(self):
+        """
+        return height at which is polygon (horizontal) in stl file.
+        """
         return self.height
 
     def get_dot_label(self):
@@ -49,9 +61,15 @@ class holed_polygon:
         return polygons
 
     def get_bounding_box(self):
+        """
+        min bounding box containing holed polygon.
+        """
         return self.polygon.get_bounding_box()
 
     def save_svg_content(self, display, color):
+        """
+        svg for tycat.
+        """
         self.polygon.save_svg_content(display, color)
         for hole in self.holes:
             hole.save_svg_content(display, color)
@@ -63,30 +81,25 @@ class holed_polygon:
         """
         self.polygon.orient(clockwise=False)
         self.polygon.normalize_starting_point()
-        for h in self.holes:
-            h.orient(clockwise=True)
-            h.normalize_starting_point()
+        for hole in self.holes:
+            hole.orient(clockwise=True)
+            hole.normalize_starting_point()
         self.holes = sorted(self.holes, key=lambda h: h.get_points()[0])
 
-    def translation_vector(self, p2):
+    def translation_vector(self, other):
         """
-        returns translation vector from self to obtain p2.
+        returns translation vector from self to obtain other.
         'none' if impossible.
         """
-        v = self.polygon.translation_vector(p2.polygon)
-        if not v:
+        if len(self.holes) != len(other.holes):
             return None
-        if len(self.holes) != len(p2.holes):
+
+        diff_vector = self.polygon.translation_vector(other.polygon)
+        if not diff_vector:
             return None
-        for h1, h2 in zip(self.holes, p2.holes):
+        for hole1, hole2 in zip(self.holes, other.holes):
             # TODO: is this really ok ??? -> only if holes are generated in
             # same order
-            if not h1.translation_vector(h2, v):
+            if not hole1.translation_vector(hole2, diff_vector):
                 return False
-        return v
-
-    def tycat(self, border):
-        tycat(border, self.polygon, *(self.holes))
-
-from jimn.displayable import tycat
-from math import pi
+        return diff_vector
