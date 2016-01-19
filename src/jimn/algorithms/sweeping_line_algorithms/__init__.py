@@ -56,7 +56,7 @@ class SweepingLineAlgorithm:
     def _handle_event(self, event):
         # update live paths
         starting_paths, ending_paths = [
-            event.get_paths(path_type) for path_type in [0, 1]
+            event.paths[path_type] for path_type in [0, 1]
         ]
         self._update_live_paths(starting_paths, ending_paths)
         self.handle_new_paths(starting_paths)

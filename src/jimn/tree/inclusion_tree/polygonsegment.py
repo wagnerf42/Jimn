@@ -5,11 +5,8 @@ from jimn.utils.precision import check_precision
 class polygonsegment(Segment):
     """two additional attributes to basic segments : height and polygon id"""
 
-    def __init__(self, points, height, polygon_we_belong_to):
-        self.endpoints = sorted(points)
-        if __debug__:
-            for p in self.endpoints:
-                assert p.dimension() == 2, 'polygonsegment works only on 2d points'
+    def __init__(self, segment, height, polygon_we_belong_to):
+        self.endpoints = sorted(segment.endpoints)
         self.height = height
         self.polygon = polygon_we_belong_to
 

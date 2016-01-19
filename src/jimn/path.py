@@ -107,13 +107,14 @@ class Path:
         """
         current_height = 0
         horizontal_paths = []
+        total_length = 0
         for path in self.elementary_paths:
             if isinstance(path, VerticalPath):
-                current_height = path.update_height(current_height)
+                current_height += path.direction
             else:
                 horizontal_paths.append((path, current_height))
+                total_length += path.length()
 
-        total_length = self.length()
         steps_length = total_length / PATH_IMAGES
         current_length = 0
         displayed_envelopes = defaultdict(list)
