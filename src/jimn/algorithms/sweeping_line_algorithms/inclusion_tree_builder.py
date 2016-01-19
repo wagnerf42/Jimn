@@ -1,18 +1,18 @@
-from jimn.algorithms.sweeping_line_algorithms import sweeping_line_algorithm
+"""
+figure out hierarchy between polygons.
+"""
+from jimn.algorithms.sweeping_line_algorithms import SweepingLineAlgorithm
 from jimn.tree.inclusion_tree import inclusion_tree
 from jimn.utils.debug import is_module_debugged
-from jimn.utils.iterators import all_two_elements
 from jimn.tree.inclusion_tree.polygonsegment import polygonsegment
 
 
-"""
-this class builds a tree of polygons included in one another.
-it works through a sweeping line algorithm.
-also identifies each as a hole or a polygon
-"""
-
-
-class inclusion_tree_builder(sweeping_line_algorithm):
+class InclusionTreeBuilder(SweepingLineAlgorithm):
+    """
+    this class builds a tree of polygons included in one another.
+    it works through a sweeping line algorithm.
+    also identifies each as a hole or a polygon.
+    """
     def __init__(self, polygons):
         self.polygons = polygons
         self.seen_polygons = {}
@@ -20,12 +20,12 @@ class inclusion_tree_builder(sweeping_line_algorithm):
         self.fathers = {}
         super().__init__(self._create_segments())
 
-    # get all non-vertical segments in polygons
     def _create_segments(self):
+        # get all non-vertical segments in polygons
         segments = []
         for height, polygons in self.polygons.items():
-            for p in polygons:
-                segments.extend(_non_vertical_segments(p, height))
+            for polygon in polygons:
+                segments.extend(_non_vertical_segments(polygon, height))
         return segments
 
     def handle_new_paths(self, starting_segments):
@@ -34,22 +34,22 @@ class inclusion_tree_builder(sweeping_line_algorithm):
         #
         # we sort new segments to ensure all potential inclusions are tested :
         # we have to add the potentially containing polygon first in tree
-        for s in sorted(starting_segments,
-                        key=lambda seg: (seg.angle(), seg.get_height()),
-                        reverse=True):
-            polygon_id = s.get_polygon_id()
+        for segment in sorted(starting_segments,
+                              key=lambda seg: (seg.angle(), seg.get_height()),
+                              reverse=True):
+            polygon_id = segment.get_polygon_id()
             if polygon_id not in self.seen_polygons:
                 # this guy is new, categorize it
 
                 # add it in tree
-                self.add_polygon_in_tree(s)
+                self.add_polygon_in_tree(segment)
 
                 # mark it as seen
                 self.seen_polygons[polygon_id] = True
                 if __debug__:
                     if is_module_debugged(__name__):
-                        print("added polygon", s.get_polygon().label,
-                              "( h =", s.get_height(), ")")
+                        print("added polygon", segment.get_polygon().label,
+                              "( h =", segment.get_height(), ")")
                         self.tree.tycat()
 
     def terminate_polygon(self, polygon_id):
@@ -58,35 +58,45 @@ class inclusion_tree_builder(sweeping_line_algorithm):
         father.kill_child(polygon_id)
 
     def add_polygon_in_tree(self, new_segment):
+        """
+        we meet a new segment from a never seen polygon.
+        place polygon at right place in tree.
+        """
         root = self.tree
         # new polygon
         # we first try inserting it at current level ; it might be a hole
         # if not we try going below
         # see report for more help on inclusion trees
-        for c in sorted(
-            root.get_alive_children(),
-            key=lambda c: c.get_height(), reverse=True
-        ):
-            if self.add_polygon_rec(c, new_segment):
+        for child in sorted(root.get_alive_children(),
+                            key=lambda c: c.get_height(), reverse=True):
+            if self.add_polygon_rec(child, new_segment):
                 break
         else:
             self.add_child_in_tree(root, new_segment)
 
-    # see comments in add_polygon_in_tree
     def add_polygon_rec(self, node, new_segment):
+        """
+        add new polygon in tree. right position is found recursively.
+        """
+        # see comments in add_polygon_in_tree
         if self.is_included(new_segment, node.get_polygon()):
-            for c in sorted(
-                node.get_alive_children(),
-                key=lambda c: c.get_height(), reverse=True
-            ):
-                if self.add_polygon_rec(c, new_segment):
+            for child in sorted(node.get_alive_children(),
+                                key=lambda c: c.get_height(), reverse=True):
+                if self.add_polygon_rec(child, new_segment):
                     return True
-            if (node.is_a_polygon() or new_segment.get_height() == node.get_height()):
+
+            if node.is_a_polygon() or \
+                    new_segment.get_height() == node.get_height():
                 self.add_child_in_tree(node, new_segment)
                 return True
+
         return False
 
     def add_child_in_tree(self, node, new_segment):
+        """
+        add self (poly node corresponding to new_segment)
+        as child of given node.
+        """
         node.add_child(new_segment)
         self.fathers[new_segment.get_polygon_id()] = node
 
@@ -106,13 +116,21 @@ class inclusion_tree_builder(sweeping_line_algorithm):
             return len(above_segments) % 2 == 1
 
 
-def _non_vertical_segments(p, height):
-    return filter(lambda s: not s.is_vertical(), [
-        polygonsegment([p1, p2], height, p)
-        for p1, p2 in all_two_elements(p.points)]
-    )
+def _non_vertical_segments(polygon, height):
+    """
+    return segments in polygon which are non vertical.
+    create PolygonSegment objects at given height.
+    """
+    return [
+        polygonsegment(s, height, polygon)
+        for s in polygon.segments()
+        if not s.is_vertical()
+    ]
 
 
 def build_inclusion_tree(polygons):
-    builder = inclusion_tree_builder(polygons)
+    """
+    turn a set of polygons hashed by height into a polygon tree.
+    """
+    builder = InclusionTreeBuilder(polygons)
     return builder.tree
