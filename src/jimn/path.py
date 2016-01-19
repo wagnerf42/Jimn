@@ -4,7 +4,7 @@ a path is a list of arcs, segments or vertical paths
 import os
 from math import floor
 from collections import defaultdict
-from jimn.vertical_path import vertical_path
+from jimn.vertical_path import VerticalPath
 from jimn.path_position import PathPosition
 from jimn.bounding_box import Bounding_Box
 from jimn.point import Point
@@ -76,7 +76,7 @@ class Path:
         horizontal_paths = defaultdict(list)
         current_height = 0
         for path in self.elementary_paths:
-            if isinstance(path, vertical_path):
+            if isinstance(path, VerticalPath):
                 current_height = path.update_height(current_height)
             else:
                 horizontal_paths[current_height].append(path)
@@ -108,7 +108,7 @@ class Path:
         current_height = 0
         horizontal_paths = []
         for path in self.elementary_paths:
-            if isinstance(path, vertical_path):
+            if isinstance(path, VerticalPath):
                 current_height = path.update_height(current_height)
             else:
                 horizontal_paths.append((path, current_height))

@@ -13,7 +13,7 @@ from jimn.point import Point
 from jimn.pocket.graph_builder import build_graph
 from jimn.segment import Segment
 from jimn.utils.debug import is_module_debugged
-from jimn.vertical_path import vertical_path
+from jimn.vertical_path import VerticalPath
 from itertools import combinations
 from jimn.tree import tree
 
@@ -66,9 +66,9 @@ class path_tree(tree):
             end = toplevel_tour[i+1]
             if not start.is_almost(end):
                 final_paths.append(Segment([start, end]))
-            final_paths.append(vertical_path(-1))
+            final_paths.append(VerticalPath(-1))
             final_paths.extend(self.children[i].content.elementary_paths)
-            final_paths.append(vertical_path(1))
+            final_paths.append(VerticalPath(1))
         # back to origin
         final_paths.append(Segment([toplevel_tour[-1], toplevel_tour[0]]))
         return Path(final_paths)

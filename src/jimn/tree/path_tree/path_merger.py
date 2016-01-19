@@ -7,7 +7,7 @@ and do the merge.
 from jimn.displayable import tycat
 from jimn.segment import Segment
 from jimn.utils.debug import is_module_debugged
-from jimn.vertical_path import vertical_path
+from jimn.vertical_path import VerticalPath
 from jimn.dual_position import Dual_Position
 from jimn.envelope import Envelope
 
@@ -106,9 +106,9 @@ def merge_path(outer_path, inner_path, position):
     if not outer_point.is_almost(inner_point):
         sub_path.append(Segment([outer_point, inner_point]))
 
-    sub_path.append(vertical_path(-1))
+    sub_path.append(VerticalPath(-1))
     sub_path.extend(inner_path.elementary_paths)
-    sub_path.append(vertical_path(1))
+    sub_path.append(VerticalPath(1))
 
     if not outer_point.is_almost(inner_point):
         sub_path.append(Segment([inner_point, outer_point]))
