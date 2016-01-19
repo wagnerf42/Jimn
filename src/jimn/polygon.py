@@ -122,9 +122,9 @@ class Polygon:
         """
         for point_on_self, point_on_other in zip(self.points, other.points):
             if vector is None:
-                vector = point_on_self - point_on_other
+                vector = point_on_other - point_on_self
             else:
-                if not (point_on_self - point_on_other).is_almost(vector):
+                if not (point_on_other - point_on_self).is_almost(vector):
                     return None
         return vector
 
