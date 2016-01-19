@@ -3,13 +3,13 @@
 from jimn.point import Point
 from jimn.segment import Segment
 from jimn.polygon import Polygon
-from jimn.pocket import pocket
+from jimn.pocket import Pocket
 from jimn.envelope import Envelope
 from jimn.displayable import tycat
 
 s = Polygon.square(0, 0, 8)
 s.orient(False)
-path_in = pocket(list(s.segments()))
+path_in = Pocket(list(s.segments()))
 
 path_out = Segment([
     Point([-3, 3]), Point([12, 5])

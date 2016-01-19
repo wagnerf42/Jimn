@@ -1,41 +1,47 @@
+"""
+handling overlapping segments.
+"""
+from collections import defaultdict
 from jimn.segment import Segment
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
-from jimn.utils.precision import precision
 from jimn.utils.coordinates_hash import rounder_lines
-from collections import defaultdict
 START = 0
 END = 1
 
 
-class segment_merger:
+class SegmentMerger:
+    """
+    holds one execution of algorithm merging segments.
+    """
     def __init__(self, segments):
         self.segments = segments
+        self.points = {}
+        self.counters = [defaultdict(int), defaultdict(int)]
         self.lines = defaultdict(list)
+        self.sorted_points = None
 
     def _hash_segments(self):
         """
         hashes aligned segments together
         """
-        for s in self.segments:
-            h = s.line_hash(rounder_lines)
-            self.lines[h].append(s)
+        for segment in self.segments:
+            signature = segment.line_hash(rounder_lines)
+            self.lines[signature].append(segment)
 
     def _compute_points_and_counters(self, segments):
         """
         prepares for sweeping through line of aligned segments
         """
-        self.points = {}
-        self.counters = [defaultdict(int), defaultdict(int)]
         # loop through each segment
         # we record all points
         # and for each one how many segments start here and end here
-        for s in segments:
-            endpoints = s.get_endpoints()
+        for segment in segments:
+            endpoints = segment.get_endpoints()
             self.points[endpoints[0]] = endpoints[0]
             self.points[endpoints[1]] = endpoints[1]
-            for counter, p in zip(self.counters, endpoints):
-                counter[p] += 1
+            for counter, point in zip(self.counters, endpoints):
+                counter[point] += 1
 
         # now sort points
         self.sorted_points = sorted(self.points.keys())
@@ -55,18 +61,18 @@ class segment_merger:
 
         odd_segments = []
 
-        for p in self.sorted_points:
+        for point in self.sorted_points:
             now_on = currently_on
-            if p in self.counters[START]:
-                now_on = now_on + self.counters[START][p]
-            if p in self.counters[END]:
-                now_on = now_on - self.counters[END][p]
+            if point in self.counters[START]:
+                now_on = now_on + self.counters[START][point]
+            if point in self.counters[END]:
+                now_on = now_on - self.counters[END][point]
             if currently_on % 2 == 1:
                 if currently_on > 0:
-                    odd_segments.append(Segment([previous_point, p]))
+                    odd_segments.append(Segment([previous_point, point]))
                 else:
-                    odd_segments.append(Segment([p, previous_point]))
-            previous_point = p
+                    odd_segments.append(Segment([point, previous_point]))
+            previous_point = point
             currently_on = now_on
 
         if __debug__:
@@ -75,6 +81,9 @@ class segment_merger:
         return odd_segments
 
     def merge(self):
+        """
+        apply merging algorithm.
+        """
         odd_segments = []
         self._hash_segments()
         for line_hash in self.lines:
@@ -91,5 +100,5 @@ def merge_segments(segments):
         - even number of segments overlap -> discard
         - odd number of segments overlap -> keep
     """
-    merger = segment_merger(segments)
+    merger = SegmentMerger(segments)
     return merger.merge()

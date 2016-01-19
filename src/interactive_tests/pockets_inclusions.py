@@ -4,18 +4,18 @@ from jimn.point import Point
 from jimn.displayable import tycat
 from jimn.utils.iterators import all_two_elements
 from jimn.segment import Segment
-from jimn.pocket import pocket
+from jimn.pocket import Pocket
 from jimn.polygon import Polygon
 
 # testing inclusion
 
 square = Polygon.square(-0.5, 5, 1)
-tested_pocket = pocket(list(square.segments()))
+tested_pocket = Pocket(list(square.segments()))
 square2 = Polygon.square(0.5, 5, 1)
-tested_pocket2 = pocket(list(square2.segments()))
+tested_pocket2 = Pocket(list(square2.segments()))
 
 including = Polygon.square(-1, 4, 3)
-including_pocket = pocket(list(including.segments()))
+including_pocket = Pocket(list(including.segments()))
 
 not_including = [
     Point([-2.0, 3.0]),
@@ -28,7 +28,7 @@ not_including = [
     Point([8.0, 3.0]),
 ]
 
-not_including_pocket = pocket([
+not_including_pocket = Pocket([
     Segment([a, b]) for a, b in all_two_elements(not_including)
 ])
 
@@ -41,7 +41,7 @@ vertically_aligned = [
     Point([-4, 5.5]),
 ]
 
-va_pocket = pocket([
+va_pocket = Pocket([
     Segment([a, b]) for a, b in all_two_elements(vertically_aligned)
 ])
 

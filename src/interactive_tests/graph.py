@@ -3,7 +3,7 @@
 from jimn.point import Point
 from jimn.polygon import Polygon
 from jimn.displayable import tycat, tycat_set_svg_dimensions
-from jimn.pocket import pocket
+from jimn.pocket import Pocket
 from jimn.holed_pocket import HoledPocket
 from jimn.pocket.graph_builder import build_graph
 from jimn.graph.eulerian_cycle import find_eulerian_cycle, cycle_to_path
@@ -19,8 +19,8 @@ d = Point([0.5, 0.4])
 e = Point([0.2, 1.0])
 f = Point([0.8, 1.0])
 
-outer_edge = pocket(list(Polygon([a, b, c]).segments()))
-hole = pocket(list(Polygon([d, e, f]).segments()))
+outer_edge = Pocket(list(Polygon([a, b, c]).segments()))
+hole = Pocket(list(Polygon([d, e, f]).segments()))
 abc = HoledPocket(outer_edge, [hole])
 
 g = build_graph(abc, 0.3)
@@ -35,7 +35,7 @@ b = Point([0.0, 1.2])
 c = Point([1.2, 1.2])
 
 segments = list(Polygon([a, b, c]).segments())  # outer edge
-abc = HoledPocket(pocket(segments))
+abc = HoledPocket(Pocket(segments))
 
 g = build_graph(abc, 0.3)
 tycat(g)
@@ -48,7 +48,7 @@ b = Point([0.0, 0.3])
 c = Point([1.2, 0.3])
 
 segments = list(Polygon([a, b, c]).segments())  # outer edge
-abc = HoledPocket(pocket(segments))
+abc = HoledPocket(Pocket(segments))
 
 g = build_graph(abc, 0.3)
 tycat(g)
@@ -80,10 +80,10 @@ r = Point([7.0, 4.0])
 
 hole = Polygon([o, p, q, r])
 hp = HoledPocket(
-    pocket(
+    Pocket(
         list(Polygon([a, b, c, d, e, f, g, h, i, j, k, l, m, n]).segments())
     ),
-    [pocket(list(Polygon([o, p, q, r]).segments()))]
+    [Pocket(list(Polygon([o, p, q, r]).segments()))]
 )
 
 g = build_graph(hp, 4.0)
@@ -102,7 +102,7 @@ e = Point([4.0, 4.0])
 f = Point([4.0, 0.0])
 
 segments = list(Polygon([a, b, c, d, e, f]).segments())  # outer edge
-abc = HoledPocket(pocket(segments))
+abc = HoledPocket(Pocket(segments))
 
 g = build_graph(abc, 1, True)
 tycat(g)
