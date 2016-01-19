@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from jimn.point import Point
-from jimn.polygon import polygon
+from jimn.polygon import Polygon
 from jimn.displayable import tycat
 from jimn.tree.polygon_tree import polygon_tree
 
@@ -40,25 +40,25 @@ points7 = [q, r, s, t]
 polygons = {}
 
 height = 4
-poly1 = polygon(list(points1), 1)
+poly1 = Polygon(list(points1), 1)
 polygons[height] = [poly1]
 
 height -= 1
-poly2 = polygon(list(points1), 2)
+poly2 = Polygon(list(points1), 2)
 polygons[height] = [poly2]
 
 height -= 1
-poly3 = polygon(list(points1), 3)
-poly4 = polygon(list(points4), 4)
-poly5 = polygon(list(points5), 5)
-poly6 = polygon(list(points6), 6)
-poly7 = polygon(list(points7), 7)
+poly3 = Polygon(list(points1), 3)
+poly4 = Polygon(list(points4), 4)
+poly5 = Polygon(list(points5), 5)
+poly6 = Polygon(list(points6), 6)
+poly7 = Polygon(list(points7), 7)
 polygons[height] = [poly3, poly4, poly5, poly6, poly7]
 
 height -= 1
-poly8 = polygon(list(points1), 8)
-poly9 = polygon(list(points5), 9)
-poly10 = polygon(list(points4), 10)
+poly8 = Polygon(list(points1), 8)
+poly9 = Polygon(list(points5), 9)
+poly10 = Polygon(list(points4), 10)
 polygons[height] = [poly8, poly9, poly10]
 
 tycat(poly1)

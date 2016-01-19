@@ -116,7 +116,7 @@ class path_tree(tree):
             except:
                 print("merging failed")
                 tycat(self.content, c.content, positions[i].inner_point,
-                      positions[i].outer_point, positions[i].ep)
+                      positions[i].outer_point, positions[i].elementary_path)
                 raise
 
     def _sort_children_and_positions(self, positions):

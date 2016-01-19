@@ -109,7 +109,7 @@ class inclusion_tree_builder(sweeping_line_algorithm):
 def _non_vertical_segments(p, height):
     return filter(lambda s: not s.is_vertical(), [
         polygonsegment([p1, p2], height, p)
-        for p1, p2 in all_two_elements(p.get_points())]
+        for p1, p2 in all_two_elements(p.points)]
     )
 
 

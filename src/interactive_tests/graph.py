@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from jimn.point import Point
-from jimn.polygon import polygon
+from jimn.polygon import Polygon
 from jimn.displayable import tycat, tycat_set_svg_dimensions
 from jimn.pocket import pocket
 from jimn.holed_pocket import HoledPocket
@@ -19,8 +19,8 @@ d = Point([0.5, 0.4])
 e = Point([0.2, 1.0])
 f = Point([0.8, 1.0])
 
-outer_edge = pocket(list(polygon([a, b, c]).segments()))
-hole = pocket(list(polygon([d, e, f]).segments()))
+outer_edge = pocket(list(Polygon([a, b, c]).segments()))
+hole = pocket(list(Polygon([d, e, f]).segments()))
 abc = HoledPocket(outer_edge, [hole])
 
 g = build_graph(abc, 0.3)
@@ -34,7 +34,7 @@ a = Point([0.6, 0.0])
 b = Point([0.0, 1.2])
 c = Point([1.2, 1.2])
 
-segments = list(polygon([a, b, c]).segments())  # outer edge
+segments = list(Polygon([a, b, c]).segments())  # outer edge
 abc = HoledPocket(pocket(segments))
 
 g = build_graph(abc, 0.3)
@@ -47,7 +47,7 @@ a = Point([0.6, 0.0])
 b = Point([0.0, 0.3])
 c = Point([1.2, 0.3])
 
-segments = list(polygon([a, b, c]).segments())  # outer edge
+segments = list(Polygon([a, b, c]).segments())  # outer edge
 abc = HoledPocket(pocket(segments))
 
 g = build_graph(abc, 0.3)
@@ -71,19 +71,19 @@ l = Point([13.0, 8.0])
 m = Point([13.0, 0.0])
 n = Point([0.0, 0.0])
 
-poly = polygon([a, b, c, d, e, f, g, h, i, j, k, l, m, n])
+poly = Polygon([a, b, c, d, e, f, g, h, i, j, k, l, m, n])
 
 o = Point([6.0, 4.0])
 p = Point([6.0, 8.0])
 q = Point([7.0, 8.0])
 r = Point([7.0, 4.0])
 
-hole = polygon([o, p, q, r])
+hole = Polygon([o, p, q, r])
 hp = HoledPocket(
     pocket(
-        list(polygon([a, b, c, d, e, f, g, h, i, j, k, l, m, n]).segments())
+        list(Polygon([a, b, c, d, e, f, g, h, i, j, k, l, m, n]).segments())
     ),
-    [pocket(list(polygon([o, p, q, r]).segments()))]
+    [pocket(list(Polygon([o, p, q, r]).segments()))]
 )
 
 g = build_graph(hp, 4.0)
@@ -101,7 +101,7 @@ d = Point([0.0, 4.0])
 e = Point([4.0, 4.0])
 f = Point([4.0, 0.0])
 
-segments = list(polygon([a, b, c, d, e, f]).segments())  # outer edge
+segments = list(Polygon([a, b, c, d, e, f]).segments())  # outer edge
 abc = HoledPocket(pocket(segments))
 
 g = build_graph(abc, 1, True)

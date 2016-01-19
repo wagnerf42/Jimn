@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 from jimn.point import Point
-from jimn.polygon import polygon
+from jimn.polygon import Polygon
 from jimn.displayable import tycat
 
-p = polygon([
+p = Polygon([
     Point([-1.5, 0.2071000039577484]),
     Point([-1.29497096657753, 0.7020999744534493]),
     Point([-1.2928999662399292, 0.707099974155426]),

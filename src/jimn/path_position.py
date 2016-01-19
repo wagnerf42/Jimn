@@ -1,8 +1,17 @@
+"""
+module for recording a position on a path.
+we can use it to compute positions on small paths ( = fast)
+then change the path by adding new elementary paths ( after the position )
+and finally use the stored position on the long path without recomputing it.
+"""
 from jimn.caching import cached
 
 
-class path_position:
-    def __init__(self, ep, position_point, index):
+class PathPosition:
+    """
+    position on a path (contains index of elementary path on path).
+    """
+    def __init__(self, elementary_path, position_point, index):
         """
         creates an object storing a position on some path.
         always fast modifications of path at given position later on.
@@ -10,12 +19,16 @@ class path_position:
         update on path change
         """
         self.point = position_point
-        self.ep = ep
+        self.elementary_path = elementary_path
         self.index = index
 
     @cached
     def distance(self):
-        return self.ep.squared_distance_from_start(self.point)
+        """
+        return distance of position from start of elementary path
+        containing it.
+        """
+        return self.elementary_path.squared_distance_from_start(self.point)
 
     def __lt__(self, other):
         """

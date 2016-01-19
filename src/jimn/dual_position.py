@@ -1,7 +1,7 @@
 """
 position simultaneous on two different paths.
 """
-from jimn.path_position import path_position
+from jimn.path_position import PathPosition
 
 
 class Dual_Position:
@@ -15,9 +15,9 @@ class Dual_Position:
         stores positions on two different paths.
         used when switching between different paths.
         """
-        self.outer_position = path_position(outer_path,
-                                            outer_point, outer_index)
-        self.inner_position = path_position(None, inner_point, None)
+        self.outer_position = PathPosition(outer_path,
+                                           outer_point, outer_index)
+        self.inner_position = PathPosition(None, inner_point, None)
 
     def __lt__(self, other):
         """

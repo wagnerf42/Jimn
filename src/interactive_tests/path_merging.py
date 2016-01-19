@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 
-from jimn.polygon import polygon
+from jimn.polygon import Polygon
 from jimn.algorithms.offsetter import offset_holed_polygon
 from jimn.pocket.graph_builder import build_graph
 from jimn.graph.eulerian_cycle import find_eulerian_cycle, cycle_to_path
 from jimn.tree.path_tree import path_tree
 
 polygons = [
-    polygon.square(0, 0, 12),
-    polygon.square(2.5, 2.5, 3),
-    polygon.square(6.5, 6.5, 3),
-    polygon.square(0.1, 0.1, 4.1),
-    polygon.square(0.1, 0.1, 4.1),
-    polygon.square(0.1, 0.1, 4.1),
+    Polygon.square(0, 0, 12),
+    Polygon.square(2.5, 2.5, 3),
+    Polygon.square(6.5, 6.5, 3),
+    Polygon.square(0.1, 0.1, 4.1),
+    Polygon.square(0.1, 0.1, 4.1),
+    Polygon.square(0.1, 0.1, 4.1),
 ]
 
 for p in polygons:
@@ -30,7 +30,7 @@ trees[3].children = [trees[4]]
 trees[4].children = [trees[5]]
 t.tycat()
 result = t.global_path(1)
-result.animate()
+result.animate(1)
 
 print("not fully overlapping")
 t2 = path_tree()
@@ -38,4 +38,4 @@ t2.children = [trees[0]]
 trees[0].children = [trees[1], trees[2]]
 t2.tycat()
 result = t2.global_path(1)
-result.animate()
+result.animate(1)

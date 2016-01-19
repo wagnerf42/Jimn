@@ -5,11 +5,11 @@ import os
 from math import floor
 from collections import defaultdict
 from jimn.vertical_path import vertical_path
-from jimn.path_position import path_position
+from jimn.path_position import PathPosition
 from jimn.bounding_box import Bounding_Box
 from jimn.point import Point
 from jimn.envelope import Envelope
-from jimn.displayable import tycat_start, tycat_end, tycat
+from jimn.displayable import tycat_start, tycat_end
 
 
 PATH_IMAGES = os.environ.get("JIMN_PATH_ANIMATION")
@@ -132,7 +132,7 @@ class Path:
         """
         for i, path in enumerate(self.elementary_paths):
             if path.contains(point):
-                return path_position(path, point, i)
+                return PathPosition(path, point, i)
 
         raise Exception("point not found in path")
 

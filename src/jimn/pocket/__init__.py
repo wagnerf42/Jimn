@@ -4,7 +4,7 @@ set of paths defining a pocket to mill.
 
 from itertools import combinations
 from jimn.bounding_box import Bounding_Box
-from jimn.polygon import polygon
+from jimn.polygon import Polygon
 from jimn.point import Point
 from jimn.arc import Arc
 from jimn.segment import Segment
@@ -50,7 +50,7 @@ class pocket:
         only meaningful if paths inside are sorted
         in the right order
         """
-        return polygon(list(self.get_points()))
+        return Polygon(list(self.get_points()))
 
     def is_oriented_clockwise(self):
         """

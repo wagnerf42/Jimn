@@ -84,7 +84,7 @@ class HoledPolygon:
         for hole in self.holes:
             hole.orient(clockwise=True)
             hole.normalize_starting_point()
-        self.holes = sorted(self.holes, key=lambda h: h.get_points()[0])
+        self.holes = sorted(self.holes, key=lambda h: h.points[0])
 
     def translation_vector(self, other):
         """

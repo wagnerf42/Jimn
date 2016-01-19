@@ -93,7 +93,8 @@ def merge_path(outer_path, inner_path, position):
     if __debug__:
         if is_module_debugged(__name__):
             print("merging at", position.outer_position.index)
-            tycat(outer_path, inner_path, position.outer_position.ep)
+            tycat(outer_path, inner_path,
+                  position.outer_position.elementary_path)
     arrival_path = paths[position.outer_position.index]
     assert arrival_path.contains(outer_point), "no merging here"
 

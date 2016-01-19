@@ -5,16 +5,16 @@ from jimn.displayable import tycat
 from jimn.utils.iterators import all_two_elements
 from jimn.segment import Segment
 from jimn.pocket import pocket
-from jimn.polygon import polygon
+from jimn.polygon import Polygon
 
 # testing inclusion
 
-square = polygon.square(-0.5, 5, 1)
+square = Polygon.square(-0.5, 5, 1)
 tested_pocket = pocket(list(square.segments()))
-square2 = polygon.square(0.5, 5, 1)
+square2 = Polygon.square(0.5, 5, 1)
 tested_pocket2 = pocket(list(square2.segments()))
 
-including = polygon.square(-1, 4, 3)
+including = Polygon.square(-1, 4, 3)
 including_pocket = pocket(list(including.segments()))
 
 not_including = [

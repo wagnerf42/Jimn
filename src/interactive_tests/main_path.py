@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from jimn.polygon import polygon
+from jimn.polygon import Polygon
 from jimn.displayable import tycat
 from jimn.tree.polygon_tree import polygon_tree
 from jimn.tree.pocket_tree import pocket_tree
@@ -9,11 +9,11 @@ from jimn.tree.path_tree import path_tree
 milling_radius = 0.9
 
 polygons = {}
-polygons[1] = [polygon.square(0, 0, 10)]
+polygons[1] = [Polygon.square(0, 0, 10)]
 polygons[0] = [
-    polygon.square(0, 0, 10),
-    polygon.square(2, 2, 6),
-    polygon.square(3.55, 4.55, 3),
+    Polygon.square(0, 0, 10),
+    Polygon.square(2, 2, 6),
+    Polygon.square(3.55, 4.55, 3),
 ]
 
 print("layouts are")
@@ -31,8 +31,8 @@ pockets.tycat()
 paths = path_tree.build(pockets, milling_radius)
 print("path tree")
 paths.tycat()
-paths.animate(polygons[0][2])
+paths.animate(milling_radius)
 
 global_path = paths.global_path(milling_radius)
-global_path.animate(polygons[0][2])
+global_path.animate(milling_radius)
 #print("total length:", global_path.length())
