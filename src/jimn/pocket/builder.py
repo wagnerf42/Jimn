@@ -1,4 +1,4 @@
-from jimn.pocket import pocket
+from jimn.pocket import Pocket
 from jimn.displayable import tycat, tycat_set_svg_dimensions
 from jimn.utils.debug import is_module_debugged
 from collections import defaultdict
@@ -144,7 +144,7 @@ class pockets_builder:
             self.previous_point = self.current_point
             self.current_point = next_path.get_endpoint(1)
 
-        return pocket(self.current_path)
+        return Pocket(self.current_path)
 
 
 def build_pockets(paths, reverse_paths=True):

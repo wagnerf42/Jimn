@@ -5,7 +5,7 @@ from collections import defaultdict
 from itertools import combinations
 from jimn.displayable import tycat
 from jimn.arc import Arc
-from jimn.pocket import pocket
+from jimn.pocket import Pocket
 from jimn.holed_pocket import HoledPocket
 from jimn.pocket.builder import build_pockets
 from jimn.utils.coordinates_hash import rounder2d
@@ -88,7 +88,7 @@ def _offset(radius, polygon_to_offset):
     if len(edge) < 2:
         return []
     else:
-        return pocket(edge)
+        return Pocket(edge)
 
 
 def _merge_included_pockets(pockets):
@@ -98,16 +98,16 @@ def _merge_included_pockets(pockets):
     returns a set of independent pockets
     """
     included_pockets = defaultdict(list)
-    for p in pockets:
-        included_pockets[id(p)].append(p)
+    for pocket in pockets:
+        included_pockets[id(pocket)].append(pocket)
 
-    for p1 in pockets:
-        for p2 in pockets:
-            if id(p1) != id(p2):
-                if p1.is_included_in(p2):
-                    assert len(included_pockets[id(p1)]) == 1
-                    del included_pockets[id(p1)]
-                    included_pockets[id(p2)].append(p1)
+    for pocket1 in pockets:
+        for pocket2 in pockets:
+            if id(pocket1) != id(pocket2):
+                if pocket1.is_included_in(pocket2):
+                    assert len(included_pockets[id(pocket1)]) == 1
+                    del included_pockets[id(pocket1)]
+                    included_pockets[id(pocket2)].append(pocket1)
                     break
 
     disjoint_pockets = []
@@ -117,46 +117,58 @@ def _merge_included_pockets(pockets):
         # we do that here and not before because they might now contain content
         # which will be discarded too
         if not pockets[0].is_oriented_clockwise():
-            hp = HoledPocket(pockets[0], pockets[1:])
-            disjoint_pockets.append(hp)
+            holed_pocket = HoledPocket(pockets[0], pockets[1:])
+            disjoint_pockets.append(holed_pocket)
 
     return disjoint_pockets
 
 
-def offset_holed_polygon(radius, *polygons):
+def offset_to_elementary_paths(radius, polygons):
     """
-    takes a holed polygon and routing radius
-    removes non accessible edges and returns
-    a set of disjoint pockets
+    compute all paths obtained when offsetting.
+    handle overlaps and intersections and return
+    a set of elementary paths ready to be used for
+    rebuilding pockets.
     """
-
     # offset each polygon
     pockets = [_offset(radius, p) for p in polygons]
 
     # remove overlapping segments
-    for p1, p2 in combinations(pockets, r=2):
-        p1.remove_overlap_with(p2)
-    for p in pockets:
-        p.remove_overlap_with(p)
+    for pocket1, pocket2 in combinations(pockets, r=2):
+        pocket1.remove_overlap_with(pocket2)
+    for pocket in pockets:
+        pocket.remove_overlap_with(pocket)
 
     # compute intersections
     intersections = defaultdict(list)  # to each path a list of intersections
-    for p1, p2 in combinations(pockets, r=2):
-        p1.intersections_with(p2, intersections)
+    for pocket1, pocket2 in combinations(pockets, r=2):
+        pocket1.intersections_with(pocket2, intersections)
 
     # compute self intersections and generate elementary paths
-    for po in pockets:
-        po.self_intersections(intersections)
-        po.split_at(intersections)
+    for pocket in pockets:
+        pocket.self_intersections(intersections)
+        pocket.split_at(intersections)
 
     paths = []
-    for po in pockets:
-        paths.extend(po.paths)
+    for pocket in pockets:
+        paths.extend(pocket.paths)
 
     if __debug__:
         if is_module_debugged(__name__):
             print("elementary paths")
             tycat(paths)
+
+    return paths
+
+
+def offset_holed_polygon(radius, *polygons):
+    """
+    take a holed polygon and routing radius.
+    remove non accessible surfaces and return
+    a set of disjoint holed pockets.
+    """
+
+    paths = offset_to_elementary_paths(radius, polygons)
 
     try:
         pockets = build_pockets(paths, False)

@@ -1,7 +1,7 @@
 """
 differentiate paths in a pocket between outer edge and inner edge.
 """
-from jimn.pocket import pocket
+from jimn.pocket import Pocket
 
 
 class HoledPocket:
@@ -37,7 +37,7 @@ class HoledPocket:
         split_paths = []
         for subpocket in self.subpockets():
             subpocket.split_at_milling_points(milling_diameter, split_paths)
-        return pocket(split_paths)
+        return Pocket(split_paths)
 
     def get_bounding_box(self):
         """
@@ -56,7 +56,7 @@ class HoledPocket:
     def __str__(self):
         # TODO : better indentation
         inner_strings = ["    " + str(p) for p in self.inner_edges]
-        return "holed_pocket([\n    " + \
+        return "HoledPocket([\n    " + \
             ",\n    ".join([str(p) for p in self.outer_edge.paths]) \
             + "\n], [" + "\n".join(inner_strings) \
             + "])"

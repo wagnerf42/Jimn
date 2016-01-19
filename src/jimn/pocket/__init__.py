@@ -15,7 +15,10 @@ from jimn.utils.iterators import all_combinations
 from jimn.utils.coordinates_hash import rounder2d
 
 
-class pocket:
+class Pocket:
+    """
+    ordered set of paths defining the edge of an area to mill.
+    """
     def __init__(self, paths):
         self.paths = paths
 
@@ -35,7 +38,7 @@ class pocket:
         """
         if translation.is_almost(Point([0, 0])):
             return self
-        return pocket([p.translate(translation) for p in self.paths])
+        return Pocket([p.translate(translation) for p in self.paths])
 
     def get_points(self):
         """
@@ -234,7 +237,7 @@ class pocket:
         return True
 
     def __str__(self):
-        return "pocket([\n    " + ",\n    ".join([str(p) for p in self.paths]) \
+        return "Pocket([\n    " + ",\n    ".join([str(p) for p in self.paths]) \
             + "\n])"
 
 

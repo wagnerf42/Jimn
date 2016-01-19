@@ -8,7 +8,7 @@ in paths it corresponds to
 from jimn.bounding_box import Bounding_Box
 from jimn.arc import Arc
 from jimn.segment import Segment
-from jimn.pocket import pocket
+from jimn.pocket import Pocket
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.envelope.displaced_path import Displaced_path
@@ -25,7 +25,7 @@ class Envelope:
         self.distance = distance
         self.inside_content = inside_content  # for debug only
 
-        if isinstance(inside_content, pocket):
+        if isinstance(inside_content, Pocket):
             try:
                 self._fill_from_pocket(inside_content)
             except:

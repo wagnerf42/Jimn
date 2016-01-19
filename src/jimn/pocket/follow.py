@@ -20,7 +20,7 @@ class follower:
         """
         while self.points:
             start_point = self.get_starting_point()
-            self.seen_points = {} # to each point, hash index of ep leaving it
+            self.seen_points = {}  # to each point, hash index of ep leaving it
             self.current_point = start_point
             self.current_path = []
             while True:
@@ -106,11 +106,11 @@ def split_pocket(p):
     """
     f = follower(p)
     f.follow()
-    sub_pockets = [pocket(r) for r in f.results]
+    sub_pockets = [Pocket(r) for r in f.results]
     return sub_pockets
 
 
 from jimn.displayable import tycat
-from jimn.pocket import pocket
+from jimn.pocket import Pocket
 from jimn.utils.debug import is_module_debugged
 from collections import defaultdict
