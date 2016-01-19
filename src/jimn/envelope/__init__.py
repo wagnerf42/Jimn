@@ -11,7 +11,7 @@ from jimn.segment import Segment
 from jimn.pocket import Pocket
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
-from jimn.envelope.displaced_path import Displaced_path
+from jimn.envelope.displaced_path import DisplacedPath
 
 
 class Envelope:
@@ -108,7 +108,7 @@ class Envelope:
             )
         )
         self.paths = [
-            Displaced_path(a, b)
+            DisplacedPath(a, b)
             for a, b in zip([arcs[0], sides[1], arcs[1], sides[0]],
                             [point_1, segment, point_2, segment])
         ]
@@ -132,7 +132,7 @@ class Envelope:
                                  arc.center)
         # TODO: I don't think we need the side arcs
         self.paths = [
-            Displaced_path(p, o)
+            DisplacedPath(p, o)
             for p, o in zip(
                 [side_arc_point_1, displaced_main_arc, side_arc_point_2],
                 [arc_point_1, arc, arc_point_2]
@@ -150,14 +150,14 @@ class Envelope:
         for path in inside_pocket.paths:
             if isinstance(path, Segment):
                 try:
-                    displaced_path = Displaced_path(
+                    displaced_path = DisplacedPath(
                         path.parallel_segment(self.distance, -1), path)
                 except:
                     print("failed // segment for pocket", inside_pocket)
                     print("failed segment was", path)
                     tycat(inside_pocket, path)
             else:
-                displaced_path = Displaced_path(path.inflate(), path)
+                displaced_path = DisplacedPath(path.inflate(), path)
             raw_paths.append(displaced_path)
 
         # now do the reconnections if path is disconnected
@@ -167,7 +167,7 @@ class Envelope:
             current_point = current_path.path.get_endpoint(0)
             if previous_point != current_point:
                 center = previous_path.origin.get_endpoint(1)
-                displaced_path = Displaced_path(
+                displaced_path = DisplacedPath(
                     Arc(self.distance, [current_point, previous_point],
                         center, True),
                     center

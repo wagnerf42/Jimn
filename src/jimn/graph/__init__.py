@@ -1,6 +1,18 @@
+"""
+graph class and algorithms.
+"""
+from itertools import combinations
+from jimn.bounding_box import Bounding_Box
+from jimn.graph.edge import Edge
+from jimn.graph.vertex import Vertex
+from jimn.segment import Segment
 
 
-class graph:
+class Graph:
+    """
+    oriented multigraph.
+    two types of edges (frontier and standard).
+    """
     def __init__(self):
         self.vertices_objects = {}
         self.vertices = []
@@ -12,48 +24,57 @@ class graph:
         iterator going through all frontier edges.
         we only do non-oriented style : avoid seeing edge once in each direction
         """
-        for v in self.vertices:
-            for e in v.frontier_edges:
-                if e.vertices[0].id < e.vertices[1].id:
-                    yield e
+        for vertex in self.vertices:
+            for edge in vertex.frontier_edges:
+                if edge.vertices[0].id < edge.vertices[1].id:
+                    yield edge
 
     @classmethod
     def complete_graph(cls, points):
         """
         builds complete graph from set of points.
         """
-        g = cls()
-        for p1, p2 in combinations(points, 2):
-            g.add_edge(Segment([p1, p2]))
-        return g
+        graph = cls()
+        for points in combinations(points, 2):
+            graph.add_edge(Segment(points))
+        return graph
 
     def is_empty(self):
+        """
+        do we contain nothing ?
+        """
         return self.vertices_number == 0
 
-    def get_vertices(self):
-        return self.vertices
-
     def get_vertices_number(self):
+        """
+        how many vertices do we contain ?
+        """
         return self.vertices_number
 
     def get_max_vertices_number(self):
+        """
+        return upper bound (strict) on max vertex id.
+        """
         return self.max_vertices_number
 
     def get_all_edges(self):
-        for v in self.vertices:
-            for e in v.get_edges():
-                yield e
+        """
+        iterator on edges.
+        """
+        for vertex in self.vertices:
+            for edge in vertex.get_edges():
+                yield edge
 
     def get_non_oriented_edges(self):
         """
-        iterates through edges.
+        iterator on edges.
         in graph : existence of edge (a,b) implies existence of (b,a)
         we only iterate here once on each edge (avoiding reversed edges)
         """
-        for v in self.vertices:
-            for e in v.get_edges():
-                if e.vertices[0].id < e.vertices[1].id:
-                    yield e
+        for vertex in self.vertices:
+            for edge in vertex.get_edges():
+                if edge.vertices[0].id < edge.vertices[1].id:
+                    yield edge
 
     def get_any_vertex(self):
         """
@@ -62,34 +83,48 @@ class graph:
         return self.vertices[0]
 
     def get_bounding_box(self):
+        """
+        min bounding box containing vertices objects.
+        """
         box = Bounding_Box.empty_box(2)
-        for p in self.get_vertices():
-            small_box = p.get_object().get_bounding_box()
+        for vertex in self.vertices:
+            small_box = vertex.get_object().get_bounding_box()
             box.update(small_box)
         return box
 
     def save_svg_content(self, display, color):
-        for p in self.get_vertices():
-            p.save_svg_content(display, color)
+        """
+        svg for tycat.
+        """
+        for vertex in self.vertices:
+            vertex.save_svg_content(display, color)
 
     def add_vertex(self, vertex_object):
         """
-        adds a vertex corresponding to given object.
-        if one is already in graph then does not add but returns existing one
+        add a vertex corresponding to given object.
+        if one is already in graph then do not add but return existing one.
         """
         if vertex_object not in self.vertices_objects:
-            v = vertex(vertex_object, self.max_vertices_number)
-            self.vertices_objects[vertex_object] = v
-            self.vertices.append(v)
+            vertex = Vertex(vertex_object, self.max_vertices_number)
+            self.vertices_objects[vertex_object] = vertex
+            self.vertices.append(vertex)
             self.max_vertices_number += 1
             self.vertices_number += 1
+
         return self.vertices_objects[vertex_object]
 
-    def remove_vertex(self, v):
-        self.vertices.remove(v)
+    def remove_vertex(self, vertex):
+        """
+        remove one vertex. (leaves holes in vertices ids range).
+        """
+        self.vertices.remove(vertex)
         self.vertices_number -= 1
 
     def add_edge(self, edge_path, frontier_edge=False):
+        """
+        add given path as edge.
+        create vertices if needed.
+        """
         endpoints = edge_path.get_endpoints()
         self.add_edge_between(endpoints[0], endpoints[1],
                               edge_path, frontier_edge)
@@ -97,49 +132,44 @@ class graph:
     def add_edge_between(self, object1, object2, edge_path,
                          frontier_edge=False):
         """
-        creates or get vertices corresponding to given objects and add an edge
+        create or get vertices corresponding to given objects and add an edge
         between them with the given path.
         """
         vertex1 = self.add_vertex(object1)
         vertex2 = self.add_vertex(object2)
-        e = edge(vertex1, vertex2, edge_path)
-        vertex1.add_edge(e, frontier_edge)
-        reversed_e = edge(vertex2, vertex1, edge_path.reverse())
-        vertex2.add_edge(reversed_e, frontier_edge)
+        edge = Edge(vertex1, vertex2, edge_path)
+        vertex1.add_edge(edge, frontier_edge)
+        reversed_edge = Edge(vertex2, vertex1, edge_path.reverse())
+        vertex2.add_edge(reversed_edge, frontier_edge)
 
-    def add_direct_edge(self, e):
+    def add_direct_edge(self, edge):
         """
-        adds an edge (non frontier)
-        between two existing vertices
+        add an edge (non frontier)
+        between two existing (precondition) vertices.
         """
-        vertices = e.get_endpoints()
-        vertices[0].add_edge(e, frontier_edge=False)
-        tmp = e.reverse()
-        vertices[1].add_edge(tmp, frontier_edge=False)
+        vertices = edge.vertices
+        vertices[0].add_edge(edge, frontier_edge=False)
+        vertices[1].add_edge(edge.reverse(), frontier_edge=False)
 
-    def subgraph(self, vertices):
+    @classmethod
+    def subgraph(cls, vertices):
         """
-        returns subgraph formed by given vertices.
+        return subgraph formed by given vertices.
         """
-        subg = graph()
-        for v1, v2 in combinations(vertices, 2):
-            e = v1.get_edge_to(v2)
-            p = e.get_path()
-            subg.add_edge_between(v1.get_object(), v2.get_object(), p)
-        return subg
+        subgraph = cls()
+        for vertex1, vertex2 in combinations(vertices, 2):
+            edge = vertex1.get_edge_to(vertex2)
+            path = edge.get_path()
+            subgraph.add_edge_between(vertex1.get_object(),
+                                      vertex2.get_object(), path)
+        return subgraph
 
     def get_double_edges(self):
         """
         returns list of our edges with multiplicity 2.
         """
         double_edges = []
-        for e in self.get_non_oriented_edges():
-            if e.get_multiplicity() == 2:
-                double_edges.append(e)
+        for edge in self.get_non_oriented_edges():
+            if edge.get_multiplicity() == 2:
+                double_edges.append(edge)
         return double_edges
-
-from jimn.bounding_box import Bounding_Box
-from jimn.graph.edge import edge
-from jimn.graph.vertex import vertex
-from jimn.segment import Segment
-from itertools import combinations

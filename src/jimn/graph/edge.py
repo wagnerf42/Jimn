@@ -1,8 +1,14 @@
+"""
+(multi) edges in graph.
+"""
 from math import floor
 from jimn.elementary_path import Elementary_Path
 
 
-class edge:
+class Edge:
+    """
+    contains two vertices, the real underlying path, multiplicity.
+    """
     def __init__(self, start_vertex, end_vertex, real_path):
         self.vertices = [start_vertex, end_vertex]
         self.path = real_path
@@ -11,6 +17,9 @@ class edge:
         assert isinstance(self.path, Elementary_Path)
 
     def change_multiplicity(self, change):
+        """
+        update multiplicity.
+        """
         assert change == 1 or change == -1
         self.multiplicity += change
         if self.multiplicity == 3:
@@ -18,31 +27,34 @@ class edge:
         self.weight *= -1
         return self.multiplicity
 
-    def get_multiplicity(self):
-        return self.multiplicity
-
     def get_bounding_box(self):
+        """
+        bounding box of underlying path.
+        """
         return self.path.get_bounding_box()
 
     def save_svg_content(self, display, color):
+        """
+        svg for tycat.
+        """
         self.path.save_svg_content(display, color)
 
     def reverse(self):
-        return edge(self.vertices[1], self.vertices[0], self.path.reverse())
-
-    def get_weight(self):
-        return self.weight
-
-    def get_path(self):
-        return self.path
-
-    def get_endpoints(self):
-        return self.vertices
+        """
+        generate reversed self.
+        """
+        return Edge(self.vertices[1], self.vertices[0], self.path.reverse())
 
     def get_destination(self):
+        """
+        return destination vertex.
+        """
         return self.vertices[1]
 
     def is_same(self, other):
+        """
+        are we connecting the same vertices as the other edge ?
+        """
         if self.vertices == other.vertices:
             return True
         if self.vertices == list(reversed(other.vertices)):
@@ -52,17 +64,20 @@ class edge:
     def is_above_y(self, y_limit):
         """
         are we above or below horizontal segment at y_limit ?
-        prerequisite: one of our enpoints is at y_limit
+        prerequisite: one of our enpoints is at y_limit.
         """
         non_limit_y = None
-        for p in self.path.endpoints:
-            y = p.get_y()
-            if y != y_limit:
-                non_limit_y = y
+        for point in self.path.endpoints:
+            point_y = point.get_y()
+            if point_y != y_limit:
+                non_limit_y = point_y
         assert non_limit_y is not None, "horizontal path"
         return non_limit_y < y_limit
 
     def is_almost_horizontal(self):
+        """
+        is underlying path almost horizontal ?
+        """
         return self.path.is_almost_horizontal()
 
     def slice_number(self, milling_diameter):
@@ -78,14 +93,14 @@ class edge:
 
     def remove(self):
         """
-        removes self from graph.
-        needs to be non-frontier
+        remove self from graph.
+        needs to be non-frontier.
         """
-        for i, v in enumerate(self.vertices):
-            v.remove_edge_to(self.vertices[1-i])
+        for i, vertex in enumerate(self.vertices):
+            vertex.remove_edge_to(self.vertices[1-i])
 
-    def __lt__(a, b):
-        return a.weight < b.weight
+    def __lt__(self, other):
+        return self.weight < other.weight
 
     def __hash__(self):
         # TODO: change

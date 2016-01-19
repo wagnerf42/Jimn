@@ -1,5 +1,9 @@
+"""
+bellman ford shortest paths algorithm.
+"""
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
+
 
 def bellman_ford(searched_graph, source_vertex):
     """

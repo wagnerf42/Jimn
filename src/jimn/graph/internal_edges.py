@@ -97,8 +97,8 @@ def _horizontal_edges(aligned_vertices):
     for i in range(len(aligned_vertices)-1):
         v1 = aligned_vertices[i]
         v2 = aligned_vertices[(i+1) % len(aligned_vertices)]
-        p1 = v1.to_point()
-        p2 = v2.to_point()
+        p1 = v1.bound_object
+        p2 = v2.bound_object
         yield edge(v1, v2, Segment([p1, p2]))
 
 

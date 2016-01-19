@@ -1,4 +1,13 @@
 
+jimn.graph.add_direct_edge as method of edge class
+passer jimn.graph.get_double_edges en iterateur ?
+subgraph ?
+vertex.id
+faster bounding boxes on vertices ?
+is anyone hashing edges ?
+
+
+
 SPLIT AT SEEMS NOT OK WITH REVERSED ARCS
 
 
