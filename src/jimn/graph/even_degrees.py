@@ -51,14 +51,14 @@ def _add_edges_in_slices(graph, milling_diameter, slices_parity):
             if (slice_number % 2) == slices_parity:
                 added_edges.append(edge)
                 value += edge.path.length()
-                graph.add_direct_edge(edge)
+                edge.add_directly_to_graph()
 
     for edge in graph.get_non_oriented_edges():
         if edge.is_almost_horizontal():
             vertices = edge.vertices
             if (not vertices[0].even_degree()) and \
                     (not vertices[1].even_degree()):
-                graph.add_direct_edge(edge)
+                edge.add_directly_to_graph()
                 value += edge.path.length()
                 added_edges.append(edge)
 
@@ -77,8 +77,8 @@ def _augment_path(graph, start_vertex):
         if is_module_debugged(__name__):
             added_edges = []
     while current_point != start_vertex:
-        edge = predecessors[current_point.id]
-        graph.add_direct_edge(edge)
+        edge = predecessors[current_point.unique_id]
+        edge.add_directly_to_graph()
         if __debug__:
             if is_module_debugged(__name__):
                 added_edges.append(edge)
@@ -95,8 +95,9 @@ def _augment_path(graph, start_vertex):
 def _find_nearest_odd_vertex(graph, vertex, distances):
     current_distance = float("inf")
     for destination in graph.vertices:
-        distance = distances[destination.id]
-        if (destination.id != vertex.id) and (current_distance > distance):
+        distance = distances[destination.unique_id]
+        if (destination.unique_id != vertex.unique_id) \
+                and (current_distance > distance):
             if destination.degree() % 2:
                 best_destination = destination
                 current_distance = distance

@@ -51,7 +51,7 @@ def _adjust_degree(spanning_tree):
             print("christofides : matching")
             tycat(left)
 
-    for edge in left.get_double_edges():
+    for edge in left.double_edges():
         edge.change_multiplicity(-1)  # set multiplicity back to 1
         spanning_tree.append(edge)
     path_graph = Graph()

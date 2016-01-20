@@ -12,7 +12,7 @@ class Vertex:
         self.bound_object = bound_object
         self.edges = []  # degree is very low so this is ok
         self.frontier_edges = []
-        self.id = number
+        self.unique_id = number
 
     def get_y(self):
         """

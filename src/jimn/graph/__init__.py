@@ -26,7 +26,7 @@ class Graph:
         """
         for vertex in self.vertices:
             for edge in vertex.frontier_edges:
-                if edge.vertices[0].id < edge.vertices[1].id:
+                if edge.vertices[0].unique_id < edge.vertices[1].unique_id:
                     yield edge
 
     @classmethod
@@ -67,7 +67,7 @@ class Graph:
         """
         for vertex in self.vertices:
             for edge in vertex.edges:
-                if edge.vertices[0].id < edge.vertices[1].id:
+                if edge.vertices[0].unique_id < edge.vertices[1].unique_id:
                     yield edge
 
     def get_any_vertex(self):
@@ -136,15 +136,6 @@ class Graph:
         reversed_edge = Edge(vertex2, vertex1, edge_path.reverse())
         vertex2.add_edge(reversed_edge, frontier_edge)
 
-    def add_direct_edge(self, edge):
-        """
-        add an edge (non frontier)
-        between two existing (precondition) vertices.
-        """
-        vertices = edge.vertices
-        vertices[0].add_edge(edge, frontier_edge=False)
-        vertices[1].add_edge(edge.reverse(), frontier_edge=False)
-
     @classmethod
     def subgraph(cls, vertices):
         """
@@ -157,12 +148,10 @@ class Graph:
                                       vertex2.bound_object, edge.path)
         return subgraph
 
-    def get_double_edges(self):
+    def double_edges(self):
         """
-        returns list of our edges with multiplicity 2.
+        iterate through edges with multiplicity 2.
         """
-        double_edges = []
         for edge in self.get_non_oriented_edges():
-            if edge.get_multiplicity() == 2:
-                double_edges.append(edge)
-        return double_edges
+            if edge.multiplicity == 2:
+                yield edge

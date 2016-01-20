@@ -16,6 +16,14 @@ class Edge:
         self.weight = self.path.length()
         assert isinstance(self.path, Elementary_Path)
 
+    def add_directly_to_graph(self):
+        """
+        modify vertices, effectively adding ourselves to their graph.
+        add as non-frontier edge.
+        """
+        self.vertices[0].add_edge(self, frontier_edge=False)
+        self.vertices[1].add_edge(self.reverse(), frontier_edge=False)
+
     def change_multiplicity(self, change):
         """
         update multiplicity.
@@ -101,10 +109,6 @@ class Edge:
 
     def __lt__(self, other):
         return self.weight < other.weight
-
-    def __hash__(self):
-        # TODO: change
-        return hash(id(self.vertices[1]))
 
     def __str__(self):
         return str(id(self.vertices[0])) + " -> " + str(id(self.vertices[1])) \

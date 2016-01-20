@@ -31,7 +31,7 @@ def _create_internal_edges_in_slice(graph, milling_y, vertices):
     for edge in _horizontal_edges(vertices):
         current_position.update(edge)
         if current_position.is_inside():
-            graph.add_direct_edge(edge)
+            edge.add_directly_to_graph()
             if __debug__:
                 if is_module_debugged(__name__):
                     print("adding horizontal edge", str(current_position))
