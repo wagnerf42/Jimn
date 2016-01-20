@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from jimn.point import Point
-from jimn.graph import graph
+from jimn.graph import Graph
 from jimn.graph.tsp import tsp
 from jimn.displayable import tycat
 from jimn.utils.debug import add_module_to_debug
@@ -19,6 +19,6 @@ points = ([
     Point([3, 0]),
 ])
 
-g = graph.complete_graph(points)
+g = Graph.complete_graph(points)
 tycat(g)
 tsp(g)

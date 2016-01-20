@@ -45,8 +45,8 @@ class Vertex:
         """
         self.bound_object.save_svg_content(display, color)
         for edge in self.edges:
-            path = edge.get_path()
-            count = edge.get_multiplicity()
+            path = edge.path
+            count = edge.multiplicity
             path.save_svg_content(display, display.svg_color(count+7))
 
     def remove_any_edge(self):
@@ -56,7 +56,7 @@ class Vertex:
         fast.
         """
         edge = self.edges[-1]
-        if edge.get_multiplicity() == 1:
+        if edge.multiplicity == 1:
             self.edges.pop()
         else:
             edge.change_multiplicity(-1)
@@ -109,7 +109,7 @@ class Vertex:
         """
         return degree (considering multi-edges).
         """
-        return sum([e.get_multiplicity() for e in self.edges])
+        return sum([e.multiplicity for e in self.edges])
 
     def even_degree(self):
         """

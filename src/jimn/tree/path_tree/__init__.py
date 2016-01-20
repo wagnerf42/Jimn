@@ -4,7 +4,7 @@ path trees are created from pockets tree by milling pockets
 from copy import deepcopy
 from jimn.utils.points_containers import nearest_point, nearest_points
 from jimn.displayable import tycat
-from jimn.graph import graph
+from jimn.graph import Graph
 from jimn.graph.eulerian_cycle import find_eulerian_cycle, cycle_to_path
 from jimn.graph.tsp import tsp
 from jimn.path import Path
@@ -143,7 +143,7 @@ class path_tree(tree):
         and change each cycle starting point as the visited point
         """
         o = Point([0, 0])
-        g = graph()
+        g = Graph()
         children = {}  # record to which child each point belongs
         for c in self.children:
             end = nearest_point(c.old_pocket, o)

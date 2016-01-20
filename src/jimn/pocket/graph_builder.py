@@ -14,7 +14,7 @@ def build_graph(milled_pocket, milling_diameter, fast_algorithm=False):
             tycat(milled_pocket)
 
     # fill all vertices
-    g = graph()
+    g = Graph()
     _create_vertices(milled_pocket, milling_diameter, g)
 
     # finish by adding horizontal internal edges
@@ -53,7 +53,7 @@ def _create_vertices(milled_pocket, milling_diameter, built_graph):
 
 
 from jimn.displayable import tycat
-from jimn.graph import graph
+from jimn.graph import Graph
 from jimn.graph.even_degrees import make_degrees_even, make_degrees_even_fast
 from jimn.graph.internal_edges import create_internal_edges
 from jimn.utils.debug import is_module_debugged

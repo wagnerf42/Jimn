@@ -1,71 +1,86 @@
 """
-fill pocket with internal paths
+fill pocket with internal paths.
 """
+from collections import defaultdict
+from jimn.displayable import tycat
+from jimn.graph.edge import Edge
+from jimn.utils.math import is_slice_height
+from jimn.segment import Segment
+from jimn.utils.debug import is_module_debugged
 
 
-def create_internal_edges(g, milling_diameter):
+def create_internal_edges(graph, milling_diameter):
     """
-    create internal horizontal edges for milling
+    create internal horizontal edges for milling.
     """
     vertices_per_height = defaultdict(list)
-    for v in g.get_vertices():
-        y = v.get_y()
-        if is_slice_height(y, milling_diameter):
-            vertices_per_height[y].append(v)
+    for vertex in graph.vertices:
+        vertex_y = vertex.get_y()
+        if is_slice_height(vertex_y, milling_diameter):
+            vertices_per_height[vertex_y].append(vertex)
 
-    for y, vertices_y in vertices_per_height.items():
-        _create_internal_edges_in_slice(g, y, sorted(vertices_y))
+    for milling_y, vertices in vertices_per_height.items():
+        _create_internal_edges_in_slice(graph, milling_y, sorted(vertices))
 
 
-def _create_internal_edges_in_slice(g, y, vertices):
-    p = position(y, g, outside=True)
-    for e in _horizontal_edges(vertices):
-        p.update(e)
-        if p.is_inside():
-            g.add_direct_edge(e)
+def _create_internal_edges_in_slice(graph, milling_y, vertices):
+    """
+    move on slice line. when inside add edge.
+    """
+    current_position = Position(milling_y, outside=True)
+    for edge in _horizontal_edges(vertices):
+        current_position.update(edge)
+        if current_position.is_inside():
+            graph.add_direct_edge(edge)
             if __debug__:
                 if is_module_debugged(__name__):
-                    print("adding horizontal edge", str(p))
-                    tycat(g, e)
+                    print("adding horizontal edge", str(current_position))
+                    tycat(graph, edge)
         else:
             if __debug__:
                 if is_module_debugged(__name__):
-                    print("not adding horizontal edge", str(p))
-                    tycat(g, e)
+                    print("not adding horizontal edge", str(current_position))
+                    tycat(graph, edge)
 
 
-class position:
-    def __init__(self, y, g, outside):
+class Position:
+    """
+    small class to remember where we are while following a horizontal line
+    crossing a pocket.
+    """
+    def __init__(self, milling_y, outside):
         self.outside = outside
         self.on_edge = False
         self.on_edge_inside_is_above = None
-        self.y = y
+        self.milling_y = milling_y
 
     def __str__(self):
         return "out:{} on_edge:{} on_edge_inside_above:{}".format(
             self.outside, self.on_edge, self.on_edge_inside_is_above
         )
 
-    def update(self, e):
-        start_vertex = e.vertices[0]
+    def update(self, edge):
+        """
+        move through given edge and update position.
+        """
+        start_vertex = edge.vertices[0]
         # many cases here
         # we look at edges starting from start_vertex
         # to figure out current position
         if not self.on_edge:
-            if not start_vertex.has_frontier_edge(e):
+            if not start_vertex.has_frontier_edge(edge):
                 # easy case : we were not on edge
                 # and are not on edge
                 # edges on different sides of y flip position
                 if start_vertex.has_frontier_edges_on_different_sides_of(
-                    self.y
-                ):
+                        self.milling_y):
                     self.outside = not self.outside
             else:
                 # harder case, we are now on edge of polygon
                 self.on_edge = True
-                other_edge = start_vertex.other_frontier_edge(e)
+                other_edge = start_vertex.other_frontier_edge(edge)
                 # remember where is the inside with respect to us
-                if other_edge.is_above_y(self.y):
+                if other_edge.is_above_y(self.milling_y):
                     self.on_edge_inside_is_above = self.outside
                 else:
                     self.on_edge_inside_is_above = not self.outside
@@ -76,7 +91,7 @@ class position:
             self.on_edge = False
             non_horizontal_edge = \
                 start_vertex.get_non_horizontal_frontier_edge()
-            if non_horizontal_edge.is_above_y(self.y):
+            if non_horizontal_edge.is_above_y(self.milling_y):
                 #               /
                 #      inside  / outside
                 #             /
@@ -86,25 +101,21 @@ class position:
                 self.outside = not self.on_edge_inside_is_above
 
     def is_inside(self):
+        """
+        are we inside pocket ?
+        """
         if self.on_edge:
             return False
         return not self.outside
 
 
 def _horizontal_edges(aligned_vertices):
-    """iterates through all horizontal segments
-    between given horizontally aligned vertices"""
-    for i in range(len(aligned_vertices)-1):
-        v1 = aligned_vertices[i]
-        v2 = aligned_vertices[(i+1) % len(aligned_vertices)]
-        p1 = v1.bound_object
-        p2 = v2.bound_object
-        yield edge(v1, v2, Segment([p1, p2]))
-
-
-from jimn.displayable import tycat
-from jimn.graph.edge import edge
-from jimn.utils.math import is_slice_height
-from jimn.segment import Segment
-from jimn.utils.debug import is_module_debugged
-from collections import defaultdict
+    """
+    iterate through all horizontal edges (containing segments)
+    between given horizontally aligned vertices.
+    """
+    for index in range(len(aligned_vertices)-1):
+        vertices = [aligned_vertices[index],
+                    aligned_vertices[(index+1) % len(aligned_vertices)]]
+        objects = [v.bound_object for v in vertices]
+        yield Edge(*vertices, Segment(objects))

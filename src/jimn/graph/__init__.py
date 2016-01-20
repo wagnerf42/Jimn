@@ -45,12 +45,6 @@ class Graph:
         """
         return self.vertices_number == 0
 
-    def get_vertices_number(self):
-        """
-        how many vertices do we contain ?
-        """
-        return self.vertices_number
-
     def get_max_vertices_number(self):
         """
         return upper bound (strict) on max vertex id.
@@ -62,7 +56,7 @@ class Graph:
         iterator on edges.
         """
         for vertex in self.vertices:
-            for edge in vertex.get_edges():
+            for edge in vertex.edges:
                 yield edge
 
     def get_non_oriented_edges(self):
@@ -72,7 +66,7 @@ class Graph:
         we only iterate here once on each edge (avoiding reversed edges)
         """
         for vertex in self.vertices:
-            for edge in vertex.get_edges():
+            for edge in vertex.edges:
                 if edge.vertices[0].id < edge.vertices[1].id:
                     yield edge
 
@@ -88,7 +82,7 @@ class Graph:
         """
         box = Bounding_Box.empty_box(2)
         for vertex in self.vertices:
-            small_box = vertex.get_object().get_bounding_box()
+            small_box = vertex.bound_object.get_bounding_box()
             box.update(small_box)
         return box
 
@@ -159,9 +153,8 @@ class Graph:
         subgraph = cls()
         for vertex1, vertex2 in combinations(vertices, 2):
             edge = vertex1.get_edge_to(vertex2)
-            path = edge.get_path()
-            subgraph.add_edge_between(vertex1.get_object(),
-                                      vertex2.get_object(), path)
+            subgraph.add_edge_between(vertex1.bound_object,
+                                      vertex2.bound_object, edge.path)
         return subgraph
 
     def get_double_edges(self):
