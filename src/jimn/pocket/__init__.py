@@ -1,7 +1,6 @@
 """
 set of paths defining a pocket to mill.
 """
-
 from itertools import combinations
 from jimn.bounding_box import Bounding_Box
 from jimn.polygon import Polygon
@@ -86,12 +85,6 @@ class Pocket:
         """
         self.paths.extend(additional_paths)
 
-    def get_content(self):
-        """
-        returns paths contained
-        """
-        return self.paths
-
     def is_included_in(self, other):
         """
         fast inclusion test.
@@ -120,9 +113,9 @@ class Pocket:
 
     def of_reversed_arcs(self):
         """
-        returns true if we are made only of reversed arcs.
-        returns false if we contain no reversed arcs
-        raises an exception if we contain some reversed arcs
+        return true if we are made only of reversed arcs.
+        return false if we contain no reversed arcs
+        raise an exception if we contain some reversed arcs
         """
         seen_reversed_arcs = False
         seen_non_reversed = False
@@ -141,7 +134,8 @@ class Pocket:
 
     def remove_overlap_with(self, other):
         """
-        cancel all overlapping parts in segments
+        cancel all overlapping parts in segments.
+        destroys paths ordering.
         """
         if not self.get_bounding_box().intersects(other.get_bounding_box()):
             return
@@ -158,16 +152,16 @@ class Pocket:
         # now remove overlap in segments
         kept_segments = []  # kept segments in self
         while segments[0]:
-            s1 = segments[0].pop()
-            for s2 in segments[1]:
-                remains = s1.remove_overlap_with(s2)  # TODO: good enough ?
+            segment1 = segments[0].pop()
+            for segment2 in segments[1]:
+                remains = segment1.remove_overlap_with(segment2)
                 if remains:
-                    segments[1].remove(s2)
-                    for s, r in zip(segments, remains):
-                        s.extend(r)
+                    segments[1].remove(segment2)
+                    for segment_set, remain in zip(segments, remains):
+                        segment_set.extend(remain)
                     break
             else:
-                kept_segments.append(s1)
+                kept_segments.append(segment1)
         arcs[0].extend(kept_segments)
         arcs[1].extend(segments[1])
         self.paths = arcs[0]
@@ -176,6 +170,10 @@ class Pocket:
             other.paths = arcs[1]
 
     def self_intersections(self, results):
+        """
+        compute intersections between paths we contain and store
+        them in results.
+        """
         return _iterated_intersections(results, combinations(self.paths, 2))
 
     def intersections_with(self, other, results):
@@ -190,49 +188,53 @@ class Pocket:
                                                                  other.paths))
 
     def split_at(self, intersections):
+        """
+        turn paths into more elementary paths by splitting them at
+        given intersections.
+        for speed reasons intersections are already associated to paths.
+        """
         new_paths = []
-        for p in self.paths:
-            if id(p) in intersections:
-                new_paths.extend(p.split_at(intersections[id(p)]))
+        for path in self.paths:
+            if id(path) in intersections:
+                new_paths.extend(path.split_at(intersections[id(path)]))
             else:
-                new_paths.append(p)
+                new_paths.append(path)
         self.paths = new_paths
 
     def contains_point(self, tested_point):
         """
-        returns true if point is strictly in self.
+        return true if point is strictly in self.
         false if strictly out of self.
-        none if on self
+        none if on self.
         """
-        x, y = tested_point.get_coordinates()
+        point_x, point_y = tested_point.get_coordinates()
         above_paths = 0  # simple ray casting algorithm
-        for p in self.paths:
-            if p.contains(tested_point):
+        for path in self.paths:
+            if path.contains(tested_point):
                 return None
-            x1, x2 = sorted([end.get_x() for end in p.get_endpoints()])
+            x_1, x_2 = sorted([end.get_x() for end in path.get_endpoints()])
             # skip vertical paths
-            if is_almost(x1, x2):
+            if is_almost(x_1, x_2):
                 continue
-            if (not is_almost(x, x1)) and x > x1 and ((x < x2) or
-                                                      is_almost(x, x2)):
+            if (not is_almost(point_x, x_1)) and point_x > x_1\
+                    and ((point_x < x_2) or is_almost(point_x, x_2)):
                 # we only take paths over us
                 # first point not taken into account
-                intersection_y = p.vertical_intersection_at(x)
-                if intersection_y < y:
+                intersection_y = path.vertical_intersection_at(point_x)
+                if intersection_y < point_y:
                     above_paths = above_paths + 1
-        return ((above_paths % 2) == 1)
+        return (above_paths % 2) == 1
 
     def __hash__(self):
-        h = hash(tuple(self.paths))
-        return h
+        return hash(tuple(self.paths))
 
     def __eq__(self, other):
         if len(self.paths) != len(other.paths):
             return False
         sorted_self = sorted(self.paths)
         sorted_other = sorted(other.paths)
-        for i in range(len(sorted_self)):
-            if sorted_self[i] != sorted_other[i]:
+        for index in range(len(sorted_self)):
+            if sorted_self[index] != sorted_other[index]:
                 return False
         return True
 
@@ -242,16 +244,14 @@ class Pocket:
 
 
 def _iterated_intersections(results, iterator):
-    for p1, p2 in iterator:
-        intersections = p1.intersections_with(p2)
+    for path1, path2 in iterator:
+        intersections = path1.intersections_with(path2)
         if intersections:
             for i in intersections:
-                if not(p1.endpoints[0].is_almost(i)
-                       or p1.endpoints[1].is_almost(i)):
-                    results[id(p1)].append(rounder2d.hash_point(i))
+                if not(path1.endpoints[0].is_almost(i)
+                       or path1.endpoints[1].is_almost(i)):
+                    results[id(path1)].append(rounder2d.hash_point(i))
 
-            if id(p1) != id(p2):
-                for i in intersections:
-                    if not(p2.endpoints[0].is_almost(i)
-                           or p2.endpoints[1].is_almost(i)):
-                        results[id(p2)].append(rounder2d.hash_point(i))
+                if not(path2.endpoints[0].is_almost(i)
+                       or path2.endpoints[1].is_almost(i)):
+                    results[id(path2)].append(rounder2d.hash_point(i))

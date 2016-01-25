@@ -41,7 +41,7 @@ p = Pocket([
 
 tycat(p)
 
-sub_pockets = build_pockets(p.get_content())
+sub_pockets = build_pockets(p.paths)
 print("results")
 tycat(*sub_pockets)
 
