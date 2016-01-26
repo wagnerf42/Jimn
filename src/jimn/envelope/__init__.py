@@ -94,7 +94,7 @@ class Envelope:
         arcs.append(
             Arc(
                 self.distance,
-                [sides[1].endpoints[0], sides[0].endpoints[1]],
+                [sides[0].endpoints[1], sides[1].endpoints[0]],
                 point_1,
                 reversed_direction=True
             )
@@ -102,7 +102,7 @@ class Envelope:
         arcs.append(
             Arc(
                 self.distance,
-                [sides[0].endpoints[0], sides[1].endpoints[1]],
+                [sides[1].endpoints[1], sides[0].endpoints[0]],
                 point_2,
                 reversed_direction=True
             )
@@ -168,7 +168,7 @@ class Envelope:
             if previous_point != current_point:
                 center = previous_path.origin.endpoints[1]
                 displaced_path = DisplacedPath(
-                    Arc(self.distance, [current_point, previous_point],
+                    Arc(self.distance, [previous_point, current_point],
                         center, True),
                     center
                 )

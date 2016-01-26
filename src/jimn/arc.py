@@ -2,7 +2,6 @@
 arc.
 """
 from math import pi
-from copy import deepcopy
 from jimn.elementary_path import Elementary_Path
 from jimn.bounding_box import Bounding_Box
 from jimn.point import Point
@@ -166,7 +165,7 @@ class Arc(Elementary_Path):
 
     def save_svg_content(self, display, color):
         """
-        svg for tycat
+        svg for tycat.
         """
         # display first point to know orientation
         self.endpoints[0].save_svg_content(display, color)

@@ -5,7 +5,16 @@ from jimn.segment import Segment
 from jimn.polygon import Polygon
 from jimn.pocket import Pocket
 from jimn.envelope import Envelope
+from jimn.arc import Arc
 from jimn.displayable import tycat
+
+print("testing arcs")
+
+a = Arc(1, (Point([1, 0]), Point([0, 1])), Point([0, 0]))
+e = Envelope(a, 1)
+tycat(a, e)
+
+print("testing intersection")
 
 s = Polygon.square(0, 0, 8)
 s.orient(False)
