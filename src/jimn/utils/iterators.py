@@ -1,13 +1,19 @@
-"iterators to ease code readability"
+"iterators to ease code readability."
 
 
 def all_two_elements(array):
-    for i in range(len(array)):
-        e1 = array[i]
-        e2 = array[(i+1) % len(array)]
-        yield e1, e2
+    """
+    iterate on all adjacent pairs in an array including last item, first item.
+    """
+    for element1, index in enumerate(array):
+        element2 = array[(index+1) % len(array)]
+        yield element1, element2
 
-def all_combinations(a, b):
-    for i in a:
-        for j in b:
+
+def all_combinations(array1, array2):
+    """
+    iterate on all combinations of one element of each array.
+    """
+    for i in array1:
+        for j in array2:
             yield i, j

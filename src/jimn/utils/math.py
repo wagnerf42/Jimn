@@ -1,8 +1,12 @@
+"""
+all math related helpers.
+"""
 from math import sqrt, floor, ceil
 from jimn.utils.precision import is_almost
 from jimn.point import Point
 
 
+# pylint: disable=invalid-name
 def solve_quadratic_equation(a, b, c):
     """ solves a*x*x + b*y +c = 0
     careful : we do some rounding here:
@@ -21,6 +25,10 @@ def solve_quadratic_equation(a, b, c):
 
 
 def circles_intersections(c1, c2, r1, r2):
+    """
+    intersect two circles with given centers and radiuses.
+    return points array.
+    """
     d = c1.distance_to(c2)
     if is_almost(d, 0):
         return []  # common center
@@ -60,7 +68,7 @@ def circles_intersections(c1, c2, r1, r2):
 
 def vline_circle_intersections(x, center, squared_radius):
     """
-    intersection with vertical line at given x
+    intersection of circle with vertical line at given x.
     """
     distance = x - center.get_x()
     squared_distance = distance * distance
@@ -73,6 +81,9 @@ def vline_circle_intersections(x, center, squared_radius):
 
 
 def line_circle_intersections(points, center, radius):
+    """
+    intersection of line going through points with given circle.
+    """
     # take first point as origin
     d = points[1] - points[0]
     c = center - points[0]
@@ -96,8 +107,8 @@ def line_circle_intersections(points, center, radius):
 
 def milling_heights(y1, y2, milling_diameter, inclusive=False):
     """
-    iterates in order on all y between y1 and y2 on milling heights
-    if inclusive possibly includes y1 and y2
+    iterate in order on all y between y1 and y2 on milling heights
+    if inclusive possibly includes y1 and y2.
     """
     if y1 < y2:
         index = ceil(y1/milling_diameter)
@@ -123,6 +134,9 @@ def milling_heights(y1, y2, milling_diameter, inclusive=False):
 
 
 def is_slice_height(y, milling_diameter):
+    """
+    is given coordinate on a slice height ?
+    """
     d = milling_diameter
     return is_almost(y/d, round(y/d))
 
