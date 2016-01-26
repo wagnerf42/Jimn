@@ -8,7 +8,7 @@ from jimn.displayable import tycat
 from jimn.segment import Segment
 from jimn.utils.debug import is_module_debugged
 from jimn.vertical_path import VerticalPath
-from jimn.dual_position import Dual_Position
+from jimn.dual_position import DualPosition
 from jimn.envelope import Envelope
 
 
@@ -35,7 +35,7 @@ def overlap_exit_pocket_position(outer_path, inner_pocket, milling_radius):
             outer_point, inner_point = \
                 outer_envelope.junction_points(inner_envelope)
             if outer_point:
-                return Dual_Position(out, outer_point, inner_point, outer_index)
+                return DualPosition(out, outer_point, inner_point, outer_index)
 
 
 def update_inner_position(inner_path, position):

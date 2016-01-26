@@ -1,31 +1,33 @@
 """
-factorizes some code for all objects containing sets of points
+factorizes some code for all objects containing sets of points.
 """
 
-def nearest_point(self, p):
+
+def nearest_point(self, point):
     """
-    returns nearest point in self from given point p.
+    return nearest point in self from given point p.
     """
-    #TODO: real nearest point
+    # TODO: real nearest point (not just an endpoint)
     best_distance = float("+inf")
-    for p2 in self.get_points():
-        d = p.distance_to(p2)
-        if d < best_distance:
-            best_distance = d
-            best_point = p2
+    for point2 in self.get_points():
+        distance = point.distance_to(point2)
+        if distance < best_distance:
+            best_distance = distance
+            best_point = point2
 
     return best_point
 
+
 def nearest_points(self, other):
     """
-    returns nearest point between two points containers
+    return nearest point between two points containers.
     """
-    #TODO: real nearests points
+    # TODO: real nearest point (not just an endpoint)
     best_distance = float("+inf")
-    for p in self.get_points():
-        for p2 in other.get_points():
-            d = p.distance_to(p2)
-            if d < best_distance:
-                best_distance = d
-                best_points = (p, p2)
+    for point in self.get_points():
+        for point2 in other.get_points():
+            distance = point.distance_to(point2)
+            if distance < best_distance:
+                best_distance = distance
+                best_points = (point, point2)
     return best_points

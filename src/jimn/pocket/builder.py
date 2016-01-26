@@ -5,7 +5,7 @@ from collections import defaultdict
 from jimn.pocket import Pocket
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
-from jimn.utils.precision import segment_limit
+from jimn.utils.precision import SEGMENT_LIMIT
 
 
 class PocketsBuilder:
@@ -164,7 +164,7 @@ def build_polygons(paths):
         poly = pocket.to_polygon()
         # keep non-clockwise polygons, big enough
         if not poly.is_oriented_clockwise() and \
-                abs(poly.area()) > segment_limit:
+                abs(poly.area()) > SEGMENT_LIMIT:
             poly.remove_useless_points()
             polygons.append(poly)
     return polygons

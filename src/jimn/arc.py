@@ -148,24 +148,6 @@ class Arc(Elementary_Path):
             return False
         return self.contains_circle_point(point)
 
-    def contains_circle_point(self, point):
-        """returns true if point (on circle) is inside arc"""
-        if point.is_almost(self.endpoints[0]) or \
-                point.is_almost(self.endpoints[1]):
-            return True
-        start_angle = self.center.angle_with(self.endpoints[1])
-        angles = [
-            self.center.angle_with(q) - start_angle
-            for q in (point, self.endpoints[0])
-        ]
-        adjusted_angles = []
-        for angle in angles:
-            if angle < 0:
-                angle += 2*pi
-            adjusted_angles.append(angle)
-        # assert adjusted_angles[1] <= pi : TODO : fix
-        return adjusted_angles[0] < adjusted_angles[1]
-
     def intersections_with_arc(self, other):
         """
         intersects with an arc.
@@ -246,7 +228,7 @@ class Arc(Elementary_Path):
 
         candidates = [i for i in intersections if self.contains_circle_point(i)]
         if __debug__ and not candidates:
-            print(self, intersecting_x, *intersections)
+            print(self, intersecting_x, [str(i) for i in intersections])
             tycat(self, intersections)
             raise Exception("no intersections")
         intersecting_ys = [i.get_y() for i in candidates]
@@ -316,3 +298,23 @@ class Arc(Elementary_Path):
                 print("intersections are:")
                 tycat(self, other, intersections)
         return intersections
+
+    def contains_circle_point(self, point):
+        """
+        return true if point (on circle) is inside arc.
+        """
+        if point.is_almost(self.endpoints[0]) or \
+                point.is_almost(self.endpoints[1]):
+            return True
+        start_angle = self.center.angle_with(self.endpoints[1])
+        angles = [
+            self.center.angle_with(q) - start_angle
+            for q in (point, self.endpoints[0])
+        ]
+        adjusted_angles = []
+        for angle in angles:
+            if angle < 0:
+                angle += 2*pi
+            adjusted_angles.append(angle)
+        # assert adjusted_angles[1] <= pi : TODO : fix
+        return adjusted_angles[0] < adjusted_angles[1]

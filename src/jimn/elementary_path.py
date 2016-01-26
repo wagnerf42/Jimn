@@ -7,7 +7,7 @@ from copy import copy
 from jimn.displayable import tycat
 from jimn.utils.iterators import all_two_elements
 from jimn.utils.debug import is_module_debugged
-from jimn.utils.precision import is_almost, segment_limit
+from jimn.utils.precision import is_almost, SEGMENT_LIMIT
 from jimn.point import Point
 
 
@@ -18,7 +18,7 @@ class Elementary_Path:
     """
     def __init__(self, points):
         self.endpoints = points
-        assert self.squared_length() > segment_limit, "very small path"
+        assert self.squared_length() > SEGMENT_LIMIT, "very small path"
 
     def length(self):
         """
@@ -36,7 +36,7 @@ class Elementary_Path:
         """
         new_path = copy(self)
         new_path.endpoints[index] = new_point
-        assert new_path.squared_length() > segment_limit, "very small path"
+        assert new_path.squared_length() > SEGMENT_LIMIT, "very small path"
         return new_path
 
     def get_endpoint(self, index):
@@ -113,7 +113,7 @@ class Elementary_Path:
                 new_path = copy(self)
                 new_path.endpoints = [p_1, p_2]
                 if __debug__:
-                    if new_path.squared_length() < segment_limit:
+                    if new_path.squared_length() < SEGMENT_LIMIT:
                         print("splitting", self, "at", *points)
                         tycat(self, *points)
                         raise Exception("very small path when splitting")

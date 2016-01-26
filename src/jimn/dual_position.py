@@ -4,7 +4,7 @@ position simultaneous on two different paths.
 from jimn.path_position import PathPosition
 
 
-class Dual_Position:
+class DualPosition:
     """
     position simultaneous on two different paths.
     we can use it to mark on position impacted by mill on path2
