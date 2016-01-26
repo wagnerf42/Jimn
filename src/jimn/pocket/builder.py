@@ -41,7 +41,7 @@ class PocketsBuilder:
         """
         self.points_neighbours = defaultdict(list)
         for path in self.paths:
-            start, end = path.get_endpoints()
+            start, end = path.endpoints
             self.points_neighbours[start].append(path)
             if not self.reversed_paths:
                 self.points_neighbours[end].append(path)
@@ -102,7 +102,7 @@ class PocketsBuilder:
         for i in range(length-1):
             tested_index = (index + i + 1) % length
             tested_path = neighbours[tested_index]
-            if tested_path.get_endpoint(0) == current_point:
+            if tested_path.endpoints[0] == current_point:
                 # we leave
                 if to_skip == 0:
                     return tested_path
@@ -122,7 +122,7 @@ class PocketsBuilder:
         """
         current_path = []
 
-        start_point, current_point = start_path.get_endpoints()
+        start_point, current_point = start_path.endpoints
         current_path.append(start_path)
         self.marked_paths[start_path] = start_path
 
@@ -137,7 +137,7 @@ class PocketsBuilder:
             self.marked_paths[next_path] = next_path
             # continue moving
             previous_point = current_point
-            current_point = next_path.get_endpoint(1)
+            current_point = next_path.endpoints[1]
 
         return Pocket(current_path)
 

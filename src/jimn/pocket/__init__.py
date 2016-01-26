@@ -43,7 +43,7 @@ class Pocket:
         iterates through each point in the pocket
         """
         for path in self.paths:
-            yield path.get_endpoint(0)
+            yield path.endpoints[0]
 
     def to_polygon(self):
         """
@@ -92,7 +92,7 @@ class Pocket:
         """
         # loop trying points
         for path in self.paths:
-            tested_point = path.get_endpoint(0)
+            tested_point = path.endpoints[0]
             test_result = other.contains_point(tested_point)
             if test_result is not None:
                 included = test_result
@@ -190,7 +190,7 @@ class Pocket:
         for path in self.paths:
             if path.contains(tested_point):
                 return None
-            x_1, x_2 = sorted([end.get_x() for end in path.get_endpoints()])
+            x_1, x_2 = sorted([end.get_x() for end in path.endpoints])
             # skip vertical paths
             if is_almost(x_1, x_2):
                 continue

@@ -30,7 +30,7 @@ class Path:
         """
         return first point in path
         """
-        return self.elementary_paths[0].get_endpoint(0)
+        return self.elementary_paths[0].endpoints[0]
 
     def translate(self, translation):
         """
@@ -168,7 +168,7 @@ class Path:
         iterates through all points.
         """
         for path in self.elementary_paths:
-            yield path.get_endpoint(0)
+            yield path.endpoints[0]
 
     def __hash__(self):
         return hash(id(self))

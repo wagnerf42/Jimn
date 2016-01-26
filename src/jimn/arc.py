@@ -1,5 +1,5 @@
 """
-arc segment
+arc.
 """
 from math import pi
 from copy import deepcopy
@@ -16,7 +16,7 @@ from jimn.utils.debug import is_module_debugged
 
 class Arc(Elementary_Path):
     """
-    arc segment
+    arc class (endpoints, radius, orientation).
     """
     def __init__(self, radius, points, center, reversed_direction=False):
         """
@@ -73,7 +73,6 @@ class Arc(Elementary_Path):
         order when distance is more than half of circle
         """
         if self.angle() > pi:
-            self.endpoints = list(reversed(self.endpoints))
             self.reversed_direction = True
 
     def inflate(self):
@@ -114,22 +113,10 @@ class Arc(Elementary_Path):
 
     def reverse(self):
         """
-        return new arcs of reversed orientation
+        return new arc of reversed orientation.
         """
-        copied_self = deepcopy(self)
-        copied_self.reversed_direction = not self.reversed_direction
-        return copied_self
-
-    def get_endpoints(self):
-        if self.reversed_direction:
-            return list(reversed(self.endpoints))
-        else:
-            return self.endpoints
-
-    def get_endpoint(self, index):
-        if self.reversed_direction:
-            index = 1 - index
-        return self.endpoints[index]
+        return Arc(self.radius, list(reversed(self.endpoints)),
+                   self.center, not self.reversed_direction)
 
     def get_bounding_box(self):
         """
@@ -167,7 +154,7 @@ class Arc(Elementary_Path):
         returns up to two points.
         """
         points = line_circle_intersections(
-            intersecting_segment.get_endpoints(),
+            intersecting_segment.endpoints,
             self.center,
             self.radius,
         )
@@ -182,28 +169,34 @@ class Arc(Elementary_Path):
         svg for tycat
         """
         # display first point to know orientation
-        self.get_endpoint(0).save_svg_content(display, color)
+        self.endpoints[0].save_svg_content(display, color)
 
         # display arc
         x_1, y_1, x_2, y_2 = [
             c for p in self.endpoints
             for c in display.convert_coordinates(p.get_coordinates())
         ]
+        if self.reversed_direction:
+            sweep_flag = 0
+        else:
+            sweep_flag = 1
         stretched_radius = display.stretch() * self.radius
         self.center.save_svg_content(display, color)
         stroke_width = display.stroke_width()
-        display.write('<path d="M{},{} A{},{} 0 0,1 {},{}" \
+
+        display.write('<path d="M{},{} A{},{} 0 0,{} {},{}" \
                       fill="none" stroke="{}" \
                       opacity="0.5" stroke-width="{}"\
                       />'.format(x_1, y_1,
                                  stretched_radius, stretched_radius,
+                                 sweep_flag,
                                  x_2, y_2, color, stroke_width))
 
     def get_display_string(self, display):
         """
         return svg code for including arc in a svg path
         """
-        end = self.get_endpoint(1)
+        end = self.endpoints[1]
         coordinates = display.convert_coordinates(end.coordinates)
         stretched_radius = display.stretch() * self.radius
         if self.reversed_direction:

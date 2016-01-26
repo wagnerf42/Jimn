@@ -40,7 +40,7 @@ class SweepingLineAlgorithm:
         # create all events
         events = {}
         for path in self.paths:
-            start, end = list(sorted(path.get_endpoints()))
+            start, end = list(sorted(path.endpoints))
             for path_type, extremity in enumerate([start, end]):
                 if extremity not in events:
                     events[extremity] = Event(extremity)

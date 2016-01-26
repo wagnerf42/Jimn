@@ -119,7 +119,7 @@ class Graph:
         add given path as edge.
         create vertices if needed.
         """
-        endpoints = edge_path.get_endpoints()
+        endpoints = edge_path.endpoints
         self.add_edge_between(endpoints[0], endpoints[1],
                               edge_path, frontier_edge)
 

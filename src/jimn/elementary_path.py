@@ -39,14 +39,6 @@ class Elementary_Path:
         assert new_path.squared_length() > SEGMENT_LIMIT, "very small path"
         return new_path
 
-    def get_endpoint(self, index):
-        """
-        getter for endpoint.
-        needed here because arc endpoints are not necessarily stored
-        in right order.
-        """
-        return self.endpoints[index]
-
     def get_endpoint_not(self, point):
         """
         return endpoint not given point.
@@ -58,19 +50,11 @@ class Elementary_Path:
             return self.endpoints[0]
         raise Exception("no given endpoint ; cannot find other")
 
-    def get_endpoints(self):
-        """
-        getter for endpoints.
-        needed here because arc endpoints are not necessarily stored
-        in right order.
-        """
-        return self.endpoints
-
     def is_sorted(self):
         """
         are endpoints sorted from small to big ?
         """
-        return self.get_endpoint(0) < self.get_endpoint(1)
+        return self.endpoints[0] < self.endpoints[1]
 
     def dimension(self):
         """
@@ -133,9 +117,9 @@ class Elementary_Path:
         """
         after = None
         before = None
-        if intermediate_point.is_almost(self.get_endpoint(0)):
+        if intermediate_point.is_almost(self.endpoints[0]):
             after = self
-        elif intermediate_point.is_almost(self.get_endpoint(1)):
+        elif intermediate_point.is_almost(self.endpoints[1]):
             before = self
         else:
             split_path = self.split_at([intermediate_point])

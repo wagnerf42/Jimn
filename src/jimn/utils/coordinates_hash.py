@@ -3,14 +3,14 @@ hash nearby points together in O(1).
 """
 from copy import copy
 from jimn.utils.precision import coordinate_key, displaced_coordinate_key, \
-    precision
+    PRECISION
 
 
 class CoordinatesHash:
     """
     hash a set of points by their rounded coordinates.
     """
-    def __init__(self, wanted_precision=precision):
+    def __init__(self, wanted_precision=PRECISION):
         self.hashes = [{}, {}]
         self.precision = wanted_precision
 
@@ -49,4 +49,4 @@ class CoordinatesHash:
         return coordinate
 
 ROUNDER2D = CoordinatesHash()
-LINES_ROUNDER = CoordinatesHash(precision-2)
+LINES_ROUNDER = CoordinatesHash(PRECISION-2)

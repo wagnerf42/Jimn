@@ -64,7 +64,7 @@ class Envelope:
         """
         head = ("<path d=\"")
 
-        first_point = self.paths[0].path.get_endpoint(0)
+        first_point = self.paths[0].path.endpoints[0]
         first_coordinates = display.convert_coordinates(first_point.coordinates)
         initial_move = "M {},{}".format(*first_coordinates)
 
@@ -94,7 +94,7 @@ class Envelope:
         arcs.append(
             Arc(
                 self.distance,
-                [sides[1].get_endpoint(0), sides[0].get_endpoint(1)],
+                [sides[1].endpoints[0], sides[0].endpoints[1]],
                 point_1,
                 reversed_direction=True
             )
@@ -102,7 +102,7 @@ class Envelope:
         arcs.append(
             Arc(
                 self.distance,
-                [sides[0].get_endpoint(0), sides[1].get_endpoint(1)],
+                [sides[0].endpoints[0], sides[1].endpoints[1]],
                 point_2,
                 reversed_direction=True
             )
@@ -163,10 +163,10 @@ class Envelope:
         # now do the reconnections if path is disconnected
         previous_path = raw_paths[-1]
         for current_path in raw_paths:
-            previous_point = previous_path.path.get_endpoint(1)
-            current_point = current_path.path.get_endpoint(0)
+            previous_point = previous_path.path.endpoints[1]
+            current_point = current_path.path.endpoints[0]
             if previous_point != current_point:
-                center = previous_path.origin.get_endpoint(1)
+                center = previous_path.origin.endpoints[1]
                 displaced_path = DisplacedPath(
                     Arc(self.distance, [current_point, previous_point],
                         center, True),

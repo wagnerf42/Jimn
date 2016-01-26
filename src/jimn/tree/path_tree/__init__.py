@@ -177,7 +177,7 @@ class path_tree(tree):
         children_end = []
         origin_seen = False
         seen_children = {}
-        for step in [e.path.get_endpoints() for e in cycle]:
+        for step in [e.path.endpoints for e in cycle]:
             for p in step:
                 if p == origin:
                     origin_seen = True

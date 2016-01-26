@@ -61,6 +61,6 @@ def _overlapping_points(followed, other):
     return [
         ep
         for p, q in zip((followed, other), (other, followed))
-        for ep in q.get_endpoints()
+        for ep in q.endpoints
         if p.contains(ep)
     ]

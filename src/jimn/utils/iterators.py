@@ -5,7 +5,7 @@ def all_two_elements(array):
     """
     iterate on all adjacent pairs in an array including last item, first item.
     """
-    for element1, index in enumerate(array):
+    for index, element1 in enumerate(array):
         element2 = array[(index+1) % len(array)]
         yield element1, element2
 
