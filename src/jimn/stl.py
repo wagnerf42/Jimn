@@ -10,7 +10,7 @@ from jimn.point import Point
 from jimn.segment import Segment
 from jimn.facet import Facet, binary_facet
 from jimn.bounding_box import Bounding_Box
-from jimn.utils.coordinates_hash import coordinates_hash
+from jimn.utils.coordinates_hash import CoordinatesHash
 from jimn.utils.debug import is_module_debugged
 
 
@@ -19,7 +19,7 @@ class Stl:
     stl files are a set of 3d facets
     """
     def __init__(self, file_name):
-        self.heights_hash = coordinates_hash(dimension=1, wanted_precision=5)
+        self.heights_hash = CoordinatesHash(wanted_precision=5)
         self.facets = []
         self.bounding_box = Bounding_Box.empty_box(3)
         if __debug__:
@@ -47,7 +47,7 @@ class Stl:
         slices_number = ceil((max_height - min_height)/slice_size)
         for slice_number in range(slices_number):
             lower_boundary = max_height - (slice_number+1) * slice_size
-            lower_boundary = self.heights_hash.hash_coordinate(0, lower_boundary)
+            lower_boundary = self.heights_hash.hash_coordinate(lower_boundary)
             if lower_boundary < min_height + 0.01:
                 lower_boundary = min_height + 0.01
             current_slice = self.horizontal_intersection(lower_boundary)
@@ -115,8 +115,8 @@ class Stl:
                 float(matches.group(3)),
                 float(matches.group(5))
             ]
-            coordinates[2] = self.heights_hash.hash_coordinate(0,
-                                                               coordinates[2])
+            coordinates[2] = self.heights_hash.hash_coordinate(coordinates[2])
+
             point = Point(coordinates)
             self.bounding_box.add_point(point)
             points.append(point)

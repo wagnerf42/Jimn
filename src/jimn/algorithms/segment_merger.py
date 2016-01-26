@@ -5,7 +5,6 @@ from collections import defaultdict
 from jimn.segment import Segment
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
-from jimn.utils.coordinates_hash import rounder_lines
 
 
 class SegmentMerger:
@@ -23,7 +22,7 @@ class SegmentMerger:
         hashes aligned segments together
         """
         for segment in self.segments:
-            signature = segment.line_hash(rounder_lines)
+            signature = segment.line_hash()
             self.lines[signature].append(segment)
 
     def _compute_points_and_counters(self, segments):

@@ -10,7 +10,7 @@ from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost
 from jimn.utils.iterators import all_combinations
-from jimn.utils.coordinates_hash import rounder2d
+from jimn.utils.coordinates_hash import ROUNDER2D
 
 
 class Pocket:
@@ -228,8 +228,8 @@ def _iterated_intersections(results, iterator):
             for i in intersections:
                 if not(path1.endpoints[0].is_almost(i)
                        or path1.endpoints[1].is_almost(i)):
-                    results[id(path1)].append(rounder2d.hash_point(i))
+                    results[id(path1)].append(ROUNDER2D.hash_point(i))
 
                 if not(path2.endpoints[0].is_almost(i)
                        or path2.endpoints[1].is_almost(i)):
-                    results[id(path2)].append(rounder2d.hash_point(i))
+                    results[id(path2)].append(ROUNDER2D.hash_point(i))

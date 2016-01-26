@@ -1,5 +1,4 @@
 
-hash points on 2d
 change arcs to store endpoints in right order
 
 SPLIT AT SEEMS NOT OK WITH REVERSED ARCS

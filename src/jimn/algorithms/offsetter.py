@@ -8,7 +8,7 @@ from jimn.arc import Arc
 from jimn.pocket import Pocket
 from jimn.holed_pocket import HoledPocket
 from jimn.pocket.builder import build_pockets
-from jimn.utils.coordinates_hash import rounder2d
+from jimn.utils.coordinates_hash import ROUNDER2D
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.iterators import all_two_elements
 
@@ -27,7 +27,7 @@ class Offsetter:
         and reconnect pieces.
         """
         raw_segments = [
-            (s.parallel_segment(self.radius).hash_endpoints(rounder2d), s)
+            (s.parallel_segment(self.radius).hash_endpoints(ROUNDER2D), s)
             for s in self.polygon.segments()
         ]
 

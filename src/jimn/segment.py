@@ -6,7 +6,7 @@ from collections import defaultdict
 from jimn.elementary_path import Elementary_Path
 from jimn.bounding_box import Bounding_Box
 from jimn.point import Point
-from jimn.utils.coordinates_hash import rounder2d, rounder_lines
+from jimn.utils.coordinates_hash import ROUNDER2D, LINES_ROUNDER
 from jimn.utils.precision import check_precision, is_almost
 from jimn.utils.math import milling_heights
 from jimn.displayable import tycat
@@ -145,7 +145,7 @@ class Segment(Elementary_Path):
         intersecting_x = x_1 + (intersecting_z - z_1)/(z_2 - z_1)*(x_2 - x_1)
         intersecting_y = y_1 + (intersecting_z - z_1)/(z_2 - z_1)*(y_2 - y_1)
 
-        return rounder2d.hash_point(Point([intersecting_x, intersecting_y]))
+        return ROUNDER2D.hash_point(Point([intersecting_x, intersecting_y]))
 
     def is_vertical_3d(self):
         """
@@ -159,23 +159,21 @@ class Segment(Elementary_Path):
             "near vertical 3d"
         return False
 
-    def line_hash(self, rounder):
+    def line_hash(self):
         """
-        return unique id of line on which is segment
-        given rounder rounds the id so nearly aligned segments will hash
-        on same value
+        return unique id of line on which is segment.
+        nearly aligned segments will hash
+        on same value.
         """
         assert self.dimension() == 2, 'only works on 2d points segment'
         (x_1, y_1), (x_2, y_2) = [p.get_coordinates() for p in self.endpoints]
         if is_almost(x_1, x_2):
-            key = rounder.hash_coordinate(0, x_1)
-            return ':{}'.format(key)
+            return str(LINES_ROUNDER.hash_point(Point([x_1])))
         else:
             slope = (y_2-y_1)/(x_2-x_1)
             height_at_origin = y_1 - slope * x_1
-            slope_key = rounder.hash_coordinate(1, slope)
-            height_key = rounder.hash_coordinate(1, height_at_origin)
-            return '{}:{}'.format(slope_key, height_key)
+            return str(LINES_ROUNDER.hash_point(
+                Point([slope, height_at_origin])))
 
     def projection2d(self):
         """
@@ -301,7 +299,7 @@ class Segment(Elementary_Path):
         """
         if id(self) == id(other):
             return  # abort if with self
-        if self.line_hash(rounder_lines) != other.line_hash(rounder_lines):
+        if self.line_hash() != other.line_hash():
             return  # abort if segments are not aligned
 
         sides = (self, other)

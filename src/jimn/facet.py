@@ -97,7 +97,7 @@ def binary_facet(all_coordinates, heights_hash, box):
     points = []
     for i in range(3):
         coordinates = list(all_coordinates[3+3*i:6+3*i])
-        coordinates[2] = heights_hash.hash_coordinate(0, coordinates[2])
+        coordinates[2] = heights_hash.hash_coordinate(coordinates[2])
         point = Point(coordinates)
         box.add_point(point)
         points.append(point)
