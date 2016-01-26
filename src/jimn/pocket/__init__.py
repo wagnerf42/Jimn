@@ -5,7 +5,6 @@ from itertools import combinations
 from jimn.bounding_box import Bounding_Box
 from jimn.polygon import Polygon
 from jimn.point import Point
-from jimn.arc import Arc
 from jimn.segment import Segment
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
@@ -111,27 +110,6 @@ class Pocket:
 
         return included
 
-    def of_reversed_arcs(self):
-        """
-        return true if we are made only of reversed arcs.
-        return false if we contain no reversed arcs
-        raise an exception if we contain some reversed arcs
-        """
-        seen_reversed_arcs = False
-        seen_non_reversed = False
-        for path in self.paths:
-            if isinstance(path, Arc):
-                if path.reversed_direction:
-                    seen_reversed_arcs = True
-                else:
-                    seen_non_reversed = True
-            else:
-                seen_non_reversed = True
-
-        if seen_reversed_arcs and seen_non_reversed:
-            raise Exception("both reversed and non reversed")
-        return seen_reversed_arcs
-
     def remove_overlap_with(self, other):
         """
         cancel all overlapping parts in segments.
@@ -233,8 +211,8 @@ class Pocket:
             return False
         sorted_self = sorted(self.paths)
         sorted_other = sorted(other.paths)
-        for index in range(len(sorted_self)):
-            if sorted_self[index] != sorted_other[index]:
+        for our_path, other_path in zip(sorted_self, sorted_other):
+            if our_path != other_path:
                 return False
         return True
 

@@ -1,7 +1,7 @@
 """requires polygon to be oriented counter clockwise to carve the inside
 and clockwise to carve the outside"""
 
-from collections import defaultdict
+from collections import defaultdict, Counter
 from itertools import combinations
 from jimn.displayable import tycat
 from jimn.arc import Arc
@@ -93,31 +93,36 @@ def _offset(radius, polygon_to_offset):
 
 def _merge_included_pockets(pockets):
     """
-    test which pocket is included in which other
-    included pockets are merged in the including one
-    returns a set of independent pockets
+    test which pocket is included in which other.
+    included pockets are merged in the including one.
+    discard toplevel holes and pockets included in several others.
+    returns a set of independent pockets.
     """
     included_pockets = defaultdict(list)
-    for pocket in pockets:
-        included_pockets[id(pocket)].append(pocket)
+    inclusions_count = Counter()
+    toplevel_pockets = {}
 
     for pocket1 in pockets:
+        toplevel_pockets[id(pocket1)] = pocket1
         for pocket2 in pockets:
             if id(pocket1) != id(pocket2):
                 if pocket1.is_included_in(pocket2):
-                    assert len(included_pockets[id(pocket1)]) == 1
-                    del included_pockets[id(pocket1)]
                     included_pockets[id(pocket2)].append(pocket1)
-                    break
+                    inclusions_count[id(pocket1)] += 1
+                    if inclusions_count[id(pocket1)] > 1:
+                        break  # no need to continue
+                    if id(pocket1) in toplevel_pockets:
+                        del toplevel_pockets[id(pocket1)]
 
     disjoint_pockets = []
-    for top_id, pockets in included_pockets.items():
-        assert top_id == id(pockets[0])
-        # discard holes here
+    for toplevel_pocket in toplevel_pockets.values():
+        # discard toplevel holes here
         # we do that here and not before because they might now contain content
         # which will be discarded too
-        if not pockets[0].is_oriented_clockwise():
-            holed_pocket = HoledPocket(pockets[0], pockets[1:])
+        if not toplevel_pocket.is_oriented_clockwise():
+            holes = [h for h in included_pockets[id(toplevel_pocket)]
+                     if inclusions_count[id(h)] == 1]
+            holed_pocket = HoledPocket(toplevel_pocket, holes)
             disjoint_pockets.append(holed_pocket)
 
     return disjoint_pockets
@@ -171,7 +176,7 @@ def offset_holed_polygon(radius, *polygons):
     paths = offset_to_elementary_paths(radius, polygons)
 
     try:
-        pockets = build_pockets(paths, False)
+        pockets = build_pockets(paths)
     except:
         tycat(paths, *polygons)
         raise

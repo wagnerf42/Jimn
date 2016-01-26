@@ -71,24 +71,12 @@ class PocketsBuilder:
                 print("failed building pocket")
                 raise
 
-            try:
-                if self.reversed_paths:
-                    # discard outer edge
-                    keeping_pocket = not pocket.is_oriented_clockwise()
-                else:
-                    # discard only "reversed arcs bubbles"
-                    keeping_pocket = not pocket.of_reversed_arcs()
+            self.pockets.append(pocket)
+            if __debug__:
+                if is_module_debugged(__name__):
+                    print("added pocket")
+                    tycat(self.paths, pocket)
 
-                if keeping_pocket:
-                    self.pockets.append(pocket)
-                    if __debug__:
-                        if is_module_debugged(__name__):
-                            print("added pocket")
-                            tycat(self.paths, pocket)
-            except:
-                tycat(self.paths, pocket)
-                raise Exception("small pocket ; ignore instead of raising")
-                # continue
         return self.pockets
 
     def find_next_path(self, current_point, previous_point):
@@ -154,14 +142,14 @@ class PocketsBuilder:
         return Pocket(current_path)
 
 
-def build_pockets(paths, reverse_paths=True):
+def build_pockets(paths):
     """
     turns a set of paths into a set of pockets.
     works by following edges.
     pre-requisite: no paths intersect other than at endpoints.
     paths can be oriented if reverse_paths is set to false.
     """
-    builder = PocketsBuilder(paths, reverse_paths)
+    builder = PocketsBuilder(paths, False)
     return builder.build_pockets()
 
 
@@ -174,7 +162,9 @@ def build_polygons(paths):
     polygons = []
     for pocket in pockets:
         poly = pocket.to_polygon()
-        if abs(poly.area()) > segment_limit:
+        # keep non-clockwise polygons, big enough
+        if not poly.is_oriented_clockwise() and \
+                abs(poly.area()) > segment_limit:
             poly.remove_useless_points()
             polygons.append(poly)
     return polygons
