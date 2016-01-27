@@ -103,7 +103,8 @@ class Arc(Elementary_Path):
         y_limits = box.limits(1)
 
         points = []
-        for milling_y in milling_heights(*y_limits, milling_diameter,
+        for milling_y in milling_heights(*y_limits,
+                                         milling_diameter=milling_diameter,
                                          inclusive=True):
             points.extend(self.horizontal_intersections_at(milling_y,
                                                            *box.limits(0)))

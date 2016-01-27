@@ -1,4 +1,6 @@
 
+check everywhere class attributes are accessed read-only through self
+or else they just downgrade to instance attributes
 SPLIT AT SEEMS NOT OK WITH REVERSED ARCS
 
 

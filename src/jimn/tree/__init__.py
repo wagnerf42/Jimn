@@ -88,9 +88,10 @@ class Tree:
         directory = "/tmp/{}".format(user)
         if not os.path.exists(directory):
             os.makedirs(directory)
-            dot_file = "{}/tree_{}.dot".format(directory, self.dot_count)
-            svg_file = "{}/tree_{}.svg".format(directory, self.dot_count)
-            self.dot_count += 1
+
+        dot_file = "{}/tree_{}.dot".format(directory, self.dot_count)
+        svg_file = "{}/tree_{}.svg".format(directory, self.dot_count)
+        Tree.dot_count += 1
         dot_fd = open(dot_file, 'w')
         dot_fd.write("digraph g {\n")
         for node in self.depth_first_exploration():
