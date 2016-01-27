@@ -4,7 +4,7 @@ from jimn.polygon import Polygon
 from jimn.displayable import tycat
 from jimn.tree.polygon_tree import PolygonTree
 from jimn.tree.pocket_tree import PocketTree
-from jimn.tree.path_tree import path_tree
+from jimn.tree.path_tree import PathTree
 
 milling_radius = 0.9
 
@@ -28,7 +28,7 @@ pockets = PocketTree.build(tree, milling_radius)
 print("offsetted tree")
 pockets.tycat()
 
-paths = path_tree.build(pockets, milling_radius)
+paths = PathTree.build(pockets, milling_radius)
 print("path tree")
 paths.tycat()
 paths.animate(milling_radius)

@@ -1,9 +1,12 @@
 
+- tree decompression takes place between polygons and pockets ???
+- is path cache still in use ???
 - check everywhere class attributes are accessed read-only through self
 or else they just downgrade to instance attributes
 - lots of TODO in inclusion_tree
 - change pockets hash to hash directly by id
 		-> will simplify code in offsetter and pocket_tree
+	=> pockets are hashed in the path cache
 
 SPLIT AT SEEMS NOT OK WITH REVERSED ARCS
 

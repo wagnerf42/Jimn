@@ -9,7 +9,7 @@ from jimn.stl import Stl
 from jimn.tree.polygon_tree import PolygonTree
 from jimn.pocket.builder import build_polygons
 from jimn.tree.pocket_tree import PocketTree
-from jimn.tree.path_tree import path_tree
+from jimn.tree.path_tree import PathTree
 from jimn.vertical_path import VerticalPath
 from jimn.algorithms.segment_merger import merge_segments
 
@@ -107,7 +107,7 @@ def build_paths_tree(milling_radius, pockets):
     if __debug__:
         if is_module_debugged(__name__):
             print("building paths tree")
-    paths = path_tree.build(pockets, milling_radius)
+    paths = PathTree.build(pockets, milling_radius)
     if __debug__:
         if is_module_debugged(__name__):
             paths.tycat()
