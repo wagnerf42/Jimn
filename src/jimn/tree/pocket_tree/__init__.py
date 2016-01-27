@@ -1,10 +1,10 @@
 from jimn.algorithms.offsetter import offset_holed_polygon
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
-from jimn.tree import tree
+from jimn.tree import Tree
 
 
-class pocket_tree(tree):
+class pocket_tree(Tree):
 
     @classmethod
     def build(cls, poly_tree, carving_radius):

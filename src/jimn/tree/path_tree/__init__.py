@@ -2,6 +2,7 @@
 path trees are created from pockets tree by milling pockets
 """
 from copy import deepcopy
+from itertools import combinations
 from jimn.utils.points_containers import nearest_point, nearest_points
 from jimn.displayable import tycat
 from jimn.graph import Graph
@@ -14,13 +15,12 @@ from jimn.pocket.graph_builder import build_graph
 from jimn.segment import Segment
 from jimn.utils.debug import is_module_debugged
 from jimn.vertical_path import VerticalPath
-from itertools import combinations
-from jimn.tree import tree
+from jimn.tree import Tree
 
 paths_cache = {}  # small cache to avoid recomputing paths for identical pockets
 
 
-class path_tree(tree):
+class path_tree(Tree):
 
     def __init__(self, path=None, old_pocket=None):
         super().__init__(path)

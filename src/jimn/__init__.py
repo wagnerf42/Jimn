@@ -6,7 +6,7 @@ import sys
 from jimn.utils.debug import is_module_debugged
 from jimn.displayable import tycat
 from jimn.stl import Stl
-from jimn.tree.polygon_tree import polygon_tree
+from jimn.tree.polygon_tree import PolygonTree
 from jimn.pocket.builder import build_polygons
 from jimn.tree.pocket_tree import pocket_tree
 from jimn.tree.path_tree import path_tree
@@ -76,7 +76,7 @@ def build_polygons_tree(milling_radius, slices_polygons):
     if __debug__:
         if is_module_debugged(__name__):
             print("building polygon tree")
-    tree = polygon_tree.build(milling_radius, slices_polygons)
+    tree = PolygonTree.build(milling_radius, slices_polygons)
     if __debug__:
         if is_module_debugged(__name__):
             tree.tycat()

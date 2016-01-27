@@ -1,18 +1,20 @@
-from jimn.point import Point
-from jimn.displayable import tycat
-from collections import deque
-import os
-import getpass
-
 """
 abstract tree class.
-to be derived from
+to be derived from.
 """
+import os
+import getpass
+from collections import deque
+from jimn.point import Point
+from jimn.displayable import tycat
 
-dot_count = 0
 
-
-class tree:
+class Tree:
+    """
+    abstract tree class.
+    all jimn trees derive from this class.
+    """
+    dot_count = 0
 
     def __init__(self, content=None):
         self.content = content
@@ -42,9 +44,6 @@ class tree:
         """
         return self.children
 
-    def get_content(self):
-        return self.content
-
     def depth_first_exploration(self):
         """
         iterator : depth first exploration.
@@ -62,28 +61,36 @@ class tree:
         iterator : breadth first exploration.
         use it as : for n in t.breadth_first_exploration()
         """
-        d = deque()
-        d.append(self)
-        while d:
-            node = d.popleft()
+        unseen_nodes = deque()
+        unseen_nodes.append(self)
+        while unseen_nodes:
+            node = unseen_nodes.popleft()
             yield node
-            d.extend(node.get_children())
+            unseen_nodes.extend(node.get_children())
 
     def display_depth_first(self):
+        """
+        iteratively tycat all tree (depth first).
+        """
         _display(self.depth_first_exploration())
 
     def display_breadth_first(self):
+        """
+        iteratively tycat all tree (breadth first).
+        """
         _display(self.breadth_first_exploration())
 
     def tycat(self):
-        global dot_count
+        """
+        svg display of dot file in terminology.
+        """
         user = getpass.getuser()
         directory = "/tmp/{}".format(user)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        dot_file = "{}/tree_{}.dot".format(directory, dot_count)
-        svg_file = "{}/tree_{}.svg".format(directory, dot_count)
-        dot_count = dot_count + 1
+            dot_file = "{}/tree_{}.dot".format(directory, self.dot_count)
+            svg_file = "{}/tree_{}.svg".format(directory, self.dot_count)
+            self.dot_count += 1
         dot_fd = open(dot_file, 'w')
         dot_fd.write("digraph g {\n")
         for node in self.depth_first_exploration():

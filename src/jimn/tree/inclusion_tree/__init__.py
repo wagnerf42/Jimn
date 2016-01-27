@@ -1,13 +1,12 @@
-from jimn.tree import tree
-import os
-import getpass
+"""
+this file allows an inclusion_tree creation.
+it creates a 'raw' tree of polygons included one into another
+in fast time.
+no distinction between holes and filled_spaces now.
+distinction will be made later when converting to polygon_tree.
+"""
+from jimn.tree import Tree
 
-
-"""This file is only used for polygontree creation
-No distinction between holes and filled_spaces now
-Distinction will be made later when building final tree"""
-
-dot_count = 0
 
 # while scanning through the planes we encounter and leave polygons.
 # polygons currently intersecting sweeping line are marked active
@@ -15,8 +14,12 @@ ALIVE = 0
 DEAD = 1
 
 
-class inclusion_tree(tree):
-    """stores a set of polygons included one inside another"""
+# TODO: move alive+dead to children (like in tree) with alive hash
+
+class InclusionTree(Tree):
+    """
+    store a set of polygons included one inside another.
+    """
     def __init__(self, contained_polygon=None, height=None, father=None):
         self.polygon = contained_polygon
         self.height = height
@@ -29,7 +32,10 @@ class inclusion_tree(tree):
             self.is_polygon = self.compute_polygonality(father)
 
     def compute_polygonality(self, father):
-        # compute if we are a polygon
+        """
+        compute if we are a polygon
+        or a hole.
+        """
         if father.is_root():
             return True
         else:
@@ -39,42 +45,54 @@ class inclusion_tree(tree):
             return (not father.is_polygon) or father.height > self.height
 
     def is_root(self):
+        """
+        true for root node only.
+        """
         return self.polygon is None
 
-    def get_polygon(self):
-        return self.polygon
-
     def get_children(self):
+        """
+        return all children of given node.
+        """
         return self.children[ALIVE] + self.children[DEAD]
 
     def get_alive_children(self):
+        """
+        return all children for which segments are still to
+        come when continuing scanning the plane.
+        """
         return self.children[ALIVE]
 
     def get_dead_children(self):
+        """
+        return all children for which no segments are left to
+        come when continuing scanning the plane.
+        """
         return self.children[DEAD]
 
     def remove_children(self):
+        """
+        delete all children.
+        """
         self.children[ALIVE] = []
         self.children[DEAD] = []
 
-    def get_height(self):
-        return self.height
-
-    def is_a_polygon(self):
-        return self.is_polygon
-
-    """"add new node with polygon contained in provided segment"""
     def add_child(self, new_segment):
-        new_polygon = new_segment.get_polygon()
-        height = new_segment.get_height()
-        leaf = inclusion_tree(new_polygon, height, self)
+        """"
+        add new alive child with polygon contained in provided segment.
+        """
+        new_polygon = new_segment.polygon
+        height = new_segment.height
+        leaf = InclusionTree(new_polygon, height, self)
         self.children[ALIVE].append(leaf)
         return leaf
 
-    """move a child from alive list to dead list"""
     def kill_child(self, polygon_id):
-        for k, c in enumerate(self.children[ALIVE]):
-            if id(c.get_polygon()) == polygon_id:
+        """
+        move a child from alive list to dead list.
+        """
+        for k, child in enumerate(self.children[ALIVE]):
+            if id(child.polygon) == polygon_id:
                 to_kill_index = k
                 break
         else:
@@ -82,40 +100,28 @@ class inclusion_tree(tree):
         killed = self.children[ALIVE].pop(to_kill_index)
         self.children[DEAD].append(killed)
 
-    def tycat(self):
-        global dot_count
-        user = getpass.getuser()
-        directory = "/tmp/{}".format(user)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        dot_file = "{}/{}.dot".format(directory, dot_count)
-        svg_file = "{}/{}.svg".format(directory, dot_count)
-        dot_count = dot_count + 1
-        dot_fd = open(dot_file, 'w')
-        dot_fd.write("digraph g {\n")
-        for node in self.depth_first_exploration():
-            node.save_dot(dot_fd)
-        dot_fd.write("}")
-        dot_fd.close()
-        os.system("dot -Tsvg {} -o {}".format(dot_file, svg_file))
-        os.system("tycat {}".format(svg_file))
-
     def save_dot(self, fd):
+        """
+        save dot content if given node in dot given file.
+        """
         if self.polygon is None:
             fd.write("n{} [label=\"None\"];\n".format(id(self)))
         else:
-            fd.write("n{} [label=\"{}, h={}\"];\n".format(id(self), str(self.polygon.label), str(self.height)))
+            fd.write("n{} [label=\"{}, h={}\"];\n".format(
+                id(self), str(self.polygon.label), str(self.height)))
         for child in self.children[ALIVE] + self.children[DEAD]:
             if child is not None:
                 fd.write("n{} -> n{};\n".format(id(self), id(child)))
 
-    """nodes inside a hole are moved up one level"""
     def ascend_polygons(self, father=None, grandfather=None):
-        if self.is_root() or self.is_a_polygon():
-            children = self.get_children()
-        else:
-            children = self.get_children()
-            grandfather.get_dead_children().extend(children)
+        """
+        recursively works on the whole subtree.
+        for each hole, move its children to its grand father.
+        """
+        children = self.get_children()
+        for child in children:
+            child.ascend_polygons(self, father)
+
+        if not self.is_root() and not self.is_polygon:
+            grandfather.get_dead_children().extend(self.get_children())
             self.remove_children()
-        for c in self.get_children():
-            c.ascend_polygons(self, father)

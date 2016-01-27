@@ -2,9 +2,9 @@
 figure out hierarchy between polygons.
 """
 from jimn.algorithms.sweeping_line_algorithms import SweepingLineAlgorithm
-from jimn.tree.inclusion_tree import inclusion_tree
+from jimn.tree.inclusion_tree import InclusionTree
 from jimn.utils.debug import is_module_debugged
-from jimn.tree.inclusion_tree.polygonsegment import polygonsegment
+from jimn.tree.inclusion_tree.polygonsegment import PolygonSegment
 
 
 class InclusionTreeBuilder(SweepingLineAlgorithm):
@@ -16,7 +16,7 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
     def __init__(self, polygons):
         self.polygons = polygons
         self.seen_polygons = {}
-        self.tree = inclusion_tree()
+        self.tree = InclusionTree()
         self.fathers = {}
         super().__init__(self._create_segments())
 
@@ -31,11 +31,11 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
     def handle_new_paths(self, starting_segments):
         # loop through all new segments
         # seeing if we encounter a new polygon never seen before.
-        #
+
         # we sort new segments to ensure all potential inclusions are tested :
         # we have to add the potentially containing polygon first in tree
         for segment in sorted(starting_segments,
-                              key=lambda seg: (seg.angle(), seg.get_height()),
+                              key=lambda seg: (seg.angle(), seg.height),
                               reverse=True):
             polygon_id = segment.get_polygon_id()
             if polygon_id not in self.seen_polygons:
@@ -48,8 +48,8 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
                 self.seen_polygons[polygon_id] = True
                 if __debug__:
                     if is_module_debugged(__name__):
-                        print("added polygon", segment.get_polygon().label,
-                              "( h =", segment.get_height(), ")")
+                        print("added polygon", segment.polygon.label,
+                              "( h =", segment.height, ")")
                         self.tree.tycat()
 
     def terminate_polygon(self, polygon_id):
@@ -68,7 +68,7 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
         # if not we try going below
         # see report for more help on inclusion trees
         for child in sorted(root.get_alive_children(),
-                            key=lambda c: c.get_height(), reverse=True):
+                            key=lambda c: c.height, reverse=True):
             if self.add_polygon_rec(child, new_segment):
                 break
         else:
@@ -79,14 +79,14 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
         add new polygon in tree. right position is found recursively.
         """
         # see comments in add_polygon_in_tree
-        if self.is_included(new_segment, node.get_polygon()):
+        if self.is_included(new_segment, node.polygon):
             for child in sorted(node.get_alive_children(),
-                                key=lambda c: c.get_height(), reverse=True):
+                                key=lambda c: c.height, reverse=True):
                 if self.add_polygon_rec(child, new_segment):
                     return True
 
-            if node.is_a_polygon() or \
-                    new_segment.get_height() == node.get_height():
+            if node.is_polygon or \
+                    new_segment.height == node.height:
                 self.add_child_in_tree(node, new_segment)
                 return True
 
@@ -107,7 +107,7 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
             return False
         else:
             segments = self.current_paths[id(polygon)]
-            if segments[0].get_height() < new_segment.get_height():
+            if segments[0].height < new_segment.height:
                 return False
             # do if we are inside, we simply count number of segments
             # traversed when going in one direction (here up)
@@ -122,7 +122,7 @@ def _non_vertical_segments(polygon, height):
     create PolygonSegment objects at given height.
     """
     return [
-        polygonsegment(s, height, polygon)
+        PolygonSegment(s, height, polygon)
         for s in polygon.segments()
         if not s.is_vertical()
     ]
