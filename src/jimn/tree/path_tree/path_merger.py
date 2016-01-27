@@ -68,14 +68,14 @@ def overlap_exit_position(outer_path, inner_path, inner_pocket, milling_radius):
         if is_module_debugged(__name__):
             print("found exit point at", position.outer_position.index)
             try:
-                s = Segment(
+                segment = Segment(
                     [
                         position.outer_position.point,
                         position.inner_position.point
                     ]
                 )
-                tycat(outer_path, inner_path, s)
-            except:
+                tycat(outer_path, inner_path, segment)
+            except AssertionError:
                 tycat(outer_path, inner_path)
 
     return position

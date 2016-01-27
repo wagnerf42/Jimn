@@ -1,9 +1,9 @@
 """
-segment between two points
+segment between two points.
 """
 from math import pi, cos, sin
 from collections import defaultdict
-from jimn.elementary_path import Elementary_Path
+from jimn.elementary_path import ElementaryPath
 from jimn.bounding_box import Bounding_Box
 from jimn.point import Point
 from jimn.utils.coordinates_hash import ROUNDER2D, LINES_ROUNDER
@@ -13,9 +13,9 @@ from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 
 
-class Segment(Elementary_Path):
+class Segment(ElementaryPath):
     """
-    oriented segment between two points
+    oriented segment between two points.
     """
     def __init__(self, points):
         super().__init__(points)

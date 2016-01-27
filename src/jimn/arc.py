@@ -2,7 +2,7 @@
 arc.
 """
 from math import pi
-from jimn.elementary_path import Elementary_Path
+from jimn.elementary_path import ElementaryPath
 from jimn.bounding_box import Bounding_Box
 from jimn.point import Point
 from jimn.utils.math import circles_intersections, line_circle_intersections, \
@@ -13,7 +13,7 @@ from jimn.segment import Segment
 from jimn.utils.debug import is_module_debugged
 
 
-class Arc(Elementary_Path):
+class Arc(ElementaryPath):
     """
     arc class (endpoints, radius, orientation).
     """

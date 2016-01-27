@@ -2,7 +2,7 @@
 (multi) edges in graph.
 """
 from math import floor
-from jimn.elementary_path import Elementary_Path
+from jimn.elementary_path import ElementaryPath
 
 
 class Edge:
@@ -14,7 +14,7 @@ class Edge:
         self.path = real_path
         self.multiplicity = 1
         self.weight = self.path.length()
-        assert isinstance(self.path, Elementary_Path)
+        assert isinstance(self.path, ElementaryPath)
 
     def add_directly_to_graph(self):
         """

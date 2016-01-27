@@ -11,7 +11,7 @@ from jimn.utils.precision import is_almost, SEGMENT_LIMIT
 from jimn.point import Point
 
 
-class Elementary_Path:
+class ElementaryPath:
     """
     elementary path is a small path between two endpoints.
     class is further refined into segments and arcs
@@ -98,7 +98,7 @@ class Elementary_Path:
                 new_path.endpoints = [p_1, p_2]
                 if __debug__:
                     if new_path.squared_length() < SEGMENT_LIMIT:
-                        print("splitting", self, "at", *points)
+                        print("splitting", self, "at", [str(p) for p in points])
                         tycat(self, *points)
                         raise Exception("very small path when splitting")
                 paths.append(new_path)
