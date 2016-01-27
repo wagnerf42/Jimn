@@ -2,8 +2,8 @@
 
 from jimn.polygon import Polygon
 from jimn.displayable import tycat
-from jimn.tree.polygon_tree import polygon_tree
-from jimn.tree.pocket_tree import pocket_tree
+from jimn.tree.polygon_tree import PolygonTree
+from jimn.tree.pocket_tree import PocketTree
 from jimn.tree.path_tree import path_tree
 
 milling_radius = 0.9
@@ -20,11 +20,11 @@ print("layouts are")
 tycat(polygons[1])
 tycat(polygons[0])
 
-tree = polygon_tree.build(milling_radius, polygons)
+tree = PolygonTree.build(milling_radius, polygons)
 print("corresponding tree")
 tree.tycat()
 
-pockets = pocket_tree.build(tree, milling_radius)
+pockets = PocketTree.build(tree, milling_radius)
 print("offsetted tree")
 pockets.tycat()
 

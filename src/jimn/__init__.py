@@ -8,7 +8,7 @@ from jimn.displayable import tycat
 from jimn.stl import Stl
 from jimn.tree.polygon_tree import PolygonTree
 from jimn.pocket.builder import build_polygons
-from jimn.tree.pocket_tree import pocket_tree
+from jimn.tree.pocket_tree import PocketTree
 from jimn.tree.path_tree import path_tree
 from jimn.vertical_path import VerticalPath
 from jimn.algorithms.segment_merger import merge_segments
@@ -90,7 +90,7 @@ def build_pockets_tree(milling_radius, tree):
     if __debug__:
         if is_module_debugged(__name__):
             print("building pockets tree")
-    pockets = pocket_tree.build(tree, milling_radius)
+    pockets = PocketTree.build(tree, milling_radius)
     if pockets.is_empty():
         print("nothing left : milling radius is too high !")
         sys.exit()

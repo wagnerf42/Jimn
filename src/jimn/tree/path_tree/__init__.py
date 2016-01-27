@@ -234,7 +234,7 @@ class path_tree(Tree):
 def _pocket_node_to_path_node(pocket_node, milling_radius):
     global paths_cache
 
-    p = pocket_node.get_content()
+    p = pocket_node.content
     if p is None:
         path = None
         outer_edge = None

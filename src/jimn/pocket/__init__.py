@@ -1,6 +1,7 @@
 """
 set of paths defining a pocket to mill.
 """
+import traceback
 from itertools import combinations
 from jimn.bounding_box import Bounding_Box
 from jimn.polygon import Polygon
@@ -204,6 +205,7 @@ class Pocket:
         return (above_paths % 2) == 1
 
     def __hash__(self):
+        traceback.print_last()
         return hash(tuple(self.paths))
 
     def __eq__(self, other):

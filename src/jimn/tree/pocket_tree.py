@@ -1,19 +1,29 @@
+"""
+tree of all pockets to mill.
+"""
 from jimn.algorithms.offsetter import offset_holed_polygon
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.tree import Tree
 
 
-class pocket_tree(Tree):
+class PocketTree(Tree):
+    """
+    tree of all pockets to mill.
+    """
 
     @classmethod
     def build(cls, poly_tree, carving_radius):
-        """walks the polygon tree, offsetting all polygons.
-        returns pockets tree.
+        """
+        walk the polygon tree, offsetting all polygons.
+        return pockets tree.
         """
         return _offset_polygons(poly_tree, carving_radius)
 
     def is_empty(self):
+        """
+        return if no pockets are left.
+        """
         return len(self.children) == 0
 
 
@@ -24,13 +34,13 @@ def _offset_polygons(poly_tree, carving_radius):
             poly_tree.tycat()
     # start with children
     subtrees = []
-    for n in poly_tree.get_children():
-        pockets = _offset_polygons(n, carving_radius)
-        for p in pockets:
-            p.copy_translations(n)
+    for child in poly_tree.get_children():
+        pockets = _offset_polygons(child, carving_radius)
+        for pocket in pockets:
+            pocket.copy_translations(child)
         subtrees.extend(pockets)
 
-    holed_poly = poly_tree.get_content()
+    holed_poly = poly_tree.content
     if holed_poly is not None:
         # now, offset ourselves (if we are not root)
         polygons = holed_poly.get_polygons()
@@ -44,7 +54,7 @@ def _offset_polygons(poly_tree, carving_radius):
                 tycat(pockets)
         return _build_offsetted_tree(pockets, subtrees)
     else:
-        root = pocket_tree()
+        root = PocketTree()
         root.children = subtrees
         return root
 
@@ -57,16 +67,16 @@ def _build_offsetted_tree(pockets, subtrees):
     and rebuilds a global tree
     """
     new_trees = {}
-    for p in pockets:
-        new_trees[id(p)] = pocket_tree(p)
+    for pocket in pockets:
+        new_trees[id(pocket)] = PocketTree(pocket)
 
-    for t in subtrees:
-        for p in pockets:
-            if t.content.is_included_in(p):
-                new_trees[id(p)].children.append(t)
+    for node in subtrees:
+        for pocket in pockets:
+            if node.content.is_included_in(pocket):
+                new_trees[id(pocket)].children.append(node)
                 break
         else:
-            tycat(t.content, *pockets)
+            tycat(node.content, *pockets)
             raise Exception("subtree does not belong here")
 
     return list(new_trees.values())
