@@ -53,6 +53,12 @@ class HoledPocket:
         for inner_edge in self.inner_edges:
             inner_edge.save_svg_content(displayer, color)
 
+    def get_dot_label(self):
+        """
+        returns text label for display in dot file (see polygontree class)
+        """
+        return str(id(self))
+
     def __str__(self):
         # TODO : better indentation
         inner_strings = ["    " + str(p) for p in self.inner_edges]
@@ -61,8 +67,27 @@ class HoledPocket:
             + "\n], [" + "\n".join(inner_strings) \
             + "])"
 
-    def get_dot_label(self):
+    def __hash__(self):
         """
-        returns text label for display in dot file (see polygontree class)
+        this hash is used to cache paths computed out of pockets
+        since the same pocket can be found on several slices.
+        requires all holes to be sorted.
         """
-        return str(id(self))
+        all_edges = [self.outer_edge]
+        all_edges.extend(self.inner_edges)
+        hash_value = hash(tuple(all_edges))
+        return hash_value
+
+    def __eq__(self, other):
+        """
+        needed for the hash. requires all holes to be sorted.
+        """
+        if self.outer_edge != other.outer_edge:
+            return False
+        if len(self.inner_edges) != len(other.inner_edges):
+            return False
+
+        for self_edge, other_edge in zip(self.inner_edges, other.inner_edges):
+            if self_edge != other_edge:
+                return False
+        return True
