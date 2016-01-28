@@ -2,7 +2,7 @@
 base class for segments or arcs.
 basic path between two endpoints (oriented).
 """
-from math import sqrt
+import traceback
 from copy import copy
 from jimn.displayable import tycat
 from jimn.utils.iterators import all_two_elements
@@ -14,30 +14,17 @@ from jimn.point import Point
 class ElementaryPath:
     """
     elementary path is a small path between two endpoints.
-    class is further refined into segments and arcs
+    class is further refined into segments and arcs.
     """
     def __init__(self, points):
         self.endpoints = points
-        assert self.squared_length() > SEGMENT_LIMIT, "very small path"
+        assert self.length() > SEGMENT_LIMIT, "very small path"
 
     def length(self):
         """
         return length of path.
         """
-        return sqrt(self.squared_length())
-
-    def squared_length(self):
-        """squared distance between endpoints"""
-        return self.endpoints[0].squared_distance_to(self.endpoints[1])
-
-    def change_endpoint(self, index, new_point):
-        """
-        return new path with given indexed endpoint changed.
-        """
-        new_path = copy(self)
-        new_path.endpoints[index] = new_point
-        assert new_path.squared_length() > SEGMENT_LIMIT, "very small path"
-        return new_path
+        return self.endpoints[0].distance_to(self.endpoints[1])
 
     def get_endpoint_not(self, point):
         """
@@ -49,18 +36,6 @@ class ElementaryPath:
         if self.endpoints[1] == point:
             return self.endpoints[0]
         raise Exception("no given endpoint ; cannot find other")
-
-    def is_sorted(self):
-        """
-        are endpoints sorted from small to big ?
-        """
-        return self.endpoints[0] < self.endpoints[1]
-
-    def dimension(self):
-        """
-        returns dimension of space containing the points
-        """
-        return self.endpoints[0].dimension()
 
     def squared_distance_from_start(self, point):
         """
@@ -85,7 +60,7 @@ class ElementaryPath:
         sorted_points = sorted(
             all_points, key=self.squared_distance_from_start
         )
-        paths = [] # result
+        paths = []  # result
         inside = False
         for p_1, p_2 in all_two_elements(sorted_points):
             if p_1 == start_point:
@@ -97,7 +72,7 @@ class ElementaryPath:
                 new_path = copy(self)
                 new_path.endpoints = [p_1, p_2]
                 if __debug__:
-                    if new_path.squared_length() < SEGMENT_LIMIT:
+                    if new_path.length() < SEGMENT_LIMIT:
                         print("splitting", self, "at", [str(p) for p in points])
                         tycat(self, *points)
                         raise Exception("very small path when splitting")
@@ -126,16 +101,9 @@ class ElementaryPath:
             before, after = split_path[0:2]
         return (before, after)
 
-    def get_polygon_id(self):
-        """
-        return id of polygon we belong to.
-        0 unless overloaded in subclasses.
-        """
-        return 0
-
     def _find_common_xrange(self, other):
         """
-        find three different x belonging to both paths
+        find three different x belonging to both paths.
         """
         self_x = sorted([p.get_x() for p in self.endpoints])
         other_x = sorted([p.get_x() for p in other.endpoints])
@@ -210,7 +178,7 @@ class ElementaryPath:
 
     def is_almost_horizontal(self):
         """
-        are endpoints almost aligned horizontally
+        are endpoints almost aligned horizontally ?
         """
         return is_almost(*[p.get_y() for p in self.endpoints])
 
@@ -234,32 +202,8 @@ class ElementaryPath:
         self.endpoints = [p.adjust_at_milling_height(milling_height)
                           for p in self.endpoints]
 
-    def __hash__(self):
-        return hash(tuple(self.endpoints))
-
-    def __eq__(self, other):
-        types = [str(type(p)) == "<class 'jimn.arc.Arc'>"
-                 for p in (self, other)]
-        if types[0] and not types[1]:
-            return False
-        if types[1] and not types[0]:
-            return False
-        if types[0] and types[1]:
-            return self.equals(other)
-
-        return self.endpoints == other.endpoints
-
-    def __lt__(self, other):
-        types = [str(type(p)) == "<class 'jimn.arc.Arc'>"
-                 for p in (self, other)]
-        if types[0] and not types[1]:
-            return True
-        if types[1] and not types[0]:
-            return False
-
-        return self.comparison(other)
-
     def update_height(self, height):
+        # pylint: disable=no-self-use
         """
         height change by following this path (no change since horizontal).
         """

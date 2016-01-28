@@ -72,10 +72,6 @@ class Segment(ElementaryPath):
         """invert endpoints"""
         return Segment(list(reversed(self.endpoints)))
 
-    def __str__(self):
-        return "Segment([" + str(self.endpoints[0]) + ", " + \
-            str(self.endpoints[1]) + "])"
-
     def get_bounding_box(self):
         """
         return min bounding box containing self
@@ -165,7 +161,6 @@ class Segment(ElementaryPath):
         nearly aligned segments will hash
         on same value.
         """
-        assert self.dimension() == 2, 'only works on 2d points segment'
         (x_1, y_1), (x_2, y_2) = [p.get_coordinates() for p in self.endpoints]
         if is_almost(x_1, x_2):
             return str(LINES_ROUNDER.hash_point(Point([x_1])))
@@ -269,19 +264,6 @@ class Segment(ElementaryPath):
         slope = (y_2-y_1)/(x_2-x_1)
         return y_1 + slope*(intersecting_x-x_1)
 
-    def comparison(self, other):
-        """
-        returns if self < other.
-        order has no real meaning. it is just an arbitrary order.
-        """
-        if self.endpoints[0].is_almost(other.endpoints[0]):
-            if self.endpoints[1].is_almost(other.endpoints[1]):
-                return
-            else:
-                return self.endpoints[1] < other.endpoints[1]
-        else:
-            return self.endpoints[0] < other.endpoints[0]
-
     def translate(self, translation):
         """
         translates segment by a given translation vector
@@ -356,3 +338,31 @@ class Segment(ElementaryPath):
                 tycat(self, other, intersections)
 
         return intersections
+
+    def __str__(self):
+        return "Segment([" + str(self.endpoints[0]) + ", " + \
+            str(self.endpoints[1]) + "])"
+
+    def __eq__(self, other):
+        if not isinstance(other, Segment):
+            return False
+        if self.endpoints != other.endpoints:
+            return False
+
+    def __hash__(self):
+        return hash(tuple(self.endpoints))
+
+    def __lt__(self, other):
+        """
+        returns if self < other.
+        order has no real meaning. it is just an arbitrary order.
+        """
+        if not isinstance(other, Segment):
+            return False
+        if self.endpoints[0].is_almost(other.endpoints[0]):
+            if self.endpoints[1].is_almost(other.endpoints[1]):
+                return
+            else:
+                return self.endpoints[1] < other.endpoints[1]
+        else:
+            return self.endpoints[0] < other.endpoints[0]

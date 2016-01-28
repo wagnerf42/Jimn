@@ -5,6 +5,7 @@ from collections import defaultdict, Counter
 from itertools import combinations
 from jimn.displayable import tycat
 from jimn.arc import Arc
+from jimn.segment import Segment
 from jimn.pocket import Pocket
 from jimn.holed_pocket import HoledPocket
 from jimn.pocket.builder import build_pockets
@@ -57,7 +58,7 @@ class Offsetter:
             end = first_segment.endpoints[1]
             start = second_segment.endpoints[0]
             if end.is_almost(start):
-                first_segment = first_segment.change_endpoint(1, start)
+                first_segment = Segment([first_segment.endpoints[0], start])
             else:
                 # original point connecting the original segments
                 center_point = neighbouring_tuples[0][1].endpoints[1]

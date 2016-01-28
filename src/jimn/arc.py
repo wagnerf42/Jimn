@@ -44,13 +44,6 @@ class Arc(ElementaryPath):
         else:
             self.center = possible_centers[1]
 
-    def squared_length(self):
-        """
-        return square of arc length.
-        """
-        length = self.length()
-        return length * length
-
     def length(self):
         """
         return arc length.
@@ -227,49 +220,6 @@ class Arc(ElementaryPath):
         intersecting_ys = [i.get_y() for i in candidates]
         return min(intersecting_ys)
 
-    def __str__(self):
-        return "Arc(\n    " + str(self.radius) + ",\n    [\n        " + \
-            str(self.endpoints[0]) + ",\n        " + str(self.endpoints[1]) \
-            + "\n    ],\n    " + str(self.center) + ",\n    " \
-            + str(self.reversed_direction) \
-            + "\n)"
-
-    def __hash__(self):
-        return hash(tuple(self.endpoints)) ^ hash(self.radius) ^ \
-            hash(self.reversed_direction)
-
-    def equals(self, other):
-        """
-        full equality on all fields
-        """
-        if self.endpoints != other.endpoints:
-            return False
-        if self.radius != other.radius:
-            return False
-        if self.reversed_direction != other.reversed_direction:
-            return False
-        return True
-
-    def comparison(self, other):
-        """
-        returns if self < other.
-        order has no real meaning. it is just an arbitrary order.
-        precondition: both are arcs
-        """
-        if is_almost(self.radius, other.radius):
-            if self.reversed_direction == other.reversed_direction:
-                if self.endpoints[0].is_almost(other.endpoints[0]):
-                    if self.endpoints[1].is_almost(other.endpoints[1]):
-                        return
-                    else:
-                        return self.endpoints[1] < other.endpoints[1]
-                else:
-                    return self.endpoints[0] < other.endpoints[0]
-            else:
-                return self.reversed_direction
-        else:
-            return self.radius < other.radius
-
     def translate(self, translation):
         """
         translates arc by a given translation vector
@@ -311,3 +261,46 @@ class Arc(ElementaryPath):
             adjusted_angles.append(angle)
         # assert adjusted_angles[1] <= pi : TODO : fix
         return adjusted_angles[0] < adjusted_angles[1]
+
+    def __eq__(self, other):
+        if not isinstance(other, Arc):
+            return False
+        if self.endpoints != other.endpoints:
+            return False
+        if self.radius != other.radius:
+            return False
+        if self.reversed_direction != other.reversed_direction:
+            return False
+        return True
+
+    def __str__(self):
+        return "Arc(\n    " + str(self.radius) + ",\n    [\n        " + \
+            str(self.endpoints[0]) + ",\n        " + str(self.endpoints[1]) \
+            + "\n    ],\n    " + str(self.center) + ",\n    " \
+            + str(self.reversed_direction) \
+            + "\n)"
+
+    def __hash__(self):
+        return hash(tuple(self.endpoints)) ^ hash(self.radius) ^ \
+            hash(self.reversed_direction)
+
+    def __lt__(self, other):
+        """
+        returns if self < other.
+        order has no real meaning. it is just an arbitrary order.
+        """
+        if not isinstance(other, Arc):
+            return True
+        if is_almost(self.radius, other.radius):
+            if self.reversed_direction == other.reversed_direction:
+                if self.endpoints[0].is_almost(other.endpoints[0]):
+                    if self.endpoints[1].is_almost(other.endpoints[1]):
+                        return
+                    else:
+                        return self.endpoints[1] < other.endpoints[1]
+                else:
+                    return self.endpoints[0] < other.endpoints[0]
+            else:
+                return self.reversed_direction
+        else:
+            return self.radius < other.radius

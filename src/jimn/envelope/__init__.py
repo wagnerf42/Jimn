@@ -200,7 +200,7 @@ class Envelope:
         if not points_couples:
             return None, None
 
-        if self.inside_content.is_sorted():
+        if self.inside_content.endpoints[0] < self.inside_content.endpoints[1]:
             last_couple = max(points_couples, key=lambda c: c[0])
         else:
             last_couple = min(points_couples, key=lambda c: c[0])

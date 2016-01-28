@@ -5,7 +5,7 @@ this stuff is highly toxic so take care.
 
 PRECISION = 6
 LIMIT = 10**-PRECISION
-SEGMENT_LIMIT = LIMIT * LIMIT
+SEGMENT_LIMIT = LIMIT # minimum length allowed for a segment
 PRECISION_FORMAT = "{{0:.{}f}}".format(PRECISION)
 
 
