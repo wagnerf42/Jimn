@@ -5,7 +5,7 @@ it allows to quickly find for any given position at limit which position
 in paths it corresponds to
 """
 
-from jimn.bounding_box import Bounding_Box
+from jimn.bounding_box import BoundingBox
 from jimn.arc import Arc
 from jimn.segment import Segment
 from jimn.pocket import Pocket
@@ -51,7 +51,7 @@ class Envelope:
         """
         smallest bounding box containing envelope
         """
-        box = Bounding_Box.empty_box(2)
+        box = BoundingBox.empty_box(2)
         for displaced_path in self.paths:
             box.update(displaced_path.path.get_bounding_box())
         return box

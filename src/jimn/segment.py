@@ -4,7 +4,7 @@ segment between two points.
 from math import pi, cos, sin
 from collections import defaultdict
 from jimn.elementary_path import ElementaryPath
-from jimn.bounding_box import Bounding_Box
+from jimn.bounding_box import BoundingBox
 from jimn.point import Point
 from jimn.utils.coordinates_hash import ROUNDER2D, LINES_ROUNDER
 from jimn.utils.precision import check_precision, is_almost
@@ -60,7 +60,7 @@ class Segment(ElementaryPath):
         return point on self at given y.
         precondition : y is valid height in segment.
         """
-        (x_1, y_1), (x_2, y_2) = [p.get_coordinates() for p in self.endpoints]
+        (x_1, y_1), (x_2, y_2) = [p.coordinates for p in self.endpoints]
         if is_almost(x_1, x_2):
             return Point([x_1, intersecting_y])
         else:
@@ -79,7 +79,7 @@ class Segment(ElementaryPath):
         return min bounding box containing self.
         """
         boxes = [
-            Bounding_Box(p.get_coordinates(), p.get_coordinates())
+            BoundingBox(p.coordinates, p.coordinates)
             for p in self.endpoints
         ]
         boxes[0].update(boxes[1])
@@ -91,7 +91,7 @@ class Segment(ElementaryPath):
         """
         svg_coordinates = [
             c for point in self.endpoints
-            for c in display.convert_coordinates(point.get_coordinates())
+            for c in display.convert_coordinates(point.coordinates)
         ]
         stroke_width = display.stroke_width()
         display.write("<line x1=\"{}\" y1=\"{}\"\
@@ -105,11 +105,11 @@ class Segment(ElementaryPath):
         bottom = before.rotate_around(self.endpoints[0], -pi/20)
         top_coordinates = [
             c for point in [center, top]
-            for c in display.convert_coordinates(point.get_coordinates())
+            for c in display.convert_coordinates(point.coordinates)
         ]
         bottom_coordinates = [
             c for point in [center, bottom]
-            for c in display.convert_coordinates(point.get_coordinates())
+            for c in display.convert_coordinates(point.coordinates)
         ]
         display.write("<line x1=\"{}\" y1=\"{}\"\
                       x2=\"{}\" y2=\"{}\"".format(*top_coordinates))
@@ -135,8 +135,8 @@ class Segment(ElementaryPath):
         requires h between hmin and hmax of segment
         """
         p_1, p_2 = self.endpoints
-        x_1, y_1, z_1 = p_1.get_coordinates()
-        x_2, y_2, z_2 = p_2.get_coordinates()
+        x_1, y_1, z_1 = p_1.coordinates
+        x_2, y_2, z_2 = p_2.coordinates
 
         if __debug__:
             check_precision(z_1, z_2, 'horizontal_plane_intersection')
@@ -163,7 +163,7 @@ class Segment(ElementaryPath):
         nearly aligned segments will hash
         on same value.
         """
-        (x_1, y_1), (x_2, y_2) = [p.get_coordinates() for p in self.endpoints]
+        (x_1, y_1), (x_2, y_2) = [p.coordinates for p in self.endpoints]
         if is_almost(x_1, x_2):
             return str(LINES_ROUNDER.hash_point(Point([x_1])))
         else:
@@ -211,13 +211,16 @@ class Segment(ElementaryPath):
         return i
 
     def line_intersection_with(self, other):
-        """returns point intersecting with the two lines passing through the segments.
-        None if lines are almost parallel
+        # pylint: disable=invalid-name
+        """
+        return point intersecting with the two lines passing through
+        the segments.
+        none if lines are almost parallel.
         """
         x1, y1, x2, y2, x3, y3, x4, y4 = [
             c for s in (self, other)
             for p in s.endpoints
-            for c in p.get_coordinates()
+            for c in p.coordinates
         ]
         denominator = (x1-x2) * (y4-y3) + (x3-x4) * (y1-y2)
         if is_almost(denominator, 0):
@@ -254,8 +257,8 @@ class Segment(ElementaryPath):
         intersect with vertical line at given x. (return y)
         if we are a vertical segment at give x, return y with highest value
         """
-        x_1, y_1 = self.endpoints[0].get_coordinates()
-        x_2, y_2 = self.endpoints[1].get_coordinates()
+        x_1, y_1 = self.endpoints[0].coordinates
+        x_2, y_2 = self.endpoints[1].coordinates
         if x_1 == x_2:
             if not is_almost(intersecting_x, x_1):
                 return None

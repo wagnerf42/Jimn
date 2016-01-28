@@ -1,13 +1,15 @@
 """
-bounding boxes are rectangular boxes
-delimiting a set of items.
+bounding boxes are rectangular boxes delimiting a set of items.
 they are usually used in display to compute image sizes.
 """
 
 from jimn.utils.precision import is_almost
 
 
-class Bounding_Box:
+class BoundingBox:
+    """
+    enclosing rectangles.
+    """
     def __init__(self, min_coordinates, max_coordinates):
         self.min_coordinates = list(min_coordinates)
         self.max_coordinates = list(max_coordinates)
@@ -29,7 +31,7 @@ class Bounding_Box:
         register a point inside the box.
         update box limits if needed.
         """
-        for i, added_coordinate in enumerate(added_point.get_coordinates()):
+        for i, added_coordinate in enumerate(added_point.coordinates):
             if added_coordinate < self.min_coordinates[i]:
                 self.min_coordinates[i] = added_coordinate
             if added_coordinate > self.max_coordinates[i]:
@@ -97,5 +99,5 @@ class Bounding_Box:
         return (self.min_coordinates, self.max_coordinates)
 
     def __str__(self):
-        return('Bounding_Box([{}], [{}])'.format(self.min_coordinates,
-                                                 self.max_coordinates))
+        return('BoundingBox([{}], [{}])'.format(self.min_coordinates,
+                                                self.max_coordinates))

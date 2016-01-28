@@ -8,6 +8,7 @@ from jimn.utils.debug import is_module_debugged
 
 
 class SegmentMerger:
+    # pylint: disable=too-few-public-methods
     """
     holds one execution of algorithm merging overlapping segments.
     """

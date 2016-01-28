@@ -32,7 +32,7 @@ def circles_intersections(c1, c2, r1, r2):
     d = c1.distance_to(c2)
     if is_almost(d, 0):
         return []  # common center
-    x1, y1, x2, y2 = [c for p in (c1, c2) for c in p.get_coordinates()]
+    x1, y1, x2, y2 = [c for p in (c1, c2) for c in p.coordinates]
     if is_almost(r1, r2):
         l = d/2
     else:
@@ -87,8 +87,8 @@ def line_circle_intersections(points, center, radius):
     # take first point as origin
     d = points[1] - points[0]
     c = center - points[0]
-    xd, yd = d.get_coordinates()
-    xc, yc = c.get_coordinates()
+    xd, yd = d.coordinates
+    xc, yc = c.coordinates
     # segment points are at alpha * d
     # distance(alpha * d, center) = r
 

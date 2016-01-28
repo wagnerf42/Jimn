@@ -6,7 +6,7 @@ save objects sets as svg files and view them in terminology
 from math import ceil
 import os
 import getpass
-from jimn.bounding_box import Bounding_Box
+from jimn.bounding_box import BoundingBox
 
 
 class Displayer:
@@ -28,7 +28,7 @@ class Displayer:
     def __init__(self, filename, things):
         self.filename = filename
         self.svg_file = None
-        self.bounding_box = Bounding_Box.empty_box(2)
+        self.bounding_box = BoundingBox.empty_box(2)
         for thing in things:
             if isinstance(thing, list) or isinstance(thing, tuple):
                 for subthing in thing:

@@ -8,6 +8,7 @@ from jimn.caching import cached
 
 
 class PathPosition:
+    # pylint: disable=too-few-public-methods
     """
     position on a path (contains index of elementary path on path).
     """

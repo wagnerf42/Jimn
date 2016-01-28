@@ -1,7 +1,7 @@
 """
 vertical (elementary) path class.
 """
-from jimn.bounding_box import Bounding_Box
+from jimn.bounding_box import BoundingBox
 
 
 class VerticalPath:
@@ -20,18 +20,21 @@ class VerticalPath:
         return self.direction * self.milling_height + height
 
     def save_svg_content(self, display, color):
+        # pylint: disable=unused-argument, no-self-use
         """
         svg for tycat. does nothing.
         """
         return
 
     def get_bounding_box(self):
+        # pylint: disable=no-self-use
         """
         bounding box. empty box.
         """
-        return Bounding_Box.empty_box(2)
+        return BoundingBox.empty_box(2)
 
-    def contains(self, p):
+    def contains(self, point):
+        # pylint: disable=unused-argument, no-self-use
         """
         returns always false (real method is for non-vertical paths only)
         """
@@ -39,6 +42,6 @@ class VerticalPath:
 
     def length(self):
         """
-        return distance to cross path
+        return distance to cross path.
         """
         return self.milling_height

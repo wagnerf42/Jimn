@@ -6,7 +6,7 @@ from math import floor
 from collections import defaultdict
 from jimn.vertical_path import VerticalPath
 from jimn.path_position import PathPosition
-from jimn.bounding_box import Bounding_Box
+from jimn.bounding_box import BoundingBox
 from jimn.point import Point
 from jimn.envelope import Envelope
 from jimn.displayable import tycat_start, tycat_end
@@ -52,7 +52,7 @@ class Path:
         """
         min bounding box for whole path
         """
-        box = Bounding_Box.empty_box(2)
+        box = BoundingBox.empty_box(2)
         for path in self.elementary_paths:
             box.update(path.get_bounding_box())
         return box

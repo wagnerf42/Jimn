@@ -15,32 +15,20 @@ or else they just downgrade to instance attributes
 SPLIT AT SEEMS NOT OK WITH REVERSED ARCS
 
 
------> move things out of segment and into elementary_path (comparison ?)
 -----> simplify jimn.segment.remove_overlap_with
 
 - warning in poly builder if two paths leaving a point have an extremely small angle between them
 - better docs for new pocket builder
 - check if vertical intersections are still needed in arcs
-- avoid creating reversed arcs : change offsetter to avoid them directly
-- remove read only accessors
 - check that we decompress the branch after the whole path for
 the branch has been created
 - check we can remove arcs from envelope
-- fix again arcs orientation in offsetter
 - bug for cordoba 0.5 0.02
 
 
  * large goals
 
 - jimn.tree.polygon_tree.is_translation_of
-
-- reorganize hashed points : only hash min number of points required
-
-- re-think precision problems :
-	when 3 points are almost aligned, offseting using parallel segments
-	creates two segments separated with a very small arc
-	-> for now this should not happen due to polygons remove_useless_points
-	but is it really safe ?
 
 - re-think meaning of border : what do we NEED to mill ? what CAN we mill ?
 	-> maybe in relation with second pass
@@ -51,11 +39,6 @@ the branch has been created
 especially testing flat subparts
 
  * minor code improvements (readability)
-
-- rethink reversed arcs
-- document new segment merger
-- tidy vertical segments
-
  * minor code improvements (performance)
  * additional non-regression tests
  * misc

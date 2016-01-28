@@ -2,7 +2,7 @@
 set of paths defining a pocket to mill.
 """
 from itertools import combinations
-from jimn.bounding_box import Bounding_Box
+from jimn.bounding_box import BoundingBox
 from jimn.polygon import Polygon
 from jimn.point import Point
 from jimn.segment import Segment
@@ -65,7 +65,7 @@ class Pocket:
         """
         returns min bounding box containing pocket
         """
-        box = Bounding_Box.empty_box(2)
+        box = BoundingBox.empty_box(2)
         for path in self.paths:
             pbox = path.get_bounding_box()
             box.update(pbox)
@@ -185,7 +185,7 @@ class Pocket:
         false if strictly out of self.
         none if on self.
         """
-        point_x, point_y = tested_point.get_coordinates()
+        point_x, point_y = tested_point.coordinates
         above_paths = 0  # simple ray casting algorithm
         for path in self.paths:
             if path.contains(tested_point):

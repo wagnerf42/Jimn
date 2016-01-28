@@ -2,7 +2,7 @@
 graph class and algorithms.
 """
 from itertools import combinations
-from jimn.bounding_box import Bounding_Box
+from jimn.bounding_box import BoundingBox
 from jimn.graph.edge import Edge
 from jimn.graph.vertex import Vertex
 from jimn.segment import Segment
@@ -80,7 +80,7 @@ class Graph:
         """
         min bounding box containing vertices objects.
         """
-        box = Bounding_Box.empty_box(2)
+        box = BoundingBox.empty_box(2)
         for vertex in self.vertices:
             small_box = vertex.bound_object.get_bounding_box()
             box.update(small_box)

@@ -101,26 +101,29 @@ class Tree:
         os.system("dot -Tsvg {} -o {}".format(dot_file, svg_file))
         os.system("tycat {}".format(svg_file))
 
-    def save_dot(self, fd):
-            if self.content is None:
-                label = "\"None\""
-            else:
-                label = "\"" + self.content.get_dot_label()
-                if self.translations:
-                    if len(self.translations) < 10:
-                        label += "(" + \
-                            ",".join([str(t) for t in self.translations]) + ")"
-                    else:
-                        label += "(...)"
-                label += "\""
+    def save_dot(self, dot_file):
+        """
+        save tree to dot file.
+        """
+        if self.content is None:
+            label = "\"None\""
+        else:
+            label = "\"" + self.content.get_dot_label()
+            if self.translations:
+                if len(self.translations) < 10:
+                    label += "(" + \
+                        ",".join([str(t) for t in self.translations]) + ")"
+                else:
+                    label += "(...)"
+            label += "\""
 
-            fd.write("n{} [label={}];\n".format(
-                id(self),
-                label
-            ))
+        dot_file.write("n{} [label={}];\n".format(
+            id(self),
+            label
+        ))
 
-            for child in self.children:
-                fd.write("n{} -> n{};\n".format(id(self), id(child)))
+        for child in self.children:
+            dot_file.write("n{} -> n{};\n".format(id(self), id(child)))
 
 
 def _display(iterator):

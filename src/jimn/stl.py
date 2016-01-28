@@ -9,7 +9,7 @@ from math import ceil
 from jimn.point import Point
 from jimn.segment import Segment
 from jimn.facet import Facet, binary_facet
-from jimn.bounding_box import Bounding_Box
+from jimn.bounding_box import BoundingBox
 from jimn.utils.coordinates_hash import CoordinatesHash
 from jimn.utils.debug import is_module_debugged
 
@@ -21,7 +21,7 @@ class Stl:
     def __init__(self, file_name):
         self.heights_hash = CoordinatesHash(wanted_precision=5)
         self.facets = []
-        self.bounding_box = Bounding_Box.empty_box(3)
+        self.bounding_box = BoundingBox.empty_box(3)
         if __debug__:
             if is_module_debugged(__name__):
                 print('loading stl file')

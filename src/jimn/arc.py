@@ -3,7 +3,7 @@ arc.
 """
 from math import pi
 from jimn.elementary_path import ElementaryPath
-from jimn.bounding_box import Bounding_Box
+from jimn.bounding_box import BoundingBox
 from jimn.point import Point
 from jimn.utils.math import circles_intersections, line_circle_intersections, \
     milling_heights, vline_circle_intersections, compute_arc_centers
@@ -37,7 +37,7 @@ class Arc(ElementaryPath):
         """
         possible_centers = compute_arc_centers(self.radius, self.endpoints)
         distances = [
-            c.squared_distance_to(self.center) for c in possible_centers
+            c.distance_to(self.center) for c in possible_centers
         ]
         if distances[0] < distances[1]:
             self.center = possible_centers[0]
@@ -116,14 +116,14 @@ class Arc(ElementaryPath):
         bounding box for arc.
         for now, not tight
         """
-        box = Bounding_Box.empty_box(2)
+        box = BoundingBox.empty_box(2)
         box.add_point(self.center + Point([self.radius, self.radius]))
         box.add_point(self.center - Point([self.radius, self.radius]))
         return box
 
     def contains(self, point):
         """return true if point is inside arc"""
-        if not is_almost(self.center.squared_distance_to(point),
+        if not is_almost(self.center.distance_to(point),
                          self.radius*self.radius):
             return False
         return self.contains_circle_point(point)
@@ -167,7 +167,7 @@ class Arc(ElementaryPath):
         # display arc
         x_1, y_1, x_2, y_2 = [
             c for p in self.endpoints
-            for c in display.convert_coordinates(p.get_coordinates())
+            for c in display.convert_coordinates(p.coordinates)
         ]
         if self.reversed_direction:
             sweep_flag = 0

@@ -2,7 +2,7 @@
 draw circles (mainly for debugging purposes).
 """
 from jimn.point import Point
-from jimn.bounding_box import Bounding_Box
+from jimn.bounding_box import BoundingBox
 
 
 class Circle:
@@ -18,7 +18,7 @@ class Circle:
         svg content for tycat.
         """
         svg_coordinates = display.convert_coordinates(
-            self.center.get_coordinates()
+            self.center.coordinates
         )
         display.write("<circle cx=\"{}\" cy=\"{}\"".format(*svg_coordinates))
         display.write(" r=\"{}\" fill=\"none\" stroke=\"{}\"".format(
@@ -34,7 +34,7 @@ class Circle:
         """
         min_point = self.center + Point([-self.radius, -self.radius])
         max_point = self.center + Point([self.radius, self.radius])
-        return Bounding_Box(
-            min_point.get_coordinates(),
-            max_point.get_coordinates(),
+        return BoundingBox(
+            min_point.coordinates,
+            max_point.coordinates,
         )

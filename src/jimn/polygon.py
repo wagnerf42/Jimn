@@ -3,7 +3,7 @@ polygons.
 """
 from jimn.point import Point
 from jimn.segment import Segment
-from jimn.bounding_box import Bounding_Box
+from jimn.bounding_box import BoundingBox
 from jimn.utils.precision import is_almost
 from jimn.utils.iterators import all_two_elements
 
@@ -137,7 +137,7 @@ class Polygon:
         """
         min bounding box containing polygon.
         """
-        box = Bounding_Box.empty_box(2)
+        box = BoundingBox.empty_box(2)
         for point in self.points:
             box.add_point(point)
         return box
@@ -148,7 +148,7 @@ class Polygon:
         """
         svg_coordinates = [
             "{},{}".format(
-                *display.convert_coordinates(p.get_coordinates())
+                *display.convert_coordinates(p.coordinates)
             )
             for p in self.points
         ]

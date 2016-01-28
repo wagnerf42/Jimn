@@ -1,38 +1,37 @@
 """
-points (2d or 3d) or vectors
+points (2d or 3d) or vectors.
 """
 from math import atan2, sqrt, cos, sin, pi, floor, ceil
-from jimn.bounding_box import Bounding_Box
+from jimn.bounding_box import BoundingBox
 from jimn.utils.precision import is_almost
 
 
 class Point:
-    """A point is defined as a vector of any given dimension."""
-
+    # pylint: disable=too-many-public-methods
+    """
+    a point is defined as a vector of any given dimension.
+    """
     def __init__(self, coordinates):
-        """init a point with given coordinates"""
         self.coordinates = coordinates
 
-    def __str__(self):
-        """print code generating the point"""
-        return "Point([" + ', '.join([str(c) for c in self.coordinates]) + "])"
-
     def squared_distance_to(self, other):
-        """squared euclidean distance between two points"""
+        """
+        squared euclidean distance between two points.
+        """
         diff = other - self
         return diff.scalar_product(diff)
 
     def distance_to(self, other):
-        """euclidean distance between two points"""
+        """
+        euclidean distance between two points.
+        """
         return sqrt(self.squared_distance_to(other))
 
     def dimension(self):
-        """dimension of space containing the point"""
+        """
+        dimension of space containing the point.
+        """
         return len(self.coordinates)
-
-    def get_coordinates(self):
-        """return the coordinates' list of the point."""
-        return self.coordinates
 
     def get_x(self):
         """return the first coordinate, assuming it exists."""
@@ -84,7 +83,7 @@ class Point:
         return min bounding box containing point.
         this method is defined on any displayable object.
         """
-        return Bounding_Box(self.coordinates, self.coordinates)
+        return BoundingBox(self.coordinates, self.coordinates)
 
     def save_svg_content(self, display, color):
         """
@@ -116,7 +115,7 @@ class Point:
         are the three given points approximately aligned ?
         """
         (x_1, y_1), (x_2, y_2), (x_3, y_3) = [
-            p.get_coordinates() for p in (self, point2, point3)
+            p.coordinates for p in (self, point2, point3)
         ]
         determinant = x_1*y_2 + y_1*x_3 + x_2*y_3 \
             - (y_2*x_3 + y_1*x_2 + x_1*y_3)
@@ -160,8 +159,8 @@ class Point:
         """
         cross product between 2 2d vectors
         """
-        x_1, y_1 = self.get_coordinates()
-        x_2, y_2 = other.get_coordinates()
+        x_1, y_1 = self.coordinates
+        x_2, y_2 = other.coordinates
         return x_1 * y_2 - y_1 * x_2
 
     def nearest_points(self, other):
@@ -175,7 +174,7 @@ class Point:
         """
         if point is close enough from a milling height, return new point
         exactly at milling height.
-        else return point
+        else return point.
         """
         point_y = self.get_y()
         above_height = milling_diameter * floor(point_y/milling_diameter)
@@ -231,3 +230,9 @@ class Point:
         Assumes a and b have the same dimension.
         """
         return self.coordinates < other.coordinates
+
+    def __str__(self):
+        """
+        print code generating the point.
+        """
+        return "Point([" + ', '.join([str(c) for c in self.coordinates]) + "])"
