@@ -2,7 +2,6 @@
 base class for segments or arcs.
 basic path between two endpoints (oriented).
 """
-import traceback
 from copy import copy
 from jimn.displayable import tycat
 from jimn.utils.iterators import all_two_elements

@@ -20,12 +20,6 @@ class Segment(ElementaryPath):
     def __init__(self, points):
         super().__init__(points)
 
-    def sort_endpoints(self):
-        """
-        sort endpoints and return a new path (same type).
-        """
-        return Segment(list(sorted(self.endpoints)))
-
     @classmethod
     def horizontal_segment(cls, xmin, xmax, y_coordinate):
         """
@@ -34,9 +28,15 @@ class Segment(ElementaryPath):
         coordinates = ([xmin, y_coordinate], [xmax, y_coordinate])
         return cls([Point(c) for c in coordinates])
 
+    def sort_endpoints(self):
+        """
+        sort endpoints and return a new path (same type).
+        """
+        return Segment(list(sorted(self.endpoints)))
+
     def split_at_milling_points(self, milling_diameter):
         """
-        returns array of segments obtained when stopping at each milling height
+        returns array of segments obtained when stopping at each milling height.
         """
         self.adjust_points_at_milling_height(milling_diameter)
         y_1, y_2 = [p.get_y() for p in self.endpoints]
@@ -57,8 +57,8 @@ class Segment(ElementaryPath):
 
     def horizontal_intersection_at(self, intersecting_y):
         """
-        returns point on self at given y.
-        precondition : y is valid height in segment
+        return point on self at given y.
+        precondition : y is valid height in segment.
         """
         (x_1, y_1), (x_2, y_2) = [p.get_coordinates() for p in self.endpoints]
         if is_almost(x_1, x_2):
@@ -69,12 +69,14 @@ class Segment(ElementaryPath):
             return Point([intersecting_x, intersecting_y])
 
     def reverse(self):
-        """invert endpoints"""
+        """
+        invert endpoints.
+        """
         return Segment(list(reversed(self.endpoints)))
 
     def get_bounding_box(self):
         """
-        return min bounding box containing self
+        return min bounding box containing self.
         """
         boxes = [
             Bounding_Box(p.get_coordinates(), p.get_coordinates())
@@ -85,7 +87,7 @@ class Segment(ElementaryPath):
 
     def save_svg_content(self, display, color):
         """
-        svg for tycat
+        svg for tycat.
         """
         svg_coordinates = [
             c for point in self.endpoints
@@ -120,7 +122,7 @@ class Segment(ElementaryPath):
 
     def get_display_string(self, display):
         """
-        return svg code for including segment in a svg path
+        return svg code for including segment in a svg path.
         """
         real_coordinates = self.endpoints[1].coordinates
         coordinates = display.convert_coordinates(real_coordinates)
