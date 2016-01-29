@@ -27,12 +27,6 @@ class HoledPolygon:
         min_required_area = pi * milling_radius * milling_radius
         return abs(self.polygon.area()) > min_required_area
 
-    def get_height(self):
-        """
-        return height at which is polygon (horizontal) in stl file.
-        """
-        return self.height
-
     def get_dot_label(self):
         """
         returns text label for display in dot file (see polygontree class)

@@ -27,10 +27,12 @@ class Offsetter:
         extend polygon's edges by moving parallel to them
         and reconnect pieces.
         """
-        raw_segments = [
-            (s.parallel_segment(self.radius).hash_endpoints(ROUNDER2D), s)
-            for s in self.polygon.segments()
-        ]
+        raw_segments = []
+        for segment in self.polygon.segments():
+            parallel_segment = segment.parallel_segment(self.radius)
+            hashed_segment = Segment([ROUNDER2D.hash_point(p)
+                                      for p in parallel_segment.endpoints])
+            raw_segments.append((hashed_segment, segment))
 
         if __debug__:
             if is_module_debugged(__name__):

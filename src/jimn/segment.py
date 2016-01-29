@@ -275,10 +275,6 @@ class Segment(ElementaryPath):
         """
         return Segment([p+translation for p in self.endpoints])
 
-    def hash_endpoints(self, rounder):
-        self.endpoints = [rounder.hash_point(p) for p in self.endpoints]
-        return self
-
     def remove_overlap_with(self, other):
         """
         if self and other overlap return array of arrays containing non common
@@ -292,17 +288,17 @@ class Segment(ElementaryPath):
         sides = (self, other)
         events = defaultdict(list)
         for side_number, side in enumerate(sides):
-            for j, p in enumerate(side.endpoints):
-                events[p].append((side_number, 2*j-1))
+            for j, point in enumerate(side.endpoints):
+                events[point].append((side_number, 2*j-1))
 
         inside = [0, 0]
         results = [[], []]
         entered = [None, None]
         overlap = False
-        for p in sorted(list(events.keys())):
+        for point in sorted(list(events.keys())):
             old_inside = list(inside)
-            for e in events[p]:
-                inside[e[0]] += e[1]
+            for event in events[point]:
+                inside[event[0]] += event[1]
 
             if abs(sum(old_inside)) == 1:
                 # we were on only 1 path
@@ -310,16 +306,18 @@ class Segment(ElementaryPath):
                     if abs(count) == 1:
                         # we are leaving kept part
                         if count == 1:
-                            results[side].append(Segment([p, entered[side]]))
+                            results[side].append(Segment([point,
+                                                          entered[side]]))
                         else:
-                            results[side].append(Segment([entered[side], p]))
+                            results[side].append(Segment([entered[side],
+                                                          point]))
 
             if abs(inside[0]) == 1 and abs(inside[1]) == 1:
                 overlap = True
 
             for side, count in enumerate(inside):
                 if abs(count) == 1:
-                    entered[side] = p
+                    entered[side] = point
 
         if overlap:
             return results
