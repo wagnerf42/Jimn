@@ -1,7 +1,6 @@
 """
 all math related helpers.
 """
-from jimn.displayable import tycat
 from math import sqrt, floor, ceil
 from jimn.utils.precision import is_almost
 from jimn.point import Point

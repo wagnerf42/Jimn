@@ -11,6 +11,7 @@ from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost
 from jimn.utils.iterators import all_combinations
 from jimn.utils.coordinates_hash import ROUNDER2D
+from jimn.caching import cached, invalidate_cache
 
 
 class Pocket:
@@ -61,6 +62,7 @@ class Pocket:
         """
         return self.to_polygon().is_oriented_clockwise()
 
+    @cached
     def get_bounding_box(self):
         """
         returns min bounding box containing pocket
@@ -78,6 +80,7 @@ class Pocket:
         for path in self.paths:
             path.save_svg_content(display, color)
 
+    @invalidate_cache
     def extend(self, additional_paths):
         """
         adds some more paths
@@ -90,6 +93,11 @@ class Pocket:
         many pre-conditions.
         returns true if we can find one point of self included in other.
         """
+        # pre-test using bounding box
+        box = other.get_bounding_box()
+        if not box.almost_contains_point(self.paths[0].endpoints[0]):
+            return False
+
         # loop trying points
         for path in self.paths:
             tested_point = path.endpoints[0]

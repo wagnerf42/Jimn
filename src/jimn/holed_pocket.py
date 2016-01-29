@@ -12,7 +12,9 @@ class HoledPocket:
     def __init__(self, outer_edge, inner_edges=None):
         self.outer_edge = outer_edge
         if inner_edges:
-            self.inner_edges = inner_edges
+            # sort holes to have a good hash and comparison
+            self.inner_edges = sorted(inner_edges,
+                                      key=lambda e: e.paths[0].endpoints[0])
         else:
             self.inner_edges = []
 
@@ -60,7 +62,6 @@ class HoledPocket:
         return str(id(self))
 
     def __str__(self):
-        # TODO : better indentation
         inner_strings = ["    " + str(p) for p in self.inner_edges]
         return "HoledPocket([\n    " + \
             ",\n    ".join([str(p) for p in self.outer_edge.paths]) \

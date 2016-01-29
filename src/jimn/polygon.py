@@ -53,7 +53,6 @@ class Polygon:
         and computations of further operations.
         WARNING : this operation reverses orientation.
         """
-        #  self._remove_near_points()  # TODO: useless for hashed polygons ?
         self._set_non_removable_start()
         last_kept_point = self.points[0]
         kept_points = [last_kept_point]
@@ -156,15 +155,6 @@ class Polygon:
         display.write("<polygon points=\"{}\"".format(svg_formatted))
         display.write(" style=\"fill:{};stroke:{};\
                       stroke-width:1;opacity:0.4\" />".format(color, color))
-
-    def _remove_near_points(self):
-        """
-        keeps one of each almost identical points.
-        """
-        self.points = [
-            p1 for p1, p2 in all_two_elements(self.points)
-            if not p1.is_almost(p2)
-        ]
 
     def _set_non_removable_start(self):
         """
