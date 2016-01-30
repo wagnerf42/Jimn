@@ -173,7 +173,7 @@ class Arc(ElementaryPath):
             sweep_flag = 0
         else:
             sweep_flag = 1
-        stretched_radius = display.stretch() * self.radius
+        stretched_radius = display.svg_stretch * self.radius
         self.center.save_svg_content(display, color)
         stroke_width = display.stroke_width()
 
@@ -191,7 +191,7 @@ class Arc(ElementaryPath):
         """
         end = self.endpoints[1]
         coordinates = display.convert_coordinates(end.coordinates)
-        stretched_radius = display.stretch() * self.radius
+        stretched_radius = display.svg_stretch * self.radius
         if self.reversed_direction:
             sweep_flag = 0
         else:

@@ -82,12 +82,6 @@ class Displayer:
         self.svg_file.write("</svg>\n")
         self.svg_file.close()
 
-    def stretch(self):
-        """
-        returns stretch required for converting to svg coordinates
-        """
-        return self.svg_stretch
-
     def convert_coordinates(self, coordinates):
         """
         convert coordinates to svg coordinates
@@ -127,6 +121,25 @@ class Displayer:
         color_index = self.svg_colors.index(color)
         color_index += shift
         return self.svg_colors[color_index % len(self.svg_colors)]
+
+    def __hash__(self):
+        """
+        WARNING : only hash things useful for coordinates computations.
+        """
+        return hash(tuple(self.min_coordinates)) ^ hash(self.svg_stretch) ^ \
+            hash(tuple(self.margins))
+
+    def __eq__(self, other):
+        """
+        WARNING : only compare things useful for coordinates computations.
+        """
+        if self.svg_stretch != other.svg_stretch:
+            return False
+        if self.min_coordinates != other.min_coordinates:
+            return False
+        if self.margins != other.margins:
+            return False
+        return True
 
 
 def tycat_start(things):

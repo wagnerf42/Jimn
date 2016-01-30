@@ -12,6 +12,7 @@ from jimn.pocket import Pocket
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.envelope.displaced_path import DisplacedPath
+from jimn.caching import cached_args, cached
 
 
 class Envelope:
@@ -47,6 +48,7 @@ class Envelope:
                 print("inflating")
                 tycat(self)
 
+    @cached
     def get_bounding_box(self):
         """
         smallest bounding box containing envelope
@@ -56,6 +58,7 @@ class Envelope:
             box.update(displaced_path.path.get_bounding_box())
         return box
 
+    @cached_args
     def get_display_string(self, display, color):
         """
         return svg string used for displaying envelope in final display.

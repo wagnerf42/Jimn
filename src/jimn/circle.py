@@ -22,7 +22,7 @@ class Circle:
         )
         display.write("<circle cx=\"{}\" cy=\"{}\"".format(*svg_coordinates))
         display.write(" r=\"{}\" fill=\"none\" stroke=\"{}\"".format(
-            self.radius * display.stretch(), color
+            self.radius * display.svg_stretch, color
         ))
         display.write(" opacity=\"0.5\" stroke-width=\"{}\"/>\n".format(
             display.stroke_width()
