@@ -137,8 +137,8 @@ class Arc(ElementaryPath):
                                        self.radius, other.radius)
         return [
             p for p in points
-            if self.contains_circle_point(p)
-            and other.contains_circle_point(p)
+            if self.contains_circle_point(p) and
+            other.contains_circle_point(p)
         ]
 
     def intersections_with_segment(self, intersecting_segment):
@@ -153,8 +153,8 @@ class Arc(ElementaryPath):
         )
         return [
             p for p in points
-            if self.contains_circle_point(p)
-            and intersecting_segment.contains(p)
+            if self.contains_circle_point(p) and
+            intersecting_segment.contains(p)
         ]
 
     def save_svg_content(self, display, color):
@@ -251,8 +251,8 @@ class Arc(ElementaryPath):
             return True
         start_angle = self.center.angle_with(self.endpoints[1])
         angles = [
-            self.center.angle_with(q) - start_angle
-            for q in (point, self.endpoints[0])
+            self.center.angle_with(p) - start_angle
+            for p in (point, self.endpoints[0])
         ]
         adjusted_angles = []
         for angle in angles:
@@ -260,7 +260,10 @@ class Arc(ElementaryPath):
                 angle += 2*pi
             adjusted_angles.append(angle)
         # assert adjusted_angles[1] <= pi : TODO : fix
-        return adjusted_angles[0] < adjusted_angles[1]
+        if self.reversed_direction:
+            return adjusted_angles[1] < adjusted_angles[0]
+        else:
+            return adjusted_angles[0] < adjusted_angles[1]
 
     def __eq__(self, other):
         if not isinstance(other, Arc):

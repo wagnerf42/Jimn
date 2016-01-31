@@ -234,10 +234,10 @@ def _iterated_intersections(results, iterator):
         intersections = path1.intersections_with(path2)
         if intersections:
             for i in intersections:
-                if not(path1.endpoints[0].is_almost(i)
-                       or path1.endpoints[1].is_almost(i)):
+                if not(path1.endpoints[0].is_almost(i) or
+                       path1.endpoints[1].is_almost(i)):
                     results[id(path1)].append(ROUNDER2D.hash_point(i))
 
-                if not(path2.endpoints[0].is_almost(i)
-                       or path2.endpoints[1].is_almost(i)):
+                if not(path2.endpoints[0].is_almost(i) or
+                       path2.endpoints[1].is_almost(i)):
                     results[id(path2)].append(ROUNDER2D.hash_point(i))

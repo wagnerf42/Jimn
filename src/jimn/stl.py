@@ -12,6 +12,7 @@ from jimn.facet import Facet, binary_facet
 from jimn.bounding_box import BoundingBox
 from jimn.utils.coordinates_hash import CoordinatesHash
 from jimn.utils.debug import is_module_debugged
+from jimn.utils.iterators import all_two_elements
 
 
 class Stl:
@@ -89,8 +90,8 @@ class Stl:
         """
         with open(file_name, "r") as stl_file:
             whole_file = stl_file.read()
-        head, *facets_strings = whole_file.split('facet normal')
-        if not re.search('^solid\s+\S*', head):
+        head, *facets_strings = whole_file.split("facet normal")
+        if not re.search(r"^solid\s+\S*", head):
             raise IOError
         self._parse_ascii_facets(facets_strings)
 
@@ -99,7 +100,7 @@ class Stl:
         take a list of strings (each a stl ascii facet) and build stl
         """
         for facet_string in facets_strings:
-            points_strings = facet_string.split('vertex')
+            points_strings = facet_string.split("vertex")
             if len(points_strings) != 3 and len(points_strings) != 4:
                 raise IOError
             self._parse_ascii_points(points_strings[-3:])
@@ -108,7 +109,7 @@ class Stl:
         points = []
         for point_string in points_strings:
             matches = re.search(
-                '^\s*(-?\d+(\.\d+)?)\s+(-?\d+(\.\d+)?)\s+(-?\d+(\.\d+)?)',
+                r"^\s*(-?\d+(\.\d+)?)\s+(-?\d+(\.\d+)?)\s+(-?\d+(\.\d+)?)",
                 point_string)
             coordinates = [
                 float(matches.group(1)),
@@ -124,15 +125,17 @@ class Stl:
         self.facets.append(Facet(points))
 
     def border_2d(self):
-        """returns list of 2d segments encompassing projection of stl"""
+        """
+        return list of 2d segments encompassing projection of stl.
+        """
         # get coordinates
         xmin, xmax = self.bounding_box.limits(0)
         ymin, ymax = self.bounding_box.limits(1)
         # extend slightly border
-        xmin = xmin - 0.01
-        ymin = ymin - 0.01
-        xmax = xmax + 0.01
-        ymax = ymax + 0.01
+        xmin = xmin - 0.11
+        ymin = ymin - 0.11
+        xmax = xmax + 0.11
+        ymax = ymax + 0.11
 
         # build four points
         points = []
@@ -140,14 +143,8 @@ class Stl:
         points.append(Point([xmin, ymax]))
         points.append(Point([xmax, ymax]))
         points.append(Point([xmax, ymin]))
-        points.append(points[0])
 
-        # build four segments
-        border_segments = []
-        for i in range(4):
-            border_segment = Segment([points[i], points[i+1]])
-            border_segments.append(border_segment.sort_endpoints())
-        return border_segments
+        return [Segment([p, q]) for p, q in all_two_elements(points)]
 
     def keep_facets_near(self, point, limit):
         """
