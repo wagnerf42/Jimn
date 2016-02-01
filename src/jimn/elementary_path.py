@@ -67,7 +67,6 @@ class ElementaryPath:
             if p_1 == end_point:
                 inside = False
             if inside and not p_1.is_almost(p_2):
-                # raise Exception("not ok for reversed arcs")
                 new_path = copy(self)
                 new_path.endpoints = [p_1, p_2]
                 if __debug__:

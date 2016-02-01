@@ -149,15 +149,14 @@ class PathTree(Tree):
         for child in self.children:
             end = nearest_point(child.old_pocket, origin)
             children[end] = child
-            graph.add_edge_between(origin, child.content,
+            graph.add_edge_between(origin, child.old_pocket,
                                    Segment([origin, end]))
         for child1, child2 in combinations(self.children, 2):
-            pocket1 = child1.content
-            pocket2 = child2.content
             start, end = nearest_points(child1.old_pocket, child2.old_pocket)
             children[start] = child1
             children[end] = child2
-            graph.add_edge_between(pocket1, pocket2, Segment([start, end]))
+            graph.add_edge_between(child1.old_pocket, child2.old_pocket,
+                                   Segment([start, end]))
         cycle = tsp(graph)
         tour = self._convert_cycle_to_tour(cycle, children, origin)
         return tour

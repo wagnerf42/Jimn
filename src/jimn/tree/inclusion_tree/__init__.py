@@ -31,19 +31,13 @@ class InclusionTree(Tree):
         compute if we are a polygon
         or a hole.
         """
-        if father.is_root():
+        if father.content is None:  # father is root node
             return True
         else:
             if __debug__:
                 if not father.is_polygon:
                     assert father.height == self.height
             return (not father.is_polygon) or father.height > self.height
-
-    def is_root(self):
-        """
-        true for root node only.
-        """
-        return self.content is None
 
     def remove_children(self):
         """
@@ -71,6 +65,6 @@ class InclusionTree(Tree):
         for child in self.children:
             child.ascend_polygons(self, father)
 
-        if not self.is_root() and not self.is_polygon:
+        if (self.content is not None) and not self.is_polygon:
             grandfather.children.extend(self.children)
             self.remove_children()

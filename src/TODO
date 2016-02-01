@@ -3,20 +3,13 @@
 we need to design special tests and think again
 (problems arise when holes and outer edge are at distance < diameter)
 
-SPLIT AT SEEMS NOT OK WITH REVERSED ARCS
-
-
 -----> simplify jimn.segment.remove_overlap_with
 
 - warning in poly builder if two paths leaving a point have an extremely small angle between them
-- better docs for new pocket builder
-- check if vertical intersections are still needed in arcs
 - check that we decompress the branch after the whole path for
 the branch has been created
 - check we can remove arcs from envelope
-- bug for cordoba 0.5 0.02
 - validate does not work anymore
-
 
  * large goals
 
@@ -35,10 +28,6 @@ especially testing flat subparts
  * additional non-regression tests
  * misc
 
-- profiling
-- test ascii stl loader
-- is_above_y : arcs ???
-- elementary_path : is_same : what about arcs ?? is it needed ?
 - path compression
 - generate paths to have more compression feasible
 - hardware : better machines : faster on milling axis used :-)
@@ -46,15 +35,8 @@ especially testing flat subparts
  * calibration
 
 - what precision should be chosen in stl to round z coordinates ?
-- area_limit in poly builder
-
- * doc
-
-- rapport : inclusion tree
 
  * bug fixes
-
-- edges in both directions are displayed twice
 
 - there is a bug in pocket inclusion
 -> will not work in following case :
