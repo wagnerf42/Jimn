@@ -124,18 +124,18 @@ class Stl:
 
         self.facets.append(Facet(points))
 
-    def border_2d(self):
+    def border_2d(self, margin):
         """
-        return list of 2d segments encompassing projection of stl.
+        return square segments enclosing stl 2d projection by given margin.
         """
         # get coordinates
         xmin, xmax = self.bounding_box.limits(0)
         ymin, ymax = self.bounding_box.limits(1)
         # extend slightly border
-        xmin = xmin - 0.11
-        ymin = ymin - 0.11
-        xmax = xmax + 0.11
-        ymax = ymax + 0.11
+        xmin = xmin - margin
+        ymin = ymin - margin
+        xmax = xmax + margin
+        ymax = ymax + margin
 
         # build four points
         points = []

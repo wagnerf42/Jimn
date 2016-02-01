@@ -160,7 +160,7 @@ class Pocket:
         compute intersections between paths we contain and store
         them in results.
         """
-        return _iterated_intersections(results, combinations(self.paths, 2))
+        _iterated_intersections(results, combinations(self.paths, 2))
 
     def intersections_with(self, other, results):
         """
@@ -170,9 +170,8 @@ class Pocket:
         """
         if not self.get_bounding_box().intersects(other.get_bounding_box()):
             return
-        return _iterated_intersections(results, all_combinations(self.paths,
-                                                                 other.paths))
-
+        _iterated_intersections(results, all_combinations(self.paths,
+                                                          other.paths))
     def split_at(self, intersections):
         """
         turn paths into more elementary paths by splitting them at

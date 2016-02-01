@@ -1,10 +1,9 @@
 
-bug for box0.stl 3 0.1
-
 - lots of TODO in inclusion_tree
-- change pockets hash to hash directly by id
-		-> will simplify code in offsetter and pocket_tree
-	=> pockets are hashed in the path cache
+
+- offsetter still hash precision problems.
+we need to design special tests and think again
+(problems arise when holes and outer edge are at distance < diameter)
 
 SPLIT AT SEEMS NOT OK WITH REVERSED ARCS
 
@@ -18,6 +17,7 @@ SPLIT AT SEEMS NOT OK WITH REVERSED ARCS
 the branch has been created
 - check we can remove arcs from envelope
 - bug for cordoba 0.5 0.02
+- validate does not work anymore
 
 
  * large goals

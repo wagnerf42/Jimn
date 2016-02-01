@@ -131,8 +131,12 @@ class PocketsBuilder:
         while current_point != start_point:
             # find where to go
             next_path = self.find_next_path(current_point, previous_point)
-            if next_path.reverse() == current_path[-1]:
-                raise Exception("path going back")
+            if __debug__:
+                if next_path.reverse() == current_path[-1]:
+                    raise Exception("path going back")
+                if next_path in self.marked_paths:
+                    raise Exception("path going back")
+
             current_path.append(next_path)
             self.marked_paths[next_path] = next_path
             # continue moving

@@ -7,12 +7,11 @@ import sys
 
 (bin_name, stl_file) = sys.argv
 model = Stl(stl_file)
-border = model.border_2d()
 flat = model.flatten()
 simpler_slice = merge_segments(flat)
 if len(simpler_slice) > 0:
     print("incorrect input : holes in surface")
-    tycat(simpler_slice, border)
+    tycat(simpler_slice)
 else:
     print("input validated")
     box = model.bounding_box
