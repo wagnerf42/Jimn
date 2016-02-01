@@ -115,17 +115,17 @@ def _convert_inclusion_tree(polygon_tree_node, inclusion_tree_node):
     # inclusion tree contains only polygons (marked as holes or polygons)
     # we build a polygontree which contains holed polygons
     # so we need to call holed_polygon constructor
-    for inclusion_tree_child in inclusion_tree_node.get_children():
+    for inclusion_tree_child in inclusion_tree_node.children:
         if inclusion_tree_child.is_polygon:
             # call holed_polygon constructor
             # first, get the holes to put inside
             holes = [
-                grandchild.polygon.orient(True)
+                grandchild.content.orient(True)
                 for grandchild in inclusion_tree_child.get_children()
                 if not grandchild.is_polygon
             ]
             polygon_tree_child = polygon_tree_node.add_child(
-                inclusion_tree_child.polygon,
+                inclusion_tree_child.content,
                 inclusion_tree_child.height,
                 holes
             )

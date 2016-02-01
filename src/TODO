@@ -1,6 +1,4 @@
 
-- lots of TODO in inclusion_tree
-
 - offsetter still hash precision problems.
 we need to design special tests and think again
 (problems arise when holes and outer edge are at distance < diameter)

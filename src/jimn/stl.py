@@ -31,11 +31,16 @@ class Stl:
             if is_module_debugged(__name__):
                 print('stl file loaded')
 
-    def horizontal_intersection(self, h):
+    def horizontal_intersection(self, height):
+        """
+        intersect model at given height.
+        update remaining facets to keep only facets below (or at) given
+        height.
+        """
         segments = []
         remaining_facets = []
-        for t in self.facets:
-            t.intersect(h, segments, remaining_facets)
+        for facet in self.facets:
+            facet.intersect(height, segments, remaining_facets)
         self.facets = remaining_facets
         return segments
 

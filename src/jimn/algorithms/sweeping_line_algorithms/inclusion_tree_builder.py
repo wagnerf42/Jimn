@@ -55,7 +55,7 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
     def terminate_polygon(self, polygon_id):
         # mark polygon as dead in tree
         father = self.fathers[polygon_id]
-        father.kill_child(polygon_id)
+        del father.alive_children[polygon_id]
 
     def add_polygon_in_tree(self, new_segment):
         """
@@ -67,7 +67,7 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
         # we first try inserting it at current level ; it might be a hole
         # if not we try going below
         # see report for more help on inclusion trees
-        for child in sorted(root.get_alive_children(),
+        for child in sorted(list(root.alive_children.values()),
                             key=lambda c: c.height, reverse=True):
             if self.add_polygon_rec(child, new_segment):
                 break
@@ -79,8 +79,8 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
         add new polygon in tree. right position is found recursively.
         """
         # see comments in add_polygon_in_tree
-        if self.is_included(new_segment, node.polygon):
-            for child in sorted(node.get_alive_children(),
+        if self.is_included(new_segment, node.content):
+            for child in sorted(list(node.alive_children.values()),
                                 key=lambda c: c.height, reverse=True):
                 if self.add_polygon_rec(child, new_segment):
                     return True
