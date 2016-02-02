@@ -29,11 +29,17 @@ class SweepingLineAlgorithm:
         self._run()
 
     def terminate_polygon(self, polygon_id):
-        """handler called when encountering last path of a polygon"""
+        """
+        handler called when encountering last path of a polygon.
+        """
+        # pylint: disable=no-self-use,unused-argument
         return
 
     def handle_new_paths(self, starting_paths):
-        """handler called when starting new paths at some point"""
+        """
+        handler called when starting new paths at some point.
+        """
+        # pylint: disable=no-self-use,unused-argument
         return
 
     def _create_events(self):

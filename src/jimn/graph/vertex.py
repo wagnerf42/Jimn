@@ -134,6 +134,7 @@ class Vertex:
         are on different sides of horizontal line
         at given y
         """
+        # pylint: disable=invalid-name
         aboves = [e.is_above_y(y_coordinate) for e in self.frontier_edges]
         return aboves[0] != aboves[1]
 
@@ -153,6 +154,7 @@ class Vertex:
         return edge in frontier edges
         which is not horizontal.
         """
+        # pylint: disable=invalid-name
         for edge in self.frontier_edges:
             if not edge.is_almost_horizontal():
                 return edge

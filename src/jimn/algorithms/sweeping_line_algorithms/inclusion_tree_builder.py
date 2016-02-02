@@ -101,6 +101,9 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
         self.fathers[new_segment.get_polygon_id()] = node
 
     def is_included(self, new_segment, polygon):
+        """
+        return if new_segment is included in given polygon.
+        """
         if id(polygon) not in self.current_paths:
             # this polygon is dead
             # we cannot be included here because new_segment is alive
