@@ -82,8 +82,9 @@ class HoledPolygon:
 
     def translation_vector(self, other):
         """
-        returns translation vector from self to obtain other.
+        return translation vector from self to obtain other.
         'none' if impossible.
+        requires holed polygon to be normalized.
         """
         if len(self.holes) != len(other.holes):
             return None
@@ -92,8 +93,6 @@ class HoledPolygon:
         if not diff_vector:
             return None
         for hole1, hole2 in zip(self.holes, other.holes):
-            # TODO: is this really ok ??? -> only if holes are generated in
-            # same order
             if not hole1.translation_vector(hole2, diff_vector):
                 return False
         return diff_vector

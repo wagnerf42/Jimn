@@ -6,6 +6,7 @@ from jimn.algorithms.sweeping_line_algorithms.inclusion_tree_builder\
 from jimn.holed_polygon import HoledPolygon
 from jimn.tree import Tree
 from jimn.utils.debug import is_module_debugged
+from jimn.caching import cached_args
 
 
 class PolygonTree(Tree):
@@ -61,12 +62,23 @@ class PolygonTree(Tree):
                 return (node, vector)
         return (None, None)
 
+    @cached_args
     def is_translation_of(self, other, vector):
         """
         return true if applying translation of given vector to
         all content of other gives self.
         """
-        # TODO : tough because of branches
+        if len(self.children) != len(other.children):
+            return False
+
+        difference = self.content.translation_vector(other.content)
+        if not difference.is_almost(vector):
+            return False
+
+        for my_child, his_child in zip(self.children, other.children):
+            if not my_child.is_translation_of(his_child, vector):
+                return False
+
         return True
 
     def compress(self):
@@ -105,10 +117,27 @@ class PolygonTree(Tree):
         call normalize method on each polygon of the tree.
         this is a prerequisite for translated polygon identifications.
         """
-        for node in self.depth_first_exploration():
-            new_polygon = node.content
-            if new_polygon is not None:
-                new_polygon.normalize()
+        for child in self.children:
+            child.normalize_polygons()
+
+        # sort children
+        self.children = sorted(self.children,
+                               key=lambda c: c.content.polygon.points[0])
+
+        if self.content is not None:
+            self.content.normalize()
+
+    def __eq__(self, other):
+        """
+        used in caches. we only need to compare ids.
+        """
+        return id(self) == id(other)
+
+    def __hash__(self):
+        """
+        used in caches. we only need to hash id.
+        """
+        return hash(id(self))
 
 
 def _convert_inclusion_tree(polygon_tree_node, inclusion_tree_node):
