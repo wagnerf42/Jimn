@@ -113,9 +113,11 @@ class ElementaryPath:
             min_x_of_ends
         ]
 
-    def is_above(self, other):
+    def height_comparison(self, other):
         """
-        returns true if self is strictly above other.
+        return 1 if self is strictly above other.
+        return 0 if self and other are overlapping.
+        return -1 if self is strictly below other.
         will not work on overlapping vertical segments.
         """
         # take three common x
@@ -128,39 +130,33 @@ class ElementaryPath:
             for s in (self, other)
         ]
         # who is above whom
-        point_above = [0, 0, 0]
+        points_above = [0, 0, 0]
         for i in range(3):
             if is_almost(self_y[i], other_y[i]):
-                point_above[i] = 0
+                points_above[i] = 0
             else:
                 if self_y[i] < other_y[i]:
-                    point_above[i] = 1
+                    points_above[i] = 1
                 else:
-                    point_above[i] = -1
-        # assert all points are on one same side
-        possibly_below = True
-        possibly_above = True
-        for being_above in point_above:
-            if being_above > 0:
-                possibly_below = False
-            if being_above < 0:
-                possibly_above = False
+                    points_above[i] = -1
 
-        if __debug__:
-            if not (possibly_below or possibly_above):
-                print("failed above test: ", self, other)
-                print(common_abs)
-                print(self_y)
-                print(other_y)
-                tycat(self, other)
-                tycat(other,
-                      [Point([common_abs[i], other_y[i]]) for i in range(3)])
-                raise Exception("cannot see which path is above the other")
+        overlapping = len([a for a in points_above if a == 0]) == 3
+        if overlapping:
+            return 0
+        above = len([a for a in points_above if a >= 0]) == 3
+        if above:
+            return 1
+        below = len([a for a in points_above if a <= 0]) == 3
+        if below:
+            return -1
 
-        globaly_above = sum(point_above)
-        if globaly_above == 0:
-            return False
-        return globaly_above > 0
+        print("failed above test: ", self, other)
+        print(common_abs)
+        print(self_y)
+        print(other_y)
+        tycat(self, other)
+        tycat(other, [Point([common_abs[i], other_y[i]]) for i in range(3)])
+        raise Exception("cannot see which path is above the other")
 
     def is_vertical(self):
         """
