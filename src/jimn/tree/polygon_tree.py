@@ -1,6 +1,7 @@
 """
 tree of holed polygons.
 """
+from jimn.displayable import tycat
 from jimn.algorithms.sweeping_line_algorithms.inclusion_tree_builder\
     import build_inclusion_tree
 from jimn.holed_polygon import HoledPolygon
@@ -37,6 +38,13 @@ class PolygonTree(Tree):
                 poly_tree.tycat()
         poly_tree.normalize_polygons()
         poly_tree.compress()
+        if __debug__:
+            if is_module_debugged(__name__):
+                print("compressed polygons")
+                tycat(*list(
+                    reversed([n.content.polygon
+                              for n in poly_tree.breadth_first_exploration()
+                              if n.content is not None])))
         return poly_tree
 
     def prune(self, milling_radius):
@@ -71,7 +79,7 @@ class PolygonTree(Tree):
         if len(self.children) != len(other.children):
             return False
 
-        difference = self.content.translation_vector(other.content)
+        difference = other.content.translation_vector(self.content)
         if not difference.is_almost(vector):
             return False
 
