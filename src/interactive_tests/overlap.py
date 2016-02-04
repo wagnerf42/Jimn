@@ -25,8 +25,7 @@ s2 = Segment([Point([4, 4]), Point([6, 6])])
 tycat(s1, s2)
 
 r = s1.remove_overlap_with(s2)
-
-assert r is None
+tycat(*r)
 
 print("overlap, no one disappears")
 

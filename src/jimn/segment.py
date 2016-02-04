@@ -2,7 +2,6 @@
 segment between two points.
 """
 from math import pi, cos, sin
-from collections import defaultdict
 from jimn.elementary_path import ElementaryPath
 from jimn.bounding_box import BoundingBox
 from jimn.point import Point
@@ -285,42 +284,25 @@ class Segment(ElementaryPath):
         if self.line_hash() != other.line_hash():
             return  # abort if segments are not aligned
 
-        sides = (self, other)
-        events = defaultdict(list)
-        for side_number, side in enumerate(sides):
-            for j, point in enumerate(side.endpoints):
-                events[point].append((side_number, 2*j-1))
+        def remove_overlap(segment, removed):
+            """
+            remove removed from segment.
+            return array of remaining parts.
+            """
+            points = list(set([p for s in (segment, removed)
+                               for p in s.endpoints]))
+            direction = segment.endpoints[1] < segment.endpoints[0]
+            sorted_points = sorted(points, reverse=direction)
+            elementary_segments = [
+                Segment([a, b])
+                for a, b in zip(sorted_points[:-1], sorted_points[1:])
+            ]
+            middle_points = [(s.endpoints[0] + s.endpoints[1])/2
+                             for s in elementary_segments]
+            return [s for s, m in zip(elementary_segments, middle_points)
+                    if not removed.contains(m) and segment.contains(m)]
 
-        inside = [0, 0]
-        results = [[], []]
-        entered = [None, None]
-        overlap = False
-        for point in sorted(list(events.keys())):
-            old_inside = list(inside)
-            for event in events[point]:
-                inside[event[0]] += event[1]
-
-            if abs(sum(old_inside)) == 1:
-                # we were on only 1 path
-                for side, count in enumerate(old_inside):
-                    if abs(count) == 1:
-                        # we are leaving kept part
-                        if count == 1:
-                            results[side].append(Segment([point,
-                                                          entered[side]]))
-                        else:
-                            results[side].append(Segment([entered[side],
-                                                          point]))
-
-            if abs(inside[0]) == 1 and abs(inside[1]) == 1:
-                overlap = True
-
-            for side, count in enumerate(inside):
-                if abs(count) == 1:
-                    entered[side] = point
-
-        if overlap:
-            return results
+        return [remove_overlap(self, other), remove_overlap(other, self)]
 
     def intersections_with(self, other):
         """
