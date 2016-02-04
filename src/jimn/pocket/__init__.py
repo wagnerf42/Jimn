@@ -120,7 +120,7 @@ class Pocket:
 
     def remove_overlap_with(self, other):
         """
-        cancel all overlapping parts in segments.
+        cancel all overlapping parts in segments in both self and other.
         destroys paths ordering.
         """
         if not self.get_bounding_box().intersects(other.get_bounding_box()):
@@ -140,11 +140,12 @@ class Pocket:
         while segments[0]:
             segment1 = segments[0].pop()
             for segment2 in segments[1]:
-                remains = segment1.remove_overlap_with(segment2)
-                if remains:
+                if segment1.overlaps(segment2):
+                    remains1 = segment1.remove_overlap_with(segment2)
+                    remains2 = segment2.remove_overlap_with(segment1)
                     segments[1].remove(segment2)
-                    for segment_set, remain in zip(segments, remains):
-                        segment_set.extend(remain)
+                    segments[1].extend(remains2)
+                    segments[0].extend(remains1)
                     break
             else:
                 kept_segments.append(segment1)
@@ -154,6 +155,33 @@ class Pocket:
 
         if id(self) != id(other):
             other.paths = arcs[1]
+
+    def remove_self_overlap(self):
+        """
+        remove all overlapping parts in our own segments.
+        """
+        # filter arcs
+        arcs = []
+        segments = []
+        for path in self.paths:
+            if isinstance(path, Segment):
+                segments.append(path)
+            else:
+                arcs.append(path)
+
+        kept_segments = []  # kept segments in self
+        while segments:
+            segment1 = segments.pop()
+            for segment2 in segments:
+                if segment1.overlaps(segment2):
+                    remains = segment1.remove_overlap_with(segment2)
+                    segments.extend(remains)
+                    break
+            else:
+                kept_segments.append(segment1)
+        arcs.extend(kept_segments)
+        self.paths = arcs
+
 
     def self_intersections(self, results):
         """
@@ -172,6 +200,7 @@ class Pocket:
             return
         _iterated_intersections(results, all_combinations(self.paths,
                                                           other.paths))
+
     def split_at(self, intersections):
         """
         turn paths into more elementary paths by splitting them at

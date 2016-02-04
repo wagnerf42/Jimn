@@ -274,35 +274,36 @@ class Segment(ElementaryPath):
         """
         return Segment([p+translation for p in self.endpoints])
 
+    def overlaps(self, other):
+        """
+        return True if self and other overlap (on more than one point).
+        """
+        if self.line_hash() != other.line_hash():
+            return False
+        points = sorted([(p, id(s)) for s in (self, other)
+                         for p in s.endpoints])
+        if points[1][0].is_almost(points[2][0]):
+            return False  # segments just touch each other
+        return points[0][1] != points[1][1]
+
     def remove_overlap_with(self, other):
         """
-        if self and other overlap return array of arrays containing non common
-        parts (for self and for other). if no overlap returns None
+        if self and other overlap return array of segments
+        that are left after removal of other from self (possibly empty array).
         """
-        if id(self) == id(other):
-            return  # abort if with self
-        if self.line_hash() != other.line_hash():
-            return  # abort if segments are not aligned
 
-        def remove_overlap(segment, removed):
-            """
-            remove removed from segment.
-            return array of remaining parts.
-            """
-            points = list(set([p for s in (segment, removed)
-                               for p in s.endpoints]))
-            direction = segment.endpoints[1] < segment.endpoints[0]
-            sorted_points = sorted(points, reverse=direction)
-            elementary_segments = [
-                Segment([a, b])
-                for a, b in zip(sorted_points[:-1], sorted_points[1:])
-            ]
-            middle_points = [(s.endpoints[0] + s.endpoints[1])/2
-                             for s in elementary_segments]
-            return [s for s, m in zip(elementary_segments, middle_points)
-                    if not removed.contains(m) and segment.contains(m)]
-
-        return [remove_overlap(self, other), remove_overlap(other, self)]
+        points = list(set([p for s in (self, other)
+                           for p in s.endpoints]))
+        direction = self.endpoints[1] < self.endpoints[0]
+        sorted_points = sorted(points, reverse=direction)
+        elementary_segments = [
+            Segment([a, b])
+            for a, b in zip(sorted_points[:-1], sorted_points[1:])
+        ]
+        middle_points = [(s.endpoints[0] + s.endpoints[1])/2
+                         for s in elementary_segments]
+        return [s for s, m in zip(elementary_segments, middle_points)
+                if not other.contains(m) and self.contains(m)]
 
     def intersections_with(self, other):
         """
