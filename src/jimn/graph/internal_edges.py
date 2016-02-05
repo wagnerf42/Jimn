@@ -118,4 +118,4 @@ def _horizontal_edges(aligned_vertices):
         vertices = [aligned_vertices[index],
                     aligned_vertices[(index+1) % len(aligned_vertices)]]
         objects = [v.bound_object for v in vertices]
-        yield Edge(*vertices, Segment(objects))
+        yield Edge(*vertices, real_path=Segment(objects))
