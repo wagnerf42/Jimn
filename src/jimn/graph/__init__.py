@@ -15,7 +15,7 @@ class Graph:
     """
     def __init__(self):
         self.vertices_objects = {}
-        self.vertices = []
+        self.vertices = set()
         self.vertices_number = 0
         self.max_vertices_number = 0
 
@@ -74,7 +74,7 @@ class Graph:
         """
         return a vertex
         """
-        return self.vertices[0]
+        return next(iter(self.vertices))
 
     def get_bounding_box(self):
         """
@@ -101,7 +101,7 @@ class Graph:
         if vertex_object not in self.vertices_objects:
             vertex = Vertex(vertex_object, self.max_vertices_number)
             self.vertices_objects[vertex_object] = vertex
-            self.vertices.append(vertex)
+            self.vertices.add(vertex)
             self.max_vertices_number += 1
             self.vertices_number += 1
 

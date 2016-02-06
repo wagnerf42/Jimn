@@ -15,7 +15,7 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
     """
     def __init__(self, polygons):
         self.polygons = polygons
-        self.seen_polygons = {}
+        self.seen_polygons = set()
         self.tree = InclusionTree()
         self.fathers = {}
         super().__init__(self._create_segments())
@@ -45,7 +45,7 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
                 self.add_polygon_in_tree(segment)
 
                 # mark it as seen
-                self.seen_polygons[polygon_id] = True
+                self.seen_polygons.add(polygon_id)
                 if __debug__:
                     if is_module_debugged(__name__):
                         print("added polygon", segment.polygon.label,

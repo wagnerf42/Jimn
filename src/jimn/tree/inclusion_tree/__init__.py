@@ -8,12 +8,6 @@ distinction will be made later when converting to polygon_tree.
 from jimn.tree import Tree
 
 
-# while scanning through the planes we encounter and leave polygons.
-# polygons currently intersecting sweeping line are marked active
-ALIVE = 0
-DEAD = 1
-
-
 class InclusionTree(Tree):
     """
     store a set of polygons included one inside another.
