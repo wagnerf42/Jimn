@@ -1,3 +1,4 @@
+change dualposition constructor
 
 - offsetter still hash precision problems.
 we need to design special tests and think again

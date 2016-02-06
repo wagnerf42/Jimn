@@ -9,7 +9,8 @@ from jimn.graph import Graph
 from jimn.graph.eulerian_cycle import find_eulerian_cycle, cycle_to_path
 from jimn.graph.tsp import tsp
 from jimn.path import Path
-from jimn.tree.path_tree.path_merger import overlap_exit_position, merge_path
+from jimn.tree.path_tree.path_merger import compute_overlap_positions, \
+    merge_path
 from jimn.point import Point
 from jimn.pocket.graph_builder import build_graph
 from jimn.segment import Segment
@@ -28,6 +29,7 @@ class PathTree(Tree):
     def __init__(self, path=None, old_pocket=None):
         super().__init__(path)
         self.old_pocket = old_pocket
+        self.entrance = None
 
     @classmethod
     def build(cls, pockets, milling_radius):
@@ -79,61 +81,35 @@ class PathTree(Tree):
         # figure out on small paths where overlapping takes place
         # it will be way more faster than after we merged back
         # all subtrees
-        positions = []
-        for child in self.children:
-            try:
-                position = overlap_exit_position(self.content, child.content,
-                                                 child.old_pocket,
-                                                 milling_radius)
-            except:
-                print("overlapping positions failed for",
-                      self.content, child.content,
-                      child.old_pocket, milling_radius)
-                tycat(self.content, child.content)
-                raise
-            positions.append(position)
+        compute_overlap_positions(self.content, self.children, milling_radius)
 
-        # sort children by positions
+        # sort children by entrance points
         # from last overlapping to first overlapping
         # in this way we can keep valid position as array indices :
         # when we will update merged_path, if we start adding steps
         # at the end then positions for adding steps at the beginning
         # will still be valid
-        positions = self._sort_children_and_positions(positions)
+        self.children = sorted(self.children,
+                               key=lambda c: c.entrance, reverse=True)
 
         # change cycle starting point in each child
-        for child, position in zip(self.children, positions):
-            child.content.change_starting_point(position.inner_position)
+        for child in self.children:
+            child.content.change_starting_point(child.entrance.inner_position)
 
         # recurse
         for child in self.children:
             child.merge_paths(milling_radius)
 
         # now, insert merged paths in main one
-        for child, position in zip(self.children, positions):
+        for child in self.children:
             try:
-                merge_path(self.content, child.content, position)
+                merge_path(self.content, child.content, child.entrance)
             except:
                 print("merging failed")
                 tycat(self.content, child.content,
-                      position.inner_position.point,
-                      position.outer_position.point)
+                      child.entrance.inner_position.point,
+                      child.entrance.outer_position.point)
                 raise
-
-    def _sort_children_and_positions(self, positions):
-        pairs = [
-            (position, child)
-            for position, child in zip(positions, self.children)
-        ]
-        sorted_pairs = sorted(pairs, key=lambda pair: pair[0], reverse=True)
-        sorted_children = []
-        sorted_positions = []
-        for pair in sorted_pairs:
-            sorted_positions.append(pair[0])
-            sorted_children.append(pair[1])
-
-        self.children = sorted_children
-        return sorted_positions
 
     def _compute_toplevel_tour(self):
         """

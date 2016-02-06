@@ -63,11 +63,13 @@ class Path:
         """
         self.get_first_point().save_svg_content(display, color)
         horizontal_paths = self.hash_horizontal_paths_by_height()
+        count = 0
         for height in sorted(list(horizontal_paths.keys()), reverse=True):
             paths = horizontal_paths[height]
-            new_color = display.svg_color_after(color, height)
+            new_color = display.svg_color_after(color, count)
             for path in paths:
                 path.save_svg_content(display, new_color)
+            count += 1
 
     def hash_horizontal_paths_by_height(self):
         """

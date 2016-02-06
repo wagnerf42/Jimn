@@ -12,73 +12,47 @@ from jimn.dual_position import DualPosition
 from jimn.envelope import Envelope
 
 
-def overlap_exit_pocket_position(outer_path, inner_pocket, milling_radius):
+def compute_overlap_positions(outer_path, inner_nodes, milling_radius):
     """
-    imagine we are following outer path.
-    at some point we can guarantee that we will never interfere again
-    with inner pocket.
-    returns a marker for this position.
+    compute for each inner node the position in outer path (just above it)
+    where we will never come back above it.
+    for each node set result in entrance field.
     """
     outer_paths = outer_path.elementary_paths
-    inner_envelope = Envelope(inner_pocket, milling_radius)
-    inner_box = inner_pocket.get_bounding_box()
+    untested_nodes = dict()
+    for node in inner_nodes:
+        envelope = Envelope(node.old_pocket, milling_radius)
+        box = node.old_pocket.get_bounding_box()
+        untested_nodes[id(node)] = (node, box, envelope)
+
     # we start from end of outer path because we are interested in last
     # place of overlapping
     for outer_index in reversed(range(len(outer_paths))):
+        if not untested_nodes:
+            return
         out = outer_paths[outer_index]
         outer_box = out.get_bounding_box()
         outer_box.inflate(milling_radius)
         # before doing the real intersections (which is computation heavy)
         # we can first intersect bounding boxes
-        if inner_box.intersects(outer_box):
-            outer_envelope = Envelope(out, milling_radius)
-            outer_point, inner_point = \
-                outer_envelope.junction_points(inner_envelope)
-            if outer_point:
-                return DualPosition(out, outer_point, inner_point, outer_index)
+        nodes_found = []  # delete found nodes after loop ; so remember them
+        for node, box, envelope in untested_nodes.values():
+            if box.intersects(outer_box):
+                outer_envelope = Envelope(out, milling_radius)
+                outer_point, inner_point = \
+                    outer_envelope.junction_points(envelope)
+                if outer_point:
+                    node.entrance = DualPosition(out, outer_point,
+                                                 inner_point,
+                                                 outer_index)
+                    node.entrance.inner_position = node.content.find_position(
+                        inner_point)
+                    nodes_found.append(id(node))
 
+        for node_id in nodes_found:
+            del untested_nodes[node_id]
 
-def update_inner_position(inner_path, position):
-    """
-    find where inner point is on given inner path and update position.
-    """
-    position.inner_position = \
-        inner_path.find_position(position.inner_position.point)
-    return position
-
-
-def overlap_exit_position(outer_path, inner_path, inner_pocket, milling_radius):
-    """
-    imagine we are following outer path.
-    at some point we can guarantee that we will never interfere again
-    with inner path.
-    returns a marker for this position.
-    knowing the pocket containing the inner path allows for computations
-    speed up since exit position belongs to the edge
-    """
-    pocket_position = overlap_exit_pocket_position(outer_path, inner_pocket,
-                                                   milling_radius)
-    if __debug__:
-        if not pocket_position:
-            raise Exception("no path intersection")
-
-    position = update_inner_position(inner_path, pocket_position)
-
-    if __debug__:
-        if is_module_debugged(__name__):
-            print("found exit point at", position.outer_position.index)
-            try:
-                segment = Segment(
-                    [
-                        position.outer_position.point,
-                        position.inner_position.point
-                    ]
-                )
-                tycat(outer_path, inner_path, segment)
-            except AssertionError:
-                tycat(outer_path, inner_path)
-
-    return position
+    assert not untested_nodes, "cannot find entrances"
 
 
 def merge_path(outer_path, inner_path, position):
