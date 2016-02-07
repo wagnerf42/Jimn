@@ -14,18 +14,17 @@ class Point:
     def __init__(self, coordinates):
         self.coordinates = coordinates
 
-    def squared_distance_to(self, other):
-        """
-        squared euclidean distance between two points.
-        """
-        diff = other - self
-        return diff.scalar_product(diff)
-
     def distance_to(self, other):
         """
         euclidean distance between two points.
         """
-        return sqrt(self.squared_distance_to(other))
+        # this is not so elegant but fastest version
+        # we need it to be fast since it is called many times
+        total = 0
+        for c_1, c_2 in zip(self.coordinates, other.coordinates):
+            diff = c_1 - c_2
+            total += diff * diff
+        return sqrt(total)
 
     def dimension(self):
         """

@@ -29,7 +29,7 @@ class PathPosition:
         return distance of position from start of elementary path
         containing it.
         """
-        return self.elementary_path.squared_distance_from_start(self.point)
+        return self.elementary_path.distance_from_start(self.point)
 
     def __lt__(self, other):
         """

@@ -36,12 +36,12 @@ class ElementaryPath:
             return self.endpoints[0]
         raise Exception("no given endpoint ; cannot find other")
 
-    def squared_distance_from_start(self, point):
+    def distance_from_start(self, point):
         """
         returns scalar used for comparing points on path.
         the higher the scalar, the closer to endpoint.
         """
-        return self.endpoints[0].squared_distance_to(point)
+        return self.endpoints[0].distance_to(point)
 
     def split_at(self, points):
         """
@@ -57,7 +57,7 @@ class ElementaryPath:
         all_points = list(points)
         all_points.extend(self.endpoints)
         sorted_points = sorted(
-            all_points, key=self.squared_distance_from_start
+            all_points, key=self.distance_from_start
         )
         paths = []  # result
         inside = False
