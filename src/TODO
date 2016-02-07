@@ -1,4 +1,4 @@
-bug in arcs envelope
+bug in arcs envelope ---> the display string for envelopes of arcs in reversed directions are wrong
 change dualposition constructor
 
 - offsetter still hash precision problems.
@@ -9,7 +9,7 @@ we need to design special tests and think again
 
 - warning in poly builder if two paths leaving a point have an extremely small angle between them
 - check that we decompress the branch after the whole path for
-the branch has been created
+the branch has been created ---> impossible without re-cutting cycle at other start point
 - check we can remove arcs from envelope
 - validate does not work anymore
 

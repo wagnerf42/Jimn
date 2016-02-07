@@ -14,6 +14,11 @@ a = Arc(1, (Point([1, 0]), Point([0, 1])), Point([0, 0]))
 e = Envelope(a, 1)
 tycat(a, e)
 
+a = Arc(1, (Point([0, 1]), Point([1, 0])), Point([0, 0]),
+        reversed_direction=True)
+e = Envelope(a, 1)
+tycat(a, e)
+
 print("testing intersection")
 
 s = Polygon.square(0, 0, 8)

@@ -25,18 +25,24 @@ class Displayer:
                        darkgrey'.split())
     file_count = 0
 
-    def __init__(self, filename, things):
+    def __init__(self, filename, things, bounding_box):
         self.filename = filename
         self.svg_file = None
-        self.bounding_box = BoundingBox.empty_box(2)
-        for thing in things:
-            if isinstance(thing, list) or isinstance(thing, tuple):
-                for subthing in thing:
-                    if subthing is not None:
-                        self.bounding_box.update(subthing.get_bounding_box())
-            else:
-                if thing is not None:
-                    self.bounding_box.update(thing.get_bounding_box())
+        if bounding_box is None:
+            self.bounding_box = BoundingBox.empty_box(2)
+            for thing in things:
+                if isinstance(thing, list) or isinstance(thing, tuple):
+                    for subthing in thing:
+                        if subthing is not None:
+                            self.bounding_box.update(
+                                subthing.get_bounding_box())
+                else:
+                    if thing is not None:
+                        self.bounding_box.update(thing.get_bounding_box())
+
+        else:
+            self.bounding_box = bounding_box
+
         self._calibrate()
 
     def _calibrate(self):
@@ -142,9 +148,10 @@ class Displayer:
         return True
 
 
-def tycat_start(things):
+def tycat_start(things, bounding_box=None):
     """
-    open svg file ; prepare display
+    open svg file ; prepare display.
+    use bounding box if there is one. else things.
     """
     print("[", Displayer.file_count, "]")
     dimensions = os.environ.get("JIMN_TYCAT_SIZE")
@@ -161,7 +168,7 @@ def tycat_start(things):
     filename = "{}/{}.svg".format(directory, str(Displayer.file_count).zfill(5))
     Displayer.file_count += 1
 
-    display = Displayer(filename, things)
+    display = Displayer(filename, things, bounding_box)
     display.open_svg(filename)
     return display
 

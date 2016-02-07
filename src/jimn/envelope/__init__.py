@@ -12,7 +12,7 @@ from jimn.pocket import Pocket
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.envelope.displaced_path import DisplacedPath
-from jimn.caching import cached_args, cached
+from jimn.caching import cached
 
 
 class Envelope:
@@ -58,14 +58,12 @@ class Envelope:
             box.update(displaced_path.path.get_bounding_box())
         return box
 
-    @cached_args
-    def get_display_string(self, display, color):
+    def get_display_string(self, display):
         """
         return svg string used for displaying envelope in final display.
         there is less info than in the standard tycat and returning
-        the string instead of directly displaying it allows for caching
+        the string instead of directly displaying it allows for caching.
         """
-        head = ("<path d=\"")
 
         first_point = self.paths[0].path.endpoints[0]
         first_coordinates = display.convert_coordinates(first_point.coordinates)
@@ -73,8 +71,7 @@ class Envelope:
 
         paths_strings = [p.path.get_display_string(display) for p in self.paths]
 
-        foot = ("\" fill=\"{}\" stroke=\"none\"/>\n".format(color))
-        return head + initial_move + " ".join(paths_strings) + foot
+        return initial_move + " ".join(paths_strings)
 
     def save_svg_content(self, display, color):
         """
@@ -127,12 +124,12 @@ class Envelope:
         displaced_point_1 = arc_point_1 * 2 - arc.center
         displaced_point_2 = arc_point_2 * 2 - arc.center
         side_arc_point_1 = Arc(self.distance, (arc.center, displaced_point_1),
-                               arc_point_1)
+                               arc_point_1, arc.reversed_direction)
         side_arc_point_2 = Arc(self.distance, (displaced_point_2, arc.center),
-                               arc_point_2)
+                               arc_point_2, arc.reversed_direction)
         displaced_main_arc = Arc(2*self.distance,
                                  (displaced_point_1, displaced_point_2),
-                                 arc.center)
+                                 arc.center, arc.reversed_direction)
         # TODO: I don't think we need the side arcs
         self.paths = [
             DisplacedPath(p, o)
