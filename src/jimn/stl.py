@@ -7,12 +7,10 @@ import struct
 import re
 from math import ceil
 from jimn.point import Point
-from jimn.segment import Segment
 from jimn.facet import Facet, binary_facet
 from jimn.bounding_box import BoundingBox
 from jimn.utils.coordinates_hash import CoordinatesHash
 from jimn.utils.debug import is_module_debugged
-from jimn.utils.iterators import all_two_elements
 
 
 class Stl:
@@ -31,7 +29,7 @@ class Stl:
             if is_module_debugged(__name__):
                 print('stl file loaded')
 
-    def horizontal_intersection(self, height):
+    def horizontal_intersection(self, height, translation_vector):
         """
         intersect model at given height.
         update remaining facets to keep only facets below (or at) given
@@ -40,13 +38,16 @@ class Stl:
         segments = []
         remaining_facets = []
         for facet in self.facets:
-            facet.intersect(height, segments, remaining_facets)
+            facet.intersect(height, segments, remaining_facets,
+                            translation_vector)
         self.facets = remaining_facets
         return segments
 
-    def compute_slices(self, slice_size):
+    def compute_slices(self, slice_size, translation_vector):
         """
-        cut stl into set of horizontal 2d slices spaced by slice_size
+        cut stl into set of horizontal 2d slices spaced by slice_size.
+        also translate all points by given vector to end up with positive
+        coordinates.
         """
         slices = {}
         min_height, max_height = self.bounding_box.limits(2)
@@ -56,7 +57,8 @@ class Stl:
             lower_boundary = self.heights_hash.hash_coordinate(lower_boundary)
             if lower_boundary < min_height + 0.01:
                 lower_boundary = min_height + 0.01
-            current_slice = self.horizontal_intersection(lower_boundary)
+            current_slice = self.horizontal_intersection(lower_boundary,
+                                                         translation_vector)
             slices[lower_boundary] = current_slice
         return slices
 
@@ -129,9 +131,17 @@ class Stl:
 
         self.facets.append(Facet(points))
 
-    def border_2d(self, margin):
+    def translation_vector(self, margin):
         """
-        return square segments enclosing stl 2d projection by given margin.
+        return translation vector to apply to all points
+        to have border min point in (0, 0).
+        """
+        xmin, ymin = self.bounding_box.min_coordinates[0:2]
+        return Point([margin-xmin, margin-ymin])
+
+    def dimensions(self, margin):
+        """
+        return width and height required.
         """
         # get coordinates
         xmin, xmax = self.bounding_box.limits(0)
@@ -141,15 +151,7 @@ class Stl:
         ymin = ymin - margin
         xmax = xmax + margin
         ymax = ymax + margin
-
-        # build four points
-        points = []
-        points.append(Point([xmin, ymin]))
-        points.append(Point([xmin, ymax]))
-        points.append(Point([xmax, ymax]))
-        points.append(Point([xmax, ymin]))
-
-        return [Segment([p, q]) for p, q in all_two_elements(points)]
+        return (xmax-xmin, ymax-ymin)
 
     def keep_facets_near(self, point, limit):
         """

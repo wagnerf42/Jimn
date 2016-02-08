@@ -127,7 +127,7 @@ class Segment(ElementaryPath):
         coordinates = display.convert_coordinates(real_coordinates)
         return "L {},{}".format(*coordinates)
 
-    def horizontal_plane_intersection(self, intersecting_z):
+    def horizontal_plane_intersection(self, intersecting_z, translation_vector):
         """
         PREREQUISITE: 3d segment.
         cut it with plane at given height.
@@ -142,7 +142,8 @@ class Segment(ElementaryPath):
         intersecting_x = x_1 + (intersecting_z - z_1)/(z_2 - z_1)*(x_2 - x_1)
         intersecting_y = y_1 + (intersecting_z - z_1)/(z_2 - z_1)*(y_2 - y_1)
 
-        return ROUNDER2D.hash_point(Point([intersecting_x, intersecting_y]))
+        return ROUNDER2D.hash_point(Point([intersecting_x, intersecting_y])
+                                    + translation_vector)
 
     def is_vertical_3d(self):
         """

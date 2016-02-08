@@ -53,7 +53,7 @@ class Facet:
             points[point.is_above(height)].append(point)
         return points
 
-    def intersect(self, height, segments, remaining_facets):
+    def intersect(self, height, segments, remaining_facets, translation_vector):
         """intersect facet at given height
         if intersection is a segment add it to segments list
         if facet is not strictly above plane add it to remaining_facets
@@ -76,7 +76,8 @@ class Facet:
             Segment([p, isolated_point]) for p in together_points
         ]
         intersection_points = [
-            s.horizontal_plane_intersection(height) for s in traversing_segments
+            s.horizontal_plane_intersection(height, translation_vector)
+            for s in traversing_segments
         ]
 
         # because we round coordinates in intersection

@@ -5,6 +5,9 @@ main jimn file. compute path out of stl file.
 import sys
 from jimn.utils.debug import is_module_debugged
 from jimn.displayable import tycat
+from jimn.point import Point
+from jimn.segment import Segment
+from jimn.utils.iterators import all_two_elements
 from jimn.stl import Stl
 from jimn.tree.polygon_tree import PolygonTree
 from jimn.pocket.builder import build_polygons
@@ -45,14 +48,15 @@ def slice_stl_file(stl_file, slice_size, milling_radius):
     return polygons arrays indexed by slice height.
     """
     model = Stl(stl_file)
-    border = model.border_2d(2*milling_radius + 0.01)
+    margin = 2 * milling_radius + 0.01
+    border = border_2d(model, margin)
 
     if __debug__:
         if is_module_debugged(__name__):
             print("model loaded")
             print("slices are:")
 
-    slices = model.compute_slices(slice_size)
+    slices = model.compute_slices(slice_size, model.translation_vector(margin))
 
     slices_polygons = {}  # polygons in each slice, indexed by height
 
@@ -112,3 +116,18 @@ def build_paths_tree(milling_radius, pockets):
         if is_module_debugged(__name__):
             paths.tycat()
     return paths
+
+def border_2d(stl_model, margin):
+    """
+    return 2d enclosing (starting at origin) for given model and margin.
+    """
+    # build four points
+    xmin, ymin = 0, 0
+    xmax, ymax = stl_model.dimensions(margin)
+    points = []
+    points.append(Point([xmin, ymin]))
+    points.append(Point([xmin, ymax]))
+    points.append(Point([xmax, ymax]))
+    points.append(Point([xmax, ymin]))
+
+    return [Segment([p, q]) for p, q in all_two_elements(points)]

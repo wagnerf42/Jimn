@@ -36,9 +36,11 @@ def compute_overlap_positions(outer_path, inner_nodes, milling_radius):
         # before doing the real intersections (which is computation heavy)
         # we can first intersect bounding boxes
         nodes_found = []  # delete found nodes after loop ; so remember them
+        outer_envelope = None
         for node, box, envelope in untested_nodes.values():
             if box.intersects(outer_box):
-                outer_envelope = Envelope(out, milling_radius)
+                if outer_envelope is None:
+                    outer_envelope = Envelope(out, milling_radius)
                 outer_point, inner_point = \
                     outer_envelope.junction_points(envelope)
                 if outer_point:
