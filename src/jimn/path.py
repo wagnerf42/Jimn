@@ -5,14 +5,14 @@ import os
 from copy import copy
 from math import floor
 from collections import defaultdict
-from jimn.displayable import tycat
 from jimn.utils.coordinates_hash import CoordinatesHash
 from jimn.vertical_path import VerticalPath
 from jimn.path_position import PathPosition
 from jimn.bounding_box import BoundingBox
 from jimn.point import Point
 from jimn.envelope import Envelope
-from jimn.displayable import tycat_start, tycat_end
+from jimn.displayable import tycat_start, tycat_end, Displayer
+from jimn.arc import Arc
 
 
 PATH_IMAGES = os.environ.get("JIMN_PATH_ANIMATION")
@@ -110,10 +110,11 @@ class Path:
         step by step animation for carving the path with
         given milling radius.
         """
+        # TODO: very ugly. give it second thoughts
         total_length = self.length()
         steps_length = total_length / PATH_IMAGES
 
-        svg_paths_strings = dict()  # strings for seen paths
+        svg_paths_strings = defaultdict(list)  # strings for seen paths
         seen_envelopes = []  # all paths moved upon and seen
         unseen_envelopes = []  # all paths moved upon but unseen
         bounding_box = BoundingBox.empty_box(2)  # their boxes
@@ -124,6 +125,9 @@ class Path:
         current_height = 0
         current_length = 0
         heights_hash = CoordinatesHash(1)
+        color_index = 0
+        height_colors = dict()
+        height_colors[0] = Displayer.svg_colors[0]
 
         for path in self.elementary_paths:
             new_length = current_length + path.length()
@@ -131,17 +135,22 @@ class Path:
             if isinstance(path, VerticalPath):
                 current_height = path.update_height(current_height)
                 current_height = heights_hash.hash_coordinate(current_height)
+                if current_height not in height_colors:
+                    color_index += 1
+                    color = Displayer.svg_colors[color_index
+                                                 % len(Displayer.svg_colors)]
+                    height_colors[current_height] = color
             else:
                 envelope = Envelope(path, milling_radius)
-                tycat(envelope)
-                unseen_envelopes.append((envelope, current_height))
-                bounding_box.update(envelope.get_bounding_box())
+                if not isinstance(path, Arc):
+                    unseen_envelopes.append((envelope, current_height))
+                    bounding_box.update(envelope.get_bounding_box())
 
             if floor(current_length / steps_length) != \
                     floor(new_length / steps_length):
                 _display_animation(last_used_box, bounding_box,
                                    seen_envelopes, unseen_envelopes,
-                                   svg_paths_strings)
+                                   svg_paths_strings, height_colors)
                 last_used_box = copy(bounding_box)
 
             current_length = new_length
@@ -200,7 +209,7 @@ class Path:
 
 def _display_animation(last_used_box, bounding_box,
                        seen_envelopes, unseen_envelopes,
-                       svg_paths_strings):
+                       svg_paths_strings, height_colors):
     """
     one step of animation process.
     strings are pre-computed to avoid re-computations for each frame.
@@ -212,21 +221,18 @@ def _display_animation(last_used_box, bounding_box,
         seen_envelopes.extend(unseen_envelopes)
         unseen_envelopes = seen_envelopes
         seen_envelopes = []
-        svg_paths_strings = dict()
+        svg_paths_strings = defaultdict(list)
 
     # compute missing strings
     display = tycat_start(None, bounding_box)
     for envelope, height in unseen_envelopes:
-        if height not in svg_paths_strings:
-            svg_paths_strings[height] = "<path d=\""
-        svg_paths_strings[height] += envelope.get_display_string(display)
+        color = height_colors[height]
+        svg_paths_strings[height].append(envelope.get_display_string(display,
+                                                                     color))
 
     # save svg
-    color_index = 1
     for height in sorted(list(svg_paths_strings.keys()), reverse=True):
-        color = display.svg_color(color_index)
-        color_index += 1
-        display.write(svg_paths_strings[height])
-        display.write("\" fill=\"" + color + "\" stroke=\"none\"/>\n")
+        for string in svg_paths_strings[height]:
+            display.write(string)
 
     tycat_end(display)

@@ -58,7 +58,7 @@ class Envelope:
             box.update(displaced_path.path.get_bounding_box())
         return box
 
-    def get_display_string(self, display):
+    def get_display_string(self, display, color):
         """
         return svg string used for displaying envelope in final display.
         there is less info than in the standard tycat and returning
@@ -69,9 +69,11 @@ class Envelope:
         first_coordinates = display.convert_coordinates(first_point.coordinates)
         initial_move = "M {},{}".format(*first_coordinates)
 
+        head = "<path d=\""
         paths_strings = [p.path.get_display_string(display) for p in self.paths]
+        foot = "\" fill=\"" + color + "\" stroke=\"none\"/>\n"
 
-        return initial_move + " ".join(paths_strings)
+        return head + initial_move + " ".join(paths_strings) + foot
 
     def save_svg_content(self, display, color):
         """
@@ -118,19 +120,23 @@ class Envelope:
         creates envelope by inflating arc
         """
         # get endpoints
-        # we need them in non-reversed order for inflating
-        # (inflation does not depend on direction)
-        arc_point_1, arc_point_2 = arc.endpoints
+        # TODO: I don't think we need the side arcs
+        if arc.reversed_direction:
+            arc_point_1, arc_point_2 = list(reversed(arc.endpoints))
+        else:
+            arc_point_1, arc_point_2 = arc.endpoints
+
         displaced_point_1 = arc_point_1 * 2 - arc.center
         displaced_point_2 = arc_point_2 * 2 - arc.center
-        side_arc_point_1 = Arc(self.distance, (arc.center, displaced_point_1),
-                               arc_point_1, arc.reversed_direction)
-        side_arc_point_2 = Arc(self.distance, (displaced_point_2, arc.center),
-                               arc_point_2, arc.reversed_direction)
+        side_arc_point_1 = Arc(self.distance,
+                               (arc.center, displaced_point_1),
+                               arc_point_1)
+        side_arc_point_2 = Arc(self.distance,
+                               (displaced_point_2, arc.center),
+                               arc_point_2)
         displaced_main_arc = Arc(2*self.distance,
                                  (displaced_point_1, displaced_point_2),
-                                 arc.center, arc.reversed_direction)
-        # TODO: I don't think we need the side arcs
+                                 arc.center)
         self.paths = [
             DisplacedPath(p, o)
             for p, o in zip(

@@ -1,4 +1,6 @@
-bug in arcs envelope ---> the display string for envelopes of arcs in reversed directions are wrong
+bug in overlapping positions for cordoba 0.4 0.1 on top level
+
+
 change dualposition constructor
 
 - offsetter still hash precision problems.
