@@ -103,6 +103,7 @@ class Pocket:
             tested_point = path.endpoints[0]
             test_result = other.contains_point(tested_point)
             if test_result is not None:
+                tycat(other, tested_point)
                 included = test_result
                 break
         else:
@@ -181,7 +182,6 @@ class Pocket:
                 kept_segments.append(segment1)
         arcs.extend(kept_segments)
         self.paths = arcs
-
 
     def self_intersections(self, results):
         """
