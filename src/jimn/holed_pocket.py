@@ -62,11 +62,8 @@ class HoledPocket:
         return str(id(self))
 
     def __str__(self):
-        inner_strings = ["    " + str(p) for p in self.inner_edges]
-        return "HoledPocket([\n    " + \
-            ",\n    ".join([str(p) for p in self.outer_edge.paths]) \
-            + "\n], [" + "\n".join(inner_strings) \
-            + "])"
+        inner = ",".join([str(p) for p in self.inner_edges])
+        return "HoledPocket(" + str(self.outer_edge) + ", [" + inner + "])\n"
 
     def __hash__(self):
         """

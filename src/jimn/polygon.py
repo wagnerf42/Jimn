@@ -128,9 +128,8 @@ class Polygon:
         return vector
 
     def __str__(self):
-        strings = [str(p) for p in self.points]
-        return "[" + str(self.label) + "/\npolygon([\n    " + \
-            ",\n    ".join(strings) + "\n])\n]"
+        points = ",\n".join([str(p) for p in self.points])
+        return "Polygon([" + points + "])\n"
 
     def get_bounding_box(self):
         """
