@@ -12,7 +12,6 @@ from jimn.bounding_box import BoundingBox
 from jimn.point import Point
 from jimn.envelope import Envelope
 from jimn.displayable import tycat_start, tycat_end, Displayer
-from jimn.arc import Arc
 
 
 PATH_IMAGES = os.environ.get("JIMN_PATH_ANIMATION")
@@ -142,9 +141,8 @@ class Path:
                     height_colors[current_height] = color
             else:
                 envelope = Envelope(path, milling_radius)
-                if not isinstance(path, Arc):
-                    unseen_envelopes.append((envelope, current_height))
-                    bounding_box.update(envelope.get_bounding_box())
+                unseen_envelopes.append((envelope, current_height))
+                bounding_box.update(envelope.get_bounding_box())
 
             if floor(current_length / steps_length) != \
                     floor(new_length / steps_length):

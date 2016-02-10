@@ -1,5 +1,7 @@
-
 change dualposition constructor
+
+- optim: remove many pockets immediately in pocket builder by specifying paths
+which will destroy pockets containing them
 
 - offsetter still hash precision problems.
 we need to design special tests and think again
