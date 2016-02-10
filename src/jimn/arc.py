@@ -123,8 +123,7 @@ class Arc(ElementaryPath):
 
     def contains(self, point):
         """return true if point is inside arc"""
-        if not is_almost(self.center.distance_to(point),
-                         self.radius*self.radius):
+        if not is_almost(self.center.distance_to(point), self.radius):
             return False
         return self.contains_circle_point(point)
 

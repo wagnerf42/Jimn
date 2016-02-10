@@ -103,7 +103,6 @@ class Pocket:
             tested_point = path.endpoints[0]
             test_result = other.contains_point(tested_point)
             if test_result is not None:
-                tycat(other, tested_point)
                 included = test_result
                 break
         else:
