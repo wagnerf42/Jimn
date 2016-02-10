@@ -55,5 +55,20 @@ class CoordinatesHash:
         self.fast_hash.add(coordinate)
         return coordinate
 
+    def contains_coordinate(self, coordinate):
+        """
+        do we contain given coordinate ?
+        prerequisite: self is 1d-hash.
+        """
+        if coordinate in self.fast_hash:
+            return True
+        key = coordinate_key(coordinate, self.precision)
+        if key in self.hashes[0]:
+            return True
+        displaced_key = displaced_coordinate_key(coordinate, self.precision)
+        if displaced_key in self.hashes[1]:
+            return True
+        return False
+
 ROUNDER2D = CoordinatesHash()
 LINES_ROUNDER = CoordinatesHash(PRECISION-2)

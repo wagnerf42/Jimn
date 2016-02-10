@@ -1,6 +1,7 @@
 """
 set of paths defining a pocket to mill.
 """
+from random import random
 from itertools import combinations
 from jimn.bounding_box import BoundingBox
 from jimn.polygon import Polygon
@@ -10,7 +11,7 @@ from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost
 from jimn.utils.iterators import all_combinations
-from jimn.utils.coordinates_hash import ROUNDER2D
+from jimn.utils.coordinates_hash import ROUNDER2D, CoordinatesHash
 from jimn.caching import cached, invalidate_cache
 
 
@@ -87,29 +88,63 @@ class Pocket:
         """
         self.paths.extend(additional_paths)
 
+
+    def vertical_intersections(self, intersecting_x):
+        """
+        return all y coordinates for paths intersecting vertical
+        line at given x.
+        precondition: given x is not the one of any point in self.
+        """
+        intersecting_ys = list()
+        for path in self.paths:
+            xmin, xmax = sorted([end.get_x() for end in path.endpoints])
+            if intersecting_x > xmin and intersecting_x < xmax:
+                intersecting_y = path.vertical_intersection_at(intersecting_x)
+                intersecting_ys.append(intersecting_y)
+        return intersecting_ys
+
+    def inside_point_not_on(self, x_hash):
+        """
+        return a random point STRICTLY inside pocket whose
+        x coordinate is not in given hash.
+        """
+        # take a x coordinate not in given hash
+        x_coordinates = [p.coordinates[0]
+                         for path in self.paths
+                         for p in path.endpoints]
+        xmin = min(x_coordinates)
+        xmax = max(x_coordinates)
+        chosen_x = None
+        while chosen_x is None or x_hash.contains_coordinate(chosen_x):
+            factor = random()
+            chosen_x = xmin*factor + (1-factor)*xmax
+
+        # now, intersect vertically
+        # to figure which y ranges are on the inside
+        intersections = sorted(self.vertical_intersections(chosen_x))
+        # take point in first range
+        chosen_y = (intersections[0] + intersections[1]) / 2
+        return Point([chosen_x, chosen_y])
+
     def is_included_in(self, other):
         """
-        fast inclusion test.
-        many pre-conditions.
-        returns true if we can find one point of self included in other.
+        inclusion test.
+        return true if we can find one point of self included in other.
+        precondition: self and other do not intersect (they might share
+        edges though).
         """
         # pre-test using bounding box
         box = other.get_bounding_box()
         if not box.almost_contains_point(self.paths[0].endpoints[0]):
             return False
 
-        # loop trying points
-        for path in self.paths:
-            tested_point = path.endpoints[0]
-            test_result = other.contains_point(tested_point)
-            if test_result is not None:
-                included = test_result
-                break
-        else:
-            # TODO: big bug here
-            # there is not enough info to return true
-            # all points of self are on edge of other
-            included = True
+        x_hash = CoordinatesHash()
+        for pocket in (self, other):
+            for point in pocket.get_points():
+                x_hash.hash_coordinate(point.get_x())
+
+        inside_point = self.inside_point_not_on(x_hash)
+        included = other.contains_point(inside_point)
 
         if __debug__:
             if is_module_debugged(__name__):
@@ -218,13 +253,11 @@ class Pocket:
         """
         return true if point is strictly in self.
         false if strictly out of self.
-        none if on self.
+        precondition: point is not on self.
         """
         point_x, point_y = tested_point.coordinates
         above_paths = 0  # simple ray casting algorithm
         for path in self.paths:
-            if path.contains(tested_point):
-                return None
             x_1, x_2 = sorted([end.get_x() for end in path.endpoints])
             # skip vertical paths
             if is_almost(x_1, x_2):

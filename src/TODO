@@ -35,21 +35,3 @@ especially testing flat subparts
  * calibration
 
 - what precision should be chosen in stl to round z coordinates ?
-
- * bug fixes
-
-- there is a bug in pocket inclusion
--> will not work in following case :
-
-  +--------------+
-  |              |
-  +--**------+   |
-     **      |   |
-     **      |   |
-  +--**------+   |
-  |              |
-  +--------------+
-
- here all points of * are inside the other one
- yet * is not included in other
- -> either fix it or ensures this case can not happen
