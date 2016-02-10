@@ -123,7 +123,7 @@ class Path:
 
         current_height = 0
         current_length = 0
-        heights_hash = CoordinatesHash(1)
+        heights_hash = CoordinatesHash()
         color_index = 0
         height_colors = dict()
         height_colors[0] = Displayer.svg_colors[0]
