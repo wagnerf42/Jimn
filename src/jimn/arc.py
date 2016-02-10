@@ -83,8 +83,8 @@ class Arc(ElementaryPath):
         """
         segment = Segment.horizontal_segment(xmin, xmax, intersecting_y)
         intersections = self.intersections_with_segment(segment)
-        for i in intersections:
-            i.set_y(intersecting_y)
+        intersections = [Point([i.get_x(), intersecting_y])
+                         for i in intersections]
         return intersections
 
     def split_at_milling_points(self, milling_diameter):

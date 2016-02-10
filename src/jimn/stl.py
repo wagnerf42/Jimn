@@ -153,12 +153,6 @@ class Stl:
         ymax = ymax + margin
         return (xmax-xmin, ymax-ymin)
 
-    def keep_facets_near(self, point, limit):
-        """
-        filter out facets for debugging purposes.
-        """
-        self.facets = [f for f in self.facets if f.is_near(point, limit)]
-
     def flatten(self):
         """
         segments obtained when seeing self from above

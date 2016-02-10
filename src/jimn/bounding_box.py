@@ -39,10 +39,8 @@ class BoundingBox:
 
     def almost_contains_point(self, point):
         """
-        returns true if point is almost inside box
+        return true if point is almost inside box.
         """
-        assert point.dimension() == len(self.min_coordinates), \
-            "invalid point size"
         for i, coordinate in enumerate(point.coordinates):
             if coordinate < self.min_coordinates[i] and \
                     (not is_almost(coordinate, self.min_coordinates[i])):

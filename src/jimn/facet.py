@@ -31,17 +31,6 @@ class Facet:
         point1, point2, point3 = [p.projection2d() for p in self.points]
         return point1.is_aligned_with(point2, point3)
 
-    def is_near(self, point, limit):
-        """
-        are we near a given point ? (when seen from above)
-        useful to filter facets near a point generating bugs
-        """
-        points = [q.projection2d() for q in self.points]
-        for our_point in points:
-            if not our_point.is_near(point, limit):
-                return False
-        return True
-
     def _find_points_above_and_below(self, height):
         """
         used in plane intersection.
@@ -50,7 +39,7 @@ class Facet:
         """
         points = [[], []]
         for point in self.points:
-            points[point.is_above(height)].append(point)
+            points[point.coordinates[2] > height].append(point)
         return points
 
     def intersect(self, height, segments, remaining_facets, translation_vector):

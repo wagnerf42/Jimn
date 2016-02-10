@@ -7,7 +7,6 @@ from jimn.utils.precision import is_almost
 
 
 class Point:
-    # pylint: disable=too-many-public-methods
     """
     a point is defined as a vector of any given dimension.
     """
@@ -26,12 +25,6 @@ class Point:
             total += diff * diff
         return sqrt(total)
 
-    def dimension(self):
-        """
-        dimension of space containing the point.
-        """
-        return len(self.coordinates)
-
     def get_x(self):
         """return the first coordinate, assuming it exists."""
         return self.coordinates[0]
@@ -44,30 +37,11 @@ class Point:
         """return the third coordinate, assuming it exists."""
         return self.coordinates[2]
 
-    def set_x(self, new_coordinate):
-        """
-        change x coordinate
-        """
-        self.coordinates[0] = new_coordinate
-
-    def set_y(self, new_coordinate):
-        """
-        change y coordinate
-        """
-        self.coordinates[1] = new_coordinate
-
-    def is_above(self, height):
-        """
-        Returns a boolean indicating whether or not the point is located
-        (strictly) above given height.
-        Assumes the point has (at least) 3 dimensions
-        """
-        if is_almost(self.coordinates[2], height):
-            return False
-        return self.coordinates[2] > height
-
     def angle_with(self, other):
-        """angles are computed with respect to svg orientation"""
+        """
+        angle formed by two points and origin.
+        angles are computed with respect to svg orientation.
+        """
         coordinates_differences = [
             other.coordinates[i] - self.coordinates[i]
             for i in (1, 0)
@@ -86,7 +60,7 @@ class Point:
 
     def save_svg_content(self, display, color):
         """
-        svg display for tycat
+        svg display for tycat.
         """
         svg_coordinates = display.convert_coordinates(self.coordinates)
         stroke_width = display.stroke_width()
@@ -95,9 +69,9 @@ class Point:
             stroke_width, color))
 
     def rotate(self, angle):
-        """rotates a point around origin"""
-        if __debug__:
-            assert self.dimension() == 2, "2d rotation only"
+        """
+        rotate a 2d point around origin.
+        """
         cosinus = cos(-angle)
         sinus = sin(-angle)
         return Point([
@@ -106,7 +80,9 @@ class Point:
         ])
 
     def rotate_around(self, center, angle):
-        """rotates a point around another one"""
+        """
+        rotate a point around another one.
+        """
         return center + (self-center).rotate(angle)
 
     def is_aligned_with(self, point2, point3):
@@ -120,16 +96,6 @@ class Point:
             - (y_2*x_3 + y_1*x_2 + x_1*y_3)
         return abs(determinant) < 10**-5  # TODO: why 5 ???
 
-    def is_near(self, other, limit):
-        """
-        return true if distance from self to other
-        is less than limit
-        """
-        distance = self.distance_to(other)
-        if is_almost(distance, limit):
-            return True
-        return distance < limit
-
     def is_almost(self, other):
         """
         return true if self and other are almost the same points
@@ -142,8 +108,8 @@ class Point:
 
     def projection2d(self):
         """
-        Returns the projection of the point on the first 2 dimensions.
-        Assumes the point has at least 2 dimensions.
+        return the projection of the point on the first 2 dimensions.
+        precondition : point has at least 2 dimensions.
         """
         return Point(self.coordinates[0:2])
 
@@ -156,11 +122,9 @@ class Point:
 
     def cross_product(self, other):
         """
-        cross product between 2 2d vectors
+        cross product between 2 2d vectors.
         """
-        x_1, y_1 = self.coordinates
-        x_2, y_2 = other.coordinates
-        return x_1 * y_2 - y_1 * x_2
+        return self.perpendicular_vector().scalar_product(other)
 
     def nearest_points(self, other):
         """
