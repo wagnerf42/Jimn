@@ -7,10 +7,10 @@ in paths it corresponds to
 
 from jimn.bounding_box import BoundingBox
 from jimn.arc import Arc
-from jimn.segment import Segment
 from jimn.pocket import Pocket
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
+from jimn.utils.iterators import all_two_elements
 from jimn.envelope.displaced_path import DisplacedPath
 from jimn.caching import cached
 
@@ -122,7 +122,7 @@ class Envelope:
         # get endpoints
         # TODO: I don't think we need the side arcs
         if arc.reversed_direction:
-            arc_point_1, arc_point_2 = list(reversed(arc.endpoints))
+            arc_point_2, arc_point_1 = arc.endpoints
         else:
             arc_point_1, arc_point_2 = arc.endpoints
 
@@ -151,37 +151,13 @@ class Envelope:
         """
         self.paths = []
         # just follow path, moving away
+        raw_paths = [DisplacedPath.displace(p, self.distance)
+                     for p in inside_pocket.paths]
+
         # and then reconnecting everything.
-        raw_paths = []
-        for path in inside_pocket.paths:
-            if isinstance(path, Segment):
-                try:
-                    displaced_path = DisplacedPath(
-                        path.parallel_segment(self.distance, -1), path)
-                except:
-                    print("failed // segment for pocket", inside_pocket)
-                    print("failed segment was", path)
-                    tycat(inside_pocket, path)
-            else:
-                displaced_path = DisplacedPath(path.inflate(), path)
-            raw_paths.append(displaced_path)
-
-        # now do the reconnections if path is disconnected
-        previous_path = raw_paths[-1]
-        for current_path in raw_paths:
-            previous_point = previous_path.path.endpoints[1]
-            current_point = current_path.path.endpoints[0]
-            if previous_point != current_point:
-                center = previous_path.origin.endpoints[1]
-                displaced_path = DisplacedPath(
-                    Arc(self.distance, [previous_point, current_point],
-                        center, True),
-                    center
-                )
-                self.paths.append(displaced_path)
-
-            previous_path = current_path
-            self.paths.append(current_path)
+        for previous_path, current_path in all_two_elements(raw_paths):
+            self.paths.extend(previous_path.reconnect(current_path,
+                                                      self.distance))
 
     def junction_points(self, inner_envelope):
         """

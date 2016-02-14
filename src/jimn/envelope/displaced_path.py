@@ -4,18 +4,39 @@ object generating the envelope.
 """
 from jimn.point import Point
 from jimn.segment import Segment
+from jimn.arc import Arc
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 
 
 class DisplacedPath:
     """
-    a displaced path is an elementary path on an envelope associated
+    a displaced path is an elementary path (or point) on an envelope associated
     to the original content which generated it.
     """
     def __init__(self, envelope_path, origin):
         self.path = envelope_path
         self.origin = origin
+
+    def get_endpoint(self, index):
+        """
+        get endpoint 0 or 1 on envelope 'path'.
+        needed because this path could be just a point.
+        """
+        if isinstance(self.path, Point):
+            return self.path
+        else:
+            return self.path.endpoints[index]
+
+    @classmethod
+    def displace(cls, path, distance):
+        """
+        displace given path by given distance on outer side.
+        """
+        if isinstance(path, Segment):
+            return cls(path.parallel_segment(distance, -1), path)
+        else:
+            return cls(path.inflate(), path)  # TODO: this is bugged
 
     def project(self, point):
         """
@@ -49,6 +70,26 @@ class DisplacedPath:
         interferences.extend(
             self.path.intersections_with(other.path))
         return interferences
+
+    def reconnect(self, next_path, distance):
+        """
+        connect self with next.
+        return self and path needed to go to next.
+        if self is just a point, skip self.
+        """
+        current_point = self.get_endpoint(1)
+        next_point = next_path.get_endpoint(0)
+        connected_paths = []
+        if not isinstance(self.path, Point):
+            connected_paths.append(self)
+
+        if current_point != next_point:
+            center = self.origin.endpoints[1]
+            displaced_path = DisplacedPath(
+                Arc(distance, [current_point, next_point], center, True), center
+            )
+            connected_paths.append(displaced_path)
+        return connected_paths
 
 
 def _overlapping_points(followed, other):
