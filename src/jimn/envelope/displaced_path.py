@@ -39,7 +39,7 @@ class DisplacedPath:
             if path.reversed_direction:
                 new_radius = 2 * path.radius
                 new_points = [p*2-path.center for p in path.endpoints]
-                inflated_path = Arc(new_radius, new_points, path.center)
+                inflated_path = Arc(new_radius, new_points, path.center, True)
             else:
                 inflated_path = path.center
             return cls(inflated_path, path)

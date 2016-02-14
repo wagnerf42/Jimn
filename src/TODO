@@ -1,6 +1,4 @@
 
-bug: cordoba-large 0.05 0.05 -> l'envelope en l'inner est fausse
-
 change dualposition constructor
 
 - optim: remove many pockets immediately in pocket builder by specifying paths
@@ -9,8 +7,6 @@ which will destroy pockets containing them
 - offsetter still hash precision problems.
 we need to design special tests and think again
 (problems arise when holes and outer edge are at distance < diameter)
-
------> simplify jimn.segment.remove_overlap_with
 
 - warning in poly builder if two paths leaving a point have an extremely small angle between them
 - check that we decompress the branch after the whole path for
