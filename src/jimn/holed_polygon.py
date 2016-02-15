@@ -33,14 +33,14 @@ class HoledPolygon:
         """
         if not self.holes:
             string = "{}, h={}".format(
-                str(self.polygon.get_label()),
+                str(id(self.polygon)),
                 str(self.height)
             )
         else:
             string = "{}, h={}, holes={}".format(
-                str(self.polygon.get_label()),
+                str(id(self.polygon)),
                 str(self.height),
-                str([h.label for h in self.holes])
+                str([id(h) for h in self.holes])
             )
 
         return string
@@ -73,12 +73,14 @@ class HoledPolygon:
         prepares for hashing by reordering points and
         re-orienting
         """
-        self.polygon.orient(clockwise=False)
+        self.polygon = self.polygon.orient(clockwise=False)
         self.polygon.normalize_starting_point()
+        oriented_holes = list()
         for hole in self.holes:
-            hole.orient(clockwise=True)
-            hole.normalize_starting_point()
-        self.holes = sorted(self.holes, key=lambda h: h.points[0])
+            oriented_hole = hole.orient(clockwise=True)
+            oriented_hole.normalize_starting_point()
+            oriented_holes.append(oriented_hole)
+        self.holes = sorted(oriented_holes, key=lambda h: h.points[0])
 
     def translation_vector(self, other):
         """

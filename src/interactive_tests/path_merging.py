@@ -15,8 +15,7 @@ polygons = [
     Polygon.square(0.1, 0.1, 4.1),
 ]
 
-for p in polygons:
-    p.orient(False)
+polygons = [p.orient(False) for p in polygons]
 
 pockets = [offset_holed_polygon(1, p)[0] for p in polygons]
 graphs = [build_graph(p, 1) for p in pockets]

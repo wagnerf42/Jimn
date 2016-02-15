@@ -12,7 +12,7 @@ from jimn.displayable import tycat_start, tycat_end
 print("testing intersection")
 
 s = Polygon.square(0, 0, 8)
-s.orient(False)
+s = s.orient(False)
 path_in = Pocket(list(s.segments()))
 
 path_out = Segment([

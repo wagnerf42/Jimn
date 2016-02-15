@@ -5,29 +5,30 @@ from jimn.point import Point
 from jimn.segment import Segment
 from jimn.bounding_box import BoundingBox
 from jimn.utils.precision import is_almost
-from jimn.utils.iterators import all_two_elements
+from jimn.utils.iterators import all_two_elements, all_three_elements
+from jimn.utils.tour import tour
 
 
 class Polygon:
     """
     a polygon is an ordered set of points.
-    they can optionaly be labeled for better display.
-    """
-    squares_counter = 0
 
-    def __init__(self, points, label=None):
+    for example:
+
+    - create a triangle:
+
+    triangle = Polygon([Point([0, 0]), Point([1, 1]), Point([2, 0])])
+
+    - loop on all segments in a polygon:
+
+    for segment in polygon.segments():
+        ....
+
+    """
+
+    def __init__(self, points):
         assert len(points) > 2
         self.points = points
-        if label is None:
-            self.label = id(self)
-        else:
-            self.label = label
-
-    def get_label(self):
-        """
-        return polygon label.
-        """
-        return self.label
 
     @classmethod
     def square(cls, start_x, start_y, side):
@@ -43,31 +44,21 @@ class Polygon:
             Point([0.0, side]),
         ]
         points = [p + starting_point for p in points]
-        square_polygon = cls(points, cls.squares_counter)
-        cls.squares_counter += 1
+        square_polygon = cls(points)
         return square_polygon
 
     def remove_useless_points(self):
-        """when 3 consecutive points are aligned the middle one is useless.
+        """
+        when 3 consecutive points are aligned the middle one is useless.
         we remove here all useless points in order to decrease cost of storage
         and computations of further operations.
-        WARNING : this operation reverses orientation.
         """
-        self._set_non_removable_start()
-        last_kept_point = self.points[0]
-        kept_points = [last_kept_point]
-        middle_point = self.points[1]
-        self.points.append(last_kept_point)  # go until start again
-        # follow edge of polygon, looking for useless points
-        for new_point in self.points[2:]:
-            if last_kept_point.is_aligned_with(middle_point, new_point):
-                middle_point = new_point  # skip middle point
-            else:
-                kept_points.append(middle_point)
-                last_kept_point = middle_point
-                middle_point = new_point
+        removed_points = set()
+        for points in all_three_elements(self.points):
+            if abs(Polygon(points).area()) < 0.000001:
+                removed_points.add(points[1])
 
-        self.points = kept_points
+        self.points = [p for p in self.points if p not in removed_points]
 
         assert len(self.points) > 2
 
@@ -83,15 +74,14 @@ class Polygon:
         return polygon area. can be positive or negative, depending on
         orientation.
         """
-        area = 0
-        for points in all_two_elements(self.points):
-            area += points[0].cross_product(points[1])
-        return area/2
+        return sum([p1.cross_product(p2)
+                    for p1, p2 in all_two_elements(self.points)]) / 2
 
     def is_oriented_clockwise(self):
         """
         clockwise being defined respectively to svg displayed, return
-        true if polygon is oriented clockwise."""
+        true if polygon is oriented clockwise.
+        """
         area = self.area()
         assert not is_almost(area, 0), "flat polygon"
         return area > 0
@@ -101,8 +91,9 @@ class Polygon:
         orient polygon with given orientation
         """
         if self.is_oriented_clockwise() != clockwise:
-            self.points.reverse()
-        return self
+            return Polygon(self.points[::-1])
+        else:
+            return self
 
     def normalize_starting_point(self):
         """
@@ -119,6 +110,8 @@ class Polygon:
         you can optionnaly give desired translation vector.
         assumes the two polygons are normalized
         """
+        if len(self.points) != len(other.points):
+            return None
         for point_on_self, point_on_other in zip(self.points, other.points):
             if vector is None:
                 vector = point_on_other - point_on_self
@@ -126,10 +119,6 @@ class Polygon:
                 if not (point_on_other - point_on_self).is_almost(vector):
                     return None
         return vector
-
-    def __str__(self):
-        points = ",\n".join([str(p) for p in self.points])
-        return "Polygon([" + points + "])\n"
 
     def get_bounding_box(self):
         """
@@ -155,16 +144,25 @@ class Polygon:
         display.write(" style=\"fill:{};stroke:{};\
                       stroke-width:1;opacity:0.4\" />".format(color, color))
 
-    def _set_non_removable_start(self):
-        """
-        changes start point to one which cannot be removed when removing
-        useless points later on.
-        assumes no identical points in polygon.
-        """
-        for i, point in enumerate(self.points):
-            preceding_point = self.points[i-1]
-            next_point = self.points[(i+1) % len(self.points)]
-            if not preceding_point.is_aligned_with(point, next_point):
-                self.points = self.points[i:] + self.points[:i]
-                return
-        raise Exception("flat polygon")
+    def __str__(self):
+        points = ",\n".join([str(p) for p in self.points])
+        return "Polygon([" + points + "])\n"
+
+
+def __tour():
+    description = "we provide a 'Polygon' class."
+    example = """
+from jimn.point import Point
+from jimn.polygon import Polygon
+from jimn.displayable import tycat
+points = list()
+for x in range(4):
+    points.append(Point([x, x*x]))
+polygon = Polygon(points)
+tycat(polygon)
+tycat(*list(polygon.segments()))
+    """
+    tour("jimn.polygon", description, example)
+
+if __name__ == "__main__":
+    __tour()
