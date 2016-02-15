@@ -1,5 +1,27 @@
 """
-main jimn file. compute path out of stl file.
+
+jimn is a geometry module intended for computing paths for CNC machines.
+it however can still be used as a standalone module for doing geometry.
+
+you can find standard graphical objects xxx in sub-modules jimn.xxx like
+    - point
+    - segment
+    - arc
+    - polygon
+    - circle
+    - facet (3D)
+    - holed_polygon
+
+jimn is intended to work with the terminology terminal emulator from enlightenment.
+
+under terminology any object or list of objects can be graphically displayed using
+the tycat function from jimn.displayable
+
+you can have a guided tour for many modules by executing them directly.
+
+for example a tour of jimn.point can be seen when executing the jimn/point.py file
+under python3.
+
 """
 
 import sys

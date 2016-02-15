@@ -67,15 +67,6 @@ class Arc(ElementaryPath):
         if self.angle() > pi:
             self.reversed_direction = True
 
-    def inflate(self):
-        """
-        push arc towards outside by radius (double the radius)
-        """
-        new_radius = 2 * self.radius
-        new_points = [p*2-self.center for p in self.endpoints]
-        return Arc(new_radius, new_points,
-                   self.center, self.reversed_direction)
-
     def horizontal_intersections_at(self, intersecting_y, xmin, xmax):
         """
         intersections with horizontal line at given y.

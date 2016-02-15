@@ -10,8 +10,25 @@ from jimn.utils.tour import tour
 class Point:
     """
     a point is defined as a vector of any given dimension.
+
+    for example:
+
+    - create a point at x=2, y=5:
+
+    my_point = Point([2, 5])
+
+    - find distance between two points:
+
+    distance = point1.distance_to(point2)
+
+    - translate point by (2, 3):
+
+    point += Point([2, 3])
     """
     def __init__(self, coordinates):
+        """
+        build new point using an array of coordinates.
+        """
         self.coordinates = coordinates
 
     def distance_to(self, other):
