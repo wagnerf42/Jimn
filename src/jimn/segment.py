@@ -15,6 +15,21 @@ from jimn.utils.debug import is_module_debugged
 class Segment(ElementaryPath):
     """
     oriented segment between two points.
+
+    for example:
+
+    - create a new segment between two points:
+
+        segment = Segment([point1, point2])
+
+    - create a new segment from coordinates:
+
+        segment = Segment([Point([1, 2]), Point([3, 4])])
+
+    - compute intersection point with other segment:
+
+        intersection = segment1.intersection_with_segment(segment2)
+
     """
     def __init__(self, points):
         super().__init__(points)
