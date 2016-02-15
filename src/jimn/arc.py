@@ -72,7 +72,8 @@ class Arc(ElementaryPath):
         intersections with horizontal line at given y.
         returns array of points.
         """
-        segment = Segment.horizontal_segment(xmin, xmax, intersecting_y)
+        segment = Segment([Point([xmin, intersecting_y]),
+                           Point([xmax, intersecting_y])])
         intersections = self.intersections_with_segment(segment)
         intersections = [Point([i.get_x(), intersecting_y])
                          for i in intersections]

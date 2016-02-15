@@ -6,7 +6,7 @@ usage is easy:
 
 def __tour():
     description = "..."
-    example = ("...")
+    example = "..."
     tour("module_name", description, example)
 
 if __name__ == "__main__":

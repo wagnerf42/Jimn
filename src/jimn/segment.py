@@ -10,6 +10,7 @@ from jimn.utils.precision import check_precision, is_almost
 from jimn.utils.math import milling_heights
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
+from jimn.utils.tour import tour
 
 
 class Segment(ElementaryPath):
@@ -32,15 +33,10 @@ class Segment(ElementaryPath):
 
     """
     def __init__(self, points):
+        """
+        create a segment from an array of two points.
+        """
         super().__init__(points)
-
-    @classmethod
-    def horizontal_segment(cls, xmin, xmax, y_coordinate):
-        """
-        constructor: creates an horizontal segment
-        """
-        coordinates = ([xmin, y_coordinate], [xmax, y_coordinate])
-        return cls([Point(c) for c in coordinates])
 
     def sort_endpoints(self):
         """
@@ -205,7 +201,7 @@ class Segment(ElementaryPath):
 
     def angle(self):
         """
-        return angle from origin between endpoints
+        return angle from origin between endpoints.
         """
         return self.endpoints[0].angle_with(self.endpoints[1])
 
@@ -368,3 +364,19 @@ class Segment(ElementaryPath):
                 return self.endpoints[1] < other.endpoints[1]
         else:
             return self.endpoints[0] < other.endpoints[0]
+
+def __tour():
+    description = "we provide a 'Segment' class encoding oriented segments."
+    example = """
+from jimn.point import Point
+from jimn.segment import Segment
+from jimn.displayable import tycat
+segment1 = Segment([Point([0, 0]), Point([5, 5])])
+segment2 = Segment([Point([0, 3]), Point([7, 1])])
+tycat(segment1, segment2, segment1.intersection_with_segment(segment2))
+    """
+    tour("jimn.segment", description, example)
+
+
+if __name__ == "__main__":
+    __tour()

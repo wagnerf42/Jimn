@@ -224,7 +224,8 @@ def __tour():
     give a few examples.
     """
     description = "we provide a 'Point' class encoding points or vectors."
-    example = """from jimn.point import Point
+    example = """
+from jimn.point import Point
 from jimn.displayable import tycat
 point1 = Point([0, 0])
 point2 = Point([2, 3])
