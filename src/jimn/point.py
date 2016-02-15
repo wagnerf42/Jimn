@@ -4,6 +4,7 @@ points (2d or 3d) or vectors.
 from math import atan2, sqrt, cos, sin, pi, floor, ceil
 from jimn.bounding_box import BoundingBox
 from jimn.utils.precision import is_almost
+from jimn.utils.tour import tour
 
 
 class Point:
@@ -199,3 +200,26 @@ class Point:
         print code generating the point.
         """
         return "Point([" + ', '.join([str(c) for c in self.coordinates]) + "])"
+
+
+def __tour():
+    """
+    give a few examples.
+    """
+    description = "we provide a 'Point' class encoding points or vectors."
+    example = """from jimn.point import Point
+from jimn.displayable import tycat
+point1 = Point([0, 0])
+point2 = Point([2, 3])
+tycat(point1, point2)
+print(\"distance between points:\", point1.distance_to(point2))
+vector = Point([1, 1])
+translations = (point1 + vector, point1 - vector)
+tycat(point1, point2, translations)
+    """
+
+    tour("jimn.point", description, example)
+
+
+if __name__ == "__main__":
+    __tour()

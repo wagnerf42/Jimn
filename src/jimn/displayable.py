@@ -13,7 +13,7 @@ class Displayer:
     """
     displayer handles computations for displaying a set of objects
     """
-    svg_dimensions = (400, 200)
+    svg_dimensions = (800, 600)
     margin = 20
     svg_colors = tuple('red green blue purple orange saddlebrown mediumseagreen\
                        darkolivegreen darkred dimgray mediumpurple midnightblue\
