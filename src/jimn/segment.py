@@ -7,7 +7,6 @@ from jimn.bounding_box import BoundingBox
 from jimn.point import Point
 from jimn.utils.coordinates_hash import ROUNDER2D, LINES_ROUNDER
 from jimn.utils.precision import check_precision, is_almost
-from jimn.utils.math import milling_heights
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.tour import tour
@@ -43,27 +42,6 @@ class Segment(ElementaryPath):
         sort endpoints and return a new path (same type).
         """
         return Segment(list(sorted(self.endpoints)))
-
-    def split_at_milling_points(self, milling_diameter):
-        """
-        returns array of segments obtained when stopping at each milling height.
-        """
-        self.adjust_points_at_milling_height(milling_diameter)
-        y_1, y_2 = [p.get_y() for p in self.endpoints]
-        points = [self.endpoints[0]]
-        for intersecting_y in milling_heights(y_1, y_2, milling_diameter):
-            points.append(self.horizontal_intersection_at(intersecting_y))
-        points.append(self.endpoints[1])
-
-        try:
-            chunks = [
-                Segment([points[i], points[i+1]])
-                for i in range(len(points)-1)
-            ]
-        except:
-            print("failed splitting", self, "for diameter", milling_diameter)
-            raise
-        return chunks
 
     def horizontal_intersection_at(self, intersecting_y):
         """

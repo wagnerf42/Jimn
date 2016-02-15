@@ -55,7 +55,7 @@ class Polygon:
         """
         removed_points = set()
         for points in all_three_elements(self.points):
-            if abs(Polygon(points).area()) < 0.000001:
+            if abs(Polygon(points).area()) < 0.00001:
                 removed_points.add(points[1])
 
         self.points = [p for p in self.points if p not in removed_points]

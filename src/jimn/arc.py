@@ -6,7 +6,7 @@ from jimn.elementary_path import ElementaryPath
 from jimn.bounding_box import BoundingBox
 from jimn.point import Point
 from jimn.utils.math import circles_intersections, line_circle_intersections, \
-    milling_heights, vline_circle_intersections, compute_arc_centers
+    vline_circle_intersections, compute_arc_centers
 from jimn.utils.precision import is_almost
 from jimn.displayable import tycat
 from jimn.segment import Segment
@@ -78,23 +78,6 @@ class Arc(ElementaryPath):
         intersections = [Point([i.get_x(), intersecting_y])
                          for i in intersections]
         return intersections
-
-    def split_at_milling_points(self, milling_diameter):
-        """
-        returns array of arcs obtained when stopping at each milling height
-        """
-        self.adjust_points_at_milling_height(milling_diameter)
-        box = self.get_bounding_box()
-        y_limits = box.limits(1)
-
-        points = []
-        for milling_y in milling_heights(*y_limits,
-                                         milling_diameter=milling_diameter,
-                                         inclusive=True):
-            points.extend(self.horizontal_intersections_at(milling_y,
-                                                           *box.limits(0)))
-
-        return self.split_at(points)
 
     def reverse(self):
         """
