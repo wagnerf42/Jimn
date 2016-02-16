@@ -2,6 +2,7 @@
 build graph out of a pocket (external edges following pocket's edge
 and internal edges etching pocket's surface)
 """
+from math import ceil, floor
 from jimn.displayable import tycat
 from jimn.graph import Graph
 from jimn.graph.even_degrees import make_degrees_even, make_degrees_even_fast
@@ -10,6 +11,8 @@ from jimn.utils.debug import is_module_debugged
 from jimn.utils.math import milling_heights
 from jimn.arc import Arc
 from jimn.segment import Segment
+from jimn.point import Point
+from jimn.utils.precision import is_almost
 
 
 def build_graph(milled_pocket, milling_diameter, fast_algorithm=False):
@@ -102,5 +105,22 @@ def __split_segments(self, milling_diameter):
     return chunks
 
 
+def __adjust_point(self, milling_diameter):
+    """
+    if point is close enough from a milling height, return new point
+    exactly at milling height.
+    else return point.
+    """
+    point_y = self.get_y()
+    above_height = milling_diameter * floor(point_y/milling_diameter)
+    below_height = milling_diameter * ceil(point_y/milling_diameter)
+    for height in (above_height, below_height):
+        if is_almost(point_y, height):
+            return Point([self.get_x(), height])
+
+    return self
+
+
 setattr(Arc, "split_at_milling_points", __split_arcs)
 setattr(Segment, "split_at_milling_points", __split_segments)
+setattr(Point, "adjust_at_milling_height", __adjust_point)

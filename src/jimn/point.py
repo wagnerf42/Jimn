@@ -1,7 +1,7 @@
 """
 points (2d or 3d) or vectors.
 """
-from math import atan2, sqrt, cos, sin, pi, floor, ceil
+from math import atan2, sqrt, cos, sin, pi
 from jimn.bounding_box import BoundingBox
 from jimn.utils.precision import is_almost
 from jimn.utils.tour import tour
@@ -151,23 +151,10 @@ class Point:
         """
         return (self, other)
 
-    def adjust_at_milling_height(self, milling_diameter):
-        """
-        if point is close enough from a milling height, return new point
-        exactly at milling height.
-        else return point.
-        """
-        point_y = self.get_y()
-        above_height = milling_diameter * floor(point_y/milling_diameter)
-        below_height = milling_diameter * ceil(point_y/milling_diameter)
-        for height in (above_height, below_height):
-            if is_almost(point_y, height):
-                return Point([self.get_x(), height])
-
-        return self
-
     def perpendicular_vector(self):
-        "return a vector perpendicular to given one"
+        """
+        return a vector perpendicular to given one.
+        """
         return Point([-self.coordinates[1], self.coordinates[0]])
 
     def __add__(self, other):
