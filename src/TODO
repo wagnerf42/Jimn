@@ -1,18 +1,14 @@
 rethink __str__ with strings (returning lines before join) -> good indent
 segment: merge all intersections code together
 
-change dualposition constructor
-
 - optim: remove many pockets immediately in pocket builder by specifying paths
 which will destroy pockets containing them
 
-- offsetter still hash precision problems.
+- offsetter still has precision problems.
 we need to design special tests and think again
 (problems arise when holes and outer edge are at distance < diameter)
 
 - warning in poly builder if two paths leaving a point have an extremely small angle between them
-- check that we decompress the branch after the whole path for
-the branch has been created ---> impossible without re-cutting cycle at other start point
 - check we can remove arcs from envelope
 - validate does not work anymore
 
@@ -20,16 +16,6 @@ the branch has been created ---> impossible without re-cutting cycle at other st
 
 - re-think meaning of border : what do we NEED to mill ? what CAN we mill ?
 	-> maybe in relation with second pass
-
- * code review
-
-- more tests are needed for polygon simplification
-especially testing flat subparts
-
- * minor code improvements (readability)
- * minor code improvements (performance)
- * additional non-regression tests
- * misc
 
 - path compression
 - generate paths to have more compression feasible

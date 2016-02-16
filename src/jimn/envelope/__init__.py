@@ -11,7 +11,7 @@ from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.iterators import all_two_elements
 from jimn.envelope.displaced_path import DisplacedPath
-from jimn.caching import cached
+from jimn.utils.caching import cached
 
 
 class Envelope:

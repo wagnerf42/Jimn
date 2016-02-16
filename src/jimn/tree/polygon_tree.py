@@ -8,7 +8,7 @@ from jimn.algorithms.sweeping_line_algorithms.inclusion_tree_builder\
 from jimn.holed_polygon import HoledPolygon
 from jimn.tree import Tree
 from jimn.utils.debug import is_module_debugged
-from jimn.caching import cached_args
+from jimn.utils.caching import cached_args
 
 
 class PolygonTree(Tree):

@@ -8,7 +8,7 @@ from jimn.displayable import tycat
 from jimn.segment import Segment
 from jimn.utils.debug import is_module_debugged
 from jimn.vertical_path import VerticalPath
-from jimn.dual_position import DualPosition
+from jimn.tree.path_tree.dual_position import DualPosition
 from jimn.envelope import Envelope
 
 
@@ -44,9 +44,7 @@ def compute_overlap_positions(outer_path, inner_nodes, milling_radius):
                 outer_point, inner_point = \
                     outer_envelope.junction_points(envelope)
                 if outer_point:
-                    node.entrance = DualPosition(out, outer_point,
-                                                 inner_point,
-                                                 outer_index)
+                    node.entrance = DualPosition(out, outer_point, outer_index)
                     node.entrance.inner_position = node.content.find_position(
                         inner_point)
                     nodes_found.append(id(node))

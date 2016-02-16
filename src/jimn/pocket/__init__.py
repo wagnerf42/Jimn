@@ -12,7 +12,7 @@ from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost
 from jimn.utils.iterators import all_combinations
 from jimn.utils.coordinates_hash import ROUNDER2D, CoordinatesHash
-from jimn.caching import cached, invalidate_cache
+from jimn.utils.caching import cached, invalidate_cache
 
 
 class Pocket:

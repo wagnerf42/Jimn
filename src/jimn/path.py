@@ -7,7 +7,6 @@ from math import floor
 from collections import defaultdict
 from jimn.utils.coordinates_hash import CoordinatesHash
 from jimn.vertical_path import VerticalPath
-from jimn.path_position import PathPosition
 from jimn.bounding_box import BoundingBox
 from jimn.point import Point
 from jimn.segment import Segment
@@ -154,17 +153,6 @@ class Path:
                 last_used_box = copy(bounding_box)
 
             current_length = new_length
-
-    def find_position(self, point):
-        """
-        find first position of given point on path.
-        (see Path_Position class)
-        """
-        for i, path in enumerate(self.elementary_paths):
-            if path.contains(point):
-                return PathPosition(path, point, i)
-
-        raise Exception("point not found in path")
 
     def change_starting_point(self, position):
         """

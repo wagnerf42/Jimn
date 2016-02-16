@@ -4,7 +4,7 @@ we can use it to compute positions on small paths ( = fast)
 then change the path by adding new elementary paths ( after the position )
 and finally use the stored position on the long path without recomputing it.
 """
-from jimn.caching import cached
+from jimn.utils.caching import cached
 
 
 class PathPosition:

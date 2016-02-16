@@ -1,7 +1,7 @@
 """
 position simultaneous on two different paths.
 """
-from jimn.path_position import PathPosition
+from jimn.tree.path_tree.path_position import PathPosition
 
 
 class DualPosition:
@@ -11,14 +11,14 @@ class DualPosition:
     we can use it to mark on position impacted by mill on path2
     while following path1.
     """
-    def __init__(self, outer_path, outer_point, inner_point, outer_index):
+    def __init__(self, outer_path, outer_point, outer_index):
         """
         stores positions on two different paths.
         used when switching between different paths.
         """
         self.outer_position = PathPosition(outer_path,
                                            outer_point, outer_index)
-        self.inner_position = PathPosition(None, inner_point, None)
+        self.inner_position = None
 
     def __lt__(self, other):
         """

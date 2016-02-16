@@ -17,6 +17,7 @@ from jimn.segment import Segment
 from jimn.utils.debug import is_module_debugged
 from jimn.vertical_path import VerticalPath
 from jimn.tree import Tree
+from jimn.tree.path_tree.path_position import PathPosition
 
 
 class PathTree(Tree):
@@ -245,3 +246,17 @@ def _pocket_node_to_path_node(pocket_node, milling_radius):
         for n in pocket_node.get_children()
     ]
     return path_node
+
+
+def __find_path_position(self, point):
+    """
+    find first position of given point on path.
+    """
+    for i, path in enumerate(self.elementary_paths):
+        if path.contains(point):
+            return PathPosition(path, point, i)
+
+    raise Exception("point not found in path")
+
+
+setattr(Path, "find_position", __find_path_position)
