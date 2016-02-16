@@ -4,7 +4,8 @@ facet in stl file (three ordered 3d points)
 from jimn.point import Point
 from jimn.segment import Segment
 from jimn.utils.iterators import all_two_elements
-from jimn.utils.precision import is_almost
+from jimn.utils.precision import is_almost, check_precision
+from jimn.utils.coordinates_hash import ROUNDER2D
 
 
 class Facet:
@@ -28,7 +29,7 @@ class Facet:
         """
         are we vertical (in 3d) ?
         """
-        point1, point2, point3 = [p.projection2d() for p in self.points]
+        point1, point2, point3 = [p.projection(2) for p in self.points]
         return point1.is_aligned_with(point2, point3)
 
     def _find_points_above_and_below(self, height):
@@ -65,7 +66,7 @@ class Facet:
             Segment([p, isolated_point]) for p in together_points
         ]
         intersection_points = [
-            s.horizontal_plane_intersection(height, translation_vector)
+            segment_plane_intersection(s, height, translation_vector)
             for s in traversing_segments
         ]
 
@@ -93,3 +94,38 @@ def binary_facet(all_coordinates, heights_hash, box):
         points.append(point)
 
     return Facet(points)
+
+
+def __segment_intersection_at(self, intersecting_y):
+    """
+    return point on segment (self) at given y.
+    precondition : y is valid height in segment.
+    """
+    (x_1, y_1), (x_2, y_2) = [p.coordinates for p in self.endpoints]
+    if is_almost(x_1, x_2):
+        return Point([x_1, intersecting_y])
+    else:
+        slope = (y_1 - y_2) / (x_1 - x_2)
+        intersecting_x = (intersecting_y - y_1) / slope + x_1
+
+    return Point([intersecting_x, intersecting_y])
+
+
+def segment_plane_intersection(self, intersecting_z, translation_vector):
+    """
+    cut self (3d segment) with plane at given height.
+    requires h between hmin and hmax of segment
+    """
+    p_1, p_2 = self.endpoints
+    x_1, y_1, z_1 = p_1.coordinates
+    x_2, y_2, z_2 = p_2.coordinates
+
+    if __debug__:
+        check_precision(z_1, z_2, 'horizontal_plane_intersection')
+
+    intersecting_x = x_1 + (intersecting_z - z_1)/(z_2 - z_1)*(x_2 - x_1)
+    intersecting_y = y_1 + (intersecting_z - z_1)/(z_2 - z_1)*(y_2 - y_1)
+    # TODO: add conditionals for precision problems
+
+    return ROUNDER2D.hash_point(Point([intersecting_x, intersecting_y])
+                                + translation_vector)

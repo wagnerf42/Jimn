@@ -163,7 +163,7 @@ class Stl:
             for segment in facet_segments:
                 if not segment.is_vertical_3d():
                     segments.append(segment)
-        segments2d = [s.projection2d() for s in segments]
+        segments2d = [s.projection(2) for s in segments]
         return [s.sort_endpoints() for s in segments2d]
 
 

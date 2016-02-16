@@ -10,6 +10,8 @@ from jimn.vertical_path import VerticalPath
 from jimn.path_position import PathPosition
 from jimn.bounding_box import BoundingBox
 from jimn.point import Point
+from jimn.segment import Segment
+from jimn.arc import Arc
 from jimn.envelope import Envelope
 from jimn.displayable import tycat_start, tycat_end, Displayer
 
@@ -234,3 +236,34 @@ def _display_animation(last_used_box, bounding_box,
             display.write(string)
 
     tycat_end(display)
+
+
+def __segment_display_string(self, display):
+    """
+    return svg code for including segment in a svg path.
+    """
+    real_coordinates = self.endpoints[1].coordinates
+    coordinates = display.convert_coordinates(real_coordinates)
+    return "L {},{}".format(*coordinates)
+
+
+def __arc_display_string(self, display):
+    """
+    return svg code for including arc in a svg path.
+    """
+    end = self.endpoints[1]
+    coordinates = display.convert_coordinates(end.coordinates)
+    stretched_radius = display.svg_stretch * self.radius
+    if self.reversed_direction:
+        sweep_flag = 0
+    else:
+        sweep_flag = 1
+
+    return 'A{},{} 0 0,{} {},{}'.format(stretched_radius,
+                                        stretched_radius,
+                                        sweep_flag,
+                                        *coordinates)
+
+
+setattr(Segment, "get_display_string", __segment_display_string)
+setattr(Arc, "get_display_string", __arc_display_string)

@@ -57,7 +57,8 @@ class Point:
 
     def angle_with(self, other):
         """
-        angle formed by two points and origin.
+        angle formed by two points and horizontal line
+        passing through first point.
         angles are computed with respect to svg orientation.
         """
         coordinates_differences = [
@@ -124,12 +125,12 @@ class Point:
                 return False
         return True
 
-    def projection2d(self):
+    def projection(self, dimension):
         """
-        return the projection of the point on the first 2 dimensions.
-        precondition : point has at least 2 dimensions.
+        return the projection of the point on the first "dimension" coordinates.
+        precondition : point has at least "dimension" coordinates.
         """
-        return Point(self.coordinates[0:2])
+        return Point(self.coordinates[0:dimension])
 
     def scalar_product(self, other):
         """

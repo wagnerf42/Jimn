@@ -159,22 +159,6 @@ class Arc(ElementaryPath):
                                  sweep_flag,
                                  x_2, y_2, color, stroke_width))
 
-    def get_display_string(self, display):
-        """
-        return svg code for including arc in a svg path
-        """
-        end = self.endpoints[1]
-        coordinates = display.convert_coordinates(end.coordinates)
-        stretched_radius = display.svg_stretch * self.radius
-        if self.reversed_direction:
-            sweep_flag = 0
-        else:
-            sweep_flag = 1
-        return 'A{},{} 0 0,{} {},{}'.format(stretched_radius,
-                                            stretched_radius,
-                                            sweep_flag,
-                                            *coordinates)
-
     def vertical_intersection_at(self, intersecting_x):
         """return y of lowest intersection given vertical line"""
         if self.is_vertical():

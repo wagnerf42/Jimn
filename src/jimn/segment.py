@@ -5,7 +5,7 @@ from math import pi, cos, sin
 from jimn.elementary_path import ElementaryPath
 from jimn.bounding_box import BoundingBox
 from jimn.point import Point
-from jimn.utils.coordinates_hash import ROUNDER2D, LINES_ROUNDER
+from jimn.utils.coordinates_hash import LINES_ROUNDER
 from jimn.utils.precision import check_precision, is_almost
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
@@ -39,7 +39,7 @@ class Segment(ElementaryPath):
 
     def sort_endpoints(self):
         """
-        sort endpoints and return a new path (same type).
+        return a new segment with sorted endpoints.
         """
         return Segment(list(sorted(self.endpoints)))
 
@@ -58,7 +58,7 @@ class Segment(ElementaryPath):
 
     def reverse(self):
         """
-        invert endpoints.
+        return a new segment with inverted endpoints.
         """
         return Segment(list(reversed(self.endpoints)))
 
@@ -66,12 +66,10 @@ class Segment(ElementaryPath):
         """
         return min bounding box containing self.
         """
-        boxes = [
-            BoundingBox(p.coordinates, p.coordinates)
-            for p in self.endpoints
-        ]
-        boxes[0].update(boxes[1])
-        return boxes[0]
+        box = BoundingBox.empty_box(2)
+        for point in self.endpoints:
+            box.add_point(point)
+        return box
 
     def save_svg_content(self, display, color):
         """
@@ -87,52 +85,15 @@ class Segment(ElementaryPath):
         display.write(" stroke-width=\"{}\" stroke=\"{}\"\
                       opacity=\"0.5\"/>\n".format(stroke_width, color))
         # have a small arrow
-        center = self.endpoints[0]*0.5 + self.endpoints[1]*0.5
-        before = self.endpoints[0]*0.6 + self.endpoints[1]*0.4
-        top = before.rotate_around(self.endpoints[0], pi/20)
-        bottom = before.rotate_around(self.endpoints[0], -pi/20)
-        top_coordinates = [
-            c for point in [center, top]
-            for c in display.convert_coordinates(point.coordinates)
-        ]
-        bottom_coordinates = [
-            c for point in [center, bottom]
-            for c in display.convert_coordinates(point.coordinates)
-        ]
-        display.write("<line x1=\"{}\" y1=\"{}\"\
-                      x2=\"{}\" y2=\"{}\"".format(*top_coordinates))
-        display.write(" stroke-width=\"{}\" stroke=\"{}\"\
-                      opacity=\"0.5\"/>\n".format(stroke_width, color))
-        display.write("<line x1=\"{}\" y1=\"{}\"\
-                      x2=\"{}\" y2=\"{}\"".format(*bottom_coordinates))
-        display.write(" stroke-width=\"{}\" stroke=\"{}\"\
-                      opacity=\"0.5\"/>\n".format(stroke_width, color))
+        center = (self.endpoints[0] + self.endpoints[1])/2
+        stroke = stroke_width / display.svg_stretch
+        point1 = center + Point([stroke, 0])
+        point2 = center + Point([-stroke, stroke])
+        point3 = center + Point([-stroke, -stroke])
+        triangle = [p.rotate_around(center, self.angle())
+                    for p in (point1, point2, point3)]
+        Polygon(triangle).save_svg_content(display, color)
 
-    def get_display_string(self, display):
-        """
-        return svg code for including segment in a svg path.
-        """
-        real_coordinates = self.endpoints[1].coordinates
-        coordinates = display.convert_coordinates(real_coordinates)
-        return "L {},{}".format(*coordinates)
-
-    def horizontal_plane_intersection(self, intersecting_z, translation_vector):
-        """
-        PREREQUISITE: 3d segment.
-        cut it with plane at given height.
-        requires h between hmin and hmax of segment
-        """
-        p_1, p_2 = self.endpoints
-        x_1, y_1, z_1 = p_1.coordinates
-        x_2, y_2, z_2 = p_2.coordinates
-
-        if __debug__:
-            check_precision(z_1, z_2, 'horizontal_plane_intersection')
-        intersecting_x = x_1 + (intersecting_z - z_1)/(z_2 - z_1)*(x_2 - x_1)
-        intersecting_y = y_1 + (intersecting_z - z_1)/(z_2 - z_1)*(y_2 - y_1)
-
-        return ROUNDER2D.hash_point(Point([intersecting_x, intersecting_y])
-                                    + translation_vector)
 
     def is_vertical_3d(self):
         """
@@ -161,15 +122,16 @@ class Segment(ElementaryPath):
             return str(LINES_ROUNDER.hash_point(
                 Point([slope, height_at_origin])))
 
-    def projection2d(self):
+    def projection(self, dimension):
         """
-        project 3d segment to 2d
+        return a new segment in smaller space (keep "dimension"
+        first coordinates)
         """
-        return Segment([p.projection2d() for p in self.endpoints])
+        return Segment([p.projection(dimension) for p in self.endpoints])
 
     def point_projection(self, projected_point):
         """
-        project point on line going through self
+        project point on line going through self.
         """
         directing_vector = self.endpoints[1] - self.endpoints[0]
         outer_vector = projected_point - self.endpoints[0]
@@ -222,8 +184,10 @@ class Segment(ElementaryPath):
 
     def parallel_segment(self, distance, side=1):
         """
-        return segment parallel to self at given ditance,
-        on given side
+        return segment parallel to self at given distance,
+        on given side. this operation might lead to precision problems.
+        keep in mind that if you have three nearly aligned points, by
+        taking parallel segments you might obtain four non-aligned points.
         """
         angle = self.endpoints[0].angle_with(self.endpoints[1])
         angle += side*pi/2
@@ -330,7 +294,7 @@ class Segment(ElementaryPath):
 
     def __lt__(self, other):
         """
-        returns if self < other.
+        return if self < other.
         order has no real meaning. it is just an arbitrary order.
         """
         if not isinstance(other, Segment):
@@ -342,6 +306,7 @@ class Segment(ElementaryPath):
                 return self.endpoints[1] < other.endpoints[1]
         else:
             return self.endpoints[0] < other.endpoints[0]
+
 
 def __tour():
     description = "we provide a 'Segment' class encoding oriented segments."
@@ -358,3 +323,6 @@ tycat(segment1, segment2, segment1.intersection_with_segment(segment2))
 
 if __name__ == "__main__":
     __tour()
+
+# pylint: disable=wrong-import-position
+from jimn.polygon import Polygon
