@@ -1,6 +1,7 @@
 """
 figure out hierarchy between polygons.
 """
+from collections import defaultdict
 from jimn.algorithms.sweeping_line_algorithms import SweepingLineAlgorithm
 from jimn.tree.inclusion_tree import InclusionTree
 from jimn.utils.debug import is_module_debugged
@@ -15,6 +16,7 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
     """
     def __init__(self, polygons):
         self.polygons = polygons
+        self.current_paths = defaultdict(list)
         self.seen_polygons = set()
         self.tree = InclusionTree()
         self.fathers = {}
@@ -28,31 +30,7 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
                 segments.extend(_non_vertical_segments(polygon, height))
         return segments
 
-    def handle_new_paths(self, starting_segments):
-        # loop through all new segments
-        # seeing if we encounter a new polygon never seen before.
-
-        # we sort new segments to ensure all potential inclusions are tested :
-        # we have to add the potentially containing polygon first in tree
-        for segment in sorted(starting_segments,
-                              key=lambda seg: (seg.angle(), seg.height),
-                              reverse=True):
-            polygon_id = segment.get_polygon_id()
-            if polygon_id not in self.seen_polygons:
-                # this guy is new, categorize it
-
-                # add it in tree
-                self.add_polygon_in_tree(segment)
-
-                # mark it as seen
-                self.seen_polygons.add(polygon_id)
-                if __debug__:
-                    if is_module_debugged(__name__):
-                        print("added polygon", segment.polygon.label,
-                              "( h =", segment.height, ")")
-                        self.tree.tycat()
-
-    def terminate_polygon(self, polygon_id):
+    def __terminate_polygon(self, polygon_id):
         # mark polygon as dead in tree
         father = self.fathers[polygon_id]
         del father.alive_children[polygon_id]
@@ -118,6 +96,35 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
             above_segments = [s for s in segments if s >= new_segment]
             return len(above_segments) % 2 == 1
 
+    def add_path(self, segment):
+        """
+        new path handler. check if new polygon.
+        """
+        polygon_id = segment.get_polygon_id()
+        self.current_paths[polygon_id].append(segment)
+
+        if polygon_id not in self.seen_polygons:
+            # this guy is new, categorize it
+            # add it in tree
+            self.add_polygon_in_tree(segment)
+
+            # mark it as seen
+            self.seen_polygons.add(polygon_id)
+            if __debug__:
+                if is_module_debugged(__name__):
+                    print("added polygon", segment.polygon.label,
+                          "( h =", segment.height, ")")
+                    self.tree.tycat()
+
+    def remove_path(self, path):
+        """
+        remove path handler. check if last of polygon.
+        """
+        polygon_id = path.get_polygon_id()
+        self.current_paths[polygon_id].remove(path)
+        if not self.current_paths[polygon_id]:
+            del self.current_paths[polygon_id]
+            self.__terminate_polygon(polygon_id)
 
 def _non_vertical_segments(polygon, height):
     """

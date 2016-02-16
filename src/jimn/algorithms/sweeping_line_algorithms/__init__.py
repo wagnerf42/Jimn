@@ -1,10 +1,7 @@
 """
 main class for sweeping line algorithms.
-it should not be used as itself but derived from.
-you need to overload 'terminate_polygon' and
-'handle_new_paths'
 """
-from collections import defaultdict
+from heapq import heappush, heappop
 from jimn.algorithms.sweeping_line_algorithms.event import Event
 
 
@@ -12,9 +9,29 @@ class SweepingLineAlgorithm:
     """
     base class for sweeping line algorithms.
     it should not be used as itself but derived from.
-    you need to overload 'terminate_polygon' and
-    'handle_new_paths'.
+
+    declare your new algorithm class:
+
+        class MySweepAlgorithm(SweepingLineAlgorithm):
+            def __init__(self, ...):
+                ...
+            super().__init__( ARRAY OF ALL PATHS TO SWEEP )
+
+    you then need to provide the following handlers as methods of your class:
+
+        def add_path(self, path):
+            ... add a path to set of current paths ...
+
+        def remove_path(self, path):
+            ... removes a path from set of current paths ...
+
+        def crossing_paths(self, paths):
+            ... a set of paths cross at a common point ...
+
+    any operation generating new events (for example crossing events)
+    must add new events using "add_event" method.
     """
+    # pylint: disable=too-few-public-methods
     def __init__(self, paths):
         """
         prepare for sweeping line algorithm on a set of paths
@@ -23,24 +40,23 @@ class SweepingLineAlgorithm:
         - there is no orientation condition on paths
         """
         self.paths = paths
-        # paths currently crossed by sweeping line
-        self.current_paths = defaultdict(list)
+        self.events = []  # events heap
+        self.crossings = dict() # associate to each crossing point the paths
         self._create_events()
         self._run()
 
-    def terminate_polygon(self, polygon_id):
+    def add_crossing_event(self, crossing_point, crossing_paths):
         """
-        handler called when encountering last path of a polygon.
+        add crossing event in system.
+        should come after current event.
         """
-        # pylint: disable=no-self-use,unused-argument
-        return
+        if crossing_point in self.crossings:
+            for path in crossing_paths:
+                self.crossings[crossing_point].add(path)
+        else:
+            self.crossings[crossing_point] = set(crossing_paths)
 
-    def handle_new_paths(self, starting_paths):
-        """
-        handler called when starting new paths at some point.
-        """
-        # pylint: disable=no-self-use,unused-argument
-        return
+        heappush(self.events, Event(crossing_point))
 
     def _create_events(self):
         # create all events
@@ -53,33 +69,27 @@ class SweepingLineAlgorithm:
                 events[extremity].add_path(path_type, path)
         # we sort the events in lexicographical order
         # to prepare for sweeping algorithm
-        self.events = sorted(events.values())
+        for event in events.values():
+            heappush(self.events, event)
 
     def _run(self):
-        for event in self.events:
+        while self.events:
+            event = heappop(self.events)
             self._handle_event(event)
 
     def _handle_event(self, event):
-        # update live paths
+        # pylint: disable=no-member
         starting_paths, ending_paths = [
-            event.paths[path_type] for path_type in [0, 1]
+            event.paths[path_type] for path_type in (0, 1)
         ]
-        self._update_live_paths(starting_paths, ending_paths)
-        self.handle_new_paths(starting_paths)
-
-    def _update_live_paths(self, starting_paths, ending_paths):
         for path in ending_paths:
-            self._remove_path(path)
-        for path in starting_paths:
-            self._add_path(path)
+            self.remove_path(path)
 
-    def _add_path(self, path):
-        polygon_id = path.get_polygon_id()
-        self.current_paths[polygon_id].append(path)
+        if event.event_point in self.crossings:
+            self.crossing_paths(self.crossings[event.event_point])
 
-    def _remove_path(self, path):
-        polygon_id = path.get_polygon_id()
-        self.current_paths[polygon_id].remove(path)
-        if not self.current_paths[polygon_id]:
-            del self.current_paths[polygon_id]
-            self.terminate_polygon(polygon_id)
+        # TODO: angle here is not ok :-(
+        for segment in sorted(starting_paths,
+                              key=lambda seg: (seg.angle(), seg.height),
+                              reverse=True):
+            self.add_path(segment)
