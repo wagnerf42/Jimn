@@ -1,3 +1,4 @@
+rethink __str__ with strings (returning lines before join) -> good indent
 segment: merge all intersections code together
 
 change dualposition constructor

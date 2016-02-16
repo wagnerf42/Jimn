@@ -43,7 +43,8 @@ def _offset_polygons(poly_tree, carving_radius):
     holed_poly = poly_tree.content
     if holed_poly is not None:
         # now, offset ourselves (if we are not root)
-        polygons = holed_poly.get_polygons()
+        polygons = list(holed_poly.holes)
+        polygons.append(holed_poly.polygon)
         pockets = offset_holed_polygon(carving_radius, *polygons)
 
         if __debug__:

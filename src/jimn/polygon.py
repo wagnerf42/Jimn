@@ -97,11 +97,12 @@ class Polygon:
 
     def normalize_starting_point(self):
         """
-        set smallest point as starting point.
+        return new polygon with smallest point as starting point.
         this allows easy identification of translated polygons.
         """
         index = min(range(len(self.points)), key=lambda i: self.points[i])
-        self.points = self.points[index:] + self.points[:index]
+        points = self.points[index:] + self.points[:index]
+        return Polygon(points)
 
     def translation_vector(self, other, vector=None):
         """

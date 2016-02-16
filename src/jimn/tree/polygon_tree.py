@@ -1,6 +1,7 @@
 """
 tree of holed polygons.
 """
+from math import pi
 from jimn.displayable import tycat
 from jimn.algorithms.sweeping_line_algorithms.inclusion_tree_builder\
     import build_inclusion_tree
@@ -53,7 +54,7 @@ class PolygonTree(Tree):
         """
         remaining_children = [
             c for c in self.children
-            if c.content.large_enough_for(milling_radius)
+            if large_enough_for_milling(c.content, milling_radius)
         ]
         self.children = remaining_children
         for child in self.children:
@@ -116,7 +117,7 @@ class PolygonTree(Tree):
         add given holed polygon as child.
         """
         new_child = PolygonTree(HoledPolygon(polygon.orient(False),
-                                             height, holes))
+                                             holes, height))
         self.children.append(new_child)
         return new_child
 
@@ -133,7 +134,7 @@ class PolygonTree(Tree):
                                key=lambda c: c.content.polygon.points[0])
 
         if self.content is not None:
-            self.content.normalize()
+            self.content = self.content.normalize()
 
     def __eq__(self, other):
         """
@@ -167,3 +168,33 @@ def _convert_inclusion_tree(polygon_tree_node, inclusion_tree_node):
                 holes
             )
             _convert_inclusion_tree(polygon_tree_child, inclusion_tree_child)
+
+
+def large_enough_for_milling(holed_polygon, milling_radius):
+    """
+    will anything be left if we mill with such a radius ?
+    """
+    min_required_area = pi * milling_radius * milling_radius
+    return abs(holed_polygon.polygon.area()) > min_required_area
+
+
+def __holed_polygon_label(self):
+    """
+    return text label for display of holed polygon in dot file.
+    """
+    if not self.holes:
+        string = "{}, h={}".format(
+            str(id(self.polygon)),
+            str(self.height)
+        )
+    else:
+        string = "{}, h={}, holes={}".format(
+            str(id(self.polygon)),
+            str(self.height),
+            str([id(h) for h in self.holes])
+        )
+
+    return string
+
+
+setattr(HoledPolygon, 'get_dot_label', __holed_polygon_label)

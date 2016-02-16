@@ -1,14 +1,23 @@
 """
 class for polygons with holes inside.
 """
-from math import pi
 
 
 class HoledPolygon:
     """
-    polygons with holes inside. contains polygons without holes.
+    polygons with holes inside. holes are basic polygons.
+
+    for example:
+
+    - create a square with a square hole inside:
+
+    holed_poly = HoledPolygon(
+        Polygon.square(0, 0, 10),
+        [Polygon.square(3, 3, 5)]
+    )
+
     """
-    def __init__(self, polygon, height=None, holes=None):
+    def __init__(self, polygon, holes=None, height=None):
         self.polygon = polygon
         assert not self.polygon.is_oriented_clockwise()
         if holes is None:
@@ -19,40 +28,6 @@ class HoledPolygon:
                 for hole in self.holes:
                     assert hole.is_oriented_clockwise()
         self.height = height
-
-    def large_enough_for(self, milling_radius):
-        """
-        will anything be left if we mill with such a radius ?
-        """
-        min_required_area = pi * milling_radius * milling_radius
-        return abs(self.polygon.area()) > min_required_area
-
-    def get_dot_label(self):
-        """
-        returns text label for display in dot file (see polygontree class)
-        """
-        if not self.holes:
-            string = "{}, h={}".format(
-                str(id(self.polygon)),
-                str(self.height)
-            )
-        else:
-            string = "{}, h={}, holes={}".format(
-                str(id(self.polygon)),
-                str(self.height),
-                str([id(h) for h in self.holes])
-            )
-
-        return string
-
-    def get_polygons(self):
-        """
-        returns a list of all polygons we contain
-        (both outer edge and holes)
-        """
-        polygons = list(self.holes)
-        polygons.append(self.polygon)
-        return polygons
 
     def get_bounding_box(self):
         """
@@ -70,17 +45,11 @@ class HoledPolygon:
 
     def normalize(self):
         """
-        prepares for hashing by reordering points and
-        re-orienting
+        return new holed polygon prepared for hashing by reordering points.
         """
-        self.polygon = self.polygon.orient(clockwise=False)
-        self.polygon.normalize_starting_point()
-        oriented_holes = list()
-        for hole in self.holes:
-            oriented_hole = hole.orient(clockwise=True)
-            oriented_hole.normalize_starting_point()
-            oriented_holes.append(oriented_hole)
-        self.holes = sorted(oriented_holes, key=lambda h: h.points[0])
+        polygon = self.polygon.normalize_starting_point()
+        holes = [h.normalize_starting_point() for h in self.holes]
+        return HoledPolygon(polygon, holes, self.height)
 
     def translation_vector(self, other):
         """
