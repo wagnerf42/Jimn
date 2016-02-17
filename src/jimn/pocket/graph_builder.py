@@ -12,6 +12,7 @@ from jimn.utils.math import milling_heights
 from jimn.arc import Arc
 from jimn.segment import Segment
 from jimn.point import Point
+from jimn.elementary_path import ElementaryPath
 from jimn.utils.precision import is_almost
 
 
@@ -121,6 +122,18 @@ def __adjust_point(self, milling_diameter):
     return self
 
 
+def __adjust_elementary_path(self, milling_height):
+    """
+    slightly move endpoints in elementary path so that if they are very close
+    from a milling height then they will be exactly at milling height.
+    careful : we do not change arc's center point so this might lead
+    to rounding errors.
+    """
+    self.endpoints = [p.adjust_at_milling_height(milling_height)
+                      for p in self.endpoints]
+
 setattr(Arc, "split_at_milling_points", __split_arcs)
 setattr(Segment, "split_at_milling_points", __split_segments)
 setattr(Point, "adjust_at_milling_height", __adjust_point)
+setattr(ElementaryPath, "adjust_points_at_milling_height",
+        __adjust_elementary_path)

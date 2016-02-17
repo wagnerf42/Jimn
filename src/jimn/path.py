@@ -12,6 +12,7 @@ from jimn.point import Point
 from jimn.segment import Segment
 from jimn.arc import Arc
 from jimn.envelope import Envelope
+from jimn.elementary_path import ElementaryPath
 from jimn.displayable import tycat_start, tycat_end, Displayer
 
 
@@ -253,5 +254,13 @@ def __arc_display_string(self, display):
                                         *coordinates)
 
 
+def __update_elementary_height(self, height):
+    # pylint: disable=unused-argument
+    """
+    height change by following elementary path (no change since horizontal).
+    """
+    return height
+
 setattr(Segment, "get_display_string", __segment_display_string)
 setattr(Arc, "get_display_string", __arc_display_string)
+setattr(ElementaryPath, "update_height", __update_elementary_height)

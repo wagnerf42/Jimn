@@ -2,9 +2,8 @@
 base class for segments or arcs.
 basic path between two endpoints (oriented).
 """
-from copy import copy
+from copy import copy, deepcopy
 from jimn.displayable import tycat
-from jimn.utils.iterators import all_two_elements
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost, SEGMENT_LIMIT
 from jimn.point import Point
@@ -28,7 +27,7 @@ class ElementaryPath:
     def get_endpoint_not(self, point):
         """
         return endpoint not given point.
-        requires path to contain given point.
+        requires path to have one endpoint being given point.
         """
         if self.endpoints[0] == point:
             return self.endpoints[1]
@@ -38,7 +37,7 @@ class ElementaryPath:
 
     def distance_from_start(self, point):
         """
-        returns scalar used for comparing points on path.
+        return a scalar used for comparing points on path.
         the higher the scalar, the closer to endpoint.
         """
         return self.endpoints[0].distance_to(point)
@@ -49,32 +48,17 @@ class ElementaryPath:
         returns list of same type objects ;
         orientation is kept ;
         assumes points are on path ;
-        outside points are not added ;
-        input points can be duplicated but no output paths are
+        input points can be duplicated but no output paths are.
         """
-        start_point, end_point = self.endpoints
+        points = list(set([p for a in (self.endpoints, points) for p in a]))
+        sorted_points = sorted(points, key=self.distance_from_start)
 
-        all_points = list(points)
-        all_points.extend(self.endpoints)
-        sorted_points = sorted(
-            all_points, key=self.distance_from_start
-        )
-        paths = []  # result
-        inside = False
-        for p_1, p_2 in all_two_elements(sorted_points):
-            if p_1 == start_point:
-                inside = True
-            if p_1 == end_point:
-                inside = False
-            if inside and not p_1.is_almost(p_2):
-                new_path = copy(self)
-                new_path.endpoints = [p_1, p_2]
-                if __debug__:
-                    if new_path.length() < SEGMENT_LIMIT:
-                        print("splitting", self, "at", [str(p) for p in points])
-                        tycat(self, *points)
-                        raise Exception("very small path when splitting")
-                paths.append(new_path)
+        paths = []
+        for point1, point2 in zip(sorted_points[:-1], sorted_points[1:]):
+            path_chunk = deepcopy(self)
+            path_chunk.endpoints[0] = copy(point1)
+            path_chunk.endpoints[1] = copy(point2)
+            paths.append(path_chunk)
 
         if __debug__:
             if is_module_debugged(__name__):
@@ -84,9 +68,10 @@ class ElementaryPath:
 
     def split_around(self, intermediate_point):
         """
-        returns two subpaths: getting to intermediate and from intermediate
+        return two subpaths: getting to intermediate and from intermediate
         to end. if intermediate is one endpoint, one of the returned path
-        will be 'None'
+        will be 'None'.
+        pre-condition : intermediate_point is on path.
         """
         after = None
         before = None
@@ -95,23 +80,11 @@ class ElementaryPath:
         elif intermediate_point.is_almost(self.endpoints[1]):
             before = self
         else:
-            split_path = self.split_at([intermediate_point])
-            before, after = split_path[0:2]
+            before = deepcopy(self)
+            before.endpoints[1] = copy(intermediate_point)
+            after = deepcopy(self)
+            after.endpoints[0] = copy(intermediate_point)
         return (before, after)
-
-    def _find_common_xrange(self, other):
-        """
-        find three different x belonging to both paths.
-        """
-        self_x = sorted([p.get_x() for p in self.endpoints])
-        other_x = sorted([p.get_x() for p in other.endpoints])
-        max_x_of_starts = max(self_x[0], other_x[0])
-        min_x_of_ends = min(self_x[1], other_x[1])
-        return [
-            max_x_of_starts,
-            (max_x_of_starts + min_x_of_ends) / 2,
-            min_x_of_ends
-        ]
 
     def height_comparison(self, other):
         """
@@ -120,10 +93,25 @@ class ElementaryPath:
         return -1 if self is strictly below other.
         will not work on overlapping vertical segments.
         """
+
+        def find_common_xrange(self, other):
+            """
+            find three different x belonging to both paths.
+            """
+            self_x = sorted([p.get_x() for p in self.endpoints])
+            other_x = sorted([p.get_x() for p in other.endpoints])
+            max_x_of_starts = max(self_x[0], other_x[0])
+            min_x_of_ends = min(self_x[1], other_x[1])
+            return [
+                max_x_of_starts,
+                (max_x_of_starts + min_x_of_ends) / 2,
+                min_x_of_ends
+            ]
+
         # take three common x
         # we need three because arcs are not flat
         # and need therefore three comparison points
-        common_abs = self._find_common_xrange(other)
+        common_abs = find_common_xrange(self, other)
         # compute y intersections
         self_y, other_y = [
             [s.vertical_intersection_at(x) for x in common_abs]
@@ -186,19 +174,4 @@ class ElementaryPath:
         else:
             return self.endpoints[1]
 
-    def adjust_points_at_milling_height(self, milling_height):
-        """
-        slightly move endpoints so that if they are very close
-        from a milling height then they will be exactly at milling height.
-        careful : we do not change arc's center point so this might lead
-        to rounding errors.
-        """
-        self.endpoints = [p.adjust_at_milling_height(milling_height)
-                          for p in self.endpoints]
 
-    def update_height(self, height):
-        # pylint: disable=no-self-use
-        """
-        height change by following this path (no change since horizontal).
-        """
-        return height
