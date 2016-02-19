@@ -41,6 +41,7 @@ class Envelope:
 
         except:
             print("failed compute envelope for", self.inside_content)
+            tycat(self.inside_content, [p.path for p in raw_paths])
             raise
 
         if __debug__:

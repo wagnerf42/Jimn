@@ -1,5 +1,10 @@
-rethink __str__ with strings (returning lines before join) -> good indent
+cordoba: 0.3 0.1 -> overlap of milled areas
+
 segment: merge all intersections code together
+-> we need conditional to switch between the different algorithms
+-> error analysis
+
+rethink __str__ with strings (returning lines before join) -> good indent
 
 - optim: remove many pockets immediately in pocket builder by specifying paths
 which will destroy pockets containing them

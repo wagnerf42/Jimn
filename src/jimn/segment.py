@@ -94,7 +94,6 @@ class Segment(ElementaryPath):
                     for p in (point1, point2, point3)]
         Polygon(triangle).save_svg_content(display, color)
 
-
     def is_vertical_3d(self):
         """
         is 3d segment vertical ?
@@ -162,25 +161,22 @@ class Segment(ElementaryPath):
         return i
 
     def line_intersection_with(self, other):
-        # pylint: disable=invalid-name
         """
         return point intersecting with the two lines passing through
         the segments.
         none if lines are almost parallel.
         """
-        x1, y1, x2, y2, x3, y3, x4, y4 = [
-            c for s in (self, other)
-            for p in s.endpoints
-            for c in p.coordinates
-        ]
-        denominator = (x1-x2) * (y4-y3) + (x3-x4) * (y1-y2)
+        # solve following system :
+        # intersection = start of self + alpha * direction of self
+        # intersection = start of other + beta * direction of other
+        directions = [s.endpoints[1] - s.endpoints[0] for s in (self, other)]
+        denominator = directions[0].cross_product(directions[1])
         if is_almost(denominator, 0):
+            # parallel lines
             return
-        x = x1*(x3*y4-x4*y3)+x2*(x4*y3-x3*y4)+(x3-x4)*(y1*x2-x1*y2)
-        x /= denominator
-        y = y2*(x1*(y4-y3)-x3*y4+x4*y3) + y1*(x3*y4+x2*(y3-y4)-x4*y3)
-        y /= denominator
-        return Point([x, y])
+        start_diff = other.endpoints[0] - self.endpoints[0]
+        alpha = start_diff.cross_product(directions[1]) / denominator
+        return self.endpoints[0] + directions[0] * alpha
 
     def parallel_segment(self, distance, side=1):
         """

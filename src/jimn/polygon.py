@@ -53,9 +53,18 @@ class Polygon:
         we remove here all useless points in order to decrease cost of storage
         and computations of further operations.
         """
+        # first remove all tiny artifacts
         removed_points = set()
         for points in all_three_elements(self.points):
-            if abs(Polygon(points).area()) < 0.00001:
+            if abs(Polygon(points).area()) < 0.000001:
+                removed_points.add(points[1])
+
+        self.points = [p for p in self.points if p not in removed_points]
+
+        # now remove aligned points
+        removed_points = set()
+        for points in all_three_elements(self.points):
+            if points[0].is_aligned_with(points[1], points[2]):
                 removed_points.add(points[1])
 
         self.points = [p for p in self.points if p not in removed_points]
