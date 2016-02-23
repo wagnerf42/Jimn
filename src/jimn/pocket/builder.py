@@ -133,8 +133,7 @@ class PocketsBuilder:
             next_path = self.find_next_path(current_point, previous_point)
             if __debug__:
                 if next_path.reverse() == current_path[-1]:
-                    raise Exception("path going back")
-                if next_path in self.marked_paths:
+                    tycat(self.paths, current_path, next_path)
                     raise Exception("path going back")
 
             current_path.append(next_path)
@@ -167,8 +166,13 @@ def build_polygons(paths):
     for pocket in pockets:
         poly = pocket.to_polygon()
         # keep non-clockwise polygons, big enough
-        if not poly.is_oriented_clockwise() and \
-                abs(poly.area()) > SEGMENT_LIMIT:
+        try:
+            clockwise = poly.is_oriented_clockwise()
+        except:
+            print("bad polygon: ", poly)
+            tycat(paths, poly.points)
+            raise
+        if not clockwise and abs(poly.area()) > SEGMENT_LIMIT:
             poly.remove_useless_points()
             polygons.append(poly)
     return polygons
