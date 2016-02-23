@@ -161,7 +161,7 @@ class Arc(ElementaryPath):
 
     def vertical_intersection_at(self, intersecting_x):
         """return y of lowest intersection given vertical line"""
-        if self.is_vertical():
+        if self.is_almost_vertical():
             assert intersecting_x == self.endpoints[0].get_x()
             return self.lowest_endpoint().get_y()
 

@@ -16,18 +16,22 @@ class ElementaryPath:
     """
     def __init__(self, points):
         self.endpoints = points
-        assert self.length() > SEGMENT_LIMIT, "very small path"
-
-    def length(self):
-        """
-        return length of path.
-        """
-        return self.endpoints[0].distance_to(self.endpoints[1])
+        assert self.endpoints[0].distance_to(self.endpoints[1]) \
+            > SEGMENT_LIMIT, "very small path"
 
     def get_endpoint_not(self, point):
         """
         return endpoint not given point.
         requires path to have one endpoint being given point.
+
+        example:
+            point1 = Point([1, 2])
+            point2 = Point([3, 4])
+            point2 = Point([0, 0])
+            segment = Segment([point1, point2])
+            segment.get_endpoint_not(point1) -> returns point2
+            segment.get_endpoint_not(point2) -> returns point1
+            segment.get_endpoint_not(point3) -> raises exception
         """
         if self.endpoints[0] == point:
             return self.endpoints[1]
@@ -39,6 +43,16 @@ class ElementaryPath:
         """
         return a scalar used for comparing points on path.
         the higher the scalar, the closer to endpoint.
+        example:
+            point1 = Point([1, 1])
+            point2 = Point([5, 1])
+            point3 = Point([3, 1])
+            point4 = Point([4, 1])
+            segment = Segment([point1, point2])
+            # is point3 encounter after point4
+            # when going from point1 to point ?
+            if segment.distance_from_start(point3) > \
+                    segment.distance_from_start(point4):
         """
         return self.endpoints[0].distance_to(point)
 
@@ -49,6 +63,16 @@ class ElementaryPath:
         orientation is kept ;
         assumes points are on path ;
         input points can be duplicated but no output paths are.
+
+        example:
+
+        points = [Point([c, c]) for c in range(4)]
+        segment = Segment([points[0], points[3]])
+        small_segments = segment.split_at(points)
+        # small_segments contains segments (0,0) -- (1,1)
+                                           (1,1) -- (2,2)
+                                           (2,2) -- (3,3)
+                                           (3,3) -- (4,4)
         """
         points = list(set([p for a in (self.endpoints, points) for p in a]))
         sorted_points = sorted(points, key=self.distance_from_start)
@@ -72,6 +96,12 @@ class ElementaryPath:
         to end. if intermediate is one endpoint, one of the returned path
         will be 'None'.
         pre-condition : intermediate_point is on path.
+        example 1:
+            segment = Segment(Point([0, 0]), Point([3, 3]))
+            start, end = segment.split_around(segment, Point([1, 1]))
+            # start is (0,0) -- (1,1) and end (1,1) -- (3,3)
+            start, end = segment.split_around(segment, Point([0, 0]))
+            # start is None and end (0,0) -- (3,3)
         """
         after = None
         before = None
@@ -146,17 +176,16 @@ class ElementaryPath:
         tycat(other, [Point([common_abs[i], other_y[i]]) for i in range(3)])
         raise Exception("cannot see which path is above the other")
 
-    def is_vertical(self):
+    def is_almost_vertical(self):
         """
-        are endpoints aligned vertically ?
+        are endpoints almost aligned vertically ?
+        example:
+            segment = Segment([Point([3, 3]), Point([3, 5])])
+            segment.is_almost_vertical() # is True
+            segment = Segment([Point([3, 3]), Point([2, 5])])
+            segment.is_almost_vertical() # is False
         """
-        x_1, x_2 = [p.get_x() for p in self.endpoints]
-        if x_1 == x_2:
-            return True
-        else:
-            if is_almost(x_1, x_2):
-                raise RuntimeError("almost vertical")
-            return False
+        return is_almost(*[p.get_x() for p in self.endpoints])
 
     def is_almost_horizontal(self):
         """
@@ -167,11 +196,14 @@ class ElementaryPath:
     def lowest_endpoint(self):
         """
         return one of lowest endpoints (y maximized).
+
+        example:
+            segment = Segment([Point([5, 3]), Point([8, 1])])
+            low_point = segment.lowest_endpoint()
+            # low_point is (5,3)
         """
         y_1, y_2 = [p.get_y() for p in self.endpoints]
         if y_1 > y_2:
             return self.endpoints[0]
         else:
             return self.endpoints[1]
-
-

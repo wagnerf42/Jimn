@@ -134,7 +134,7 @@ def _non_vertical_segments(polygon, height):
     return [
         PolygonSegment(s, height, polygon)
         for s in polygon.segments()
-        if not s.is_vertical()
+        if not s.is_almost_vertical()
     ]
 
 

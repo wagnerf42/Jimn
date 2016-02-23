@@ -37,6 +37,15 @@ class Segment(ElementaryPath):
         """
         super().__init__(points)
 
+    def length(self):
+        """
+        return length of segment.
+        example:
+            segment = Segment([Point([1, 1]), Point([5, 1])])
+            distance = segment.length() # distance is 4
+        """
+        return self.endpoints[0].distance_to(self.endpoints[1])
+
     def sort_endpoints(self):
         """
         return a new segment with sorted endpoints.
