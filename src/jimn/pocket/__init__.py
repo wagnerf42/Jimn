@@ -88,7 +88,6 @@ class Pocket:
         """
         self.paths.extend(additional_paths)
 
-
     def vertical_intersections(self, intersecting_x):
         """
         return all y coordinates for paths intersecting vertical
@@ -129,13 +128,11 @@ class Pocket:
     def is_included_in(self, other):
         """
         inclusion test.
-        return true if we can find one point of self included in other.
-        precondition: self and other do not intersect (they might share
-        edges though).
+        precondition: self and other do not intersect and don't share edges.
         """
         # pre-test using bounding box
         box = other.get_bounding_box()
-        if not box.almost_contains_point(self.paths[0].endpoints[0]):
+        if not box.contains(self.get_bounding_box()):
             return False
 
         x_hash = CoordinatesHash()
@@ -285,8 +282,8 @@ class Pocket:
         return True
 
     def __str__(self):
-        return "Pocket([\n    " + ",\n    ".join([str(p) for p in self.paths]) \
-            + "\n])"
+        strings = ",\n    ".join([str(p) for p in self.paths])
+        return "Pocket([\n    " + strings + "\n])"
 
 
 def _iterated_intersections(results, iterator):

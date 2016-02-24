@@ -37,6 +37,20 @@ class BoundingBox:
             if added_coordinate > self.max_coordinates[i]:
                 self.max_coordinates[i] = added_coordinate
 
+    def contains(self, other):
+        """
+        return True if other box is inside ourselves (or equal).
+        """
+        for min1, min2 in zip(self.min_coordinates, other.min_coordinates):
+            if min2 < min1:
+                return False
+
+        for max1, max2 in zip(self.max_coordinates, other.max_coordinates):
+            if max2 > max1:
+                return False
+
+        return True
+
     def almost_contains_point(self, point):
         """
         return true if point is almost inside box.
