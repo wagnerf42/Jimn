@@ -158,8 +158,22 @@ class Polygon:
         points = ",\n".join([str(p) for p in self.points])
         return "Polygon([" + points + "])\n"
 
+    def __eq__(self, other):
+        """
+        return true if self is almost other.
+        requires both polygons to be normalized.
+        """
+        if len(self.points) != len(other.points):
+            return False
 
-def __tour():
+        for point1, point2 in zip(self.points, other.points):
+            if not point1.is_almost(point2):
+                return False
+
+        return True
+
+
+def _tour():
     description = "we provide a 'Polygon' class."
     example = """
 from jimn.point import Point
@@ -175,4 +189,4 @@ tycat(*list(polygon.segments()))
     tour("jimn.polygon", description, example)
 
 if __name__ == "__main__":
-    __tour()
+    _tour()
