@@ -2,7 +2,9 @@
 main class for sweeping line algorithms.
 """
 from heapq import heappush, heappop
-from jimn.algorithms.sweeping_line_algorithms.event import Event
+
+START = 0
+END = 1
 
 
 class SweepingLineAlgorithm:
@@ -39,10 +41,15 @@ class SweepingLineAlgorithm:
         - paths should not intersect other than on endpoints
         - there is no orientation condition on paths
         """
-        self.paths = paths
-        self.events = []  # events heap
-        self.crossings = dict() # associate to each crossing point the paths
-        self._create_events()
+        # sweeping line algorithms are based on events
+        # each event is meeting a new point in the figure
+        self.event_points = []  # store them all in a heap
+
+        # now we need additional info associated to each event point
+        self.crossings = dict()  # associate to each crossing point the paths
+        self.paths = [dict(), dict()]  # all starting and ending paths
+
+        self._create_events(paths)
         self._run()
 
     def add_crossing_event(self, crossing_point, crossing_paths):
@@ -55,41 +62,40 @@ class SweepingLineAlgorithm:
                 self.crossings[crossing_point].add(path)
         else:
             self.crossings[crossing_point] = set(crossing_paths)
+            heappush(self.event_points, crossing_point)
 
-        heappush(self.events, Event(crossing_point))
-
-    def _create_events(self):
+    def _create_events(self, paths):
         # create all events
-        events = {}
-        for path in self.paths:
-            start, end = list(sorted(path.endpoints))
-            for path_type, extremity in enumerate([start, end]):
-                if extremity not in events:
-                    events[extremity] = Event(extremity)
-                events[extremity].add_path(path_type, path)
-        # we sort the events in lexicographical order
-        # to prepare for sweeping algorithm
-        for event in events.values():
-            heappush(self.events, event)
+        points = set()
+        for path in paths:
+            for start_or_end, point in enumerate(list(sorted(path.endpoints))):
+                if point in self.paths[start_or_end]:
+                    self.paths[start_or_end][point].append(path)
+                else:
+                    self.paths[start_or_end][point] = [path]
+                    points.add(point)
+
+        # we now build events heap
+        for point in points:
+            heappush(self.event_points, point)
 
     def _run(self):
-        while self.events:
-            event = heappop(self.events)
-            self._handle_event(event)
+        while self.event_points:
+            event_point = heappop(self.event_points)
+            self._handle_event(event_point)
 
-    def _handle_event(self, event):
+    def _handle_event(self, event_point):
         # pylint: disable=no-member
-        starting_paths, ending_paths = [
-            event.paths[path_type] for path_type in (0, 1)
-        ]
-        for path in ending_paths:
-            self.remove_path(path)
+        if event_point in self.paths[END]:
+            for path in self.paths[END][event_point]:
+                self.remove_path(path)
 
-        if event.event_point in self.crossings:
-            self.crossing_paths(self.crossings[event.event_point])
+        if event_point in self.crossings:
+            self.crossing_paths(self.crossings[event_point])
 
-        # TODO: angle here is not ok :-(
-        for segment in sorted(starting_paths,
-                              key=lambda seg: (seg.angle(), seg.height),
-                              reverse=True):
-            self.add_path(segment)
+        if event_point in self.paths[START]:
+            # TODO: angle here is not ok :-(
+            for segment in sorted(self.paths[START][event_point],
+                                  key=lambda seg: (seg.angle(), seg.height),
+                                  reverse=True):
+                self.add_path(segment)
