@@ -28,8 +28,9 @@ class Tree:
         stack.append(self)
         while stack:
             node = stack.pop()
-            yield node
-            stack.extend(node.get_children())
+            if node is not None:
+                yield node
+                stack.extend(node.children)
 
     def breadth_first_exploration(self):
         """
@@ -40,8 +41,9 @@ class Tree:
         unseen_nodes.append(self)
         while unseen_nodes:
             node = unseen_nodes.popleft()
-            yield node
-            unseen_nodes.extend(node.get_children())
+            if node is not None:
+                yield node
+                unseen_nodes.extend(node.children)
 
     def display_depth_first(self):
         """
@@ -97,7 +99,8 @@ class Tree:
         ))
 
         for child in self.children:
-            dot_file.write("n{} -> n{};\n".format(id(self), id(child)))
+            if child is not None:
+                dot_file.write("n{} -> n{};\n".format(id(self), id(child)))
 
 
 def _display(iterator):
