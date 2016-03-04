@@ -5,7 +5,6 @@ to be derived from.
 import os
 import getpass
 from collections import deque
-from jimn.point import Point
 from jimn.displayable import tycat
 
 
@@ -18,31 +17,7 @@ class Tree:
 
     def __init__(self, content=None):
         self.content = content
-        # we all tree compression by translations
-        # apply following list if translations to self
-        # to find all real trees
-        self.translations = [Point([0, 0])]
         self.children = []
-
-    def add_translation(self, translation_vector):
-        """
-        mark node (and whole subtree) as duplicated for
-        given translation vector.
-        """
-        self.translations.append(translation_vector)
-
-    def copy_translations(self, other):
-        """
-        get same translations to apply as other.
-        used to keep translations when converting trees
-        """
-        self.translations = other.translations
-
-    def get_children(self):
-        """
-        return children array of current node
-        """
-        return self.children
 
     def depth_first_exploration(self):
         """
@@ -101,25 +76,24 @@ class Tree:
         os.system("dot -Tsvg {} -o {}".format(dot_file, svg_file))
         os.system("tycat {}".format(svg_file))
 
+    def dot_label(self):
+        """
+        return label used in dot file when saving node self.
+        """
+        if self.content is None:
+            label = "None"
+        else:
+            label = self.content.get_dot_label()
+
+        return label
+
     def save_dot(self, dot_file):
         """
         save tree to dot file.
         """
-        if self.content is None:
-            label = "\"None\""
-        else:
-            label = "\"" + self.content.get_dot_label()
-            if self.translations:
-                if len(self.translations) < 10:
-                    label += "(" + \
-                        ",".join([str(t) for t in self.translations]) + ")"
-                else:
-                    label += "(...)"
-            label += "\""
-
         dot_file.write("n{} [label={}];\n".format(
             id(self),
-            label
+            "\"" + self.dot_label() + "\""
         ))
 
         for child in self.children:

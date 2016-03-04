@@ -16,11 +16,11 @@ from jimn.pocket.graph_builder import build_graph
 from jimn.segment import Segment
 from jimn.utils.debug import is_module_debugged
 from jimn.vertical_path import VerticalPath
-from jimn.tree import Tree
+from jimn.tree.translated_tree import TranslatedTree
 from jimn.tree.path_tree.path_position import PathPosition
 
 
-class PathTree(Tree):
+class PathTree(TranslatedTree):
     """
     path trees are created from pockets tree by milling pockets.
     """
@@ -243,7 +243,7 @@ def _pocket_node_to_path_node(pocket_node, milling_radius):
     path_node.copy_translations(pocket_node)
     path_node.children = [
         _pocket_node_to_path_node(n, milling_radius)
-        for n in pocket_node.get_children()
+        for n in pocket_node.children
     ]
     return path_node
 

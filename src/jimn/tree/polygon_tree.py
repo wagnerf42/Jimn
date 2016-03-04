@@ -6,12 +6,12 @@ from jimn.displayable import tycat
 from jimn.algorithms.sweeping_line_algorithms.inclusion_tree_builder\
     import build_inclusion_tree
 from jimn.holed_polygon import HoledPolygon
-from jimn.tree import Tree
+from jimn.tree.translated_tree import TranslatedTree
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.caching import cached_args
 
 
-class PolygonTree(Tree):
+class PolygonTree(TranslatedTree):
     """
     tree of holed polygons.
     """
@@ -159,7 +159,7 @@ def _convert_inclusion_tree(polygon_tree_node, inclusion_tree_node):
             # first, get the holes to put inside
             holes = [
                 grandchild.content.orient(True)
-                for grandchild in inclusion_tree_child.get_children()
+                for grandchild in inclusion_tree_child.children
                 if not grandchild.is_polygon
             ]
             polygon_tree_child = polygon_tree_node.add_child(

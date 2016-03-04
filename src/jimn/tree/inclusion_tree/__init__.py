@@ -5,10 +5,10 @@ in fast time.
 no distinction between holes and filled_spaces now.
 distinction will be made later when converting to polygon_tree.
 """
-from jimn.tree import Tree
+from jimn.tree.translated_tree import TranslatedTree
 
 
-class InclusionTree(Tree):
+class InclusionTree(TranslatedTree):
     """
     store a set of polygons included one inside another.
     """

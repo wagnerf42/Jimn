@@ -4,10 +4,10 @@ tree of all pockets to mill.
 from jimn.algorithms.offsetter import offset_holed_polygon
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
-from jimn.tree import Tree
+from jimn.tree.translated_tree import TranslatedTree
 
 
-class PocketTree(Tree):
+class PocketTree(TranslatedTree):
     """
     tree of all pockets to mill.
     """
@@ -34,7 +34,7 @@ def _offset_polygons(poly_tree, carving_radius):
             poly_tree.tycat()
     # start with children
     subtrees = []
-    for child in poly_tree.get_children():
+    for child in poly_tree.children:
         pockets = _offset_polygons(child, carving_radius)
         for pocket in pockets:
             pocket.copy_translations(child)
