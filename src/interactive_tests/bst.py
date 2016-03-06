@@ -23,6 +23,13 @@ for value in sorted(values):
     neighbours = [n.content for n in root.find(value).neighbours()]
     print(value, "is neighboured by", [str(v) for v in neighbours])
 
+print("nodes greater than 0.5")
+half = root.add(0.5)
+root.tycat()
+for node in half.greater_nodes():
+    print(node.dot_label())
+values.append(0.5)
+
 print("destruction")
 shuffle(values)
 for value in values:

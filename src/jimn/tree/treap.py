@@ -25,6 +25,7 @@ class Treap(Tree):
     def add(self, content):
         """
         add given content in tree.
+        return new node.
         """
         direction = (self.content < content)
         node = self
@@ -34,7 +35,7 @@ class Treap(Tree):
 
         new_child = Treap(content)
         node._set_child(direction, new_child)
-        new_child._balance()
+        return new_child._balance()
 
     def remove(self):
         """
@@ -49,8 +50,8 @@ class Treap(Tree):
         else:
             # more complex case : find leftmost node in right subtree
             extremum = self.children[True]._find_extreme_node(False)
-            extremum._exchange_content_with(self)
-            extremum.remove()
+            self._exchange_with(extremum)
+            self.remove()
 
     def find(self, content):
         """
@@ -76,11 +77,44 @@ class Treap(Tree):
 
         return nodes
 
+    def greater_nodes(self):
+        """
+        iterate on all nodes greater than given one.
+        """
+        if self.children[True] is not None:
+            for node in self.children[True]._infix_exploration():
+                yield node
+
+        current_node = self
+        while not current_node._is_sentinel():
+            father = current_node.father
+            if not father._direction_to(current_node):
+                yield father
+                if father.children[True] is not None:
+                    for node in father.children[True]._infix_exploration():
+                        yield node
+            current_node = father
+
     def dot_label(self):
         """
         label of given node for dot file.
         """
         return str(self.content) + " / " + str(self.priority)
+
+    def _infix_exploration(self):
+        """
+        depth first infix exploration.
+        """
+        seen_nodes = []
+        current_node = self
+        while current_node is not None or seen_nodes:
+            if current_node is not None:
+                seen_nodes.append(current_node)
+                current_node = current_node.children[False]
+            else:
+                current_node = seen_nodes.pop()
+                yield current_node
+                current_node = current_node.children[True]
 
     def _is_sentinel(self):
         """
@@ -117,12 +151,36 @@ class Treap(Tree):
             node = node.children[direction]
         return node
 
-    def _exchange_content_with(self, other):
+    def _exchange_with(self, other):
         """
-        exchange contents.
-        BE VERY CAREFUL. EXCHANGING CONTENT MIGHT INVALIDATE EXTERNAL POINTERS.
+        exchange nodes in tree.
+        pre-requisite: self is ancestor of other.
         """
-        self.content, other.content = other.content, self.content
+        father = self.father
+        other_father = other.father
+        children = list(self.children)
+        other_children = list(other.children)
+
+        direction = father._direction_to(self)
+        other_direction = other_father._direction_to(other)
+        father._set_child(direction, other)
+
+        for direction in (False, True):
+            self._set_child(direction, other_children[direction])
+
+        if id(other_father) == id(self):
+            # special case : exchanging with direct child
+            other._set_child(other_direction, self)
+            other._set_child(not other_direction,
+                             children[not other_direction])
+        else:
+            other_father._set_child(other_direction, self)
+            for direction in (False, True):
+                other._set_child(direction, children[direction])
+
+        # exchange priorities
+        # TODO: rebalance instead ????
+        self.priority, other.priority = other.priority, self.priority
 
     def _direction_to(self, target_child_node):
         """
@@ -135,10 +193,12 @@ class Treap(Tree):
         """
         use priorities to balance tree starting from given node
         and going back to root node.
+        return starting node at its new position.
         """
         node = self
         while node.priority > node.father.priority:
             node._rotate_upwards()
+        return node
 
     def _set_child(self, direction, child):
         """
