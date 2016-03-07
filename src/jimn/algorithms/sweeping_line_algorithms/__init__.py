@@ -1,11 +1,13 @@
 """
 main class for sweeping line algorithms.
 """
+from collections import defaultdict
 from math import pi
 from heapq import heappush, heappop
 from jimn.point import Point
 from jimn.segment import Segment
 from jimn.arc import Arc
+from jimn.tree.treap import Treap
 
 START = 0
 END = 1
@@ -51,9 +53,16 @@ class SweepingLineAlgorithm:
 
         # now we need additional info associated to each event point
         self.crossings = dict()  # associate to each crossing point the paths
-        self.paths = [dict(), dict()]  # all starting and ending paths
+        # all starting and ending paths
+        self.paths = [defaultdict(list), defaultdict(list)]
 
         self._create_events(paths)
+        self.current_point = None  # current point in sweeping movement
+        # TODO: use min and max dimensions
+        self.crossed_paths = Treap(
+            Segment([Point([-2000, 2000]), Point([2000, 2000])]),
+            root_node=True
+        )
         self._run()
 
     def add_crossing_event(self, crossing_point, crossing_paths):
@@ -73,11 +82,8 @@ class SweepingLineAlgorithm:
         points = set()
         for path in paths:
             for start_or_end, point in enumerate(list(sorted(path.endpoints))):
-                if point in self.paths[start_or_end]:
-                    self.paths[start_or_end][point].append(path)
-                else:
-                    self.paths[start_or_end][point] = [path]
-                    points.add(point)
+                self.paths[start_or_end][point].append(path)
+                points.add(point)
 
         # we now build events heap
         for point in points:
@@ -89,20 +95,22 @@ class SweepingLineAlgorithm:
             self._handle_event(event_point)
 
     def _handle_event(self, event_point):
-        # pylint: disable=no-member
-        if event_point in self.paths[END]:
-            for path in self.paths[END][event_point]:
-                self.remove_path(path)
-
+        ending_paths = self.paths[END][event_point]
         if event_point in self.crossings:
-            self.crossing_paths(self.crossings[event_point])
+            ending_paths.extend(self.crossings[event_point])
 
-        if event_point in self.paths[START]:
-            # TODO: angle here is not ok :-(
-            for segment in sorted(self.paths[START][event_point],
-                                  key=lambda seg: (seg.angle(), seg.height),
-                                  reverse=True):
-                self.add_path(segment)
+        for path in ending_paths:
+            self.remove_path(path)
+
+        self.current_point = event_point
+
+        starting_paths = self.paths[START][event_point]
+        if event_point in self.crossings:
+            starting_paths.extend(self.crossings[event_point])
+
+        for path in sorted(starting_paths,
+                           key=lambda p: p.comparison_key(self.current_point)):
+            self.add_path(path)
 
 
 def comparison_key(path, point):

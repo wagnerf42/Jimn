@@ -20,6 +20,13 @@ class PolygonSegment(Segment):
         """
         return id(self.polygon)
 
+    def comparison_key(self, point):
+        """
+        return key used for comparisons between segments.
+        """
+        small_key = super().comparison_key(point)
+        return (small_key[0], small_key[1], self.height)
+
     def __eq__(self, other):
         """
         comparison operator.
