@@ -93,7 +93,7 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
             # do if we are inside, we simply count number of segments
             # traversed when going in one direction (here up)
             # s1 >= s2 means s1 above and higher than s2 (not strictly)
-            above_segments = [s for s in segments if s >= new_segment]
+            above_segments = [s for s in segments if new_segment < s]
             return len(above_segments) % 2 == 1
 
     def add_path(self, segment):
@@ -125,6 +125,7 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
         if not self.current_paths[polygon_id]:
             del self.current_paths[polygon_id]
             self.__terminate_polygon(polygon_id)
+
 
 def _non_vertical_segments(polygon, height):
     """

@@ -33,14 +33,5 @@ class PolygonSegment(Segment):
         else:
             return False
 
-    def __ge__(self, other):
-        # we assume segments never intersect.
-        # if segments overlap, use height for comparison.
-        # if segments don't overlap return true
-        # if self is located above and higher than other in svg.
-        # never compare two segments which dont have intersection ranges
-        # for x coordinates.
-        aboveness = self.height_comparison(other)
-        if aboveness == 0:  # overlap
-            return self.height > other.height
-        return aboveness == 1
+    def __lt__(self, other):
+        raise Exception("polygon segment comparison in use")

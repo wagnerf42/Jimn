@@ -274,8 +274,9 @@ class Pocket:
     def __eq__(self, other):
         if len(self.paths) != len(other.paths):
             return False
-        sorted_self = sorted(self.paths)
-        sorted_other = sorted(other.paths)
+
+        sorted_self = sorted(self.paths, key=lambda path: path.endpoints)
+        sorted_other = sorted(other.paths, key=lambda path: path.endpoints)
         for our_path, other_path in zip(sorted_self, sorted_other):
             if our_path != other_path:
                 return False

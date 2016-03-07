@@ -1,3 +1,9 @@
+
+add universal path comparison method 
+change basic sweeping line algorithm
+remove segment and arc comparison
+remove polygonsegment comparison
+
 cordoba: 0.3 0.1 -> overlap of milled areas
 
 segment: merge all intersections code together

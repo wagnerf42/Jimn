@@ -302,15 +302,7 @@ class Segment(ElementaryPath):
         return if self < other.
         order has no real meaning. it is just an arbitrary order.
         """
-        if not isinstance(other, Segment):
-            return False
-        if self.endpoints[0].is_almost(other.endpoints[0]):
-            if self.endpoints[1].is_almost(other.endpoints[1]):
-                return
-            else:
-                return self.endpoints[1] < other.endpoints[1]
-        else:
-            return self.endpoints[0] < other.endpoints[0]
+        raise Exception("segment comparison still in use")
 
 
 def __tour():

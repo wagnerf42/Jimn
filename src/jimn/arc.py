@@ -246,22 +246,4 @@ class Arc(ElementaryPath):
             hash(self.reversed_direction)
 
     def __lt__(self, other):
-        """
-        returns if self < other.
-        order has no real meaning. it is just an arbitrary order.
-        """
-        if not isinstance(other, Arc):
-            return True
-        if is_almost(self.radius, other.radius):
-            if self.reversed_direction == other.reversed_direction:
-                if self.endpoints[0].is_almost(other.endpoints[0]):
-                    if self.endpoints[1].is_almost(other.endpoints[1]):
-                        return
-                    else:
-                        return self.endpoints[1] < other.endpoints[1]
-                else:
-                    return self.endpoints[0] < other.endpoints[0]
-            else:
-                return self.reversed_direction
-        else:
-            return self.radius < other.radius
+        raise Exception("arc comparison still in use")
