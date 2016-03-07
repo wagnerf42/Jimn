@@ -1,7 +1,11 @@
 """
 main class for sweeping line algorithms.
 """
+from math import pi
 from heapq import heappush, heappop
+from jimn.point import Point
+from jimn.segment import Segment
+from jimn.arc import Arc
 
 START = 0
 END = 1
@@ -99,3 +103,35 @@ class SweepingLineAlgorithm:
                                   key=lambda seg: (seg.angle(), seg.height),
                                   reverse=True):
                 self.add_path(segment)
+
+
+def comparison_key(path, point):
+    """
+    return key used for comparing paths when reaching given point in
+    sweeping line algorithm.
+    pre-condition: self contains point's x coordinate in its xrange
+    """
+    if path.contains(point):
+        point_key = point
+    else:
+        point_key = Point([point.get_x(),
+                           path.vertical_intersection_at(point.get_x())])
+
+    if isinstance(path, Segment):
+        forward_point = max(path.endpoints)
+    else:
+        tangent_points = path.tangent_points(point)
+        oriented_points = list(sorted(path.endpoints))
+        direction = oriented_points[1] - oriented_points[0]
+        if direction.scalar_product(tangent_points[0]-point) > 0:
+            forward_point = tangent_points[0]
+        else:
+            forward_point = tangent_points[1]
+
+    # compute and convert angle from horizontal to vertical
+    angle_key = (5 * pi/2 - point.angle_with(forward_point)) % (2*pi)
+    return (point_key, angle_key)
+
+
+setattr(Segment, "comparison_key", comparison_key)
+setattr(Arc, "comparison_key", comparison_key)

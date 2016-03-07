@@ -223,6 +223,16 @@ class Arc(ElementaryPath):
         else:
             return adjusted_angles[0] < adjusted_angles[1]
 
+    def tangent_points(self, contained_point):
+        """
+        returns two points located on tangent at contained_point, one
+        on each side.
+        pre-requisite: we contain contained point.
+        """
+        outside_point = contained_point * 2 - self.center
+        return [outside_point.rotate_around(contained_point, c*pi/2)
+                for c in (-1, 1)]
+
     def __eq__(self, other):
         if not isinstance(other, Arc):
             return False
