@@ -63,6 +63,7 @@ class SweepingLineAlgorithm:
             Segment([Point([-2000, 2000]), Point([2000, 2000])]),
             root_node=True
         )
+        self.crossed_paths.set_comparer(self)
         self._run()
 
     def add_crossing_event(self, crossing_point, crossing_paths):
@@ -76,6 +77,13 @@ class SweepingLineAlgorithm:
         else:
             self.crossings[crossing_point] = set(crossing_paths)
             heappush(self.event_points, crossing_point)
+
+    def compare(self, *paths):
+        """
+        compare two paths at current point.
+        """
+        keys = [comparison_key(p, self.current_point) for p in paths]
+        return keys[0] < keys[1]
 
     def _create_events(self, paths):
         # create all events

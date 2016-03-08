@@ -293,6 +293,7 @@ class Segment(ElementaryPath):
             return False
         if self.endpoints != other.endpoints:
             return False
+        return True
 
     def __hash__(self):
         return hash(tuple(self.endpoints))

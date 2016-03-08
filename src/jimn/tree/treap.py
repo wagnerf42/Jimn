@@ -13,6 +13,8 @@ class Treap(Tree):
     self-balancing BST.
     """
     # pylint: disable=protected-access
+    comparer = None
+
     def __init__(self, content, root_node=False):
         super().__init__(content)
         self.children = [None, None]
@@ -27,11 +29,11 @@ class Treap(Tree):
         add given content in tree.
         return new node.
         """
-        direction = (self.content < content)
+        direction = self.compare(self.content, content)
         node = self
         while node.children[direction]:
             node = node.children[direction]
-            direction = (node.content < content)
+            direction = self.compare(node.content, content)
 
         new_child = Treap(content)
         node._set_child(direction, new_child)
@@ -60,10 +62,40 @@ class Treap(Tree):
         """
         node = self
         while node.content != content:
-            direction = node.content < content
+            direction = self.compare(node.content, content)
             node = node.children[direction]
 
         return node
+
+    def find_object(self, searched_object):
+        """
+        search for node with content of same id as given object.
+        faster comparisons than calling equality operator.
+        pre-requisite: we contain it.
+        """
+        node = self
+        while id(node.content) != id(searched_object):
+            direction = self.compare(node.content, searched_object)
+            node = node.children[direction]
+
+        return node
+
+    def set_comparer(self, comparer):
+        """
+        set comparere object for comparing nodes content.
+        object needs to provide a "compare" method.
+        """
+        self.comparer = comparer
+
+    def compare(self, content1, content2):
+        """
+        compare two contents using stored comparison function if any
+        or default lt operator if none.
+        """
+        if self.comparer is not None:
+            return self.comparer.compare(content1, content2)
+        else:
+            return content1 < content2
 
     def neighbours(self):
         """
@@ -82,7 +114,7 @@ class Treap(Tree):
         iterate on all nodes greater than given one.
         """
         if self.children[True] is not None:
-            for node in self.children[True]._infix_exploration():
+            for node in self.children[True].infix_exploration():
                 yield node
 
         current_node = self
@@ -91,7 +123,7 @@ class Treap(Tree):
             if not father._direction_to(current_node):
                 yield father
                 if father.children[True] is not None:
-                    for node in father.children[True]._infix_exploration():
+                    for node in father.children[True].infix_exploration():
                         yield node
             current_node = father
 
@@ -101,7 +133,17 @@ class Treap(Tree):
         """
         return str(self.content) + " / " + str(self.priority)
 
-    def _infix_exploration(self):
+    def ordered_contents(self):
+        """
+        returns list of all content (ordered).
+        pre-requisite: called on root node.
+        """
+        child = self.children[False]
+        if child is None:
+            return []
+        return [n.content for n in child.infix_exploration()]
+
+    def infix_exploration(self):
         """
         depth first infix exploration.
         """
