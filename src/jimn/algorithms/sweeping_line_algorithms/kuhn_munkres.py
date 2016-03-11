@@ -2,53 +2,90 @@
 kuhn munkres intersection algorithm.
 """
 
-from collections import defaultdict
+from jimn.displayable import tycat
 from jimn.algorithms.sweeping_line_algorithms import SweepingLineAlgorithm
+from jimn.utils.coordinates_hash import ROUNDER2D
 
 
 class KuhnMunkres(SweepingLineAlgorithm):
     """
     this class computes all intersections in a set of paths.
-    return a defaultdict with given paths as keys at for each
-    of them a list of intersections found as values.
     """
     def __init__(self, paths):
-        self.intersections = defaultdict(set)  # to each path its intersections
+        self.cut_paths = []  # results
+        self.terminated_paths = set()  # paths cancelled before their endpoint
         super().__init__(paths)
 
-    def add_path(self, path):
+    def add_paths(self, paths):
         """
-        new path found. add it to set of paths.
-        compute possible intersections around it.
+        new paths found. add them to set of paths.
+        mark possible intersections around them.
+        compute intersections.
         """
-        node = self.crossed_paths.add(path)
-        for neighbour in node.neighbours():
-            neighbour_path = neighbour.content
-            self._try_intersecting(path, neighbour_path)
+        for path in paths:
+            node = self.crossed_paths.add(path)
+            for neighbour in node.neighbours():
+                self._try_intersecting((node, neighbour))
 
-    def remove_path(self, path):
+    def remove_paths(self, paths):
         """
-        path end. remove it from set of paths.
-        compute possible intersections around it.
+        paths end. remove them from set of paths.
+        mark possible intersections around them.
         """
-        node = self.crossed_paths.find_object(path)
-        neighbour_paths = [n.content for n in node.neighbours()]
-        if len(neighbour_paths) == 2:
-            self._try_intersecting(*neighbour_paths)
-        node.remove()
+        assert len(set(paths)) == len(paths), "double removal"
+        for path in paths:
+            if path not in self.terminated_paths:
+                try:
+                    node = self.crossed_paths.find_object(path)
+                except:
+                    print("failed finding", path,
+                          "in tree, at", self.current_x)
+                    tycat(*self.crossed_paths.ordered_contents())
+                    tycat(self.crossed_paths.ordered_contents(), path)
+                    self.crossed_paths.tycat()
+                    self.crossed_paths.debug_find(path)
+                    raise
 
-    def _try_intersecting(self, *paths):
+                neighbours = node.neighbours()
+                if len(neighbours) == 2:
+                    self._try_intersecting(neighbours)
+
+                node.remove()
+
+    def _try_intersecting(self, nodes):
+        """
+        check possible intersections.
+        """
+        paths = [n.content for n in nodes]
         intersections = paths[0].intersections_with(paths[1])
-        for intersection in intersections:
-            intersected_paths = [
-                p for p in paths
-                if not (p.endpoints[0].is_almost(intersection)
-                        or p.endpoints[1].is_almost(intersection))
-            ]
-            if intersected_paths:
-                for path in intersected_paths:
-                    self.intersections[path].add(intersection)
-                self.add_crossing_event(intersection, intersected_paths)
+        if not intersections:
+            return
+        intersections = [ROUNDER2D.hash_point(i) for i in intersections]
+        if __debug__:
+            for intersection in intersections:
+                if intersection.get_x() < self.current_x:
+                    raise Exception("backward intersection")
+
+        for index, path in enumerate(paths):
+            small_paths = path.split_at(intersections)
+            if len(small_paths) > 1:
+                # replace big path by small paths
+                nodes[index].remove()
+                self.terminated_paths.add(path)
+                # handle all small paths
+                for path in small_paths:
+                    x_coordinates = list(sorted([p.get_x()
+                                                 for p in path.endpoints]))
+                    if x_coordinates[1] == self.current_x:
+                        # if ending here : add it to results
+                        self.cut_paths.append(path)
+                    elif x_coordinates[0] > self.current_x:
+                        # if starting later : add as event
+                        self.add_path_events(path, x_coordinates)
+                    else:
+                        # it started before : add it back
+                        self.crossed_paths.add(path)
+                        self.add_end_event(path, x_coordinates[1])
 
 
 def kuhn_munkres(paths):
@@ -57,4 +94,4 @@ def kuhn_munkres(paths):
     return a defaultdict with paths as keys and intersections as values.
     """
     intersecter = KuhnMunkres(paths)
-    return intersecter.intersections
+    return intersecter.cut_paths

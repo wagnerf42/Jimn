@@ -4,8 +4,26 @@ providing treap class.
 
 from random import random
 from jimn.tree import Tree
+from jimn.displayable import tycat, Displayer
 
 MAX_PRIORITY = 2
+
+
+class DummyComparer:
+    """
+    comparer class returning what we get.
+    (dummy function for comparing types not requiring keys).
+    """
+    # pylint: disable = too-few-public-methods
+    def __init__(self):
+        pass
+
+    def key(self, thing):
+        # pylint: disable = no-self-use
+        """
+        return what is given.
+        """
+        return thing
 
 
 class Treap(Tree):
@@ -13,7 +31,7 @@ class Treap(Tree):
     self-balancing BST.
     """
     # pylint: disable=protected-access
-    comparer = None
+    comparer = DummyComparer()  # by default we just compare objects
 
     def __init__(self, content, root_node=False):
         super().__init__(content)
@@ -29,11 +47,12 @@ class Treap(Tree):
         add given content in tree.
         return new node.
         """
-        direction = self.compare(self.content, content)
+        content_key = self.comparer.key(self.content)
+        direction = self.comparer.key(self.content) < content_key
         node = self
         while node.children[direction]:
             node = node.children[direction]
-            direction = self.compare(node.content, content)
+            direction = self.comparer.key(node.content) < content_key
 
         new_child = Treap(content)
         node._set_child(direction, new_child)
@@ -61,8 +80,9 @@ class Treap(Tree):
         pre-requisite: we contain given content.
         """
         node = self
+        content_key = self.comparer.key(content)
         while node.content != content:
-            direction = self.compare(node.content, content)
+            direction = self.comparer.key(node.content) < content_key
             node = node.children[direction]
 
         return node
@@ -74,10 +94,12 @@ class Treap(Tree):
         pre-requisite: we contain it.
         """
         node = self
+        object_key = self.comparer.key(searched_object)
         while id(node.content) != id(searched_object):
-            direction = self.compare(node.content, searched_object)
+            direction = self.comparer.key(node.content) < object_key
             node = node.children[direction]
 
+        assert node.content == searched_object
         return node
 
     def set_comparer(self, comparer):
@@ -86,16 +108,6 @@ class Treap(Tree):
         object needs to provide a "compare" method.
         """
         self.comparer = comparer
-
-    def compare(self, content1, content2):
-        """
-        compare two contents using stored comparison function if any
-        or default lt operator if none.
-        """
-        if self.comparer is not None:
-            return self.comparer.compare(content1, content2)
-        else:
-            return content1 < content2
 
     def neighbours(self):
         """
@@ -157,6 +169,67 @@ class Treap(Tree):
                 current_node = seen_nodes.pop()
                 yield current_node
                 current_node = current_node.children[True]
+
+    def debug_find(self, searched_object):
+        """
+        find where it went wrong in find algorithm.
+        pre-requisite: self is root
+        """
+        assert self.children[True] is None
+        assert self._is_sentinel(), "debug finds on root node only."
+
+        searched_node = self._raw_search(searched_object)
+        if searched_node is None:
+            print("searched object", searched_object, "is not in tree")
+            return
+
+        colors = self._compute_nodes_colors()
+        ancestors = searched_node._ancestors()
+
+        # now replay search, looking for wrong comparison
+        searched_key = self.comparer.key(searched_object)
+        node = self
+        expected_node = ancestors.pop()
+        while id(node) == id(expected_node):
+            node_key = self.comparer.key(node.content)
+            direction = node_key < searched_key
+            next_node = node.children[direction]
+            next_expected_node = ancestors.pop()
+
+            if next_node is None or id(next_node) != id(next_expected_node):
+                print("wrong comparison at node", node.dot_label())
+                if node._is_sentinel():
+                    print("wrong node is root node")
+                else:
+                    print("wrong node is colored as", colors[id(node)])
+
+                print("searched object's key:", [str(k) for k in searched_key])
+                print("node's key:", [str(k) for k in node_key])
+                print("we should have gone", not direction)
+                if direction:
+                    print("searched key should have been smaller")
+                else:
+                    print("searched key should have been bigger")
+
+                small_child = node.children[False]
+                if small_child is not None:
+                    searched = small_child._raw_search(searched_object)
+                    if searched is not None:
+                        print("we found it in smaller children")
+                        tycat(searched_object, node.content)
+                        return
+
+                big_child = node.children[True]
+                if big_child is not None:
+                    searched = big_child._raw_search(searched_object)
+                    if searched is not None:
+                        print("we found it in bigger children")
+                        tycat(node.content, searched_object)
+
+                return
+
+            node = next_node
+            expected_node = next_expected_node
 
     def _is_sentinel(self):
         """
@@ -249,6 +322,9 @@ class Treap(Tree):
         self.children[direction] = child
         if child is not None:
             child.father = self
+            if __debug__:
+                if self._is_sentinel() and direction:
+                    raise Exception("adding right child to root node")
 
     def _rotate_upwards(self):
         """
@@ -264,3 +340,39 @@ class Treap(Tree):
         reversed_direction = not direction
         father._set_child(direction, self.children[reversed_direction])
         self._set_child(reversed_direction, father)
+
+    def _compute_nodes_colors(self):
+        """
+        return hash with color names for each node as seen when tycatting
+        nodes in order.
+        """
+        colors = dict()
+        count = 0
+        for node in self.children[False].infix_exploration():
+            colors[id(node)] = Displayer.svg_colors[count]
+            count += 1
+        return colors
+
+    def _raw_search(self, searched_object):
+        """
+        steps through ALL nodes, looking for object.
+        used in debugging.
+        """
+        for node in self.depth_first_exploration():
+            if id(node.content) == id(searched_object):
+                return node
+        else:
+            return
+
+    def _ancestors(self):
+        """
+        return list of all ancestors of node
+        (including node and starting from it).
+        """
+        node = self
+        ancestors = []
+        while node is not None:
+            ancestors.append(node)
+            node = node.father
+
+        return ancestors

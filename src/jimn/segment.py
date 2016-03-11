@@ -6,7 +6,7 @@ from jimn.elementary_path import ElementaryPath
 from jimn.bounding_box import BoundingBox
 from jimn.point import Point
 from jimn.utils.coordinates_hash import LINES_ROUNDER
-from jimn.utils.precision import check_precision, is_almost
+from jimn.utils.precision import check_precision, is_almost, PRECISION
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.tour import tour
@@ -121,6 +121,7 @@ class Segment(ElementaryPath):
         nearly aligned segments will hash
         on same value.
         """
+        raise Exception("REDO")
         (x_1, y_1), (x_2, y_2) = [p.coordinates for p in self.endpoints]
         if is_almost(x_1, x_2):
             return str(LINES_ROUNDER.hash_point(Point([x_1])))
@@ -159,15 +160,17 @@ class Segment(ElementaryPath):
         only return point if included on the two segments.
         """
         # compute point
+        if not(self < other):  # to avoid commutativity problems
+            self, other = other, self
+
         i = self.line_intersection_with(other)
         if i is None:
             return  # parallel lines
 
-        # check validity
-        for box in [s.get_bounding_box() for s in (self, other)]:
-            if not box.almost_contains_point(i):
-                return
-        return i
+        if self.contains(i) and other.contains(i):
+            return i
+        else:
+            return
 
     def line_intersection_with(self, other):
         """
@@ -207,8 +210,13 @@ class Segment(ElementaryPath):
         is given point inside us ?
         """
         distance = sum([possible_point.distance_to(p) for p in self.endpoints])
+        # we have precisions issues here
+        # we need to compare rounded distances
+        # by rounding at PRECISION+1 we ensure that imprecision is less than
+        # what is rounded by coordinates hashes
         return is_almost(distance,
-                         self.endpoints[0].distance_to(self.endpoints[1]))
+                         self.endpoints[0].distance_to(self.endpoints[1]),
+                         10**-(PRECISION+1))
 
     def vertical_intersection_at(self, intersecting_x):
         """
@@ -303,7 +311,7 @@ class Segment(ElementaryPath):
         return if self < other.
         order has no real meaning. it is just an arbitrary order.
         """
-        raise Exception("segment comparison still in use")
+        return self.endpoints < other.endpoints
 
 
 def __tour():

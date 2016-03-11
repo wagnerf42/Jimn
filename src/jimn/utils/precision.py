@@ -9,11 +9,11 @@ SEGMENT_LIMIT = LIMIT # minimum length allowed for a segment
 PRECISION_FORMAT = "{{0:.{}f}}".format(PRECISION)
 
 
-def is_almost(coordinate1, coordinate2):
+def is_almost(coordinate1, coordinate2, limit=LIMIT):
     """
     are coordinates almost the same ?
     """
-    return abs(coordinate2-coordinate1) < LIMIT
+    return abs(coordinate2-coordinate1) < limit
 
 
 def coordinate_key(coordinate, wanted_precision=PRECISION):

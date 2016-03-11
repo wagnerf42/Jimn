@@ -4,7 +4,7 @@ from time import clock
 from random import random, seed, shuffle
 from jimn.tree.treap import Treap
 
-root = Treap(-1, root_node=True)
+root = Treap(2000, root_node=True)
 seconds = clock()
 print(seconds)
 seed(seconds)
@@ -29,6 +29,10 @@ root.tycat()
 for node in half.greater_nodes():
     print(node.dot_label())
 values.append(0.5)
+
+print("infix walk")
+for content in root.ordered_contents():
+    print(content)
 
 print("destruction")
 shuffle(values)

@@ -8,9 +8,9 @@ from jimn.point import Point
 from jimn.segment import Segment
 from jimn.arc import Arc
 from jimn.tree.treap import Treap
-
-START = 0
-END = 1
+from jimn.utils.coordinates_hash import ROUNDER2D
+from jimn.utils.debug import is_module_debugged
+from jimn.displayable import tycat
 
 
 class SweepingLineAlgorithm:
@@ -27,38 +27,41 @@ class SweepingLineAlgorithm:
 
     you then need to provide the following handlers as methods of your class:
 
-        def add_path(self, path):
-            ... add a path to set of current paths ...
+        def add_paths(self, paths):
+            ... add a set of paths to set of current paths ...
 
-        def remove_path(self, path):
-            ... removes a path from set of current paths ...
+        def remove_paths(self, path):
+            ... remove a set of paths from set of current paths ...
 
-        def crossing_paths(self, paths):
-            ... a set of paths cross at a common point ...
+        def handle_vertical_paths(self, path):
+            ... take care of all vertical paths at current x ...
 
-    any operation generating new events (for example crossing events)
-    must add new events using "add_event" method.
+    events can be added to the system by calling
+        add_path_events (adding both start and end)
+        or
+        add_end_event (adding only end event)
     """
-    # pylint: disable=too-few-public-methods
     def __init__(self, paths):
         """
-        prepare for sweeping line algorithm on a set of paths
-        preconditions:
-        - paths should not intersect other than on endpoints
-        - there is no orientation condition on paths
+        prepare for sweeping line algorithm on a set of paths.
         """
         # sweeping line algorithms are based on events
-        # each event is meeting a new point in the figure
-        self.event_points = []  # store them all in a heap
+        # each event is meeting a new x coordinate in the figure
+        self.events = []  # store them all in a heap
+        self.seen_coordinates = set()  # do not add twice events for same x
 
-        # now we need additional info associated to each event point
-        self.crossings = dict()  # associate to each crossing point the paths
         # all starting and ending paths
         self.paths = [defaultdict(list), defaultdict(list)]
 
-        self._create_events(paths)
-        self.current_point = None  # current point in sweeping movement
+        for path in paths:
+            path_x_coordinates = list(
+                sorted([p.get_x() for p in path.endpoints]))
+            self.add_path_events(path, path_x_coordinates)
+
+        self.current_x = None  # current x coordinate in sweeping movement
         # TODO: use min and max dimensions
+
+        # visible paths at current_x
         self.crossed_paths = Treap(
             Segment([Point([-2000, 2000]), Point([2000, 2000])]),
             root_node=True
@@ -66,87 +69,96 @@ class SweepingLineAlgorithm:
         self.crossed_paths.set_comparer(self)
         self._run()
 
-    def add_crossing_event(self, crossing_point, crossing_paths):
+    def key(self, path):
         """
-        add crossing event in system.
-        should come after current event.
+        return comparison key for given path, at current point.
         """
-        if crossing_point in self.crossings:
-            for path in crossing_paths:
-                self.crossings[crossing_point].add(path)
-        else:
-            self.crossings[crossing_point] = set(crossing_paths)
-            heappush(self.event_points, crossing_point)
+        return comparison_key(path, self.current_x)
 
-    def compare(self, *paths):
+    def add_path_events(self, path, coordinates):
         """
-        compare two paths at current point.
+        at start and end events for given path at given points.
         """
-        keys = [comparison_key(p, self.current_point) for p in paths]
-        return keys[0] < keys[1]
+        if coordinates[0] == coordinates[1]:
+            print("discarding vertical path")
+            return
 
-    def _create_events(self, paths):
-        # create all events
-        points = set()
-        for path in paths:
-            for start_or_end, point in enumerate(list(sorted(path.endpoints))):
-                self.paths[start_or_end][point].append(path)
-                points.add(point)
+        for index, point_x in enumerate(coordinates):
+            if point_x not in self.seen_coordinates:
+                self.seen_coordinates.add(point_x)
+                heappush(self.events, point_x)
 
-        # we now build events heap
-        for point in points:
-            heappush(self.event_points, point)
+            self.paths[index][point_x].append(path)
+
+    def add_end_event(self, path, end_coordinate):
+        """
+        add end event for given path.
+        """
+        if end_coordinate not in self.seen_coordinates:
+            self.seen_coordinates.add(end_coordinate)
+            heappush(self.events, end_coordinate)
+        self.paths[1][end_coordinate].append(path)
 
     def _run(self):
-        while self.event_points:
-            event_point = heappop(self.event_points)
-            self._handle_event(event_point)
+        while self.events:
+            event_x = heappop(self.events)
+            self._handle_events(event_x, self.paths[0][event_x],
+                                self.paths[1][event_x])
 
-    def _handle_event(self, event_point):
-        ending_paths = self.paths[END][event_point]
-        if event_point in self.crossings:
-            ending_paths.extend(self.crossings[event_point])
+    def _handle_events(self, event_x, starting_paths, ending_paths):
+        # pylint: disable=no-member
+        if __debug__:
+            if self.current_x is not None:
+                assert(self.current_x < event_x), "event going back"
+        try:
+            self.remove_paths(ending_paths)
+        except:
+            print("failed removing paths at", event_x)
+            raise
 
-        for path in ending_paths:
-            self.remove_path(path)
+        self.current_x = event_x
 
-        self.current_point = event_point
+        sorted_paths = sorted(starting_paths,
+                              key=lambda p: p.comparison_key(
+                                  self.current_x))
 
-        starting_paths = self.paths[START][event_point]
-        if event_point in self.crossings:
-            starting_paths.extend(self.crossings[event_point])
-
-        for path in sorted(starting_paths,
-                           key=lambda p: p.comparison_key(self.current_point)):
-            self.add_path(path)
+        self.add_paths(sorted_paths)
+        if __debug__:
+            if is_module_debugged(__name__):
+                print("x=", self.current_x)
+                tycat(*self.crossed_paths.ordered_contents())
 
 
-def comparison_key(path, point):
+def comparison_key(path, current_x):
     """
     return key used for comparing paths when reaching given point in
     sweeping line algorithm.
+    (key is: current_y ; outgoing angle)
     pre-condition: self contains point's x coordinate in its xrange
     """
-    if path.contains(point):
-        point_key = point
-    else:
-        point_key = Point([point.get_x(),
-                           path.vertical_intersection_at(point.get_x())])
+    # start by finding the path's y for current x
+    if __debug__:
+        x_coordinates = sorted([p.get_x() for p in path.endpoints])
+        assert (x_coordinates[0] <= current_x <= x_coordinates[1]), \
+            "non comparable path in tree"
+    point_key = Point([current_x, path.vertical_intersection_at(current_x)])
+    point_key = ROUNDER2D.hash_point(point_key)
 
+    # now figure out which direction we leave the point
     if isinstance(path, Segment):
         forward_point = max(path.endpoints)
     else:
-        tangent_points = path.tangent_points(point)
+        tangent_points = path.tangent_points(point_key)
         oriented_points = list(sorted(path.endpoints))
         direction = oriented_points[1] - oriented_points[0]
-        if direction.scalar_product(tangent_points[0]-point) > 0:
+        if direction.scalar_product(tangent_points[0]-point_key) > 0:
             forward_point = tangent_points[0]
         else:
             forward_point = tangent_points[1]
 
     # compute and convert angle from horizontal to vertical
-    angle_key = (5 * pi/2 - point.angle_with(forward_point)) % (2*pi)
-    return (point_key, angle_key)
+    angle_key = (5 * pi/2 - point_key.angle_with(forward_point)) % (2*pi)
+    return (point_key.get_y(), angle_key)
 
 
 setattr(Segment, "comparison_key", comparison_key)

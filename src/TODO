@@ -1,12 +1,11 @@
 
-change basic sweeping line algorithm
-	-> customize comparison function in treap
-		--> add class attribute containing comp operator
-	-> register comp function in sweeping_line algo when creating heap
+
 	-> debug kuhn munkres
-	-> store results in kuhn munkres
-	-> TODO: directly cut here instead of cutting afterward ?
+
+relire coordinates hash
+change basic sweeping line algorithm
 	-> rewrite inclusion tree
+
 remove segment and arc comparison
 remove polygonsegment comparison
 
