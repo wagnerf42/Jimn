@@ -29,6 +29,15 @@ class DummyComparer:
 class Treap(Tree):
     """
     self-balancing BST.
+
+    objects entered in tree need to be compared.
+    by default we will use objects comparison operator.
+
+    there is however an other way :
+    you can provide a comparer object with a "key" method to the bst
+    using "set_comparer".
+    we will then compare objects by calling the key method from the
+    comparer on each of them and compare obtained keys.
     """
     # pylint: disable=protected-access
     comparer = DummyComparer()  # by default we just compare objects
@@ -47,10 +56,10 @@ class Treap(Tree):
         add given content in tree.
         return new node.
         """
-        content_key = self.comparer.key(self.content)
+        content_key = self.comparer.key(content)
         direction = self.comparer.key(self.content) < content_key
         node = self
-        while node.children[direction]:
+        while node.children[direction] is not None:
             node = node.children[direction]
             direction = self.comparer.key(node.content) < content_key
 
@@ -104,22 +113,43 @@ class Treap(Tree):
 
     def set_comparer(self, comparer):
         """
-        set comparere object for comparing nodes content.
-        object needs to provide a "compare" method.
+        set comparer object for comparing nodes content.
+        object needs to provide a "key" method returning a comparison key
+        for an object.
         """
         self.comparer = comparer
 
     def neighbours(self):
         """
-        returns the (up to two) nodes with nearest values
+        return the (up to two) nodes with nearest values.
         """
         nodes = []
         for direction in (False, True):
-            neighbour = self._nearest_node(direction)
+            neighbour = self.nearest_node(direction)
             if neighbour:
                 nodes.append(neighbour)
 
         return nodes
+
+    def nearest_node(self, direction):
+        """
+        return node with content value nearest (and smaller / bigger
+        depending on direction)
+        """
+        if self.children[direction] is not None:
+            return self.children[direction]._find_extreme_node(not direction)
+        else:
+            # we need to find in ancestors
+            old = self
+            older = self.father
+            reversed_direction = not direction
+            while not older._is_sentinel():
+                if older._direction_to(old) == reversed_direction:
+                    return older
+                old = older
+                older = older.father
+
+            return None
 
     def greater_nodes(self):
         """
@@ -143,7 +173,11 @@ class Treap(Tree):
         """
         label of given node for dot file.
         """
-        return str(self.content) + " / " + str(self.priority)
+        if self._is_sentinel():
+            return str(self.content) + " / " + str(self.priority)
+        else:
+            return str(self.content) + " / " + str(self.priority) + " / " + \
+                str(self.father._direction_to(self))
 
     def ordered_contents(self):
         """
@@ -236,26 +270,6 @@ class Treap(Tree):
         are we dummy root node ?
         """
         return self.priority == MAX_PRIORITY
-
-    def _nearest_node(self, direction):
-        """
-        return node with content value nearest (and smaller / bigger
-        depending on direction)
-        """
-        if self.children[direction] is not None:
-            return self.children[direction]._find_extreme_node(not direction)
-        else:
-            # we need to find in ancestors
-            old = self
-            older = self.father
-            reversed_direction = not direction
-            while not older._is_sentinel():
-                if older._direction_to(old) == reversed_direction:
-                    return older
-                old = older
-                older = older.father
-
-            return None
 
     def _find_extreme_node(self, direction):
         """

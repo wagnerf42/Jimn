@@ -24,12 +24,6 @@ def test(seconds=None):
     segments = [Segment([ROUNDER2D.hash_point(Point([random(), random()])),
                          ROUNDER2D.hash_point(Point([random(), random()]))])
                 for _ in range(20)]
-    segments = [
-        Segment([Point([0.4241119488810712, 0.00019661343570498424]), Point([0.6535483322882256, 0.861510849309335])]),
-        Segment([Point([0.5176460460243731, 0.8693823221023066]), Point([0.5672999885022317, 0.1944982127111603])]),
-        Segment([Point([0.25488551620733346, 0.2224528880086054]), Point([0.8831873765374082, 0.8962599183710943])]),
-        Segment([Point([0.8925229436358193, 0.11053296011034819]), Point([0.11521707482984123, 0.8529558894942431])]),
-    ]
     try:
         small_segments = kuhn_munkres(segments)
     except:

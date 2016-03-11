@@ -35,6 +35,7 @@ class KuhnMunkres(SweepingLineAlgorithm):
         assert len(set(paths)) == len(paths), "double removal"
         for path in paths:
             if path not in self.terminated_paths:
+                self.cut_paths.append(path)
                 try:
                     node = self.crossed_paths.find_object(path)
                 except:

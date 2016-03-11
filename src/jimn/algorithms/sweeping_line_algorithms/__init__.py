@@ -6,7 +6,6 @@ from math import pi
 from heapq import heappush, heappop
 from jimn.point import Point
 from jimn.segment import Segment
-from jimn.arc import Arc
 from jimn.tree.treap import Treap
 from jimn.utils.coordinates_hash import ROUNDER2D
 from jimn.utils.debug import is_module_debugged
@@ -59,21 +58,48 @@ class SweepingLineAlgorithm:
             self.add_path_events(path, path_x_coordinates)
 
         self.current_x = None  # current x coordinate in sweeping movement
-        # TODO: use min and max dimensions
 
         # visible paths at current_x
-        self.crossed_paths = Treap(
-            Segment([Point([-2000, 2000]), Point([2000, 2000])]),
-            root_node=True
-        )
+        # we put a sentinel as root node whose key values at +infinity
+        self.crossed_paths = Treap((float("+inf"), 0), root_node=True)
         self.crossed_paths.set_comparer(self)
+
         self._run()
 
     def key(self, path):
         """
         return comparison key for given path, at current point.
+        (key is: current_y ; outgoing angle)
+        pre-condition: path contains current x coordinate in its xrange.
         """
-        return comparison_key(path, self.current_x)
+        if isinstance(path, tuple):
+            return path  # special case for sentinel : no need to compute
+
+        if __debug__:
+            x_coordinates = sorted([p.get_x() for p in path.endpoints])
+            assert (x_coordinates[0] <= self.current_x <= x_coordinates[1]), \
+                "non comparable path in tree"
+
+        # start by finding the path's y for current x
+        point_key = Point([self.current_x,
+                           path.vertical_intersection_at(self.current_x)])
+        point_key = ROUNDER2D.hash_point(point_key)
+
+        # now figure out which direction we leave the point
+        if isinstance(path, Segment):
+            forward_point = max(path.endpoints)
+        else:
+            tangent_points = path.tangent_points(point_key)
+            oriented_points = list(sorted(path.endpoints))
+            direction = oriented_points[1] - oriented_points[0]
+            if direction.scalar_product(tangent_points[0]-point_key) > 0:
+                forward_point = tangent_points[0]
+            else:
+                forward_point = tangent_points[1]
+
+        # compute and convert angle from horizontal to vertical
+        angle_key = (5 * pi/2 - point_key.angle_with(forward_point)) % (2*pi)
+        return (point_key.get_y(), angle_key)
 
     def add_path_events(self, path, coordinates):
         """
@@ -118,48 +144,11 @@ class SweepingLineAlgorithm:
 
         self.current_x = event_x
 
-        sorted_paths = sorted(starting_paths,
-                              key=lambda p: p.comparison_key(
-                                  self.current_x))
+        sorted_paths = sorted(starting_paths, key=self.key)
 
         self.add_paths(sorted_paths)
         if __debug__:
             if is_module_debugged(__name__):
                 print("x=", self.current_x)
                 tycat(*self.crossed_paths.ordered_contents())
-
-
-def comparison_key(path, current_x):
-    """
-    return key used for comparing paths when reaching given point in
-    sweeping line algorithm.
-    (key is: current_y ; outgoing angle)
-    pre-condition: self contains point's x coordinate in its xrange
-    """
-    # start by finding the path's y for current x
-    if __debug__:
-        x_coordinates = sorted([p.get_x() for p in path.endpoints])
-        assert (x_coordinates[0] <= current_x <= x_coordinates[1]), \
-            "non comparable path in tree"
-    point_key = Point([current_x, path.vertical_intersection_at(current_x)])
-    point_key = ROUNDER2D.hash_point(point_key)
-
-    # now figure out which direction we leave the point
-    if isinstance(path, Segment):
-        forward_point = max(path.endpoints)
-    else:
-        tangent_points = path.tangent_points(point_key)
-        oriented_points = list(sorted(path.endpoints))
-        direction = oriented_points[1] - oriented_points[0]
-        if direction.scalar_product(tangent_points[0]-point_key) > 0:
-            forward_point = tangent_points[0]
-        else:
-            forward_point = tangent_points[1]
-
-    # compute and convert angle from horizontal to vertical
-    angle_key = (5 * pi/2 - point_key.angle_with(forward_point)) % (2*pi)
-    return (point_key.get_y(), angle_key)
-
-
-setattr(Segment, "comparison_key", comparison_key)
-setattr(Arc, "comparison_key", comparison_key)
+                self.crossed_paths.tycat()
