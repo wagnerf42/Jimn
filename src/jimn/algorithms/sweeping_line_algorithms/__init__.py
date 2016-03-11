@@ -125,6 +125,13 @@ class SweepingLineAlgorithm:
             heappush(self.events, end_coordinate)
         self.paths[1][end_coordinate].append(path)
 
+    def tycat(self):
+        """
+        display current state.
+        """
+        tycat(*self.crossed_paths.ordered_contents())
+        self.crossed_paths.tycat()
+
     def _run(self):
         while self.events:
             event_x = heappop(self.events)
@@ -150,5 +157,4 @@ class SweepingLineAlgorithm:
         if __debug__:
             if is_module_debugged(__name__):
                 print("x=", self.current_x)
-                tycat(*self.crossed_paths.ordered_contents())
-                self.crossed_paths.tycat()
+                self.tycat()

@@ -53,6 +53,13 @@ class KuhnMunkres(SweepingLineAlgorithm):
 
                 node.remove()
 
+    def tycat(self):
+        """
+        display current state.
+        """
+        tycat(self.cut_paths, *self.crossed_paths.ordered_contents())
+        self.crossed_paths.tycat()
+
     def _try_intersecting(self, nodes):
         """
         check possible intersections.
@@ -62,10 +69,6 @@ class KuhnMunkres(SweepingLineAlgorithm):
         if not intersections:
             return
         intersections = [ROUNDER2D.hash_point(i) for i in intersections]
-        if __debug__:
-            for intersection in intersections:
-                if intersection.get_x() < self.current_x:
-                    raise Exception("backward intersection")
 
         for index, path in enumerate(paths):
             small_paths = path.split_at(intersections)
