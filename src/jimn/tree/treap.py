@@ -83,6 +83,10 @@ class Treap(Tree):
             self._exchange_with(extremum)
             self.remove()
 
+        # for more security disconnect pointers
+        self.father = None
+        self.children = [None, None]
+
     def find(self, content):
         """
         search for node with content equal to given one.
