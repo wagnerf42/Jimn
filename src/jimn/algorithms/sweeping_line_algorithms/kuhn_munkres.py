@@ -25,7 +25,7 @@ class KuhnMunkres(SweepingLineAlgorithm):
         for path in paths:
             node = self.crossed_paths.add(path)
             for neighbour in node.neighbours():
-                self._try_intersecting((node, neighbour))
+                node = self._try_intersecting((node, neighbour))
 
     def remove_paths(self, paths):
         """
@@ -63,13 +63,15 @@ class KuhnMunkres(SweepingLineAlgorithm):
     def _try_intersecting(self, nodes):
         """
         check possible intersections.
+        return node[0] if not changed or remain if node[0] if cut.
         """
         paths = [n.content for n in nodes]
         intersections = paths[0].intersections_with(paths[1])
         if not intersections:
-            return
+            return nodes[0]
         intersections = [ROUNDER2D.hash_point(i) for i in intersections]
 
+        remain = nodes[0]  # by default assume node[0] does not change
         for index, path in enumerate(paths):
             small_paths = path.split_at(intersections)
             if len(small_paths) > 1:
@@ -88,8 +90,12 @@ class KuhnMunkres(SweepingLineAlgorithm):
                         self.add_path_events(path, x_coordinates)
                     else:
                         # it started before : add it back
-                        self.crossed_paths.add(path)
+                        added = self.crossed_paths.add(path)
+                        if index == 0:
+                            remain = added
                         self.add_end_event(path, x_coordinates[1])
+
+        return remain
 
 
 def kuhn_munkres(paths):
