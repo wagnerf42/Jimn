@@ -111,7 +111,7 @@ class Displayer:
         return size of stroke to use in svg
         """
         min_dimension = min(self.svg_dimensions)
-        expected_size = ceil(min_dimension / 150)
+        expected_size = ceil(min_dimension / 500)
         return expected_size
 
     def svg_color(self, index):

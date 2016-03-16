@@ -77,8 +77,9 @@ class SweepingLineAlgorithm:
 
         if __debug__:
             x_coordinates = sorted([p.get_x() for p in path.endpoints])
-            assert (x_coordinates[0] <= self.current_x <= x_coordinates[1]), \
-                "non comparable path in tree"
+            if not x_coordinates[0] <= self.current_x <= x_coordinates[1]:
+                print("path is", path, "current x is:", self.current_x)
+                raise Exception("non comparable path in tree")
 
         # start by finding the path's y for current x
         point_key = Point([self.current_x,
@@ -142,7 +143,9 @@ class SweepingLineAlgorithm:
         # pylint: disable=no-member
         if __debug__:
             if self.current_x is not None:
-                assert(self.current_x < event_x), "event going back"
+                if event_x <= self.current_x:
+                    print("faulty x :", event_x, "current x :", self.current_x)
+                    raise Exception("event going back")
         try:
             self.remove_paths(ending_paths)
         except:

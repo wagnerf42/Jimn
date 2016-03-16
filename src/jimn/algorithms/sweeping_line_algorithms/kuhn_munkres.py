@@ -19,13 +19,21 @@ class KuhnMunkres(SweepingLineAlgorithm):
     def add_paths(self, paths):
         """
         new paths found. add them to set of paths.
-        mark possible intersections around them.
-        compute intersections.
         """
         for path in paths:
-            node = self.crossed_paths.add(path)
-            for neighbour in node.neighbours():
-                node = self._try_intersecting((node, neighbour))
+            self.add_path(path)
+
+    def add_path(self, path):
+        """
+        new path found. add it to set of paths.
+        """
+        node = self.crossed_paths.add(path)
+        small_neighbour = node.nearest_node(False)
+        if small_neighbour is None or\
+                not self._try_intersecting((small_neighbour, node)):
+            big_neighbour = node.nearest_node(True)
+            if big_neighbour is not None:
+                self._try_intersecting((node, big_neighbour))
 
     def remove_paths(self, paths):
         """
@@ -41,17 +49,16 @@ class KuhnMunkres(SweepingLineAlgorithm):
                 except:
                     print("failed finding", path,
                           "in tree, at", self.current_x)
-                    tycat(*self.crossed_paths.ordered_contents())
+                    self.tycat()
                     tycat(self.crossed_paths.ordered_contents(), path)
-                    self.crossed_paths.tycat()
                     self.crossed_paths.debug_find(path)
                     raise
 
                 neighbours = node.neighbours()
+                node.remove()
+
                 if len(neighbours) == 2:
                     self._try_intersecting(neighbours)
-
-                node.remove()
 
     def tycat(self):
         """
@@ -63,39 +70,63 @@ class KuhnMunkres(SweepingLineAlgorithm):
     def _try_intersecting(self, nodes):
         """
         check possible intersections.
-        return node[0] if not changed or remain if node[0] if cut.
+        return if any intersection.
+        pre-condition : node[0].content < node[1].content
         """
         paths = [n.content for n in nodes]
-        intersections = paths[0].intersections_with(paths[1])
-        if not intersections:
-            return nodes[0]
-        intersections = [ROUNDER2D.hash_point(i) for i in intersections]
+        intersection = paths[0].intersection_with_segment(paths[1])
+        if intersection is None:
+            return False
+        intersection = ROUNDER2D.hash_point(intersection)
 
-        remain = nodes[0]  # by default assume node[0] does not change
-        for index, path in enumerate(paths):
-            small_paths = path.split_at(intersections)
-            if len(small_paths) > 1:
-                # replace big path by small paths
-                nodes[index].remove()
-                self.terminated_paths.add(path)
-                # handle all small paths
-                for path in small_paths:
-                    x_coordinates = list(sorted([p.get_x()
-                                                 for p in path.endpoints]))
-                    if x_coordinates[1] == self.current_x:
-                        # if ending here : add it to results
-                        self.cut_paths.append(path)
-                    elif x_coordinates[0] > self.current_x:
-                        # if starting later : add as event
-                        self.add_path_events(path, x_coordinates)
+        smaller_than_small_node = nodes[0].nearest_node(False)
+        bigger_than_big_node = nodes[1].nearest_node(True)
+        for node in nodes:
+            node.remove()
+            self.terminated_paths.add(node.content)
+
+        # when crossing you need to test for intersections on the other side
+        self._split_path(paths[0], intersection, bigger_than_big_node, True)
+        self._split_path(paths[1], intersection,
+                         smaller_than_small_node, False)
+
+        return True
+
+    def _split_path(self, path, split_point, neighbour_node, big_neighbour):
+        """
+        split path into chunks. add them back into system, eventually
+        intersecting neighbour.
+        we need as information:
+            - the path to split
+            - the splitting point
+            - the neighbour which might be intersected after crossing
+            - the direction of this neighbour from path
+        """
+        if path.endpoints[0] < path.endpoints[1]:
+            start, end = path.split_around(split_point)
+        else:
+            end, start = path.split_around(split_point)
+
+        if split_point.get_x() == self.current_x:
+            if start is not None:
+                self.cut_paths.append(start)
+            if end is not None:
+                # it starts here : add it to tree
+                node = self.crossed_paths.add(end)
+                # check intersection with neighbour right now
+                if neighbour_node is not None:
+                    if big_neighbour:
+                        self._try_intersecting((node, neighbour_node))
                     else:
-                        # it started before : add it back
-                        added = self.crossed_paths.add(path)
-                        if index == 0:
-                            remain = added
-                        self.add_end_event(path, x_coordinates[1])
-
-        return remain
+                        self._try_intersecting((neighbour_node, node))
+        else:
+            if start is not None:
+                self.crossed_paths.add(start)
+                self.add_end_event(start, split_point.get_x())
+            if end is not None:
+                # if starting later : add as event
+                coordinates = sorted([p.get_x() for p in end.endpoints])
+                self.add_path_events(end, coordinates)
 
 
 def kuhn_munkres(paths):
