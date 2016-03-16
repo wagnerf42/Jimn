@@ -180,8 +180,9 @@ class Treap(Tree):
         if self._is_sentinel():
             return str(self.content) + " / " + str(self.priority)
         else:
-            return str(self.content) + " / " + str(self.priority) + " / " + \
-                str(self.father._direction_to(self))
+            return str(self.content) + " / " + \
+                str(self.father._direction_to(self)) + \
+                "\",style=filled,color=\"" + self.color
 
     def ordered_contents(self):
         """
@@ -221,7 +222,7 @@ class Treap(Tree):
             print("searched object", searched_object, "is not in tree")
             return
 
-        colors = self._compute_nodes_colors()
+        self._compute_nodes_colors()
         ancestors = searched_node._ancestors()
 
         # now replay search, looking for wrong comparison
@@ -239,7 +240,7 @@ class Treap(Tree):
                 if node._is_sentinel():
                     print("wrong node is root node")
                 else:
-                    print("wrong node is colored as", colors[id(node)])
+                    print("wrong node is colored as", node.color)
 
                 print("searched object's key:", [str(k) for k in searched_key])
                 print("node's key:", [str(k) for k in node_key])
@@ -268,6 +269,13 @@ class Treap(Tree):
 
             node = next_node
             expected_node = next_expected_node
+
+    def tycat(self):
+        """
+        colored graph.
+        """
+        self._compute_nodes_colors()
+        super().tycat()
 
     def _is_sentinel(self):
         """
@@ -361,15 +369,15 @@ class Treap(Tree):
 
     def _compute_nodes_colors(self):
         """
-        return hash with color names for each node as seen when tycatting
-        nodes in order.
+        add color attribute to each node.
         """
-        colors = dict()
-        count = 0
+        if self.children[False] is None:
+            return
+        count = 2
         for node in self.children[False].infix_exploration():
-            colors[id(node)] = Displayer.svg_colors[count]
+            node.color = Displayer.svg_colors[
+                count % len(Displayer.svg_colors)]
             count += 1
-        return colors
 
     def _raw_search(self, searched_object):
         """

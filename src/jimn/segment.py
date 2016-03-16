@@ -10,6 +10,7 @@ from jimn.utils.precision import check_precision, is_almost, PRECISION
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.tour import tour
+from jimn.utils.iterators import all_two_elements
 
 
 class Segment(ElementaryPath):
@@ -291,6 +292,33 @@ class Segment(ElementaryPath):
                 tycat(self, other, intersections)
 
         return intersections
+
+    def clip(self, center, size):
+        """
+        clip self in square of given size at given center.
+        """
+        # TODO move in elementary path
+        points = [
+            center + Point([-size, -size]),
+            center + Point([size, -size]),
+            center + Point([size, size]),
+            center + Point([-size, size]),
+        ]
+        segments = [Segment([a, b]) for a, b in all_two_elements(points)]
+        intersections = []
+        for segment in segments:
+            intersection = segment.intersection_with_segment(self)
+            if intersection:
+                intersections.append(intersection)
+
+        box = BoundingBox.empty_box(2)
+        box.add_point(points[0])
+        box.add_point(points[2])
+
+        for chunk in self.split_at(intersections):
+            middle = (chunk.endpoints[0] + chunk.endpoints[1])/2
+            if box.almost_contains_point(middle):
+                return chunk
 
     def __str__(self):
         return "Segment([" + str(self.endpoints[0]) + ", " + \

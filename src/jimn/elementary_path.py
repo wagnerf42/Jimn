@@ -6,7 +6,6 @@ from copy import copy, deepcopy
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost, SEGMENT_LIMIT
-from jimn.point import Point
 
 
 class ElementaryPath:
@@ -111,8 +110,8 @@ class ElementaryPath:
             before = self
         else:
             before = deepcopy(self)
-            before.endpoints[1] = copy(intermediate_point)
             after = deepcopy(self)
+            before.endpoints[1] = copy(intermediate_point)
             after.endpoints[0] = copy(intermediate_point)
         return (before, after)
 

@@ -5,6 +5,7 @@ kuhn munkres intersection algorithm.
 from jimn.displayable import tycat
 from jimn.algorithms.sweeping_line_algorithms import SweepingLineAlgorithm
 from jimn.utils.coordinates_hash import ROUNDER2D
+from jimn.utils.debug import is_module_debugged
 
 
 class KuhnMunkres(SweepingLineAlgorithm):
@@ -14,6 +15,7 @@ class KuhnMunkres(SweepingLineAlgorithm):
     def __init__(self, paths):
         self.cut_paths = []  # results
         self.terminated_paths = set()  # paths cancelled before their endpoint
+        # we need it since we cannot remove cancel events from the heap
         super().__init__(paths)
 
     def add_paths(self, paths):
@@ -21,112 +23,151 @@ class KuhnMunkres(SweepingLineAlgorithm):
         new paths found. add them to set of paths.
         """
         for path in paths:
-            self.add_path(path)
-
-    def add_path(self, path):
-        """
-        new path found. add it to set of paths.
-        """
-        node = self.crossed_paths.add(path)
-        small_neighbour = node.nearest_node(False)
-        if small_neighbour is None or\
-                not self._try_intersecting((small_neighbour, node)):
-            big_neighbour = node.nearest_node(True)
-            if big_neighbour is not None:
-                self._try_intersecting((node, big_neighbour))
+            self._add_path(path)
 
     def remove_paths(self, paths):
         """
         paths end. remove them from set of paths.
         mark possible intersections around them.
         """
-        assert len(set(paths)) == len(paths), "double removal"
+        assert len(set(paths)) == len(paths)
+
         for path in paths:
             if path not in self.terminated_paths:
                 self.cut_paths.append(path)
-                try:
-                    node = self.crossed_paths.find_object(path)
-                except:
-                    print("failed finding", path,
-                          "in tree, at", self.current_x)
-                    self.tycat()
-                    tycat(self.crossed_paths.ordered_contents(), path)
-                    self.crossed_paths.debug_find(path)
-                    raise
-
-                neighbours = node.neighbours()
-                node.remove()
-
-                if len(neighbours) == 2:
-                    self._try_intersecting(neighbours)
+                self._remove_path(path)
 
     def tycat(self):
         """
         display current state.
+        zoom on current point and display graph.
         """
-        tycat(self.cut_paths, *self.crossed_paths.ordered_contents())
+        tycat(self.cut_paths, self.current_point,
+              *self.crossed_paths.ordered_contents())
+        tycat([s.clip(self.current_point, 0.01)
+               for s in self.cut_paths],
+              self.current_point,
+              *[s.clip(self.current_point, 0.01)
+                for s in self.crossed_paths.ordered_contents()])
         self.crossed_paths.tycat()
 
-    def _try_intersecting(self, nodes):
+    def _add_path(self, path):
+        """
+        new path found. add it to set of paths.
+        """
+        node = self.crossed_paths.add(path)
+        neighbour, intersection = self._nearest_intersecting_neighbour(
+            node)
+        if intersection is not None:
+            self._intersect_nodes((node, neighbour), intersection)
+
+    def _nearest_intersecting_neighbour(self, node):
+        """
+        return amongst all neighbours the one with the nearest intersection
+        (together with the intersection).
+        """
+        neighbours = node.neighbours()
+        if not neighbours:
+            return (None, None)
+
+        if len(neighbours) == 1:
+            return (neighbours[0], self._find_intersection((node,
+                                                            neighbours[0])))
+
+        intersections = [self._find_intersection((node, n))
+                         for n in neighbours]
+        if intersections[0] is None and intersections[1] is None:
+            return (None, None)
+        if intersections[0] is None:
+            selected = 1
+        elif intersections[1] is None:
+            selected = 0
+        else:
+            if intersections[0] < intersections[1]:
+                selected = 0
+            else:
+                selected = 1
+        return (neighbours[selected], intersections[selected])
+
+    def _remove_path(self, path):
+        """
+        remove given path from tree and intersect neighbours.
+        """
+        try:
+            node = self.crossed_paths.find_object(path)
+        except:
+            print("failed finding", path, "in tree, at", self.current_point)
+            self.tycat()
+            tycat(self.crossed_paths.ordered_contents(), path)
+            self.crossed_paths.debug_find(path)
+            raise
+
+        neighbours = node.neighbours()
+        node.remove()
+
+        if len(neighbours) == 2:
+            intersection = self._find_intersection(neighbours)
+            if intersection is not None:
+                self._intersect_nodes(neighbours, intersection)
+
+    def _find_intersection(self, nodes):
         """
         check possible intersections.
-        return if any intersection.
-        pre-condition : node[0].content < node[1].content
         """
         paths = [n.content for n in nodes]
         intersection = paths[0].intersection_with_segment(paths[1])
         if intersection is None:
-            return False
+            return
         intersection = ROUNDER2D.hash_point(intersection)
+        if intersection in paths[0].endpoints and \
+                intersection in paths[1].endpoints:
+            # not really an intersection
+            return
+        if __debug__:
+            if is_module_debugged(__name__):
+                print("intersecting:",
+                      [str(p) for p in paths], "at", intersection)
+                tycat([s.clip(intersection, 0.01)
+                       for s in self.cut_paths],
+                      intersection,
+                      *[s.clip(intersection, 0.01)
+                        for s in self.crossed_paths.ordered_contents()])
+        return intersection
 
-        smaller_than_small_node = nodes[0].nearest_node(False)
-        bigger_than_big_node = nodes[1].nearest_node(True)
+    def _intersect_nodes(self, nodes, intersection):
+        """
+        apply given intersection to both nodes.
+        pre-condition: intersection is in both nodes' paths.
+        """
         for node in nodes:
-            node.remove()
-            self.terminated_paths.add(node.content)
+            self._split_path(node, intersection)
 
-        # when crossing you need to test for intersections on the other side
-        self._split_path(paths[0], intersection, bigger_than_big_node, True)
-        self._split_path(paths[1], intersection,
-                         smaller_than_small_node, False)
-
-        return True
-
-    def _split_path(self, path, split_point, neighbour_node, big_neighbour):
+    def _split_path(self, node, split_point):
         """
-        split path into chunks. add them back into system, eventually
-        intersecting neighbour.
-        we need as information:
-            - the path to split
-            - the splitting point
-            - the neighbour which might be intersected after crossing
-            - the direction of this neighbour from path
+        split node's path into chunks.
         """
+        path = node.content
         if path.endpoints[0] < path.endpoints[1]:
             start, end = path.split_around(split_point)
         else:
             end, start = path.split_around(split_point)
 
-        if split_point.get_x() == self.current_x:
-            if start is not None:
-                self.cut_paths.append(start)
-            if end is not None:
-                # it starts here : add it to tree
-                node = self.crossed_paths.add(end)
-                # check intersection with neighbour right now
-                if neighbour_node is not None:
-                    if big_neighbour:
-                        self._try_intersecting((node, neighbour_node))
-                    else:
-                        self._try_intersecting((neighbour_node, node))
+        if start is None or end is None:
+            return  # this path is not really intersected
+
+        node.remove()
+        self.terminated_paths.add(path)
+
+        assert not split_point < self.current_point
+        if split_point == self.current_point:
+            # start is finished and end is already started
+            self.cut_paths.append(start)
+            node = self.crossed_paths.add(end)
         else:
-            if start is not None:
-                self.crossed_paths.add(start)
-                self.add_end_event(start, split_point.get_x())
-            if end is not None:
-                # if starting later : add as event
-                coordinates = sorted([p.get_x() for p in end.endpoints])
-                self.add_path_events(end, coordinates)
+            # start is not yet finished and end is not started
+            self.crossed_paths.add(start)
+            self.add_end_event(start, split_point)
+            self.add_path_events(end, sorted(end.endpoints))
 
 
 def kuhn_munkres(paths):
