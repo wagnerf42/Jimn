@@ -127,10 +127,10 @@ class KuhnMunkres(SweepingLineAlgorithm):
             if is_module_debugged(__name__):
                 print("intersecting:",
                       [str(p) for p in paths], "at", intersection)
-                tycat([s.clip(intersection, 0.01)
+                tycat([s.clip(intersection, 0.00001)
                        for s in self.cut_paths],
                       intersection,
-                      *[s.clip(intersection, 0.01)
+                      *[s.clip(intersection, 0.00001)
                         for s in self.crossed_paths.ordered_contents()])
         return intersection
 
@@ -141,6 +141,15 @@ class KuhnMunkres(SweepingLineAlgorithm):
         """
         for node in nodes:
             self._split_path(node, intersection)
+
+        if __debug__:
+            if is_module_debugged(__name__):
+                print("after intersection:")
+                tycat([s.clip(intersection, 0.01)
+                       for s in self.cut_paths],
+                      intersection,
+                      *[s.clip(intersection, 0.01)
+                        for s in self.crossed_paths.ordered_contents()])
 
     def _split_path(self, node, split_point):
         """
@@ -158,11 +167,24 @@ class KuhnMunkres(SweepingLineAlgorithm):
         node.remove()
         self.terminated_paths.add(path)
 
-        assert not split_point < self.current_point
+        if __debug__:
+            if split_point < self.current_point:
+                print("current point is", self.current_point)
+                print("split point is", split_point)
+                tycat([s.clip(split_point, 0.01)
+                       for s in self.cut_paths],
+                      split_point,
+                      self.current_point,
+                      *[s.clip(split_point, 0.01)
+                        for s in self.crossed_paths.ordered_contents()])
+                self.crossed_paths.tycat()
+                # raise Exception("intersection going back")
+
         if split_point == self.current_point:
             # start is finished and end is already started
             self.cut_paths.append(start)
             node = self.crossed_paths.add(end)
+            self.add_end_event(end, max(end.endpoints))
         else:
             # start is not yet finished and end is not started
             self.crossed_paths.add(start)

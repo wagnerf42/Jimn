@@ -84,17 +84,20 @@ class SweepingLineAlgorithm:
         # start by finding the path's y for current x
         point_key = Point([current_x,
                            path.vertical_intersection_at(current_x)])
-        point_key = ROUNDER2D.hash_point(point_key)
+        # point_key = ROUNDER2D.hash_point(point_key)
 
         # now figure out which direction we leave the point
         # TODO: better documentation
         # TODO: split
         if isinstance(path, Segment):
-            if self.current_point < point_key:
-                forward_point = min(path.endpoints)
+            if point_key.is_almost(path.endpoints[0]):
+                forward_point = path.endpoints[1]
+            elif point_key.is_almost(path.endpoints[1]):
+                forward_point = path.endpoints[0]
             else:
                 forward_point = max(path.endpoints)
         else:
+            # TODO: triple check
             tangent_points = path.tangent_points(point_key)
             oriented_points = list(sorted(path.endpoints))
             if point_key <= self.current_point:
@@ -108,7 +111,10 @@ class SweepingLineAlgorithm:
                 forward_point = tangent_points[1]
 
         # compute and convert angle from horizontal to vertical
-        angle_key = (5 * pi/2 - point_key.angle_with(forward_point)) % (2*pi)
+        if forward_point > point_key:
+            angle_key = (pi/2 - point_key.angle_with(forward_point)) % (2*pi)
+        else:
+            angle_key = (point_key.angle_with(forward_point) - pi/2) % (2*pi)
         return (point_key.get_y(), angle_key)
 
     def add_path_events(self, path, points):
@@ -155,7 +161,7 @@ class SweepingLineAlgorithm:
                 if self.current_point > event_point:
                     print("faulty point :", event_point,
                           "current point :", self.current_point)
-                    raise Exception("event going back")
+                    #raise Exception("event going back")
         try:
             self.remove_paths(ending_paths)
         except:

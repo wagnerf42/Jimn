@@ -6,7 +6,7 @@ from jimn.elementary_path import ElementaryPath
 from jimn.bounding_box import BoundingBox
 from jimn.point import Point
 from jimn.utils.coordinates_hash import LINES_ROUNDER
-from jimn.utils.precision import check_precision, is_almost, PRECISION
+from jimn.utils.precision import is_almost, PRECISION
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.tour import tour
@@ -226,15 +226,20 @@ class Segment(ElementaryPath):
         """
         x_1, y_1 = self.endpoints[0].coordinates
         x_2, y_2 = self.endpoints[1].coordinates
-        if x_1 == x_2:
-            if not is_almost(intersecting_x, x_1):
+        if is_almost(x_1, x_2):
+            if is_almost(intersecting_x, x_1):
+                min_point = min(self.endpoints)
+                return min_point.get_y()
+            else:
                 return None
-            # when vertical, we return coordinate of lowest point
-            return self.lowest_endpoint().get_y()
-        if __debug__:
-            check_precision(x_1, x_2, 'vertical_intersection_at')
+        if is_almost(intersecting_x, x_1):
+            return y_1
+        if is_almost(intersecting_x, x_2):
+            return y_2
+
         slope = (y_2-y_1)/(x_2-x_1)
-        return y_1 + slope*(intersecting_x-x_1)
+        intersecting_y = y_1 + slope*(intersecting_x-x_1)
+        return intersecting_y
 
     def translate(self, translation):
         """

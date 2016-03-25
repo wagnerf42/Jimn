@@ -82,7 +82,7 @@ class Point:
         svg display for tycat.
         """
         svg_coordinates = display.convert_coordinates(self.coordinates)
-        stroke_width = display.stroke_width()
+        stroke_width = 2*display.stroke_width()
         display.write("<circle cx=\"{}\" cy=\"{}\"".format(*svg_coordinates))
         display.write(" r=\"{}\" fill=\"{}\" opacity=\"0.5\"/>\n".format(
             stroke_width, color))

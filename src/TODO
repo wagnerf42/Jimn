@@ -1,11 +1,10 @@
+clean km and sweeping lines : about going back might be ok
 change vertical intersection code
-back to old coords hash -> check precision is really the one we want
 move seg clip in elem path
 km for arcs
 
 	-> debug kuhn munkres
 
-relire coordinates hash
 change basic sweeping line algorithm
 	-> rewrite inclusion tree
 
