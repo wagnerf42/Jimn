@@ -25,6 +25,14 @@ class DummyComparer:
         """
         return thing
 
+class ConflictingKeys(Exception):
+    """
+    raised when inserting an element which key is already in tree.
+    """
+    def __init__(self, existing_node, new_content):
+        super().__init__("conflict")
+        self.existing_node = existing_node
+        self.new_content = new_content
 
 class Treap(Tree):
     """
@@ -57,10 +65,16 @@ class Treap(Tree):
         return new node.
         """
         content_key = self.comparer.key(content)
-        direction = self.comparer.key(self.content) < content_key
+        node_key = self.comparer.key(self.content)
+        if content_key == node_key:
+            raise ConflictingKeys(self, content)
+        direction = node_key < content_key
         node = self
         while node.children[direction] is not None:
             node = node.children[direction]
+            node_key = self.comparer.key(node.content)
+            if content_key == node_key:
+                raise ConflictingKeys(node, content)
             direction = self.comparer.key(node.content) < content_key
 
         new_child = Treap(content)
@@ -177,6 +191,7 @@ class Treap(Tree):
         """
         label of given node for dot file.
         """
+        # pylint: disable=no-member
         if self._is_sentinel():
             return str(self.content) + " / " + str(self.priority)
         else:
@@ -214,6 +229,7 @@ class Treap(Tree):
         find where it went wrong in find algorithm.
         pre-requisite: self is root
         """
+        # pylint: disable=no-member
         assert self.children[True] is None
         assert self._is_sentinel(), "debug finds on root node only."
 

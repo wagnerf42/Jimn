@@ -6,6 +6,7 @@ from jimn.displayable import tycat
 from jimn.algorithms.sweeping_line_algorithms import SweepingLineAlgorithm
 from jimn.utils.coordinates_hash import ROUNDER2D
 from jimn.utils.debug import is_module_debugged
+from jimn.tree.treap import ConflictingKeys
 
 
 class KuhnMunkres(SweepingLineAlgorithm):
@@ -23,7 +24,20 @@ class KuhnMunkres(SweepingLineAlgorithm):
         new paths found. add them to set of paths.
         """
         for path in paths:
-            self._add_path(path)
+            try:
+                self._add_path(path)
+            except ConflictingKeys as conflict:
+                # we have overlapping paths. we need to remove overlap.
+                # 1) figure out what is left
+                chunks = conflict.existing_node.content.remove_overlap_with(
+                    conflict.new_content
+                )
+                # remove everyone from tree and events
+                self.terminated_paths.add(conflict.existing_node.content)
+                self.terminated_paths.add(conflict.new_content)
+                conflict.existing_node.remove()
+                # add chunks back to the system
+                self._handle_chunks(chunks)
 
     def remove_paths(self, paths):
         """
@@ -150,6 +164,13 @@ class KuhnMunkres(SweepingLineAlgorithm):
                       intersection,
                       *[s.clip(intersection, 0.01)
                         for s in self.crossed_paths.ordered_contents()])
+
+    def _handle_chunks(self, chunks):
+        """
+        some paths changed. handle their remains
+        (decide whether or not to insert them now, later, never)
+        """
+        raise Exception("TODO")
 
     def _split_path(self, node, split_point):
         """
