@@ -196,40 +196,14 @@ class KuhnMunkres(SweepingLineAlgorithm):
         split node's path into chunks.
         """
         path = node.content
-        if path.endpoints[0] < path.endpoints[1]:
-            start, end = path.split_around(split_point)
-        else:
-            end, start = path.split_around(split_point)
+        chunks = path.split_around(split_point)
 
-        if start is None or end is None:
+        if chunks[0] is None or chunks[1] is None:
             return  # this path is not really intersected
 
         node.remove()
         self.terminated_paths.add(path)
-
-        if __debug__:
-            if split_point < self.current_point:
-                print("current point is", self.current_point)
-                print("split point is", split_point)
-                tycat([s.clip(split_point, 0.01)
-                       for s in self.cut_paths],
-                      split_point,
-                      self.current_point,
-                      *[s.clip(split_point, 0.01)
-                        for s in self.crossed_paths.ordered_contents()])
-                self.crossed_paths.tycat()
-                # raise Exception("intersection going back")
-
-        if split_point == self.current_point:
-            # start is finished and end is already started
-            self.cut_paths.append(start)
-            node = self.crossed_paths.add(end)
-            self.add_end_event(end, max(end.endpoints))
-        else:
-            # start is not yet finished and end is not started
-            self.crossed_paths.add(start)
-            self.add_end_event(start, split_point)
-            self.add_path_events(end, sorted(end.endpoints))
+        self._handle_chunks(chunks)
 
 
 def kuhn_munkres(paths):
