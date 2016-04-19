@@ -200,6 +200,12 @@ class Point:
         """
         return self.coordinates < other.coordinates
 
+    def __le__(self, other):
+        return self.coordinates <= other.coordinates
+
+    def __ge__(self, other):
+        return self.coordinates >= other.coordinates
+
     def __str__(self):
         """
         print code generating the point.

@@ -165,12 +165,31 @@ class KuhnMunkres(SweepingLineAlgorithm):
                       *[s.clip(intersection, 0.01)
                         for s in self.crossed_paths.ordered_contents()])
 
+    def _is_chunk_completed(self, chunk):
+        """
+        return if given path chunk is ending before current point.
+        """
+        return max(chunk.endpoints) <= self.current_point
+
+    def _is_chunk_started(self, chunk):
+        """
+        return if given path chunk is started before current point.
+        """
+        return min(chunk.endpoints) <= self.current_point
+
     def _handle_chunks(self, chunks):
         """
         some paths changed. handle their remains
         (decide whether or not to insert them now, later, never)
         """
-        raise Exception("TODO")
+        for chunk in chunks:
+            if self._is_chunk_completed(chunk):
+                self.cut_paths.append(chunk)
+            elif self._is_chunk_started(chunk):
+                self.crossed_paths.add(chunk)
+                self.add_end_event(chunk, max(chunk.endpoints))
+            else:
+                self.add_path_events(chunk, sorted(chunk.endpoints))
 
     def _split_path(self, node, split_point):
         """
