@@ -44,10 +44,11 @@ class KuhnMunkres(SweepingLineAlgorithm):
         paths end. remove them from set of paths.
         mark possible intersections around them.
         """
-        assert len(set(paths)) == len(paths)
-
         for path in paths:
             if path not in self.terminated_paths:
+                # overlapped paths can appear twice or more in paths
+                # but will be terminated before reaching inside
+                # this conditional
                 self.cut_paths.append(path)
                 self._remove_path(path)
 
