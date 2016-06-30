@@ -93,38 +93,44 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
             # do if we are inside, we simply count number of segments
             # traversed when going in one direction (here up)
             # s1 >= s2 means s1 above and higher than s2 (not strictly)
-            above_segments = [s for s in segments if new_segment < s]
-            return len(above_segments) % 2 == 1
+            current_x = new_segment.endpoints[0].get_x()
+            y_coordinates = [s.vertical_intersection_at(current_x)
+                             for s in segments]
+            limit_y = new_segment.endpoints[0].get_y()
+            return len([y for y in y_coordinates if y <= limit_y]) % 2 == 1
 
-    def add_path(self, segment):
+    def add_paths(self, paths):
         """
-        new path handler. check if new polygon.
+        new paths handler. check each time if new polygon.
         """
-        polygon_id = segment.get_polygon_id()
-        self.current_paths[polygon_id].append(segment)
+        paths = sorted(paths, key=lambda p: p.height, reverse=True)
+        for path in paths:
+            polygon_id = path.get_polygon_id()
+            self.current_paths[polygon_id].append(path)
 
-        if polygon_id not in self.seen_polygons:
-            # this guy is new, categorize it
-            # add it in tree
-            self.add_polygon_in_tree(segment)
+            if polygon_id not in self.seen_polygons:
+                # this guy is new, categorize it
+                # add it in tree
+                self.add_polygon_in_tree(path)
 
-            # mark it as seen
-            self.seen_polygons.add(polygon_id)
-            if __debug__:
-                if is_module_debugged(__name__):
-                    print("added polygon", segment.polygon.label,
-                          "( h =", segment.height, ")")
-                    self.tree.tycat()
+                # mark it as seen
+                self.seen_polygons.add(polygon_id)
+                if __debug__:
+                    if is_module_debugged(__name__):
+                        print("added polygon", id(path.polygon),
+                              "( h =", path.height, ")")
+                        self.tree.tycat()
 
-    def remove_path(self, path):
+    def remove_paths(self, paths):
         """
-        remove path handler. check if last of polygon.
+        remove paths handler. check each time if last of polygon.
         """
-        polygon_id = path.get_polygon_id()
-        self.current_paths[polygon_id].remove(path)
-        if not self.current_paths[polygon_id]:
-            del self.current_paths[polygon_id]
-            self.__terminate_polygon(polygon_id)
+        for path in paths:
+            polygon_id = path.get_polygon_id()
+            self.current_paths[polygon_id].remove(path)
+            if not self.current_paths[polygon_id]:
+                del self.current_paths[polygon_id]
+                self.__terminate_polygon(polygon_id)
 
 
 def _non_vertical_segments(polygon, height):

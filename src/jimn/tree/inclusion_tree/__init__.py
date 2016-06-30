@@ -6,6 +6,7 @@ no distinction between holes and filled_spaces now.
 distinction will be made later when converting to polygon_tree.
 """
 from jimn.tree.translated_tree import TranslatedTree
+from jimn.polygon import Polygon
 
 
 class InclusionTree(TranslatedTree):
@@ -62,3 +63,12 @@ class InclusionTree(TranslatedTree):
         if (self.content is not None) and not self.is_polygon:
             grandfather.children.extend(self.children)
             self.remove_children()
+
+
+def __polygon_label(self):
+    """
+    return label of polygon for interactive display in tree.
+    """
+    return str(id(self))
+
+setattr(Polygon, 'get_dot_label', __polygon_label)

@@ -1,5 +1,8 @@
 """
-main class for sweeping line algorithms.
+main module for sweeping line algorithms.
+
+provides a 'SweepingLineAlgorithm' class to derive from.
+factorizes common operations between different algorithms.
 """
 from collections import defaultdict
 from math import pi
@@ -7,7 +10,6 @@ from heapq import heappush, heappop
 from jimn.point import Point
 from jimn.segment import Segment
 from jimn.tree.treap import Treap
-from jimn.utils.coordinates_hash import ROUNDER2D
 from jimn.utils.debug import is_module_debugged
 from jimn.displayable import tycat
 from jimn.elementary_path import ElementaryPath
@@ -32,9 +34,6 @@ class SweepingLineAlgorithm:
 
         def remove_paths(self, path):
             ... remove a set of paths from set of current paths ...
-
-        def handle_vertical_paths(self, path):
-            ... take care of all vertical paths at current x ...
 
     events can be added to the system by calling
         add_path_events (adding both start and end)
@@ -161,7 +160,6 @@ class SweepingLineAlgorithm:
                 if self.current_point > event_point:
                     print("faulty point :", event_point,
                           "current point :", self.current_point)
-                    #raise Exception("event going back")
         try:
             self.remove_paths(ending_paths)
         except:
