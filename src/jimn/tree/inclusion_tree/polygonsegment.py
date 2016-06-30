@@ -39,6 +39,3 @@ class PolygonSegment(Segment):
             return True
         else:
             return False
-
-    def __lt__(self, other):
-        raise Exception("polygon segment comparison in use")

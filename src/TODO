@@ -5,13 +5,8 @@ km for arcs
 
 	-> debug kuhn munkres
 
-change basic sweeping line algorithm
-	-> rewrite inclusion tree
 
 remove segment and arc comparison
-remove polygonsegment comparison
-
-cordoba: 0.3 0.1 -> overlap of milled areas
 
 segment: merge all intersections code together
 -> we need conditional to switch between the different algorithms

@@ -2,7 +2,6 @@
 bounding boxes are rectangular boxes delimiting a set of items.
 they are usually used in display to compute image sizes.
 """
-
 from jimn.utils.precision import is_almost
 
 
@@ -110,6 +109,45 @@ class BoundingBox:
         """
         return (self.min_coordinates, self.max_coordinates)
 
+    def get_bounding_box(self):
+        """
+        we can display boxes themselves.
+        so just return ourselves if asked our dimenstions.
+        """
+        return self
+
+    def save_svg_content(self, display, color):
+        """
+        svg code for displaying box.
+        pre-requisite: 2d box
+        """
+        points = [
+            Point(list(self.min_coordinates)),
+            Point(list(self.max_coordinates))
+        ]
+        coordinates = [
+            display.convert_coordinates(p.coordinates) for p in points
+        ]
+        stroke_width = display.stroke_width()
+        for indices in (
+                ((0, 0), (0, 1)),
+                ((0, 1), (1, 1)),
+                ((1, 1), (1, 0)),
+                ((1, 0), (0, 0))
+        ):
+            display.write("<line x1=\"{}\" y1=\"{}\"\
+                          x2=\"{}\" y2=\"{}\"".format(
+                              coordinates[indices[0][0]][0],
+                              coordinates[indices[0][1]][1],
+                              coordinates[indices[1][0]][0],
+                              coordinates[indices[1][1]][1]
+                          ))
+            display.write(" stroke-width=\"{}\" stroke=\"{}\"\
+                          opacity=\"0.5\"/>\n".format(stroke_width, color))
+
     def __str__(self):
         return('BoundingBox([{}], [{}])'.format(self.min_coordinates,
                                                 self.max_coordinates))
+
+
+from jimn.point import Point

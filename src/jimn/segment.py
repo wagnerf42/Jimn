@@ -122,7 +122,6 @@ class Segment(ElementaryPath):
         nearly aligned segments will hash
         on same value.
         """
-        raise Exception("REDO")
         (x_1, y_1), (x_2, y_2) = [p.coordinates for p in self.endpoints]
         if is_almost(x_1, x_2):
             return str(LINES_ROUNDER.hash_point(Point([x_1])))

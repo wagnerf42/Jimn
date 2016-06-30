@@ -23,6 +23,7 @@ def compute_overlap_positions(outer_path, inner_nodes, milling_radius):
     for node in inner_nodes:
         envelope = Envelope(node.old_pocket, milling_radius)
         box = node.old_pocket.get_bounding_box()
+        box.inflate(milling_radius)
         untested_nodes[id(node)] = (node, box, envelope)
 
     # we start from end of outer path because we are interested in last
