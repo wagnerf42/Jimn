@@ -56,6 +56,8 @@ class SweepingLineAlgorithm:
             self.add_path_events(path, sorted(path.endpoints))
 
         self.current_point = None  # current point in sweeping movement
+        # (with respect to content of crossed paths)
+        self.incoming_point = None  # position in sweeping movement
 
         # visible paths at current_point
         # we put a sentinel as root node whose key values at +infinity
@@ -160,6 +162,8 @@ class SweepingLineAlgorithm:
                 if self.current_point > event_point:
                     print("faulty point :", event_point,
                           "current point :", self.current_point)
+                    raise Exception("going back")
+        self.incoming_point = event_point
         try:
             self.remove_paths(ending_paths)
         except:
@@ -167,6 +171,9 @@ class SweepingLineAlgorithm:
             raise
 
         self.current_point = event_point
+        # remove current point from seen points
+        # to allow seeing it again in case of intersections
+        self.seen_points.discard(self.current_point)
 
         sorted_paths = sorted(starting_paths, key=self.key)
         self.add_paths(sorted_paths)

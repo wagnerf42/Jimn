@@ -23,7 +23,7 @@ def test(seconds=None):
 
     segments = [Segment([ROUNDER2D.hash_point(Point([random(), random()])),
                          ROUNDER2D.hash_point(Point([random(), random()]))])
-                for _ in range(20)]
+                for _ in range(200)]
     # print(",\n        ".join([str(s) for s in segments]))
     try:
         small_segments = kuhn_munkres(segments)
@@ -43,7 +43,7 @@ def main():
         print("using seed", sys.argv[1])
         tycat(*test(sys.argv[1]))
     else:
-        for _ in range(500):
+        for _ in range(200):
             test()
         print("done")
 

@@ -16,7 +16,7 @@ class KuhnMunkres(SweepingLineAlgorithm):
     def __init__(self, paths):
         self.cut_paths = []  # results
         self.terminated_paths = set()  # paths cancelled before their endpoint
-        # we need it since we cannot remove cancel events from the heap
+        # we need it since we cannot cancel events from the heap
         super().__init__(paths)
 
     def add_paths(self, paths):
@@ -24,6 +24,8 @@ class KuhnMunkres(SweepingLineAlgorithm):
         new paths found. add them to set of paths.
         """
         for path in paths:
+            if path in self.terminated_paths:
+                continue  # happens on intersections
             try:
                 self._add_path(path)
             except ConflictingKeys as conflict:
@@ -119,6 +121,7 @@ class KuhnMunkres(SweepingLineAlgorithm):
 
         neighbours = node.neighbours()
         node.remove()
+        self.terminated_paths.add(path)
 
         if len(neighbours) == 2:
             intersection = self._find_intersection(neighbours)
@@ -170,13 +173,14 @@ class KuhnMunkres(SweepingLineAlgorithm):
         """
         return if given path chunk is ending before current point.
         """
-        return max(chunk.endpoints) <= self.current_point
+        return max(chunk.endpoints) <= self.incoming_point
 
     def _is_chunk_started(self, chunk):
         """
-        return if given path chunk is started before current point.
+        return if given path chunk is started before (strictly)
+        current point.
         """
-        return min(chunk.endpoints) <= self.current_point
+        return min(chunk.endpoints) < self.incoming_point
 
     def _handle_chunks(self, chunks):
         """
@@ -201,7 +205,6 @@ class KuhnMunkres(SweepingLineAlgorithm):
 
         if chunks[0] is None or chunks[1] is None:
             return  # this path is not really intersected
-
         node.remove()
         self.terminated_paths.add(path)
         self._handle_chunks(chunks)
@@ -210,7 +213,7 @@ class KuhnMunkres(SweepingLineAlgorithm):
 def kuhn_munkres(paths):
     """
     intersect a set of paths.
-    return a defaultdict with paths as keys and intersections as values.
+    return list of elementary paths.
     """
     intersecter = KuhnMunkres(paths)
     return intersecter.cut_paths
