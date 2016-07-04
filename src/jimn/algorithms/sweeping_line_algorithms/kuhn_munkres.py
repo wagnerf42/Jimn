@@ -13,11 +13,11 @@ class KuhnMunkres(SweepingLineAlgorithm):
     """
     this class computes all intersections in a set of paths.
     """
-    def __init__(self, paths):
+    def __init__(self, paths, cut_arcs=False):
         self.cut_paths = []  # results
         self.terminated_paths = set()  # paths cancelled before their endpoint
         # we need it since we cannot cancel events from the heap
-        super().__init__(paths)
+        super().__init__(paths, cut_arcs)
 
     def add_paths(self, paths):
         """
@@ -31,6 +31,8 @@ class KuhnMunkres(SweepingLineAlgorithm):
             except ConflictingKeys as conflict:
                 # we have overlapping paths. we need to remove overlap.
                 # 1) figure out what is left
+                tycat(conflict.existing_node.content, conflict.new_content)
+                raise Exception("no way")
                 chunks = conflict.existing_node.content.remove_overlap_with(
                     conflict.new_content
                 )
@@ -133,10 +135,18 @@ class KuhnMunkres(SweepingLineAlgorithm):
         check possible intersections.
         """
         paths = [n.content for n in nodes]
-        intersection = paths[0].intersection_with_segment(paths[1])
-        if intersection is None:
+        intersections = paths[0].intersections_with(paths[1])
+        intersections = [
+            i for i in intersections
+            if not i.is_almost(self.current_point) and
+            i not in paths[0].endpoints and
+            i not in paths[1].endpoints
+        ]
+        if not intersections:
             return
-        intersection = ROUNDER2D.hash_point(intersection)
+
+        # take leftmost intersection
+        intersection = ROUNDER2D.hash_point(min(intersections))
         if intersection in paths[0].endpoints and \
                 intersection in paths[1].endpoints:
             # not really an intersection
@@ -210,10 +220,10 @@ class KuhnMunkres(SweepingLineAlgorithm):
         self._handle_chunks(chunks)
 
 
-def kuhn_munkres(paths):
+def kuhn_munkres(paths, cut_arcs=False):
     """
     intersect a set of paths.
     return list of elementary paths.
     """
-    intersecter = KuhnMunkres(paths)
+    intersecter = KuhnMunkres(paths, cut_arcs)
     return intersecter.cut_paths

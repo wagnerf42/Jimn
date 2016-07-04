@@ -9,6 +9,7 @@ from math import pi
 from heapq import heappush, heappop
 from jimn.point import Point
 from jimn.segment import Segment
+from jimn.arc import Arc
 from jimn.tree.treap import Treap
 from jimn.utils.debug import is_module_debugged
 from jimn.displayable import tycat
@@ -40,7 +41,7 @@ class SweepingLineAlgorithm:
         or
         add_end_event (adding only end event)
     """
-    def __init__(self, paths):
+    def __init__(self, paths, cut_arcs=False):
         """
         prepare for sweeping line algorithm on a set of paths.
         """
@@ -52,8 +53,11 @@ class SweepingLineAlgorithm:
         # all starting and ending paths
         self.paths = [defaultdict(list), defaultdict(list)]
 
-        for path in paths:
-            self.add_path_events(path, sorted(path.endpoints))
+        if cut_arcs:
+            self._add_cut_arcs(paths)
+        else:
+            for path in paths:
+                self.add_path_events(path, sorted(path.endpoints))
 
         self.current_point = None  # current point in sweeping movement
         # (with respect to content of crossed paths)
@@ -65,6 +69,19 @@ class SweepingLineAlgorithm:
         self.crossed_paths.set_comparer(self)
 
         self._run()
+
+    def _add_cut_arcs(self, paths):
+        """
+        insert given paths events.
+        arcs are cut into smaller pieces preventing vertical overlaps.
+        """
+        for path in paths:
+            if isinstance(path, Arc):
+                arcs = path.horizontal_split()
+                for arc in arcs:
+                    self.add_path_events(arc, sorted(arc.endpoints))
+            else:
+                self.add_path_events(path, sorted(path.endpoints))
 
     def key(self, path):
         """
@@ -152,8 +169,11 @@ class SweepingLineAlgorithm:
     def _run(self):
         while self.events:
             event_point = heappop(self.events)
-            self._handle_events(event_point, self.paths[0][event_point],
-                                self.paths[1][event_point])
+            event_paths = []
+            for paths in self.paths:
+                event_paths.append(paths[event_point])
+                del paths[event_point]
+            self._handle_events(event_point, event_paths[0], event_paths[1])
 
     def _handle_events(self, event_point, starting_paths, ending_paths):
         # pylint: disable=no-member

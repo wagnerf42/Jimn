@@ -44,6 +44,27 @@ class Arc(ElementaryPath):
         else:
             self.center = possible_centers[1]
 
+    def horizontal_split(self):
+        """
+        split ourselves on arcs such that for any given x, each arc
+        only has one point.
+        return array of sub-arcs.
+        """
+        extreme_points = [self.center + Point([f*self.radius, 0])
+                          for f in (-1, 1)]
+        for extremum in extreme_points:
+            if self.endpoints[0].is_almost(extremum) or\
+                    self.endpoints[1].is_almost(extremum):
+                continue
+            if self.contains(extremum):
+                return [
+                    Arc(self.radius, [self.endpoints[0], extremum],
+                        self.center, self.reversed_direction),
+                    Arc(self.radius, [extremum, self.endpoints[1]],
+                        self.center, self.reversed_direction)
+                ]
+        return [self]
+
     def length(self):
         """
         return arc length.
@@ -66,6 +87,7 @@ class Arc(ElementaryPath):
         """
         if self.angle() > pi:
             self.reversed_direction = True
+        return self
 
     def horizontal_intersections_at(self, intersecting_y, xmin, xmax):
         """
@@ -161,16 +183,18 @@ class Arc(ElementaryPath):
 
     def vertical_intersection_at(self, intersecting_x):
         """return y of lowest intersection given vertical line"""
-        if self.is_almost_vertical():
-            assert intersecting_x == self.endpoints[0].get_x()
-            return self.lowest_endpoint().get_y()
+        min_point, max_point = sorted(self.endpoints)
+        if is_almost(min_point.get_x(), intersecting_x):
+            return min_point.get_y()
+        elif is_almost(max_point.get_x(), intersecting_x):
+            return max_point.get_y()
 
-        squared_radius = self.radius * self.radius
         intersections = \
             vline_circle_intersections(intersecting_x,
-                                       self.center, squared_radius)
+                                       self.center, self.radius)
 
-        candidates = [i for i in intersections if self.contains_circle_point(i)]
+        candidates = [i for i in intersections
+                      if self.contains_circle_point(i)]
         if __debug__ and not candidates:
             print(self, intersecting_x, [str(i) for i in intersections])
             tycat(self, intersections)
@@ -232,6 +256,10 @@ class Arc(ElementaryPath):
         outside_point = contained_point * 2 - self.center
         return [outside_point.rotate_around(contained_point, c*pi/2)
                 for c in (-1, 1)]
+
+    def clip(self, center, size):
+        # TODO: see segment.py
+        return self
 
     def __eq__(self, other):
         if not isinstance(other, Arc):

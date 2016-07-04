@@ -66,14 +66,15 @@ def circles_intersections(c1, c2, r1, r2):
             return points
 
 
-def vline_circle_intersections(x, center, squared_radius):
+def vline_circle_intersections(x, center, radius):
     """
     intersection of circle with vertical line at given x.
     """
-    distance = x - center.get_x()
-    squared_distance = distance * distance
-    if is_almost(squared_radius, squared_distance):
+    distance = abs(x - center.get_x())
+    if is_almost(radius, distance):
         return [Point([x, center.get_y()])]
+    squared_distance = distance * distance
+    squared_radius = radius * radius
     if squared_distance > squared_radius:
         return []
     y = sqrt(squared_radius - squared_distance)
