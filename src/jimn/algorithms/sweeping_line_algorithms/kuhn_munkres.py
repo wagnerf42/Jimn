@@ -31,8 +31,6 @@ class KuhnMunkres(SweepingLineAlgorithm):
             except ConflictingKeys as conflict:
                 # we have overlapping paths. we need to remove overlap.
                 # 1) figure out what is left
-                tycat(conflict.existing_node.content, conflict.new_content)
-                raise Exception("no way")
                 chunks = conflict.existing_node.content.remove_overlap_with(
                     conflict.new_content
                 )

@@ -83,12 +83,13 @@ class Stl:
                 return False
             size_struct = struct.Struct('I')
             size = size_struct.unpack(packed_size)[0]
-            data = stl_file.read(size*(4*3*4+2)) # read all file
-            #  for each facet : 4 vectors of 3 floats + 2 unused bytes
             facet_struct = struct.Struct('12fh')
-            for fields in facet_struct.iter_unpack(data):
-                new_facet = binary_facet(fields,
-                                         self.heights_hash, self.bounding_box)
+            for _ in range(size):
+                data = stl_file.read(4*3*4+2)
+                #  for each facet : 4 vectors of 3 floats + 2 unused bytes
+                fields = facet_struct.unpack(data)
+                new_facet = binary_facet(fields, self.heights_hash,
+                                         self.bounding_box)
                 self.facets.append(new_facet)
 
     def parse_ascii_stl(self, file_name):
