@@ -1,7 +1,6 @@
 """
 hash nearby points together in O(1).
 """
-from copy import copy
 from jimn.utils.precision import coordinate_key, displaced_coordinate_key, \
     PRECISION
 
@@ -47,7 +46,7 @@ class CoordinatesHash:
             key = self._compute_key(key_index, point)
             keys.append(key)
             if key in points_hash:
-                return copy(points_hash[key])
+                return points_hash[key].copy()
 
         # new point ; store it
         for key, points_hash in zip(keys, self.hashes):

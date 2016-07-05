@@ -30,6 +30,13 @@ class Arc(ElementaryPath):
         super().__init__(points)
         assert self.radius > 0, "0 or negative radius"
 
+    def copy(self):
+        """
+        return a deepcopy of given arc.
+        """
+        return Arc(self.radius, [p.copy() for p in self.endpoints],
+                   self.center.copy(), self.reversed_direction)
+
     def adjust_center(self):
         """
         center was not completely right.
@@ -285,3 +292,4 @@ class Arc(ElementaryPath):
 
     def __lt__(self, other):
         raise Exception("arc comparison still in use")
+

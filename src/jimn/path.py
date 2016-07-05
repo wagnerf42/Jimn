@@ -30,6 +30,12 @@ class Path:
     def __init__(self, elementary_paths):
         self.elementary_paths = elementary_paths
 
+    def copy(self):
+        """
+        return a deepcopy of given path.
+        """
+        return Path([p.copy() for p in self.elementary_paths])
+
     def get_first_point(self):
         """
         return first point in path

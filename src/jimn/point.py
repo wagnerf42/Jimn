@@ -31,6 +31,12 @@ class Point:
         """
         self.coordinates = coordinates
 
+    def copy(self):
+        """
+        return copy of given point.
+        """
+        return Point(list(self.coordinates))
+
     def distance_to(self, other):
         """
         euclidean distance between two points.

@@ -1,7 +1,6 @@
 """
 path trees are created from pockets tree by milling pockets.
 """
-from copy import deepcopy
 from itertools import combinations
 from jimn.utils.points_containers import nearest_point, nearest_points
 from jimn.displayable import tycat
@@ -219,8 +218,9 @@ def _pocket_node_to_path_node(pocket_node, milling_radius):
     else:
         outer_edge = pocket.outer_edge
         if pocket in PathTree.paths_cache:
-            # TODO: careful with that stuff (what about orders in holed pockets)
-            path = deepcopy(PathTree.paths_cache[pocket])
+            # TODO: careful with that stuff
+            # (what about orders in holed pockets)
+            path = PathTree.paths_cache[pocket].copy()
         else:
             try:
                 graph = build_graph(pocket, 2*milling_radius, True)

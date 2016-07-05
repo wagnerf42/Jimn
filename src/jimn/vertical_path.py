@@ -13,6 +13,12 @@ class VerticalPath:
     def __init__(self, direction):
         self.direction = direction
 
+    def copy(self):
+        """
+        return a deepcopy of given vertical path.
+        """
+        return VerticalPath(self.direction)
+
     def update_height(self, height):
         """
         take a height before path and return height after path.

@@ -38,6 +38,13 @@ class Segment(ElementaryPath):
         """
         super().__init__(points)
 
+    def copy(self):
+        """
+        return duplicate of given segment (no shared points with original,
+        they are also copied).
+        """
+        return Segment([p.copy() for p in self.endpoints])
+
     def length(self):
         """
         return length of segment.

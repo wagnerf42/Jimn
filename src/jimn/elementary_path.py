@@ -2,7 +2,6 @@
 base class for segments or arcs.
 basic path between two endpoints (oriented).
 """
-from copy import copy, deepcopy
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost, SEGMENT_LIMIT
@@ -78,9 +77,9 @@ class ElementaryPath:
 
         paths = []
         for point1, point2 in zip(sorted_points[:-1], sorted_points[1:]):
-            path_chunk = deepcopy(self)
-            path_chunk.endpoints[0] = copy(point1)
-            path_chunk.endpoints[1] = copy(point2)
+            path_chunk = self.copy()
+            path_chunk.endpoints[0] = point1.copy()
+            path_chunk.endpoints[1] = point2.copy()
             paths.append(path_chunk)
 
         if __debug__:
@@ -109,10 +108,10 @@ class ElementaryPath:
         elif intermediate_point.is_almost(self.endpoints[1]):
             before = self
         else:
-            before = deepcopy(self)
-            after = deepcopy(self)
-            before.endpoints[1] = copy(intermediate_point)
-            after.endpoints[0] = copy(intermediate_point)
+            before = self.copy()
+            after = self.copy()
+            before.endpoints[1] = intermediate_point.copy()
+            after.endpoints[0] = intermediate_point
         return (before, after)
 
     def is_almost_vertical(self):
