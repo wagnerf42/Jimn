@@ -23,7 +23,7 @@ class Facet:
         """
         returns the three segments forming the facet
         """
-        return list(Segment([p, q]) for p, q in all_two_elements(self.points))
+        return [Segment([p, q]) for p, q in all_two_elements(self.points)]
 
     def is_vertical(self):
         """
@@ -43,11 +43,14 @@ class Facet:
             points[point.coordinates[2] > height].append(point)
         return points
 
-    def intersect(self, height, segments, remaining_facets, translation_vector):
-        """intersect facet at given height
+    def intersect(self, height, segments, remaining_facets,
+                  translation_vector):
+        """
+        intersect facet at given height
         if intersection is a segment add it to segments list
         if facet is not strictly above plane add it to remaining_facets
-        for later use"""
+        for later use
+        """
         lower_points, higher_points = self._find_points_above_and_below(height)
         if len(higher_points) != 3:  # are we reused later ?
             remaining_facets.append(self)
@@ -125,7 +128,6 @@ def segment_plane_intersection(self, intersecting_z, translation_vector):
 
     intersecting_x = x_1 + (intersecting_z - z_1)/(z_2 - z_1)*(x_2 - x_1)
     intersecting_y = y_1 + (intersecting_z - z_1)/(z_2 - z_1)*(y_2 - y_1)
-    # TODO: add conditionals for precision problems
 
-    return ROUNDER2D.hash_point(Point([intersecting_x, intersecting_y])
-                                + translation_vector)
+    return ROUNDER2D.hash_point(Point([intersecting_x, intersecting_y]) +
+                                translation_vector)

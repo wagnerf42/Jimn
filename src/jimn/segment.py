@@ -51,7 +51,9 @@ class Segment(ElementaryPath):
         """
         return a new segment with sorted endpoints.
         """
-        return Segment(list(sorted(self.endpoints)))
+        if self.endpoints[0] > self.endpoints[1]:
+            self.endpoints = [self.endpoints[1], self.endpoints[0]]
+        return self
 
     def horizontal_intersection_at(self, intersecting_y):
         """

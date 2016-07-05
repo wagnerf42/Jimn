@@ -73,7 +73,7 @@ class ElementaryPath:
                                            (2,2) -- (3,3)
                                            (3,3) -- (4,4)
         """
-        points = list(set([p for a in (self.endpoints, points) for p in a]))
+        points = set([p for a in (self.endpoints, points) for p in a])
         sorted_points = sorted(points, key=self.distance_from_start)
 
         paths = []

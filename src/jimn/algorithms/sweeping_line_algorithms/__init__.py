@@ -117,7 +117,7 @@ class SweepingLineAlgorithm:
         else:
             # TODO: triple check
             tangent_points = path.tangent_points(point_key)
-            oriented_points = list(sorted(path.endpoints))
+            oriented_points = sorted(path.endpoints)
             if point_key <= self.current_point:
                 direction = oriented_points[1] - oriented_points[0]
             else:
@@ -139,10 +139,6 @@ class SweepingLineAlgorithm:
         """
         at start and end events for given path at given points.
         """
-        if points[0].get_x() == points[1].get_x():
-            print("discarding vertical path")
-            return
-
         for index, point in enumerate(points):
             if point not in self.seen_points:
                 self.seen_points.add(point)

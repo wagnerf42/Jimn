@@ -81,7 +81,10 @@ def __split_arcs(self, milling_diameter):
         points.extend(self.horizontal_intersections_at(milling_y,
                                                        *box.limits(0)))
 
-    return self.split_at(points)
+    if points:
+        return self.split_at(points)
+    else:
+        return [self]
 
 
 def __split_segments(self, milling_diameter):
@@ -97,7 +100,11 @@ def __split_segments(self, milling_diameter):
         self.horizontal_intersection_at(y)
         for y in milling_heights(*y_limits,
                                  milling_diameter=milling_diameter)]
-    return self.split_at(intersections)
+    if intersections:
+        return self.split_at(intersections)
+    else:
+        return [self]
+
 
 def __adjust_point(self, milling_diameter):
     """
