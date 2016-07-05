@@ -67,9 +67,9 @@ class Polygon:
             if points[0].is_aligned_with(points[1], points[2]):
                 removed_points.add(points[1])
 
-        self.points = [p for p in self.points if p not in removed_points]
-
-        assert len(self.points) > 2
+        new_points = [p for p in self.points if p not in removed_points]
+        assert len(new_points) > 2
+        return Polygon(new_points)
 
     def segments(self):
         """
@@ -92,7 +92,7 @@ class Polygon:
         true if polygon is oriented clockwise.
         """
         area = self.area()
-        assert not is_almost(area, 0), "flat polygon"
+        assert not is_almost(area, 0), "flat or crossing polygon"
         return area > 0
 
     def orient(self, clockwise=True):

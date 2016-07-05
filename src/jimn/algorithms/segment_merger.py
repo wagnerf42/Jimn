@@ -38,7 +38,9 @@ class SegmentMerger:
                 self.counters[point] += value
 
         # now sort points
-        self.sorted_points = sorted(self.counters.keys())
+        first_point = min(self.counters.keys())
+        self.sorted_points = sorted(self.counters.keys(),
+                                    key=lambda p: p.distance_to(first_point))
 
     def _odd_segments_on_line(self, line_hash):
         """

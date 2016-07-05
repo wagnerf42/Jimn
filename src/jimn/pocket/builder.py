@@ -5,7 +5,7 @@ from collections import defaultdict
 from jimn.pocket import Pocket
 from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
-from jimn.utils.precision import SEGMENT_LIMIT
+from jimn.utils.precision import SEGMENT_LIMIT, is_almost
 
 
 class PocketsBuilder:
@@ -173,6 +173,10 @@ def build_polygons(paths):
             tycat(paths, poly.points)
             raise
         if not clockwise and abs(poly.area()) > SEGMENT_LIMIT:
-            poly.remove_useless_points()
-            polygons.append(poly)
+            simpler_poly = poly.remove_useless_points()
+            if __debug__:
+                if is_almost(poly.area(), 0):
+                    tycat(simpler_poly, poly)
+                    raise Exception("BADPOLYGON")
+            polygons.append(simpler_poly)
     return polygons
