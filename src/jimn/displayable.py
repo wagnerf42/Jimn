@@ -16,8 +16,8 @@ class Displayer:
     svg_dimensions = (800, 600)
     margin = 20
     svg_colors = tuple('red green blue purple orange saddlebrown mediumseagreen\
-                       darkolivegreen darkred dimgray mediumpurple midnightblue\
-                       olive chartreuse darkorchid hotpink lightskyblue peru\
+                       darkolivegreen lightskyblue dimgray mediumpurple midnightblue\
+                       olive chartreuse darkorchid hotpink darkred peru\
                        goldenrod mediumslateblue orangered darkmagenta\
                        darkgoldenrod mediumslateblue firebrick palegreen\
                        royalblue tan tomato springgreen pink orchid\

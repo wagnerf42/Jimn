@@ -279,7 +279,7 @@ class Treap(Tree):
                     searched = big_child._raw_search(searched_object)
                     if searched is not None:
                         print("we found it in bigger children")
-                        tycat(node.content, searched_object)
+                        tycat(searched_object, node.content)
 
                 return
 

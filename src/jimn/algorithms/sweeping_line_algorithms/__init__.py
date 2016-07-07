@@ -65,7 +65,7 @@ class SweepingLineAlgorithm:
 
         # visible paths at current_point
         # we put a sentinel as root node whose key values at +infinity
-        self.crossed_paths = Treap((float("+inf"), 0), root_node=True)
+        self.crossed_paths = Treap((float("+inf"), 0, 0), root_node=True)
         self.crossed_paths.set_comparer(self)
 
         self._run()
@@ -117,10 +117,10 @@ class SweepingLineAlgorithm:
             angles = (outgoing_angle, terminal_angle)
 
         # now just reverse angles based on direction
-        if last_point > point_key:
-            full_key = (point_key.get_y(), angles[0], angles[1])
-        else:
+        if last_point.is_almost(point_key):
             full_key = (point_key.get_y(), -angles[0], -angles[1])
+        else:
+            full_key = (point_key.get_y(), angles[0], angles[1])
         return full_key
 
     def add_path_events(self, path, points):
