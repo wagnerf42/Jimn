@@ -2,7 +2,6 @@
 a path is a list of arcs, segments or vertical paths
 """
 import os
-from copy import copy
 from math import floor
 from collections import defaultdict
 from jimn.utils.coordinates_hash import CoordinatesHash
@@ -121,13 +120,13 @@ class Path:
         total_length = self.length()
         steps_length = total_length / PATH_IMAGES
 
-        svg_paths_strings = defaultdict(list)  # strings for seen paths
         seen_envelopes = []  # all paths moved upon and seen
-        unseen_envelopes = []  # all paths moved upon but unseen
+        unseen_envelopes = []  # all paths moved upon but yet unseen
         bounding_box = BoundingBox.empty_box(2)  # their boxes
         last_used_box = BoundingBox.empty_box(2)  # last box used in display
         # if box does not change between two displays, we can keep
         # all generated strings
+        svg_paths_strings = defaultdict(list)
 
         current_height = 0
         current_length = 0
@@ -156,8 +155,9 @@ class Path:
                     floor(new_length / steps_length):
                 _display_animation(last_used_box, bounding_box,
                                    seen_envelopes, unseen_envelopes,
-                                   svg_paths_strings, height_colors)
-                last_used_box = copy(bounding_box)
+                                   svg_paths_strings,
+                                   height_colors)
+                last_used_box = bounding_box.copy()
 
             current_length = new_length
 
@@ -213,10 +213,11 @@ def _display_animation(last_used_box, bounding_box,
 
     # invalidate strings cache if needed
     if last_used_box != bounding_box:
+        print("box changed", last_used_box, bounding_box)
         seen_envelopes.extend(unseen_envelopes)
-        unseen_envelopes = seen_envelopes
-        seen_envelopes = []
-        svg_paths_strings = defaultdict(list)
+        unseen_envelopes[:] = seen_envelopes
+        seen_envelopes.clear()
+        svg_paths_strings.clear()
 
     # compute missing strings
     display = tycat_start(None, bounding_box)
@@ -231,6 +232,8 @@ def _display_animation(last_used_box, bounding_box,
             display.write(string)
 
     tycat_end(display)
+    seen_envelopes.extend(unseen_envelopes)
+    unseen_envelopes.clear()
 
 
 def __segment_display_string(self, display):

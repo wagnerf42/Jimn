@@ -13,6 +13,13 @@ class BoundingBox:
         self.min_coordinates = list(min_coordinates)
         self.max_coordinates = list(max_coordinates)
 
+    def copy(self):
+        """
+        return deepcopy of given box.
+        """
+        return BoundingBox(
+            list(self.min_coordinates), list(self.max_coordinates))
+
     @classmethod
     def empty_box(cls, dimension):
         """
@@ -144,6 +151,10 @@ class BoundingBox:
                           ))
             display.write(" stroke-width=\"{}\" stroke=\"{}\"\
                           opacity=\"0.5\"/>\n".format(stroke_width, color))
+
+    def __eq__(self, other):
+        return (self.min_coordinates == other.min_coordinates) and\
+            (self.max_coordinates == other.max_coordinates)
 
     def __str__(self):
         return('BoundingBox([{}], [{}])'.format(self.min_coordinates,
