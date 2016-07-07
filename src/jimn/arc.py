@@ -260,6 +260,7 @@ class Arc(ElementaryPath):
         on each side.
         pre-requisite: we contain contained point.
         """
+        assert self.contains(contained_point)
         outside_point = contained_point * 2 - self.center
         return [outside_point.rotate_around(contained_point, c*pi/2)
                 for c in (-1, 1)]

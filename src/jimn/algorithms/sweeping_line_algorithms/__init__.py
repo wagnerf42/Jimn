@@ -86,7 +86,7 @@ class SweepingLineAlgorithm:
     def key(self, path):
         """
         return comparison key for given path, at current point.
-        (key is: current_y ; outgoing angle)
+        (key is: current_y ; outgoing angle ; terminal angle)
         pre-condition: path contains current point's x coordinate in its range.
         """
         if not isinstance(path, ElementaryPath):
@@ -102,38 +102,19 @@ class SweepingLineAlgorithm:
         # start by finding the path's y for current x
         point_key = Point([current_x,
                            path.vertical_intersection_at(current_x)])
-        # point_key = ROUNDER2D.hash_point(point_key)
 
-        # now figure out which direction we leave the point
-        # TODO: better documentation
-        # TODO: split
+        terminal_angle = key_terminal_angle(path.endpoints)
         if isinstance(path, Segment):
-            if point_key.is_almost(path.endpoints[0]):
-                forward_point = path.endpoints[1]
-            elif point_key.is_almost(path.endpoints[1]):
-                forward_point = path.endpoints[0]
-            else:
-                forward_point = max(path.endpoints)
+            angles = (terminal_angle, terminal_angle)
         else:
-            # TODO: triple check
-            tangent_points = path.tangent_points(point_key)
-            oriented_points = sorted(path.endpoints)
-            if point_key <= self.current_point:
-                direction = oriented_points[1] - oriented_points[0]
-            else:
-                direction = oriented_points[0] - oriented_points[1]
+            angles = (key_outgoing_angle(path, point_key), terminal_angle)
 
-            if direction.scalar_product(tangent_points[0]-point_key) > 0:
-                forward_point = tangent_points[0]
-            else:
-                forward_point = tangent_points[1]
-
-        # compute and convert angle from horizontal to vertical
-        if forward_point > point_key:
-            angle_key = (pi/2 - point_key.angle_with(forward_point)) % (2*pi)
+        # now just reverse angles based on direction
+        if max(path.endpoints) > point_key:
+            full_key = (point_key.get_y(), angles[0], angles[1])
         else:
-            angle_key = (point_key.angle_with(forward_point) - pi/2) % (2*pi)
-        return (point_key.get_y(), angle_key)
+            full_key = (point_key.get_y(), -angles[0], -angles[1])
+        return full_key
 
     def add_path_events(self, path, points):
         """
@@ -198,3 +179,22 @@ class SweepingLineAlgorithm:
             if is_module_debugged(__name__):
                 print("current point =", self.current_point)
                 self.tycat()
+
+
+def key_terminal_angle(points):
+    """
+    angle of line going through points and vertical line
+    """
+    if points[0] > points[1]:
+        return (pi/2 - points[1].angle_with(points[0])) % (2*pi)
+    else:
+        return (pi/2 - points[0].angle_with(points[1])) % (2*pi)
+
+
+def key_outgoing_angle(arc, tangent_point):
+    """
+    angle of tangent line of arc at tangent point and vertical line
+    """
+    points = arc.tangent_points(tangent_point)
+    last_point = max(points)
+    return key_terminal_angle((tangent_point, last_point))
