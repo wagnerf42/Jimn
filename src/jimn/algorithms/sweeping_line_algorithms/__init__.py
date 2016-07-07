@@ -103,14 +103,21 @@ class SweepingLineAlgorithm:
         point_key = Point([current_x,
                            path.vertical_intersection_at(current_x)])
 
-        terminal_angle = key_terminal_angle(path.endpoints)
+        if path.endpoints[0] < path.endpoints[1]:
+            first_point, last_point = path.endpoints
+        else:
+            last_point, first_point = path.endpoints
+
+        terminal_angle = (pi/2 - first_point.angle_with(last_point)) % pi
+
         if isinstance(path, Segment):
             angles = (terminal_angle, terminal_angle)
         else:
-            angles = (key_outgoing_angle(path, point_key), terminal_angle)
+            outgoing_angle = (pi - path.center.angle_with(point_key)) % pi
+            angles = (outgoing_angle, terminal_angle)
 
         # now just reverse angles based on direction
-        if max(path.endpoints) > point_key:
+        if last_point > point_key:
             full_key = (point_key.get_y(), angles[0], angles[1])
         else:
             full_key = (point_key.get_y(), -angles[0], -angles[1])
@@ -186,15 +193,13 @@ def key_terminal_angle(points):
     angle of line going through points and vertical line
     """
     if points[0] > points[1]:
-        return (pi/2 - points[1].angle_with(points[0])) % (2*pi)
+        return (pi/2 - points[1].angle_with(points[0])) % pi
     else:
-        return (pi/2 - points[0].angle_with(points[1])) % (2*pi)
+        return (pi/2 - points[0].angle_with(points[1])) % pi
 
 
 def key_outgoing_angle(arc, tangent_point):
     """
     angle of tangent line of arc at tangent point and vertical line
     """
-    points = arc.tangent_points(tangent_point)
-    last_point = max(points)
-    return key_terminal_angle((tangent_point, last_point))
+    return (pi - arc.center.angle_with(tangent_point)) % pi

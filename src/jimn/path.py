@@ -213,7 +213,6 @@ def _display_animation(last_used_box, bounding_box,
 
     # invalidate strings cache if needed
     if last_used_box != bounding_box:
-        print("box changed", last_used_box, bounding_box)
         seen_envelopes.extend(unseen_envelopes)
         unseen_envelopes[:] = seen_envelopes
         seen_envelopes.clear()
