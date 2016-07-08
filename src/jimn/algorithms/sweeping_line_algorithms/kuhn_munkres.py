@@ -212,6 +212,12 @@ class KuhnMunkres(SweepingLineAlgorithm):
         chunks = path.split_around(split_point)
 
         if chunks[0] is None or chunks[1] is None:
+            # event if path is not intersected, if it starts
+            # now, we need to check if starting point is now and
+            # is re-inserted in the system
+            if self.current_point == split_point:
+                node.remove()
+                self._handle_chunks([path])
             return  # this path is not really intersected
         node.remove()
         self.terminated_paths.add(path)
