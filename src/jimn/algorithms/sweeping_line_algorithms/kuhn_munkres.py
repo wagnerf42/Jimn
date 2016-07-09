@@ -15,44 +15,46 @@ class KuhnMunkres(SweepingLineAlgorithm):
     """
     def __init__(self, paths, cut_arcs=False):
         self.cut_paths = []  # results
-        self.terminated_paths = set()  # paths cancelled before their endpoint
         # we need it since we cannot cancel events from the heap
         super().__init__(paths, cut_arcs)
 
-    def add_paths(self, paths):
+    def add_path(self, path):
         """
-        new paths found. add them to set of paths.
+        new path found. add it to set of paths.
         """
-        for path in paths:
-            if path in self.terminated_paths:
-                continue  # happens on intersections
-            try:
-                self._add_path(path)
-            except ConflictingKeys as conflict:
-                # we have overlapping paths. we need to remove overlap.
-                # 1) figure out what is left
-                chunks = conflict.existing_node.content.remove_overlap_with(
-                    conflict.new_content
-                )
-                # remove everyone from tree and events
-                self.terminated_paths.add(conflict.existing_node.content)
-                self.terminated_paths.add(conflict.new_content)
-                conflict.existing_node.remove()
-                # add chunks back to the system
-                self._handle_chunks(chunks)
+        try:
+            node = self.crossed_paths.add(path)
+            neighbour, intersection = self._nearest_intersecting_neighbour(
+                node)
+            if intersection is not None:
+                self._intersect_nodes((node, neighbour), intersection)
 
-    def remove_paths(self, paths):
+        except ConflictingKeys as conflict:
+            # we have overlapping paths. we need to remove overlap.
+            # 1) figure out what is left
+            chunks = conflict.existing_node.content.remove_overlap_with(
+                conflict.new_content
+            )
+            # remove everyone from tree and events
+            self.events.remove((
+                max(conflict.existing_node.content.endpoints),
+                conflict.existing_node.content
+                ))
+            self.events.remove((
+                max(conflict.new_content.endpoints),
+                conflict.new_content
+                ))
+            conflict.existing_node.remove()
+            # add chunks back to the system
+            self._handle_chunks(chunks)
+
+    def remove_path(self, path):
         """
-        paths end. remove them from set of paths.
-        mark possible intersections around them.
+        path ends. remove it from set of paths.
+        check possible intersections around.
         """
-        for path in paths:
-            if path not in self.terminated_paths:
-                # overlapped paths can appear twice or more in paths
-                # but will be terminated before reaching inside
-                # this conditional
-                self.cut_paths.append(path)
-                self._remove_path(path)
+        self.cut_paths.append(path)
+        self._remove_path(path)
 
     def tycat(self):
         """
@@ -67,16 +69,6 @@ class KuhnMunkres(SweepingLineAlgorithm):
               *[s.clip(self.current_point, 0.01)
                 for s in self.crossed_paths.ordered_contents()])
         self.crossed_paths.tycat()
-
-    def _add_path(self, path):
-        """
-        new path found. add it to set of paths.
-        """
-        node = self.crossed_paths.add(path)
-        neighbour, intersection = self._nearest_intersecting_neighbour(
-            node)
-        if intersection is not None:
-            self._intersect_nodes((node, neighbour), intersection)
 
     def _nearest_intersecting_neighbour(self, node):
         """
@@ -121,7 +113,6 @@ class KuhnMunkres(SweepingLineAlgorithm):
 
         neighbours = node.neighbours()
         node.remove()
-        self.terminated_paths.add(path)
 
         if len(neighbours) == 2:
             intersection = self._find_intersection(neighbours)
@@ -136,9 +127,8 @@ class KuhnMunkres(SweepingLineAlgorithm):
         intersections = paths[0].intersections_with(paths[1])
         intersections = [
             i for i in intersections
-            if not i.is_almost(self.current_point) and
-            i not in paths[0].endpoints and
-            i not in paths[1].endpoints
+            if (i not in paths[0].endpoints or
+                i not in paths[1].endpoints)
         ]
         if not intersections:
             return
@@ -181,14 +171,14 @@ class KuhnMunkres(SweepingLineAlgorithm):
         """
         return if given path chunk is ending before current point.
         """
-        return max(chunk.endpoints) <= self.incoming_point
+        return max(chunk.endpoints) <= self.current_point
 
     def _is_chunk_started(self, chunk):
         """
         return if given path chunk is started before (strictly)
         current point.
         """
-        return min(chunk.endpoints) < self.incoming_point
+        return min(chunk.endpoints) < self.current_point
 
     def _handle_chunks(self, chunks):
         """
@@ -217,10 +207,17 @@ class KuhnMunkres(SweepingLineAlgorithm):
             # is re-inserted in the system
             if self.current_point == split_point:
                 node.remove()
+                self.events.remove((
+                    max(node.content.endpoints),
+                    node.content
+                    ))
                 self._handle_chunks([path])
             return  # this path is not really intersected
         node.remove()
-        self.terminated_paths.add(path)
+        self.events.remove((
+            max(node.content.endpoints),
+            node.content
+            ))
         self._handle_chunks(chunks)
 
 

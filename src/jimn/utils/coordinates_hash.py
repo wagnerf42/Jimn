@@ -106,6 +106,14 @@ class CoordinatesHash:
         key = ";".join(key_parts)
         return key
 
+    def clear(self):
+        """
+        remove all content.
+        """
+        for coordinate_hash in self.hashes:
+            coordinate_hash.clear()
+        self.fast_hash.clear()
+
 
 ROUNDER2D = CoordinatesHash(PRECISION-1)  # we take precision-1 to ensure
 # all almost same points hash together

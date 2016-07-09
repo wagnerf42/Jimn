@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import unittest
+from jimn.utils.coordinates_hash import ROUNDER2D
 from jimn.point import Point
 from jimn.segment import Segment
 from jimn.arc import Arc
@@ -88,6 +89,10 @@ DANGEROUS_INPUTS = [
 class Test_KuhnMunkres(unittest.TestCase):
     def test1(self):
         for number, input_paths in enumerate(DANGEROUS_INPUTS):
+            ROUNDER2D.clear()
+            for path in input_paths:
+                for point in path.endpoints:
+                    ROUNDER2D.hash_point(point)
             print("testing km, test number", number)
             for _ in range(RANDOM_RANGE):
                 kuhn_munkres(input_paths)
