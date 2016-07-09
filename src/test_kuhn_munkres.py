@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+"""
+this file contains all problematic examples found so for, generating
+rounding errors for the kuhn munkres algorithm.
+"""
 import unittest
 from jimn.utils.coordinates_hash import ROUNDER2D
 from jimn.point import Point
@@ -9,6 +13,19 @@ from jimn.algorithms.sweeping_line_algorithms.kuhn_munkres import kuhn_munkres
 RANDOM_RANGE = 30
 
 DANGEROUS_INPUTS = [
+    [
+        Segment([Point([0.21130667698516703, 0.4123131441764676]),
+                 Point([0.8126674687128319, 0.16757138161122065])]),
+        Arc(
+            0.1562943692585149,
+            [
+                Point([0.18976017512192975, 0.47458964130790454]),
+                Point([0.46016618292550204, 0.4145864838648128])
+            ],
+            Point([0.3406565633880263, 0.5153107644525876]),
+            False
+        )
+    ],
     [
         Segment([Point([0.175259762235896, 0.501870332127234]),
                  Point([0.3926712752486011, 0.3673897790549907])]),

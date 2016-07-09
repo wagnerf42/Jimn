@@ -125,6 +125,7 @@ class KuhnMunkres(SweepingLineAlgorithm):
         """
         paths = [n.content for n in nodes]
         intersections = paths[0].intersections_with(paths[1])
+        intersections = [ROUNDER2D.hash_point(i) for i in intersections]
         intersections = [
             i for i in intersections
             if (i not in paths[0].endpoints or
@@ -132,13 +133,8 @@ class KuhnMunkres(SweepingLineAlgorithm):
         ]
         if not intersections:
             return
+        intersection = min(intersections)
 
-        # take leftmost intersection
-        intersection = ROUNDER2D.hash_point(min(intersections))
-        if intersection in paths[0].endpoints and \
-                intersection in paths[1].endpoints:
-            # not really an intersection
-            return
         if __debug__:
             if is_module_debugged(__name__):
                 print("intersecting:",
