@@ -25,7 +25,7 @@ class PolygonSegment(Segment):
         return key used for comparing polygonsegments in sweeping
         line algorithms.
         """
-        return (*super().sweeping_key(current_x), self.height)
+        return (*super().sweeping_key(current_x), -self.height)
 
     def __eq__(self, other):
         """
