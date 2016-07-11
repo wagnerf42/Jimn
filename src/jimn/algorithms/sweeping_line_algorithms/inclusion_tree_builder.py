@@ -99,38 +99,35 @@ class InclusionTreeBuilder(SweepingLineAlgorithm):
             limit_y = new_segment.endpoints[0].get_y()
             return len([y for y in y_coordinates if y <= limit_y]) % 2 == 1
 
-    def add_paths(self, paths):
+    def add_path(self, path):
         """
-        new paths handler. check each time if new polygon.
+        new path handler. check each time if new polygon.
         """
-        paths = sorted(paths, key=lambda p: p.height, reverse=True)
-        for path in paths:
-            polygon_id = path.get_polygon_id()
-            self.current_paths[polygon_id].append(path)
+        polygon_id = path.get_polygon_id()
+        self.current_paths[polygon_id].append(path)
 
-            if polygon_id not in self.seen_polygons:
-                # this guy is new, categorize it
-                # add it in tree
-                self.add_polygon_in_tree(path)
+        if polygon_id not in self.seen_polygons:
+            # this guy is new, categorize it
+            # add it in tree
+            self.add_polygon_in_tree(path)
 
-                # mark it as seen
-                self.seen_polygons.add(polygon_id)
-                if __debug__:
-                    if is_module_debugged(__name__):
-                        print("added polygon", id(path.polygon),
-                              "( h =", path.height, ")")
-                        self.tree.tycat()
+            # mark it as seen
+            self.seen_polygons.add(polygon_id)
+            if __debug__:
+                if is_module_debugged(__name__):
+                    print("added polygon", id(path.polygon),
+                          "( h =", path.height, ")")
+                    self.tree.tycat()
 
-    def remove_paths(self, paths):
+    def remove_path(self, path):
         """
-        remove paths handler. check each time if last of polygon.
+        remove path handler. check each time if last of polygon.
         """
-        for path in paths:
-            polygon_id = path.get_polygon_id()
-            self.current_paths[polygon_id].remove(path)
-            if not self.current_paths[polygon_id]:
-                del self.current_paths[polygon_id]
-                self.__terminate_polygon(polygon_id)
+        polygon_id = path.get_polygon_id()
+        self.current_paths[polygon_id].remove(path)
+        if not self.current_paths[polygon_id]:
+            del self.current_paths[polygon_id]
+            self.__terminate_polygon(polygon_id)
 
 
 def _non_vertical_segments(polygon, height):

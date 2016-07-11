@@ -306,6 +306,36 @@ class Segment(ElementaryPath):
 
         return intersections
 
+    def sweeping_key(self, current_x):
+        """
+        return key used for comparing paths in sweeping line algorithms.
+        for any given vline at x, key is current intersection on self and
+        direction towards which we go (twice).
+        """
+        if __debug__:
+            x_coordinates = sorted([p.get_x() for p in self.endpoints])
+            if not x_coordinates[0] <= current_x <= x_coordinates[1]:
+                print("path is", self, "current x is:", current_x)
+                raise Exception("non comparable paths in tree")
+
+        # start by finding the path's y for current x
+        point_key = Point([current_x,
+                           self.vertical_intersection_at(current_x)])
+
+        # we dont use sorted since this function is critical to performances
+        if self.endpoints[0] < self.endpoints[1]:
+            first_point, last_point = self.endpoints
+        else:
+            last_point, first_point = self.endpoints
+
+        terminal_angle = (pi/2 - first_point.angle_with(last_point)) % pi
+        # now just reverse angles based on direction
+        if last_point.is_almost(point_key):
+            full_key = (point_key, -terminal_angle, -terminal_angle)
+        else:
+            full_key = (point_key, terminal_angle, terminal_angle)
+        return full_key
+
     def clip(self, center, size):
         """
         clip self in square of given size at given center.

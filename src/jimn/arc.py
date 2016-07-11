@@ -254,6 +254,40 @@ class Arc(ElementaryPath):
         else:
             return adjusted_angles[0] < adjusted_angles[1]
 
+    def sweeping_key(self, current_x):
+        """
+        return key used in sweeping line algorithms for comparing paths.
+        key is : intersection with vline at current_x, direction angle
+        leaving intersection (following tangent), final angle (towards
+        destination)
+        """
+        if __debug__:
+            x_coordinates = sorted([p.get_x() for p in self.endpoints])
+            if not x_coordinates[0] <= current_x <= x_coordinates[1]:
+                print("path is", self, "current x is:", current_x)
+                raise Exception("non comparable paths in tree")
+
+        # start by finding the path's y for current x
+        point_key = Point([current_x,
+                           self.vertical_intersection_at(current_x)])
+
+        if self.endpoints[0] < self.endpoints[1]:
+            first_point, last_point = self.endpoints
+        else:
+            last_point, first_point = self.endpoints
+
+        terminal_angle = (pi/2 - first_point.angle_with(last_point)) % pi
+
+        outgoing_angle = (pi - self.center.angle_with(point_key)) % pi
+        angles = (outgoing_angle, terminal_angle)
+
+        # now just reverse angles based on direction
+        if last_point.is_almost(point_key):
+            full_key = (point_key, -angles[0], -angles[1])
+        else:
+            full_key = (point_key, angles[0], angles[1])
+        return full_key
+
     def clip(self, center, size):
         # TODO: see segment.py
         return self
@@ -282,4 +316,3 @@ class Arc(ElementaryPath):
 
     def __lt__(self, other):
         raise Exception("arc comparison still in use")
-

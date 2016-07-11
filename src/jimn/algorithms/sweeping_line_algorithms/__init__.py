@@ -47,7 +47,7 @@ class SweepingLineAlgorithm:
         # sweeping line algorithms are based on events
         # each event is meeting a new point
         self.events = SortedListWithKey(
-            key=lambda t: event_key(t[1], t[0].get_x()))
+            key=lambda t: t[1].sweeping_key(t[0].get_x()))
 
         if cut_arcs:
             self._add_cut_arcs(paths)
@@ -82,7 +82,9 @@ class SweepingLineAlgorithm:
         """
         return event key for given path at current x.
         """
-        return event_key(path, self.current_point.get_x())
+        if isinstance(path, tuple):
+            return path
+        return path.sweeping_key(self.current_point.get_x())
 
     def add_path_events(self, path, points):
         """
@@ -125,43 +127,3 @@ class SweepingLineAlgorithm:
                 if is_module_debugged(__name__):
                     print("current_point:", self.current_point)
                     self.tycat()
-
-
-def event_key(path, x_coordinate=None):
-    """
-    TODO: documentation
-    """
-    if not isinstance(path, ElementaryPath):
-        return path  # special case for sentinel : no need to compute
-
-    assert x_coordinate is not None, "TODO"
-    if __debug__:
-        x_coordinates = sorted([p.get_x() for p in path.endpoints])
-        if not x_coordinates[0] <= x_coordinate <= x_coordinates[1]:
-            print("path is", path, "current x is:", x_coordinate)
-            raise Exception("non comparable paths in tree")
-
-    # start by finding the path's y for current x
-    point_key = Point([x_coordinate,
-                       path.vertical_intersection_at(x_coordinate)])
-
-    if path.endpoints[0] < path.endpoints[1]:
-        first_point, last_point = path.endpoints
-    else:
-        last_point, first_point = path.endpoints
-
-    terminal_angle = (pi/2 - first_point.angle_with(last_point)) % pi
-
-    if isinstance(path, Segment):
-        angles = (terminal_angle, terminal_angle)
-    else:
-        outgoing_angle = (pi - path.center.angle_with(point_key)) % pi
-        angles = (outgoing_angle, terminal_angle)
-
-    # now just reverse angles based on direction
-    if last_point.is_almost(point_key):
-        full_key = (point_key, -angles[0], -angles[1])
-    else:
-        full_key = (point_key, angles[0], angles[1])
-    # print("key for", path, "is", [str(c) for c in full_key])
-    return full_key

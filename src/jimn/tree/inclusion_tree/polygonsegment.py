@@ -20,12 +20,12 @@ class PolygonSegment(Segment):
         """
         return id(self.polygon)
 
-    def comparison_key(self, point):
+    def sweeping_key(self, current_x):
         """
-        return key used for comparisons between segments.
+        return key used for comparing polygonsegments in sweeping
+        line algorithms.
         """
-        small_key = super().comparison_key(point)
-        return (small_key[0], small_key[1], self.height)
+        return (*super().sweeping_key(current_x), self.height)
 
     def __eq__(self, other):
         """
