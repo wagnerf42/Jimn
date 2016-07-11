@@ -2,7 +2,7 @@
 graphical display system.
 save objects sets as svg files and view them in terminology
 """
-
+from tempfile import NamedTemporaryFile
 from math import ceil
 import os
 import getpass
@@ -215,3 +215,25 @@ def tycat_set_svg_dimensions(width, height):
     sets dimension (screen size) of svg images displayed
     """
     Displayer.svg_dimensions = (width, height)
+
+
+def gnuplot(data):
+    """
+    display given multi-dimensional array with gnuplot.
+    """
+    with NamedTemporaryFile(mode="w") as data_file:
+        for line in data:
+            strings = [str(l) for l in line]
+            print(" ".join(strings), file=data_file)
+
+        data_file.flush()
+        command = "gnuplot -e \"set terminal pngcairo ;"
+        command += " set output \\\"/tmp/test.png\\\" ;"
+        command += " plot "
+        for index in range(1, len(data[0])):
+            command += \
+                " \\\"{}\\\" using 1:{} with linespoints, ".format(
+                    data_file.name, index+1)
+        command += "\""
+        os.system(command)
+        os.system("tycat /tmp/test.png")

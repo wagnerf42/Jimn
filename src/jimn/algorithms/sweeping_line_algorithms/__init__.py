@@ -79,6 +79,9 @@ class SweepingLineAlgorithm:
                 self.add_path_events(path, path.endpoints)
 
     def key(self, path):
+        """
+        return event key for given path at current x.
+        """
         return event_key(path, self.current_point.get_x())
 
     def add_path_events(self, path, points):
@@ -102,9 +105,9 @@ class SweepingLineAlgorithm:
         self.crossed_paths.tycat()
 
     def _run(self):
+        # pylint: disable=no-member
         while self.events:
-            event_point, event_path = self.events[0]
-            del self.events[0]
+            event_point, event_path = self.events.pop(0)
             if __debug__:
                 if self.current_point is not None:
                     if self.current_point > event_point:
@@ -122,23 +125,6 @@ class SweepingLineAlgorithm:
                 if is_module_debugged(__name__):
                     print("current_point:", self.current_point)
                     self.tycat()
-
-
-def key_terminal_angle(points):
-    """
-    angle of line going through points and vertical line
-    """
-    if points[0] > points[1]:
-        return (pi/2 - points[1].angle_with(points[0])) % pi
-    else:
-        return (pi/2 - points[0].angle_with(points[1])) % pi
-
-
-def key_outgoing_angle(arc, tangent_point):
-    """
-    angle of tangent line of arc at tangent point and vertical line
-    """
-    return (pi - arc.center.angle_with(tangent_point)) % pi
 
 
 def event_key(path, x_coordinate=None):

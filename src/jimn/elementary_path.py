@@ -72,6 +72,7 @@ class ElementaryPath:
                                            (2,2) -- (3,3)
                                            (3,3) -- (4,4)
         """
+        # pylint: disable=no-member
         points = set([p for a in (self.endpoints, points) for p in a])
         sorted_points = sorted(points, key=self.distance_from_start)
 
@@ -101,6 +102,7 @@ class ElementaryPath:
             start, end = segment.split_around(segment, Point([0, 0]))
             # start is None and end (0,0) -- (3,3)
         """
+        # pylint: disable=no-member
         after = None
         before = None
         if intermediate_point.is_almost(self.endpoints[0]):
@@ -145,3 +147,15 @@ class ElementaryPath:
             return self.endpoints[0]
         else:
             return self.endpoints[1]
+
+    def slope(self):
+        """
+        return slope of line going through endpoints.
+        """
+        (x_1, y_1), (x_2, y_2) = [p.coordinates for p in self.endpoints]
+        if is_almost(x_1, x_2):
+            if y_2 > y_1:
+                return float("inf")
+            else:
+                return float("-inf")
+        return (y_2 - y_1)/(x_2 - x_1)
