@@ -29,16 +29,14 @@ class SweepingLineAlgorithm:
 
     you then need to provide the following handlers as methods of your class:
 
-        def add_paths(self, paths):
-            ... add a set of paths to set of current paths ...
+        def add_path(self, path):
+            ... add given path to set of current paths ...
 
-        def remove_paths(self, path):
-            ... remove a set of paths from set of current paths ...
+        def remove_path(self, path):
+            ... remove given path from set of current paths ...
 
-    events can be added to the system by calling
-        add_path_events (adding both start and end)
-        or
-        add_end_event (adding only end event)
+    events can be added to the system by
+        adding directly to events attribute.
     """
     def __init__(self, paths, cut_arcs=False):
         """
@@ -53,7 +51,7 @@ class SweepingLineAlgorithm:
             self._add_cut_arcs(paths)
         else:
             for path in paths:
-                self.add_path_events(path, path.endpoints)
+                self.events.add((min(path.endpoints), path))
 
         self.current_point = None  # current point in sweeping movement
 
@@ -74,9 +72,9 @@ class SweepingLineAlgorithm:
             if isinstance(path, Arc):
                 arcs = path.horizontal_split()
                 for arc in arcs:
-                    self.add_path_events(arc, arc.endpoints)
+                    self.events.add((min(arc.endpoints), arc))
             else:
-                self.add_path_events(path, path.endpoints)
+                self.events.add((min(path.endpoints), path))
 
     def key(self, path):
         """
@@ -85,19 +83,6 @@ class SweepingLineAlgorithm:
         if isinstance(path, tuple):
             return path
         return path.sweeping_key(self.current_point.get_x())
-
-    def add_path_events(self, path, points):
-        """
-        at start and end events for given path at given points.
-        """
-        for point in points:
-            self.events.add((point, path))
-
-    def add_end_event(self, path, end_point):
-        """
-        add end event for given path.
-        """
-        self.events.add((end_point, path))
 
     def tycat(self):
         """
@@ -118,7 +103,10 @@ class SweepingLineAlgorithm:
                         raise Exception("going back")
 
             self.current_point = event_point
-            if max(event_path.endpoints) > event_point:
+            last_point = max(event_path.endpoints)
+
+            if last_point > event_point:
+                self.events.add((last_point, event_path))
                 self.add_path(event_path)
             else:
                 self.remove_path(event_path)

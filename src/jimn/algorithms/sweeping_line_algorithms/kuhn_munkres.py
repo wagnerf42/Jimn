@@ -186,9 +186,9 @@ class KuhnMunkres(SweepingLineAlgorithm):
                 self.cut_paths.append(chunk)
             elif self._is_chunk_started(chunk):
                 self.crossed_paths.add(chunk)
-                self.add_end_event(chunk, max(chunk.endpoints))
+                self.events.add((max(chunk.endpoints), chunk))
             else:
-                self.add_path_events(chunk, sorted(chunk.endpoints))
+                self.events.add((min(chunk.endpoints), chunk))
 
     def _split_path(self, node, split_point):
         """
