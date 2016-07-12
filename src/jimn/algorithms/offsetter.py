@@ -2,7 +2,6 @@
 requires polygon to be oriented counter clockwise to carve the inside
 and clockwise to carve the outside
 """
-
 from collections import defaultdict, Counter
 from itertools import combinations
 from jimn.displayable import tycat
