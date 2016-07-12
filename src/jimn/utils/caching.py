@@ -8,6 +8,23 @@ indirectly, thus invalidating the cache inadvertantly.
 """
 
 
+def cached_last_arg(method):
+    """
+    cache method, but only last argument.
+    ONLY USABLE ON A SINGLE METHOD.
+    """
+    def helper(obj, *args):
+        """
+        wrapper for cached method.
+        """
+        if not hasattr(obj, "last_asked") or obj.last_asked != args[0]:
+            obj.last = method(obj, args[0])
+        obj.last_asked = args[0]
+        return obj.last
+
+    return helper
+
+
 def cached_args(method):
     """
     mark method as to be cached.

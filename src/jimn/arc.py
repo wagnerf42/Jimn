@@ -11,6 +11,7 @@ from jimn.utils.precision import is_almost
 from jimn.displayable import tycat
 from jimn.segment import Segment
 from jimn.utils.debug import is_module_debugged
+from jimn.utils.caching import cached_last_arg
 
 
 class Arc(ElementaryPath):
@@ -254,6 +255,7 @@ class Arc(ElementaryPath):
         else:
             return adjusted_angles[0] < adjusted_angles[1]
 
+    @cached_last_arg
     def sweeping_key(self, current_x):
         """
         return key used in sweeping line algorithms for comparing paths.
