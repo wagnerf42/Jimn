@@ -278,7 +278,11 @@ class Arc(ElementaryPath):
 
         terminal_angle = (pi/2 - first_point.angle_with(last_point)) % pi
 
-        outgoing_angle = (pi - self.center.angle_with(point_key)) % pi
+        # we need to round so that segments tangent to some arcs
+        # will get exact same angles
+        # TODO: why 10 ?
+        outgoing_angle = round(
+            (pi - self.center.angle_with(point_key)) % pi, 10)
         angles = (outgoing_angle, terminal_angle)
 
         # now just reverse angles based on direction

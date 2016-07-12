@@ -328,7 +328,8 @@ class Segment(ElementaryPath):
         else:
             last_point, first_point = self.endpoints
 
-        terminal_angle = (pi/2 - first_point.angle_with(last_point)) % pi
+        terminal_angle = round(
+            (pi/2 - first_point.angle_with(last_point)) % pi, 10)
         # now just reverse angles based on direction
         if last_point.is_almost(point_key):
             full_key = (point_key, -terminal_angle, -terminal_angle)

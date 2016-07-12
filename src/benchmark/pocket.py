@@ -8,7 +8,6 @@ and smart sweeping line algorithm.
 from time import clock
 from jimn.utils.coordinates_hash import ROUNDER2D
 from jimn.point import Point
-from jimn.displayable import tycat
 from jimn.polygon import Polygon
 from jimn.algorithms.offsetter import offset_holed_polygon, \
     offset_to_elementary_paths
@@ -1833,20 +1832,21 @@ def main():
     """
     launch our two different algorithms.
     """
-#     polygons = create_polygons()
-#     start = clock()
-#     offset_holed_polygon(0.05, *polygons)
-#     end = clock()
-#     print("offsetter:", end-start)
+    polygons = create_polygons()
+    start = clock()
+    offset_holed_polygon(0.05, *polygons)
+    end = clock()
+    print("offsetter:", end-start)
     polygons = create_polygons()
     ROUNDER2D.clear()
     for polygon in polygons:
         for point in polygon.points:
             ROUNDER2D.hash_point(point)
+    start = clock()
     paths = offset_to_elementary_paths(0.05, polygons)
-    tycat(paths)
-    result = kuhn_munkres(paths)
-    tycat(result)
+    kuhn_munkres(paths, cut_arcs=True)
+    end = clock()
+    print("kuhn munkres:", end-start)
 
 
 if __name__ == "__main__":

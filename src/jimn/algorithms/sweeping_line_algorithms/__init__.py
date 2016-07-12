@@ -4,15 +4,12 @@ main module for sweeping line algorithms.
 provides a 'SweepingLineAlgorithm' class to derive from.
 factorizes common operations between different algorithms.
 """
-from math import pi
 from sortedcontainers import SortedListWithKey
 from jimn.point import Point
-from jimn.segment import Segment
 from jimn.arc import Arc
 from jimn.utils.debug import is_module_debugged
 from jimn.tree.treap import Treap
 from jimn.displayable import tycat
-from jimn.elementary_path import ElementaryPath
 
 
 class SweepingLineAlgorithm:
