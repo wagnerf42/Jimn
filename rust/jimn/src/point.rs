@@ -85,7 +85,7 @@ impl Displayable for Point {
         }
     }
 
-    fn save_svg_content(&self, displayer: &Displayer) {
+    fn save_svg_content(&self, displayer: &Displayer, color: &str) {
         println!("TODO: save svg content")
     }
 }

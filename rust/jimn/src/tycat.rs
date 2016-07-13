@@ -26,20 +26,20 @@ pub struct Displayer {
 
 pub trait Displayable {
     fn get_bounding_box(&self) -> BoundingBox;
-    fn save_svg_content(&self, displayer: &Displayer);
+    fn save_svg_content(&self, displayer: &Displayer, color: &str);
 }
 
 impl Displayer {
     pub fn new<T: Displayable>(filename : &str, objects: &Vec<T>) -> Displayer {
         //TODO: add non working try
-        let mut file = try!(File::create(filename));
+        let file = File::create(filename).unwrap();
         let mut global_box = BoundingBox::empty_box(2);
         for object in objects {
             let bbox = object.get_bounding_box();
             global_box.update(&bbox);
         }
-            
-        let displayer = Displayer {
+
+        let mut displayer = Displayer {
             svg_dimensions: [800.0, 600.0],
             margin: 20.0,
             filename: filename.to_string(),
@@ -47,11 +47,12 @@ impl Displayer {
             min_coordinates: [global_box.min_coordinates[0], global_box.min_coordinates[1]],
             max_coordinates: [global_box.max_coordinates[0], global_box.max_coordinates[1]],
         };
-        displayer.svg_file.write(
-            format!("<svg width=\"{}\" height=\"{}\">\n",
-                    displayer.svg_dimensions[0],
-                    displayer.svg_dimensions[1])
-            );
+        writeln!(
+            displayer.svg_file,
+            "<svg width=\"{}\" height=\"{}\">\n",
+            displayer.svg_dimensions[0],
+            displayer.svg_dimensions[1]
+        ).unwrap();
         return displayer;
     }
 }
@@ -60,17 +61,21 @@ pub fn tycat_start<T: Displayable>(objects: &Vec<T>) -> Displayer {
     let file_number = FILE_COUNT.fetch_add(1, Ordering::SeqCst);
     println!("[{}]", file_number);
     //TODO: create dir
-    let filename = "/tmp/test.svg";
-    let displayer = Displayer::new(filename, objects);
-    return displayer;
+    let filename = format!("/tmp/test-{}.svg", file_number);
+    return Displayer::new(filename.as_str(), objects);
+}
+
+pub fn tycat_end(displayer : &mut Displayer) {
+    displayer.svg_file.write_all(b"</svg>");
 }
 
 /// display vector of displayable objects (one color each)
 pub fn display<T: Displayable>(objects: &Vec<T>) {
-    let displayer = tycat_start(objects);
-//    let color_index = 0;
-//    for object in &objects:
-//        object.save_svg_content(displayer, svg_colors[color_index]);
-//        color_index = (color_index + 1) % svg_colors.len();
-//    tycat_end(display)
+    let mut displayer = tycat_start(objects);
+    let mut color_index = 0;
+    for object in objects {
+        object.save_svg_content(&displayer, SVG_COLORS[color_index]);
+        color_index = (color_index + 1) % SVG_COLORS.len();
+    }
+    tycat_end(&mut displayer);
 }
