@@ -9,5 +9,6 @@ fn main() {
         Point::new(-1.0, 0.0),
         Point::new(0.0, -1.0)
     ];
-    display(points);
+    display(&points);
+    display(&points);
 }

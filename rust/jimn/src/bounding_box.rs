@@ -56,6 +56,25 @@ impl BoundingBox {
             }
         }
     }
+
+    /// update box by fusing in limits from other.
+    /// 
+    /// self-> ##                 ###
+    ///        ##           ->    ### self after self.update(other)
+    ///         ##                ###
+    ///         ## <-other        ###
+    pub fn update(&mut self, other: &BoundingBox) {
+        for (index, coordinate) in other.min_coordinates.iter().enumerate() {
+            if self.min_coordinates[index] > *coordinate {
+                self.min_coordinates[index] = *coordinate;
+            }
+        }
+        for (index, coordinate) in other.max_coordinates.iter().enumerate() {
+            if self.max_coordinates[index] < *coordinate {
+                self.max_coordinates[index] = *coordinate;
+            }
+        }
+    }
 }
 
 impl fmt::Display for BoundingBox {
