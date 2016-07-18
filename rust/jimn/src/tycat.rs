@@ -7,6 +7,8 @@ use std::io::prelude::*;
 use std::fs::File;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use bounding_box::BoundingBox;
+use float_min;
+
 static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
 
 const SVG_COLORS: [&'static str; 3] = [
@@ -16,17 +18,20 @@ const SVG_COLORS: [&'static str; 3] = [
 ];
 
 pub struct Displayer {
-    svg_dimensions: [f64; 2],
+    svg_dimensions: Vec<f64>,
     margin: f64,
     filename: String,
-    svg_file: std::fs::File,
+    pub svg_file: std::fs::File,
     min_coordinates: [f64; 2],
-    max_coordinates: [f64; 2]
+    max_coordinates: [f64; 2],
+    margins: Vec<f64>,
+    stretch: f64,
+    pub stroke_width: f64
 }
 
 pub trait Displayable {
     fn get_bounding_box(&self) -> BoundingBox;
-    fn save_svg_content(&self, displayer: &Displayer, color: &str);
+    fn save_svg_content(&self, displayer: &mut Displayer, color: &str);
 }
 
 impl Displayer {
@@ -40,12 +45,15 @@ impl Displayer {
         }
 
         let mut displayer = Displayer {
-            svg_dimensions: [800.0, 600.0],
+            svg_dimensions: vec![800.0, 600.0],
             margin: 20.0,
             filename: filename.to_string(),
             svg_file: file,
             min_coordinates: [global_box.min_coordinates[0], global_box.min_coordinates[1]],
             max_coordinates: [global_box.max_coordinates[0], global_box.max_coordinates[1]],
+            margins: vec![0.0, 0.0],
+            stretch: 0.0,
+            stroke_width: 0.0
         };
         writeln!(
             displayer.svg_file,
@@ -53,7 +61,30 @@ impl Displayer {
             displayer.svg_dimensions[0],
             displayer.svg_dimensions[1]
         ).unwrap();
+        displayer.calibrate();
         return displayer;
+    }
+
+    pub fn convert_coordinates(&self, coordinates: Vec<f64>) -> Vec<f64> {
+        let relative_coordinates: Vec<f64> = coordinates.iter().zip(self.min_coordinates.iter()).map(|(&a, &b)| a - b).collect();
+        return self.margins.iter().zip(relative_coordinates.iter()).map(|(&a, &b)| a+b*self.stretch).collect();
+    }
+
+    fn calibrate(&mut self) {
+        //TODO: can we avoid collecting here ??
+        let dimensions: Vec<f64> = self.max_coordinates.iter().zip(self.min_coordinates.iter()).map(|(&a, &b)| a-b).collect();
+        let real_dimensions: Vec<f64> = self.svg_dimensions.iter().map(|&d| d-2.0*self.margin).collect();
+        //TODO: avoid dimension by 0
+        let stretches: Vec<f64> = dimensions.iter().zip(real_dimensions.iter()).map(|(&a, &b)| a/b).collect();
+        //TODO: do something for max ; see
+        // https://www.reddit.com/r/rust/comments/3fg0xr/how_do_i_find_the_max_value_in_a_vecf64/
+        if stretches[0] > stretches[1] {
+            self.stretch = stretches[1];
+        } else {
+            self.stretch = stretches[0];
+        }
+        self.stroke_width = float_min(&self.svg_dimensions) / 500.0;
+        self.margins = real_dimensions.iter().zip(dimensions.iter()).map(|(&real, &fake)| (real - fake*self.stretch)/2.0).collect();
     }
 }
 
@@ -74,7 +105,7 @@ pub fn display<T: Displayable>(objects: &Vec<T>) {
     let mut displayer = tycat_start(objects);
     let mut color_index = 0;
     for object in objects {
-        object.save_svg_content(&displayer, SVG_COLORS[color_index]);
+        object.save_svg_content(&mut displayer, SVG_COLORS[color_index]);
         color_index = (color_index + 1) % SVG_COLORS.len();
     }
     tycat_end(&mut displayer);
