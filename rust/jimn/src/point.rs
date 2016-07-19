@@ -2,7 +2,6 @@ use std::io::prelude::*;
 use std::ops::{Add, Sub, Mul, Div};
 use std::fmt;
 use std::f64;
-use HasCoordinates;
 use bounding_box::BoundingBox;
 use tycat::Displayer;
 use tycat::Displayable;
@@ -33,6 +32,10 @@ impl Point {
             raw_angle += 2.0 * f64::consts::PI;
         }
         raw_angle
+    }
+
+    pub fn coordinates(&self) -> Vec<f64> {
+        vec![self.x, self.y]
     }
 }
 
@@ -72,22 +75,17 @@ impl Div<f64> for Point {
     }
 }
 
-impl HasCoordinates for Point {
-    fn coordinates(&self) -> Vec<f64> {
-        vec![self.x, self.y]
-    }
-}
-
 impl Displayable for Point {
     fn get_bounding_box(&self) -> BoundingBox {
-        BoundingBox{
+        BoundingBox {
             min_coordinates: vec![self.x, self.y],
             max_coordinates: vec![self.x, self.y],
         }
     }
 
     fn save_svg_content(&self, displayer: &mut Displayer, color: &str) {
-        let svg_coordinates = displayer.convert_coordinates(self.coordinates());
+        let svg_coordinates = displayer
+            .convert_coordinates(self.coordinates());
         //TODO: fill format with one vector ?
         write!(displayer.svg_file, "<circle cx=\"{}\" cy=\"{}\"",
                svg_coordinates[0], svg_coordinates[1])

@@ -69,7 +69,7 @@ pub trait Displayable {
 }
 
 impl Displayer {
-    pub fn new<T: Displayable>(filename : &str, objects: &Vec<T>) -> Displayer {
+    pub fn new(filename : &str, objects: &Vec<&Displayable>) -> Displayer {
         let file = File::create(filename).expect("failed opening file for tycat");
         let mut global_box = BoundingBox::empty_box(2);
         for object in objects {
@@ -132,7 +132,7 @@ impl Displayer {
 }
 
 /// display vector of displayable objects (one color each)
-pub fn display<T: Displayable>(objects: &Vec<T>) {
+pub fn display(objects: &Vec<&Displayable>) {
     let file_number = FILE_COUNT.fetch_add(1, Ordering::SeqCst);
     let filename = format!("/tmp/test-{}.svg", file_number);
     println!("[{}]", file_number);

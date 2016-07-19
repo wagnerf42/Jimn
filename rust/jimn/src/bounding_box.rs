@@ -4,7 +4,7 @@
 //! allows for example a fast pre-test to know complex shape do not intersect.
 extern crate std;
 use std::fmt;
-use HasCoordinates;
+use point::Point;
 
 
 pub struct BoundingBox {
@@ -44,7 +44,7 @@ impl BoundingBox {
     /// bbox.add_point(jimn::point::Point::new(2.3, 1.2))
     /// // box is now between point(1.0, 1.2) and point(2.3, 3.5)
     /// ```
-    pub fn add_point<T: HasCoordinates>(&mut self, point: &T) {
+    pub fn add_point(&mut self, point: &Point) {
         let coordinates = point.coordinates();
         for dimension in 0..self.min_coordinates.len() {
             let coordinate = coordinates[dimension];
