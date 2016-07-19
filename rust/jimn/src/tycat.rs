@@ -6,15 +6,50 @@ extern crate std;
 use std::io::prelude::*;
 use std::fs::File;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
+use std::process::{Command, Stdio};
 use bounding_box::BoundingBox;
 use float_min;
 
 static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
 
-const SVG_COLORS: [&'static str; 3] = [
+const SVG_COLORS: [&'static str; 37] = [
     "red",
     "green",
-    "blue"
+    "blue",
+    "purple",
+    "orange",
+    "saddlebrown",
+    "mediumseagreen",
+    "darkolivegreen",
+    "lightskyblue",
+    "dimgray",
+    "mediumpurple",
+    "midnightblue",
+    "olive",
+    "chartreuse",
+    "darkorchid",
+    "hotpink",
+    "darkred",
+    "peru",
+    "goldenrod",
+    "mediumslateblue",
+    "orangered",
+    "darkmagenta",
+    "darkgoldenrod",
+    "mediumslateblue",
+    "firebrick",
+    "palegreen",
+    "royalblue",
+    "tan",
+    "tomato",
+    "springgreen",
+    "pink",
+    "orchid",
+    "saddlebrown",
+    "moccasin",
+    "mistyrose",
+    "cornflowerblue",
+    "darkgrey"
 ];
 
 pub struct Displayer {
@@ -36,8 +71,7 @@ pub trait Displayable {
 
 impl Displayer {
     pub fn new<T: Displayable>(filename : &str, objects: &Vec<T>) -> Displayer {
-        //TODO: add non working try
-        let file = File::create(filename).unwrap();
+        let file = File::create(filename).expect("failed opening file for tycat");
         let mut global_box = BoundingBox::empty_box(2);
         for object in objects {
             let bbox = object.get_bounding_box();
@@ -55,13 +89,21 @@ impl Displayer {
             stretch: 0.0,
             stroke_width: 0.0
         };
+
+        displayer.calibrate();
+
         writeln!(
             displayer.svg_file,
             "<svg width=\"{}\" height=\"{}\">\n",
             displayer.svg_dimensions[0],
             displayer.svg_dimensions[1]
         ).unwrap();
-        displayer.calibrate();
+        writeln!(
+            displayer.svg_file,
+            "<rect x=\"0\" y=\"0\" width=\"{}\" height=\"{}\" fill=\"white\"/>\n",
+            displayer.svg_dimensions[0],
+            displayer.svg_dimensions[1]
+        ).unwrap();
         return displayer;
     }
 
@@ -88,25 +130,19 @@ impl Displayer {
     }
 }
 
-pub fn tycat_start<T: Displayable>(objects: &Vec<T>) -> Displayer {
-    let file_number = FILE_COUNT.fetch_add(1, Ordering::SeqCst);
-    println!("[{}]", file_number);
-    //TODO: create dir
-    let filename = format!("/tmp/test-{}.svg", file_number);
-    return Displayer::new(filename.as_str(), objects);
-}
-
-pub fn tycat_end(displayer : &mut Displayer) {
-    displayer.svg_file.write_all(b"</svg>");
-}
-
 /// display vector of displayable objects (one color each)
 pub fn display<T: Displayable>(objects: &Vec<T>) {
-    let mut displayer = tycat_start(objects);
-    let mut color_index = 0;
-    for object in objects {
-        object.save_svg_content(&mut displayer, SVG_COLORS[color_index]);
-        color_index = (color_index + 1) % SVG_COLORS.len();
+    let file_number = FILE_COUNT.fetch_add(1, Ordering::SeqCst);
+    let filename = format!("/tmp/test-{}.svg", file_number);
+    println!("[{}]", file_number);
+    {
+        let mut displayer = Displayer::new(filename.as_str(), objects);
+        let mut color_index = 0;
+        for object in objects {
+            object.save_svg_content(&mut displayer, SVG_COLORS[color_index]);
+            color_index = (color_index + 1) % SVG_COLORS.len();
+        }
+        displayer.svg_file.write_all(b"</svg>");
     }
-    tycat_end(&mut displayer);
+    Command::new("tycat").arg(filename).status().expect("tycat failed");
 }
