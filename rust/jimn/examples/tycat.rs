@@ -10,5 +10,10 @@ fn main() {
         Point::new(0.0, -1.0)
     ];
     display(&points);
-    display(&points);
+    let points2 = vec![
+        Point::new(1.0, 0.0),
+        Point::new(2.0, 0.0),
+        Point::new(5.0, 2.0)
+    ];
+    display(&points2);
 }

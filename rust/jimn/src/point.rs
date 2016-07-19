@@ -88,10 +88,12 @@ impl Displayable for Point {
 
     fn save_svg_content(&self, displayer: &mut Displayer, color: &str) {
         let svg_coordinates = displayer.convert_coordinates(self.coordinates());
-        //TODO: fill format with one vector
+        //TODO: fill format with one vector ?
         write!(displayer.svg_file, "<circle cx=\"{}\" cy=\"{}\"",
-               svg_coordinates[0], svg_coordinates[1]).unwrap();
+               svg_coordinates[0], svg_coordinates[1])
+            .expect("cannot write svg file, disk full ?");
         writeln!(displayer.svg_file, " r=\"{}\" fill=\"{}\" opacity=\"0.5\"/>",
-               2.0*displayer.stroke_width, color).unwrap();
+               2.0*displayer.stroke_width, color)
+            .expect("cannot write svg file, disk full ?");
     }
 }
