@@ -37,6 +37,19 @@ impl Point {
     pub fn coordinates(&self) -> Vec<f64> {
         vec![self.x, self.y]
     }
+
+    pub fn cross_product(&self, other: &Point) -> f64 {
+        //! return cross product between vector in self and vector in other
+        //!
+        //! # Example
+        //! ```
+        //! use jimn::Point;
+        //! use jimn::precision::is_almost;
+        //! let product = Point::new(0.0, 1.0).cross_product(&Point::new(1.0, 0.0));
+        //! assert!(is_almost(product, 0.0));
+        //! ```
+        return (self.x * other.y) - (self.y * other.x);
+    }
 }
 
 impl fmt::Display for Point {

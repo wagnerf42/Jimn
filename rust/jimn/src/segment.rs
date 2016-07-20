@@ -37,10 +37,22 @@ impl Segment {
         //! let s2 = Segment(&Point::new(-3.0, 0.0), &Point::new(3.0, 0.0)));
         //! let result = s1.line_intersection_with(&s2);
         //! assert!(result.is_some());
-        //! asserteq!(result.unwrap() == Point::new(0.0, 0.0));
+        //! assert!(result.unwrap().is_almost(Point::new(0.0, 0.0)));
         //! ```
-        println!("TODO");
-        None
+        // solve following system :
+        // intersection = start of self + alpha * direction of self
+        // intersection = start of other + beta * direction of other
+        let directions = [
+            self.points[1] - self.points[0],
+            other.points[1] - other.points[0]
+        ];
+        let denominator = directions[0].cross_product(&directions[1]);
+        if is_almost(denominator, 0.0) {
+            return None;
+        }
+        let start_diff = other.points[0] - self.points[0];
+        let alpha = start_diff.cross_product(&directions[1]) / denominator;
+        return Some(self.points[0] + directions[0] * alpha);
     }
 
     pub fn intersection_with_segment(&self, other: &Segment) -> Option<Point> {
@@ -53,7 +65,7 @@ impl Segment {
         //! let s2 = Segment(&Point::new(-3.0, 1.0), &Point::new(3.0, 1.0)));
         //! let result = s1.intersection_with_segment(&s2);
         //! assert!(result.is_some());
-        //! asserteq!(result.unwrap() == Point::new(0.0, 1.0));
+        //! asserteq!(result.unwrap().is_almost(Point::new(0.0, 1.0)));
         //! ```
         //TODO: reorder segments (small big) to avoid commutativity problems
         match self.line_intersection_with(&other) {

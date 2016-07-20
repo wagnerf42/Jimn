@@ -11,8 +11,9 @@ fn main() {
     let segment2 = Segment::new(
         &Point::new(0.0, -3.0),
         &Point::new(2.0, 5.0));
+    let intersection = segment1.intersection_with_segment(&segment2).unwrap();
     let things: Vec<&Displayable> = vec![
-        &segment1, &segment2
+        &segment1, &segment2, &intersection
     ];
     display(&things);
 }
