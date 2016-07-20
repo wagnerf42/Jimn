@@ -1,6 +1,6 @@
 //! segment submodule for jimn
 //!
-//! provides a Segment class.
+//! provides a **Segment** (2d) class.
 use bounding_box::BoundingBox;
 use point::Point;
 use tycat::Displayer;

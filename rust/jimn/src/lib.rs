@@ -22,6 +22,10 @@ pub fn float_max(vector: &Vec<f64>) -> f64 {
 
 pub mod bounding_box;
 pub mod point;
+pub mod point3;
 pub mod segment;
+pub mod facet;
+pub mod stl;
 pub mod tycat;
 pub mod precision;
+pub mod utils;

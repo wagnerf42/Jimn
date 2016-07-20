@@ -1,3 +1,8 @@
+//! point submodule for jimn
+//!
+//! provides **Point** class for storing 2d points.
+//! points can also serve as vectors: for example point2-point1 is a point
+//! which coordinates encode the direction vector of segment(point1,point2).
 use std::io::prelude::*;
 use std::ops::{Add, Sub, Mul, Div};
 use std::fmt;
@@ -17,6 +22,15 @@ impl Point {
         Point{x: x, y: y}
     }
 
+    /// return distance between given points
+    ///
+    /// # Example
+    /// ```
+    /// use jimn::point::Point;
+    /// use jimn::precision::is_almost;
+    /// let distance = Point::new(0.0, 0.0).distance_to(&Point::new(3.0, 0.0));
+    /// assert!(is_almost(distance, 3.0));
+    /// ```
     pub fn distance_to(self: &Point, other: &Point) -> f64 {
         let x_diff = self.x - other.x;
         let y_diff = self.y - other.y;

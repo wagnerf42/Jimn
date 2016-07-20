@@ -2,6 +2,7 @@
 //!
 //! provides **BoundingBox** class to bound objects by rectangles.
 //! allows for example a fast pre-test to know complex shape do not intersect.
+//! boxes are also used for computing display dimensions.
 extern crate std;
 use std::fmt;
 use point::Point;
@@ -19,7 +20,8 @@ impl BoundingBox {
     ///
     /// ```
     /// // create an empty box in 2D
-    /// let bbox = empty_box(2)
+    /// use jimn::bounding_box::BoundingBox;
+    /// let bbox = BoundingBox::empty_box(2);
     /// ```
     pub fn empty_box(dimension: i64) -> BoundingBox {
         let mut new_box = BoundingBox {
@@ -38,10 +40,12 @@ impl BoundingBox {
     /// # Examples
     ///
     /// ```
-    /// let bbox = empty_box(2)
-    /// bbox.add_point(jimn::point::Point::new(2.0, 3.5))
-    /// bbox.add_point(jimn::point::Point::new(1.0, 1.5))
-    /// bbox.add_point(jimn::point::Point::new(2.3, 1.2))
+    /// use jimn::point::Point;
+    /// use jimn::bounding_box::BoundingBox;
+    /// let bbox = BoundinBox::empty_box(2);
+    /// bbox.add_point(&Point::new(2.0, 3.5))
+    /// bbox.add_point(&Point::new(1.0, 1.5))
+    /// bbox.add_point(&Point::new(2.3, 1.2))
     /// // box is now between point(1.0, 1.2) and point(2.3, 3.5)
     /// ```
     pub fn add_point(&mut self, point: &Point) {
@@ -60,7 +64,7 @@ impl BoundingBox {
     /// update box by fusing in limits from other.
     /// 
     /// self-> ##                 ###
-    ///        ##           ->    ### self after self.update(other)
+    ///        ##           ->    ### self after self.update(&other)
     ///         ##                ###
     ///         ## <-other        ###
     pub fn update(&mut self, other: &BoundingBox) {
