@@ -5,13 +5,23 @@
 
 use std::collections::HashMap;
 use point::Point;
-use precision::{coordinate_key, displaced_coordinate_key};
 
+/// a **CoordinatesHash** allows for hashing nearby points together in O(1).
 pub struct CoordinatesHash {
     hashes: Vec<HashMap<String, Point>>
 }
 
+//TODO: how to change precision in the format ?
+fn coordinate_key(coordinate: f64) -> String {
+    format!("{:.6}", coordinate)
+}
+
+fn displaced_coordinate_key(coordinate: f64) -> String {
+    coordinate_key(10.0f64.powi(-6)+ coordinate)
+}
+
 impl CoordinatesHash {
+    /// creates a new **CoordinatesHash** with given space dimension.
     pub fn new(dimension: u32) -> CoordinatesHash {
         CoordinatesHash {
             hashes: vec![HashMap::new(); 2<<dimension]
@@ -33,10 +43,10 @@ impl CoordinatesHash {
     }
 
     //TODO: add fast hash ?
+    /// try to add a point to the hash.
+    /// if a nearby point was already there
+    /// return the nearby point, else add point and return it.
     pub fn hash_point(&mut self, point: &Point) -> Point {
-        //! try to add a point to the hash
-        //! if a nearby point was already there
-        //! return the nearby point, else add point and return it
         let mut keys: Vec<String> = Vec::new();
         for (index, hash) in self.hashes.iter().enumerate() {
             let key = self.compute_key(index, point);

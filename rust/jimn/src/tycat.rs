@@ -52,23 +52,37 @@ const SVG_COLORS: [&'static str; 37] = [
     "darkgrey"
 ];
 
+/// a **Displayer** object stores all information for building svg images
+/// of vectors of different **Displayable** objects.
+/// **Displayable** objects need to implement **save_svg_content**
+/// which uses the **Displayer** to write appropriate coordinates in current
+/// svg file.
 pub struct Displayer {
     svg_dimensions: Vec<f64>,
     margin: f64,
+    /// file holding currently built svg image
     pub svg_file: std::fs::File,
     min_coordinates: [f64; 2],
     max_coordinates: [f64; 2],
     margins: Vec<f64>,
     stretch: f64,
+    /// advised width of stroke for svg lines.
     pub stroke_width: f64
 }
 
+/// implement this trait for any struct which you want to display graphically.
 pub trait Displayable {
+    /// get **BoundingBox** around self. this box is then used by displayer to
+    /// shift and stretch all displayed objects on screen.
     fn get_bounding_box(&self) -> BoundingBox;
+    /// add svg code for self into file currently being built by **Displayer**.
+    /// everything drawn should be of given color.
     fn save_svg_content(&self, displayer: &mut Displayer, color: &str);
 }
 
 impl Displayer {
+    /// return a new **Displayer**.
+    /// this displayer is auto-calibrated to display given vector of **Displayable**.
     pub fn new(filename : &str, objects: &Vec<&Displayable>) -> Displayer {
         let file = File::create(filename).expect("failed opening file for tycat");
         let mut global_box = BoundingBox::empty_box(2);
@@ -105,6 +119,7 @@ impl Displayer {
         return displayer;
     }
 
+    /// convert given coordinates to display in svg file we are building
     pub fn convert_coordinates(&self, coordinates: Vec<f64>) -> Vec<f64> {
         let relative_coordinates: Vec<f64> = coordinates.iter()
             .zip(self.min_coordinates.iter())
