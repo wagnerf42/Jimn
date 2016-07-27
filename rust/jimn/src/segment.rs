@@ -33,11 +33,11 @@ impl Segment {
         //! ```
         //! use jimn::point::Point;
         //! use jimn::segment::Segment;
-        //! let s1 = Segment(&Point::new(0.0, 3.0), &Point::new(0.0, 1.0));
-        //! let s2 = Segment(&Point::new(-3.0, 0.0), &Point::new(3.0, 0.0)));
+        //! let s1 = Segment::new(&Point::new(0.0, 3.0), &Point::new(0.0, 1.0));
+        //! let s2 = Segment::new(&Point::new(-3.0, 0.0), &Point::new(3.0, 0.0));
         //! let result = s1.line_intersection_with(&s2);
         //! assert!(result.is_some());
-        //! assert!(result.unwrap().is_almost(Point::new(0.0, 0.0)));
+        //! assert!(result.unwrap().is_almost(&Point::new(0.0, 0.0)));
         //! ```
         // solve following system :
         // intersection = start of self + alpha * direction of self
@@ -61,15 +61,15 @@ impl Segment {
         //! ```
         //! use jimn::point::Point;
         //! use jimn::segment::Segment;
-        //! let s1 = Segment(&Point::new(0.0, 3.0), &Point::new(0.0, 0.0));
-        //! let s2 = Segment(&Point::new(-3.0, 1.0), &Point::new(3.0, 1.0)));
+        //! let s1 = Segment::new(&Point::new(0.0, 3.0), &Point::new(0.0, 0.0));
+        //! let s2 = Segment::new(&Point::new(-3.0, 1.0), &Point::new(3.0, 1.0));
         //! let result = s1.intersection_with_segment(&s2);
         //! assert!(result.is_some());
-        //! asserteq!(result.unwrap().is_almost(Point::new(0.0, 1.0)));
+        //! assert!(result.unwrap().is_almost(&Point::new(0.0, 1.0)));
         //! ```
         //TODO: reorder segments (small big) to avoid commutativity problems
         match self.line_intersection_with(&other) {
-            Some(i) if self.contains(&i) & other.contains(&i) => Some(i),
+            Some(i) if self.contains(&i) && other.contains(&i) => Some(i),
             _ => None
         }
     }

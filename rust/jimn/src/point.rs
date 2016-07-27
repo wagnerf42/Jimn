@@ -1,7 +1,7 @@
-//! point submodule for jimn
+//! Point submodule for jimn.
 //!
-//! provides **Point** class for storing 2d points.
-//! points can also serve as vectors: for example point2-point1 is a point
+//! Provides a **Point** structure for storing 2d points.
+//! Points can also serve as vectors: for example point2-point1 is a point
 //! which coordinates encode the direction vector of segment(point1,point2).
 use std::io::prelude::*;
 use std::ops::{Add, Sub, Mul, Div};
@@ -10,19 +10,30 @@ use std::f64;
 use bounding_box::BoundingBox;
 use tycat::Displayer;
 use tycat::Displayable;
+use precision::is_almost;
 
 #[derive(Copy, Clone)]
+/// 2D point structure.
 pub struct Point {
+    /// X coordinate.
     pub x: f64,
+    /// Y coordinate.
     pub y: f64
 }
 
 impl Point {
+    /// Returns a new Point from given coordinates.
     pub fn new(x: f64, y: f64) -> Point {
         Point{x: x, y: y}
     }
 
-    /// return distance between given points
+    /// Returns if given points are almost the same
+    /// (see [default precision](precision/fn.is_almost.html)).
+    pub fn is_almost(&self, other: &Point) -> bool {
+        is_almost(self.x, other.x) && is_almost(self.y, other.y)
+    }
+
+    /// Returns distance between given points.
     ///
     /// # Example
     /// ```
@@ -57,9 +68,9 @@ impl Point {
         //!
         //! # Example
         //! ```
-        //! use jimn::Point;
+        //! use jimn::point::Point;
         //! use jimn::precision::is_almost;
-        //! let product = Point::new(0.0, 1.0).cross_product(&Point::new(1.0, 0.0));
+        //! let product = Point::new(1.0, 2.0).cross_product(&Point::new(2.0, 4.0));
         //! assert!(is_almost(product, 0.0));
         //! ```
         return (self.x * other.y) - (self.y * other.x);

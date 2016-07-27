@@ -1,8 +1,9 @@
-//! facet submodule for jimn
+//! Facet submodule for jimn.
 //!
-//! provides **Facet** class for handling 3D facets
+//! Provides **Facet** class for handling 3D facets from stl files.
 use point3::Point3;
 
+/// A facet is just a triangle in space.
 pub struct Facet {
-    pub points: [Point3; 3]
+    points: [Point3; 3]
 }
