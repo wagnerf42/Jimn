@@ -13,6 +13,7 @@ pub struct Point3 {
 
 impl Point3 {
     /// Returns a new point with given coordinates.
+    #[inline]
     pub fn new(x: f64, y: f64, z: f64) -> Point3 {
         Point3{x: x, y: y, z: z}
     }

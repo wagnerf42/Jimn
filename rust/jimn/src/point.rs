@@ -38,7 +38,7 @@ impl Point {
     /// # Example
     /// ```
     /// use jimn::point::Point;
-    /// use jimn::precision::is_almost;
+    /// use jimn::utils::precision::is_almost;
     /// let distance = Point::new(0.0, 0.0).distance_to(&Point::new(3.0, 0.0));
     /// assert!(is_almost(distance, 3.0));
     /// ```
@@ -81,7 +81,7 @@ impl Point {
     /// # Example
     /// ```
     /// use jimn::point::Point;
-    /// use jimn::precision::is_almost;
+    /// use jimn::utils::precision::is_almost;
     /// let product = Point::new(1.0, 2.0).cross_product(&Point::new(2.0, 4.0));
     /// assert!(is_almost(product, 0.0));
     /// ```

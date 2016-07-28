@@ -21,6 +21,7 @@
 
 #![deny(missing_docs)]
 
+extern crate byteorder;
 pub mod bounding_box;
 pub mod point;
 pub mod segment;
