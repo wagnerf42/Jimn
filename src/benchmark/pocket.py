@@ -10,7 +10,7 @@ from jimn.utils.coordinates_hash import ROUNDER2D
 from jimn.point import Point
 from jimn.polygon import Polygon
 from jimn.algorithms.offsetter import offset_holed_polygon, \
-    offset_to_elementary_paths
+    _offset
 from jimn.algorithms.sweeping_line_algorithms.kuhn_munkres import kuhn_munkres
 
 
@@ -1843,7 +1843,10 @@ def main():
         for point in polygon.points:
             ROUNDER2D.hash_point(point)
     start = clock()
-    paths = offset_to_elementary_paths(0.05, polygons)
+    pockets = [_offset(0.05, p) for p in polygons]
+    paths = []
+    for pocket in pockets:
+        paths.extend(pocket.paths)
     kuhn_munkres(paths, cut_arcs=True)
     end = clock()
     print("kuhn munkres:", end-start)

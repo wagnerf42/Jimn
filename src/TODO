@@ -1,3 +1,9 @@
+float : 
+    - use rounding ?
+    - use isclose ?
+
+**************
+
 km : very difficult to read. think again. (is it due to heap events that
 cannot be cancelled ?)
 

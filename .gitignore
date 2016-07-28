@@ -7,3 +7,6 @@
 
 # Ignore vim-python-mode files
 **/.ropeproject/
+
+# Ignore rust compiled objects
+**/target/

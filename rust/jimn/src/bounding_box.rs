@@ -1,4 +1,4 @@
-//! Bounding_box submodule for jimn.
+//! Bound objects with rectangles.
 //!
 //! Provides **BoundingBox** class to bound objects by rectangles.
 //! Allows for example a fast pre-test to know complex shape do not intersect.

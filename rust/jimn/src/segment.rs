@@ -1,24 +1,34 @@
-//! segment submodule for jimn
-//!
-//! provides a **Segment** (2d) class.
+//! Segments on the plane.
 use bounding_box::BoundingBox;
 use point::Point;
 use tycat::Displayer;
 use tycat::Displayable;
-use precision::is_almost;
+use utils::precision::is_almost;
 use std::io::Write;
 
+/// Oriented segment structure.
 pub struct Segment {
     points: [Point; 2]
 }
 
 impl Segment {
-    pub fn new(start: &Point, end: &Point) -> Segment {
+    /// Returns a new segment out of given endpoints.
+    pub fn new(start: Point, end: Point) -> Segment {
         Segment {
-            points: [*start, *end]
+            points: [start, end]
         }
     }
 
+    /// Does given segment contain given point ?
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use jimn::point::Point;
+    /// use jimn::segment::Segment;
+    /// let segment = Segment::new(Point::new(0.0, 0.0), Point::new(3.0, 3.0));
+    /// assert!(segment.contains(&Point::new(2.0, 2.0)));
+    /// ```
     pub fn contains(&self, point: &Point) -> bool {
         let distance = self.points.iter().map(|&p| p.distance_to(point))
             .fold(0.0, |sum, i| sum + i);
@@ -33,8 +43,8 @@ impl Segment {
         //! ```
         //! use jimn::point::Point;
         //! use jimn::segment::Segment;
-        //! let s1 = Segment::new(&Point::new(0.0, 3.0), &Point::new(0.0, 1.0));
-        //! let s2 = Segment::new(&Point::new(-3.0, 0.0), &Point::new(3.0, 0.0));
+        //! let s1 = Segment::new(Point::new(0.0, 3.0), Point::new(0.0, 1.0));
+        //! let s2 = Segment::new(Point::new(-3.0, 0.0), Point::new(3.0, 0.0));
         //! let result = s1.line_intersection_with(&s2);
         //! assert!(result.is_some());
         //! assert!(result.unwrap().is_almost(&Point::new(0.0, 0.0)));
@@ -61,8 +71,8 @@ impl Segment {
         //! ```
         //! use jimn::point::Point;
         //! use jimn::segment::Segment;
-        //! let s1 = Segment::new(&Point::new(0.0, 3.0), &Point::new(0.0, 0.0));
-        //! let s2 = Segment::new(&Point::new(-3.0, 1.0), &Point::new(3.0, 1.0));
+        //! let s1 = Segment::new(Point::new(0.0, 3.0), Point::new(0.0, 0.0));
+        //! let s2 = Segment::new(Point::new(-3.0, 1.0), Point::new(3.0, 1.0));
         //! let result = s1.intersection_with_segment(&s2);
         //! assert!(result.is_some());
         //! assert!(result.unwrap().is_almost(&Point::new(0.0, 1.0)));

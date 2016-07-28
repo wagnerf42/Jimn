@@ -1,6 +1,6 @@
-//! utils::coordinates_hash submodule for jimn
+//! Fast identification of nearby points.
 //!
-//! provides a **CoordinatesHash** structure which is used to hash
+//! Provides a **CoordinatesHash** structure which is used to hash
 //! nearby points together in O(1).
 
 use std::collections::HashMap;
