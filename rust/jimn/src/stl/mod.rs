@@ -16,7 +16,8 @@ use std::io::Cursor;
 
 /// The **Stl** structure holds a set of [facets](facet/struct.Facet.html).
 pub struct Stl {
-    facets: Vec<Facet>
+    /// Vector containing all facets.
+    pub facets: Vec<Facet>
 }
 
 impl Stl {

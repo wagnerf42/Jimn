@@ -1,6 +1,6 @@
 //!Point3 (in 3d space) submodule for jimn.
 //TODO: it would be better to have generic N-dimension points
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 /// 3D Point structure.
 pub struct Point3 {
     /// X coordinate.
