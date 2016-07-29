@@ -51,10 +51,10 @@ const SVG_COLORS: [&'static str; 37] = [
     "darkgrey"
 ];
 
-/// a **Displayer** object stores all information for building svg images
-/// of vectors of different **Displayable** objects.
-/// **Displayable** objects need to implement **save_svg_content**
-/// which uses the **Displayer** to write appropriate coordinates in current
+/// a `Displayer` object stores all information for building svg images
+/// of vectors of different `Displayable` objects.
+/// `Displayable` objects need to implement `save_svg_content`
+/// which uses the `Displayer` to write appropriate coordinates in current
 /// svg file.
 pub struct Displayer {
     svg_dimensions: Vec<f64>,

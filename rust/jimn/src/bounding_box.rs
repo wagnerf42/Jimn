@@ -56,13 +56,12 @@ impl BoundingBox {
     /// ```
     pub fn add_point(&mut self, point: &Point) {
         let coordinates = point.coordinates();
-        for dimension in 0..self.min_coordinates.len() {
-            let coordinate = coordinates[dimension];
-            if coordinate < self.min_coordinates[dimension] {
-                self.min_coordinates[dimension] = coordinate
+        for (dimension, coordinate) in coordinates.iter().enumerate() {
+            if *coordinate < self.min_coordinates[dimension] {
+                self.min_coordinates[dimension] = *coordinate
             }
-            if coordinate > self.max_coordinates[dimension] {
-                self.max_coordinates[dimension] = coordinate
+            if *coordinate > self.max_coordinates[dimension] {
+                self.max_coordinates[dimension] = *coordinate
             }
         }
     }

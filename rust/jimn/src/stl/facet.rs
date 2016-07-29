@@ -1,6 +1,6 @@
 //! Facet submodule for jimn.
 //!
-//! Provides **Facet** class for handling 3D facets from stl files.
+//! Provides `Facet` class for handling 3D facets from stl files.
 use byteorder::{ReadBytesExt, LittleEndian};
 use point::Point;
 use segment::Segment;
@@ -10,7 +10,7 @@ use std::io::Read;
 use std::io::Seek;
 use std::io::SeekFrom;
 
-/// A facet is just a triangle in space.
+/// A `Facet` is just a triangle in space.
 #[derive(Debug)]
 pub struct Facet {
     points: [Point3; 3]

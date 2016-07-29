@@ -1,12 +1,12 @@
 //! Fast identification of nearby points.
 //!
-//! Provides a **CoordinatesHash** structure which is used to hash
+//! Provides a `CoordinatesHash` structure which is used to hash
 //! nearby points together in O(1).
 
 use std::collections::HashMap;
 use point::Point;
 
-/// a **CoordinatesHash** allows for hashing nearby points together in O(1).
+/// a `CoordinatesHash` allows for hashing nearby points together in O(1).
 pub struct CoordinatesHash {
     hashes: Vec<HashMap<String, Point>>
 }
@@ -21,7 +21,7 @@ fn displaced_coordinate_key(coordinate: f64) -> String {
 }
 
 impl CoordinatesHash {
-    /// creates a new **CoordinatesHash** with given space dimension.
+    /// creates a new `CoordinatesHash` with given space dimension.
     pub fn new(dimension: u32) -> CoordinatesHash {
         CoordinatesHash {
             hashes: vec![HashMap::new(); 2<<dimension]
@@ -43,9 +43,9 @@ impl CoordinatesHash {
     }
 
     //TODO: add fast hash ?
-    /// try to add a point to the hash.
-    /// if a nearby point was already there
-    /// return the nearby point, else add point and return it.
+    /// Tries to add a point to the hash.
+    /// If a nearby point was already there
+    /// returns the nearby point, else adds point and returns it.
     pub fn hash_point(&mut self, point: &Point) -> Point {
         let mut keys: Vec<String> = Vec::new();
         for (index, hash) in self.hashes.iter().enumerate() {
