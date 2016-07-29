@@ -86,7 +86,7 @@ impl Point {
     /// assert!(is_almost(product, 0.0));
     /// ```
     pub fn cross_product(&self, other: &Point) -> f64 {
-        return (self.x * other.y) - (self.y * other.x);
+        (self.x * other.y) - (self.y * other.x)
     }
 }
 

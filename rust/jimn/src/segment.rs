@@ -62,7 +62,7 @@ impl Segment {
         }
         let start_diff = other.points[0] - self.points[0];
         let alpha = start_diff.cross_product(&directions[1]) / denominator;
-        return Some(self.points[0] + directions[0] * alpha);
+        Some(self.points[0] + directions[0] * alpha)
     }
 
     pub fn intersection_with_segment(&self, other: &Segment) -> Option<Point> {
@@ -91,7 +91,7 @@ impl Displayable for Segment {
         for point in &self.points {
             bbox.add_point(point);
         }
-        return bbox
+        bbox
     }
 
     fn save_svg_content(&self, displayer: &mut Displayer, color: &str) {

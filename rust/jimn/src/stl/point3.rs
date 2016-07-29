@@ -30,6 +30,6 @@ impl Point3 {
         let intersecting_y = 
             self.y + (height - self.z)/(end.z - self.z)*(end.y-self.y);
         //TODO: hash
-        return Point::new(intersecting_x, intersecting_y);
+        Point::new(intersecting_x, intersecting_y)
     }
 }

@@ -131,7 +131,7 @@ impl Displayer {
             displayer.svg_dimensions[0],
             displayer.svg_dimensions[1]
         ).expect("cannot write svg file, disk full ?");
-        return displayer;
+        displayer
     }
 
     /// convert given coordinates to display in svg file we are building
@@ -139,8 +139,8 @@ impl Displayer {
         let relative_coordinates: Vec<f64> = coordinates.iter()
             .zip(self.min_coordinates.iter())
             .map(|(&a, &b)| a - b).collect();
-        return self.margins.iter().zip(relative_coordinates.iter())
-            .map(|(&a, &b)| a+b*self.stretch).collect();
+        self.margins.iter().zip(relative_coordinates.iter())
+            .map(|(&a, &b)| a+b*self.stretch).collect()
     }
 
     fn calibrate(&mut self) {
