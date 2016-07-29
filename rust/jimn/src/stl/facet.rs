@@ -76,7 +76,7 @@ impl Facet {
         }
         // intersect segments crossing height
         let intersection_points: Vec<Point> = together_points.iter()
-            .map(|p| p.segment_intersection(&isolated_point, height)).collect();
+            .map(|p| p.segment_intersection(isolated_point, height)).collect();
         // because of rounding
         if intersection_points[0].is_almost(&intersection_points[1]) {
             return None

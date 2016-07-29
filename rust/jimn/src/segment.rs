@@ -78,7 +78,7 @@ impl Segment {
         //! assert!(result.unwrap().is_almost(&Point::new(0.0, 1.0)));
         //! ```
         //TODO: reorder segments (small big) to avoid commutativity problems
-        match self.line_intersection_with(&other) {
+        match self.line_intersection_with(other) {
             Some(i) if self.contains(&i) && other.contains(&i) => Some(i),
             _ => None
         }
