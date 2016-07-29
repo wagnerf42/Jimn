@@ -1,6 +1,7 @@
 # Ignore vim temporary files
 *~
 *.swp
+*.pyc
 
 # Ignore python files
 **/__pycache__/

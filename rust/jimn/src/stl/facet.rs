@@ -2,6 +2,7 @@
 //!
 //! Provides **Facet** class for handling 3D facets from stl files.
 use byteorder::{ReadBytesExt, LittleEndian};
+use point::Point;
 use segment::Segment;
 use utils::precision::is_almost;
 use stl::point3::Point3;
@@ -40,7 +41,10 @@ impl Facet {
         new_facet
     }
 
-    fn find_points_above_and_below(&self, height: f64)
+    /// Returns two vector of references on our points.
+    /// First one contains points below given height and other
+    /// one points above given height.
+    fn points_above_below(&self, height: f64)
         -> (Vec<&Point3>, Vec<&Point3>) {
             let (mut low_points, mut high_points) = (Vec::new(), Vec::new());
             for point in &self.points {
@@ -53,11 +57,10 @@ impl Facet {
             (low_points, high_points)
     }
 
-    //Intersects facet at given height.
+    /// Intersects facet at given height.
+    //TODO: filter remaining facets
     pub fn intersect(&self, height: f64) -> Option<Segment> {
-        println!("{:?}", self);
-        let (lower_points, higher_points) = self.find_points_above_and_below(height);
-        //TODO: filter remaining facets
+        let (lower_points, higher_points) = self.points_above_below(height);
         let (together_points, isolated_point);
         if lower_points.len() == 2 {
             together_points = lower_points;
@@ -71,8 +74,13 @@ impl Facet {
         } else {
             return None
         }
-        println!("iso:{:?}", isolated_point);
-        println!("TODO");
-        None
+        // intersect segments crossing height
+        let intersection_points: Vec<Point> = together_points.iter()
+            .map(|p| p.segment_intersection(&isolated_point, height)).collect();
+        // because of rounding
+        if intersection_points[0].is_almost(&intersection_points[1]) {
+            return None
+        }
+        Some(Segment::new(intersection_points[0], intersection_points[1]))
     }
 }
