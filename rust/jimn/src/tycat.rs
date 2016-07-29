@@ -79,6 +79,22 @@ pub trait Displayable {
     fn save_svg_content(&self, displayer: &mut Displayer, color: &str);
 }
 
+///vectors of *Displayable* are also *Displayable*.
+impl<T: Displayable> Displayable for  Vec<T> {
+    fn get_bounding_box(&self) -> BoundingBox {
+        let mut bbox = BoundingBox::empty_box(2);
+        for content in self {
+            bbox.update(&content.get_bounding_box());
+        }
+        bbox
+    }
+    fn save_svg_content(&self, displayer: &mut Displayer, color: &str) {
+        for content in self {
+            content.save_svg_content(displayer, color);
+        }
+    }
+}
+
 impl Displayer {
     /// return a new **Displayer**.
     /// this displayer is auto-calibrated to display given vector of **Displayable**.
@@ -162,4 +178,17 @@ pub fn display(objects: &Vec<&Displayable>) {
             .expect("cannot write svg file, disk full ?");
     }
     Command::new("tycat").arg(filename).status().expect("tycat failed");
+}
+
+#[macro_export]
+/// The display macro is used to tycat to terminology **Displayable** structs
+/// or vectors of displayable structs.
+macro_rules! display {
+    ( $($x:expr ), *) => {
+        let mut temp_vec = Vec::new();
+        $(
+            temp_vec.push(&$x as &jimn::tycat::Displayable);
+        )*
+        jimn::tycat::display(&temp_vec);
+    }
 }
