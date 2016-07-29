@@ -98,7 +98,7 @@ impl<T: Displayable> Displayable for  Vec<T> {
 impl Displayer {
     /// return a new **Displayer**.
     /// this displayer is auto-calibrated to display given vector of **Displayable**.
-    pub fn new(filename : &str, objects: &Vec<&Displayable>) -> Displayer {
+    pub fn new(filename : &str, objects: &[&Displayable]) -> Displayer {
         let file = File::create(filename).expect("failed opening file for tycat");
         let mut global_box = BoundingBox::empty_box(2);
         for object in objects {
@@ -163,7 +163,7 @@ impl Displayer {
 }
 
 /// display vector of displayable objects (one color each)
-pub fn display(objects: &Vec<&Displayable>) {
+pub fn display(objects: &[&Displayable]) {
     let file_number = FILE_COUNT.fetch_add(1, Ordering::SeqCst);
     let filename = format!("/tmp/test-{}.svg", file_number);
     println!("[{}]", file_number);
