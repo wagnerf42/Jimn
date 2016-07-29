@@ -1,8 +1,8 @@
+#[macro_use]
 extern crate jimn;
 use jimn::point::Point;
 use jimn::segment::Segment;
-use jimn::tycat::display;
-use jimn::tycat::Displayable;
+use jimn::tycat::{display, Displayable};
 
 fn main() {
     let p1 = Point::new(0.0, 0.0);
@@ -12,8 +12,5 @@ fn main() {
         Point::new(0.0, -3.0),
         Point::new(2.0, 5.0));
     let intersection = segment1.intersection_with_segment(&segment2).unwrap();
-    let things: Vec<&Displayable> = vec![
-        &segment1, &segment2, &intersection
-    ];
-    display(&things);
+    display!(segment1, segment2, intersection);
 }

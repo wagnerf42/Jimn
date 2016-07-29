@@ -2,7 +2,7 @@
 //!
 //! Allows graphical displays under terminology.
 //! Provides a **display** function for **Displayable objects**.
-extern crate std;
+use std::f64;
 use std::io::prelude::*;
 use std::fs::File;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
@@ -60,7 +60,7 @@ pub struct Displayer {
     svg_dimensions: Vec<f64>,
     margin: f64,
     /// file holding currently built svg image
-    pub svg_file: std::fs::File,
+    pub svg_file: File,
     min_coordinates: [f64; 2],
     max_coordinates: [f64; 2],
     margins: Vec<f64>,
@@ -77,6 +77,22 @@ pub trait Displayable {
     /// add svg code for self into file currently being built by **Displayer**.
     /// everything drawn should be of given color.
     fn save_svg_content(&self, displayer: &mut Displayer, color: &str);
+}
+
+impl<T: Displayable> Displayable for Vec<T> {
+    fn get_bounding_box(&self) -> BoundingBox {
+        let mut bbox = BoundingBox::empty_box(2);
+        for content in self {
+            bbox.update(&content.get_bounding_box());
+        }
+        bbox
+    }
+
+    fn save_svg_content(&self, displayer: &mut Displayer, color: &str) {
+        for content in self {
+            content.save_svg_content(displayer, color);
+        }
+    }
 }
 
 impl Displayer {
@@ -137,9 +153,9 @@ impl Displayer {
         //TODO: avoid dimension by 0
         let stretches: Vec<f64> = dimensions.iter().zip(real_dimensions.iter())
             .map(|(&a, &b)| b/a).collect();
-        self.stretch = stretches.iter().cloned().fold(std::f64::INFINITY, f64::min);
+        self.stretch = stretches.iter().cloned().fold(f64::INFINITY, f64::min);
         self.stroke_width = self.svg_dimensions.iter().cloned()
-            .fold(std::f64::INFINITY, f64::min) / 200.0;
+            .fold(f64::INFINITY, f64::min) / 200.0;
         self.margins = real_dimensions.iter().zip(dimensions.iter()).
             map(|(&real, &fake)| (real - fake*self.stretch)/2.0 + self.margin)
             .collect();
@@ -162,4 +178,18 @@ pub fn display(objects: &Vec<&Displayable>) {
             .expect("cannot write svg file, disk full ?");
     }
     Command::new("tycat").arg(filename).status().expect("tycat failed");
+}
+
+/// Auto-packs vector for display.
+#[macro_export]
+macro_rules! display {
+    ( $($x:expr),* ) => {
+        {
+            let mut temp_vec = Vec::new();
+            $(
+                temp_vec.push(&$x as &Displayable);
+             )*
+            display(&temp_vec)
+        }
+    };
 }

@@ -16,9 +16,6 @@
 //! Many graphical examples are available in the *examples* sub-directory.
 //! Compile them with cargo !
 
-// see https://www.reddit.com/r/rust/comments/3fg0xr/how_do_i_find_the_max_value_in_a_vecf64/
-//TODO: types iterables avec flottants au lieu de vecteurs ?
-
 #![deny(missing_docs)]
 
 extern crate byteorder;
