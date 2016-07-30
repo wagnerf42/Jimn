@@ -73,14 +73,17 @@ impl BoundingBox {
     ///         ##                ###
     ///         ## <-other        ###
     pub fn update(&mut self, other: &BoundingBox) {
-        for (index, coordinate) in other.min_coordinates.iter().enumerate() {
-            if self.min_coordinates[index] > *coordinate {
-                self.min_coordinates[index] = *coordinate;
+
+        for (min_coordinate, coordinate) in self.min_coordinates.iter_mut()
+            .zip(other.min_coordinates.iter()) {
+            if *min_coordinate > *coordinate {
+                *min_coordinate = *coordinate;
             }
         }
-        for (index, coordinate) in other.max_coordinates.iter().enumerate() {
-            if self.max_coordinates[index] < *coordinate {
-                self.max_coordinates[index] = *coordinate;
+        for (max_coordinate, coordinate) in self.max_coordinates.iter_mut()
+            .zip(other.max_coordinates.iter()) {
+            if *max_coordinate < *coordinate {
+                *max_coordinate = *coordinate;
             }
         }
     }

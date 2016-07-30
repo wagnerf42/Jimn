@@ -5,3 +5,4 @@ authors = ["frederic wagner <frederic.wagner@imag.fr>"]
 
 [dependencies]
 byteorder = "0.5.3"
+argparse = "0.2.1"
