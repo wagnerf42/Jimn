@@ -183,8 +183,20 @@ pub fn display(objects: &[&Displayable]) {
 #[macro_export]
 /// The display macro is used to tycat to terminology **Displayable** structs
 /// or vectors of displayable structs.
+/// # Example
+///
+/// ```
+/// # #[macro_use] extern crate jimn;
+/// use jimn::point::Point;
+/// use jimn::segment::Segment;
+/// # fn main() {
+/// let single_point = Point::new(3.0, 2.0); //NOTE: declared BEFORE display
+/// let segment = Segment::new(Point::new(1.0, 1.0), Point::new(0.0, -1.0));
+/// display!(single_point, segment);
+/// # }
+/// ```
 macro_rules! display {
-    ( $($x:expr ), *) => {
+    ( $($x:expr ), +) => {
         let mut temp_vec = Vec::new();
         $(
             temp_vec.push(&$x as &jimn::tycat::Displayable);
