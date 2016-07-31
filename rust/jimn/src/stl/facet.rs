@@ -60,7 +60,6 @@ impl Facet {
     }
 
     /// Intersects facet at given height.
-    //TODO: filter remaining facets
     pub fn intersect(&self, height: f64) -> Option<Segment> {
         let (lower_points, higher_points) = self.points_above_below(height);
         let (together_points, isolated_point);
@@ -84,5 +83,15 @@ impl Facet {
             return None
         }
         Some(Segment::new(intersection_points[0], intersection_points[1]))
+    }
+
+    /// Returns true if facet contains an point strictly below given height.
+    pub fn is_below(&self, height: f64) -> bool {
+        for point in &self.points {
+            if point.z < height {
+                return true;
+            }
+        }
+        false
     }
 }

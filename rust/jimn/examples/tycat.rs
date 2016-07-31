@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate jimn;
 use jimn::point::Point;
+use jimn::tycat::{Displayable, display};
 
 fn main() {
     let points = vec![

@@ -189,6 +189,7 @@ pub fn display(objects: &[&Displayable]) {
 /// # #[macro_use] extern crate jimn;
 /// use jimn::point::Point;
 /// use jimn::segment::Segment;
+/// use jimn::tycat::{Displayable, display};
 /// # fn main() {
 /// let single_point = Point::new(3.0, 2.0); //NOTE: declared BEFORE display
 /// let segment = Segment::new(Point::new(1.0, 1.0), Point::new(0.0, -1.0));
@@ -199,8 +200,8 @@ macro_rules! display {
     ( $($x:expr ), +) => {
         let mut temp_vec = Vec::new();
         $(
-            temp_vec.push(&$x as &jimn::tycat::Displayable);
+            temp_vec.push(&$x as &Displayable);
         )*
-        jimn::tycat::display(&temp_vec);
+        display(&temp_vec);
     }
 }

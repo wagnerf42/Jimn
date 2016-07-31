@@ -2,6 +2,7 @@
 extern crate jimn;
 use jimn::stl::Stl;
 use jimn::segment::Segment;
+use jimn::tycat::{Displayable, display};
 
 fn main() {
     let model = Stl::new("../../test_files/cordoba.stl").expect("error loading");

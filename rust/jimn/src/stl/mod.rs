@@ -8,6 +8,7 @@ use byteorder::{ReadBytesExt, LittleEndian};
 
 mod facet;
 mod point3;
+use segment::Segment;
 use stl::facet::Facet;
 use bounding_box::BoundingBox;
 
@@ -47,4 +48,32 @@ impl Stl {
         }
         Ok(model)
     }
+
+    /// Cuts model into slices of given thickness (starting at the top).
+    /// Returns vector of tuples (height, slice).
+    pub fn compute_slices(&self, thickness: f64) -> Vec<(f64, Vec<Segment>)> {
+        let (min_height, max_height) = self.dimensions.limits(2);
+        let slices_number = ((max_height - min_height)/thickness).ceil() as usize;
+        let mut remaining_facets:Vec<&Facet> = self.facets.iter().collect();
+        let mut slices = Vec::with_capacity(slices_number);
+
+        for slice_number in 0..slices_number {
+            let mut lower_boundary = max_height - ((slice_number + 1) as f64) * thickness;
+            //TODO: hash heights
+            //lower_boundary = self.heights_hash.hash_coordinate(lower_boundary);
+            if lower_boundary < min_height + 0.01 {
+                lower_boundary = min_height + 0.01; //TODO: do a special case instead
+            }
+            //discard all facets too high
+            remaining_facets = remaining_facets.into_iter()
+                .filter(|f| f.is_below(lower_boundary)).collect();
+            //cut facets at given height
+            let current_slice = remaining_facets.iter()
+                .filter_map(|f| f.intersect(lower_boundary)).collect();
+            slices.push((lower_boundary, current_slice));
+        }
+        slices
+    }
+    
+        
 }

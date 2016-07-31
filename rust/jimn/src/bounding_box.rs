@@ -92,6 +92,11 @@ impl BoundingBox {
             }
         }
     }
+    /// Returns min and max value for given dimension.
+    pub fn limits(&self, dimension_index:usize) -> (f64, f64) {
+        (self.min_coordinates[dimension_index],
+         self.max_coordinates[dimension_index])
+    }
 }
 
 impl fmt::Display for BoundingBox {

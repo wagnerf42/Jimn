@@ -2,6 +2,7 @@
 extern crate jimn;
 use jimn::point::Point;
 use jimn::segment::Segment;
+use jimn::tycat::{Displayable, display};
 
 fn main() {
     let segment1 = Segment::new(Point::new(0.0, 0.0), Point::new(3.0, 4.0));
