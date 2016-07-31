@@ -2,22 +2,21 @@
 //!
 //! Provides **Stl** class handling 3d models from stl files.
 //! Color information is discarded.
+use std::fs::File;
+use std::io::{Error, Read, SeekFrom, Seek, Cursor};
 use byteorder::{ReadBytesExt, LittleEndian};
 
 mod facet;
 mod point3;
 use stl::facet::Facet;
-use std::fs::File;
-use std::io::Error;
-use std::io::Read;
-use std::io::SeekFrom;
-use std::io::Seek;
-use std::io::Cursor;
+use bounding_box::BoundingBox;
 
 /// The **Stl** structure holds a set of [facets](facet/struct.Facet.html).
 pub struct Stl {
     /// Vector containing all facets.
-    pub facets: Vec<Facet>
+    pub facets: Vec<Facet>,
+    /// Box containing all 3D points.
+    pub dimensions: BoundingBox
 }
 
 impl Stl {
@@ -37,10 +36,14 @@ impl Stl {
         assert_eq!(loaded, size);
 
         // parse facets
-        let mut model = Stl { facets: Vec::with_capacity(size) };
+        let mut model = Stl {
+            facets: Vec::with_capacity(size),
+            dimensions: BoundingBox::empty_box(3)
+        };
         let mut facets_data = Cursor::new(buffer);
         for _ in 0..facets_number {
-            model.facets.push(Facet::new(&mut facets_data));
+            model.facets.push(
+                Facet::new(&mut facets_data, &mut model.dimensions));
         }
         Ok(model)
     }

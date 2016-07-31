@@ -29,13 +29,16 @@ pub mod segment;
 pub mod stl;
 pub mod tycat;
 
+use stl::Stl;
+
 /// Loads stl file, slices it at given thickness, mills all slices
 /// and return global path.
 pub fn compute_milling_path(thickness: f64, milling_radius: f64,
                             stl_file: String) {
-    //let model = Stl::new(stl_file).expect("error loading stl file");
     module_debug!({
-        println!("{:?}", module_path!());
-        println!("hi");
-    })
+        println!("Starting jimn, loading {}, thickness is {}, radius is {}",
+                 stl_file, thickness, milling_radius
+                 );
+    });
+    let model = Stl::new(&stl_file).expect("error loading stl file");
 }

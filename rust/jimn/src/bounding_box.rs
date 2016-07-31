@@ -5,7 +5,6 @@
 //! Boxes are also used for computing display dimensions.
 extern crate std;
 use std::fmt;
-use point::Point;
 
 
 /// The bounding box structure stores bounds on each coordinate.
@@ -15,6 +14,12 @@ pub struct BoundingBox {
     pub min_coordinates: Vec<f64>,
     /// Vector of upper bounds on each coordinate.
     pub max_coordinates: Vec<f64>
+}
+
+///All points need to implement this Trait.
+pub trait IsPoint {
+    ///A Point provides coordinates. This is the way to get them.
+    fn coordinates(&self) -> Vec<f64>;
 }
 
 impl BoundingBox {
@@ -29,8 +34,8 @@ impl BoundingBox {
     /// ```
     pub fn empty_box(dimension: i64) -> BoundingBox {
         let mut new_box = BoundingBox {
-            min_coordinates: vec![],
-            max_coordinates: vec![]
+            min_coordinates: Vec::with_capacity(dimension as usize),
+            max_coordinates: Vec::with_capacity(dimension as usize)
         };
         for _ in 0..dimension {
             new_box.min_coordinates.push(std::f64::INFINITY);
@@ -54,7 +59,7 @@ impl BoundingBox {
     /// assert_eq!(bbox.min_coordinates, vec![1.0, 1.2]);
     /// assert_eq!(bbox.max_coordinates, vec![2.3, 3.5]);
     /// ```
-    pub fn add_point(&mut self, point: &Point) {
+    pub fn add_point<T: IsPoint>(&mut self, point: &T) {
         let coordinates = point.coordinates();
         for (dimension, coordinate) in coordinates.iter().enumerate() {
             if *coordinate < self.min_coordinates[dimension] {

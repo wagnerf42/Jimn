@@ -7,9 +7,8 @@ use std::io::prelude::*;
 use std::ops::{Add, Sub, Mul, Div};
 use std::fmt;
 use std::f64;
-use bounding_box::BoundingBox;
-use tycat::Displayer;
-use tycat::Displayable;
+use bounding_box::{BoundingBox, IsPoint};
+use tycat::{Displayer, Displayable};
 use utils::precision::is_almost;
 
 #[derive(Copy, Clone)]
@@ -144,5 +143,12 @@ impl Displayable for Point {
         writeln!(displayer.svg_file, " r=\"{}\" fill=\"{}\" opacity=\"0.5\"/>",
                2.0*displayer.stroke_width, color)
             .expect("cannot write svg file, disk full ?");
+    }
+}
+
+//TODO: smart way to avoid duplication ?
+impl IsPoint for Point {
+    fn coordinates(&self) -> Vec<f64> {
+        vec![self.x, self.y]
     }
 }
