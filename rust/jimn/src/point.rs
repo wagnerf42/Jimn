@@ -11,7 +11,7 @@ use bounding_box::{BoundingBox, IsPoint};
 use tycat::{Displayer, Displayable};
 use utils::precision::is_almost;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 /// 2D point structure.
 pub struct Point {
     /// X coordinate.

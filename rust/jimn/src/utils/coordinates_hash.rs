@@ -8,23 +8,25 @@ use point::Point;
 
 /// a `CoordinatesHash` allows for hashing nearby points together in O(1).
 pub struct CoordinatesHash {
-    hashes: Vec<HashMap<String, Point>>
+    hashes: Vec<HashMap<String, Point>>,
+    precision: usize
 }
 
-//TODO: how to change precision in the format ?
-fn coordinate_key(coordinate: f64) -> String {
-    format!("{:.6}", coordinate)
+fn coordinate_key(coordinate: f64, precision: usize) -> String {
+    format!("{:.p$}", coordinate, p=precision)
 }
 
-fn displaced_coordinate_key(coordinate: f64) -> String {
-    coordinate_key(10.0f64.powi(-6)+ coordinate)
+fn displaced_coordinate_key(coordinate: f64, precision: usize) -> String {
+    coordinate_key(10.0f64.powi(-6)+ coordinate, precision)
 }
 
 impl CoordinatesHash {
-    /// creates a new `CoordinatesHash` with given space dimension.
-    pub fn new(dimension: u32) -> CoordinatesHash {
+    /// Creates a new `CoordinatesHash` with given space dimension.
+    /// and given precision.
+    pub fn new(dimension: u32, precision: usize) -> CoordinatesHash {
         CoordinatesHash {
-            hashes: vec![HashMap::new(); 2<<dimension]
+            hashes: vec![HashMap::new(); 2<<dimension],
+            precision: precision
         }
     }
 
@@ -33,9 +35,10 @@ impl CoordinatesHash {
         let mut remaining_bits = hash_number;
         for coordinate in point.coordinates() {
             if (remaining_bits % 2) == 1 {
-                key_parts.push(displaced_coordinate_key(coordinate));
+                key_parts.push(
+                    displaced_coordinate_key(coordinate, self.precision));
             } else {
-                key_parts.push(coordinate_key(coordinate));
+                key_parts.push(coordinate_key(coordinate, self.precision));
             }
             remaining_bits /= 2;
         }
