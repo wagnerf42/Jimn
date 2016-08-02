@@ -1,10 +1,11 @@
 //! Segments on the plane.
+use std::io::Write;
 use bounding_box::BoundingBox;
 use point::Point;
 use tycat::Displayer;
 use tycat::Displayable;
 use utils::precision::is_almost;
-use std::io::Write;
+use elementary_path::ElementaryPath;
 
 /// Oriented segment structure.
 pub struct Segment {
@@ -14,6 +15,7 @@ pub struct Segment {
 impl Segment {
     /// Returns a new segment out of given endpoints.
     pub fn new(start: Point, end: Point) -> Segment {
+        debug_assert!(!(start.is_almost(&end)));
         Segment {
             points: [start, end]
         }
@@ -109,5 +111,11 @@ impl Displayable for Segment {
                opacity=\"0.5\"/>",
                displayer.stroke_width, color)
             .expect("cannot write svg file, disk full ?");
+    }
+}
+
+impl ElementaryPath for Segment {
+    fn points(&self) -> &[Point; 2] {
+        &self.points
     }
 }

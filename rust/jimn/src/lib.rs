@@ -23,6 +23,7 @@
 
 extern crate byteorder;
 pub mod utils;
+pub mod elementary_path;
 pub mod bounding_box;
 pub mod point;
 pub mod segment;

@@ -6,8 +6,8 @@ fn main() {
     let o = Point::new(0.0, 0.0);
     let o2 = Point::new(1.3, 2.5);
     let mut bbox = BoundingBox::empty_box(2);
-    println!("box is {}", bbox);
+    println!("box is {:?}", bbox);
     bbox.add_point(&o);
     bbox.add_point(&o2);
-    println!("box is {}", bbox);
+    println!("box is {:?}", bbox);
 }

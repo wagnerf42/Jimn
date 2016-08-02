@@ -2,7 +2,6 @@
 //!
 //! Allows graphical displays under terminology.
 //! Provides a **display** function for **Displayable objects**.
-extern crate std;
 use std::io::prelude::*;
 use std::fs::File;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
@@ -60,7 +59,7 @@ pub struct Displayer {
     svg_dimensions: Vec<f64>,
     margin: f64,
     /// file holding currently built svg image
-    pub svg_file: std::fs::File,
+    pub svg_file: File,
     min_coordinates: [f64; 2],
     max_coordinates: [f64; 2],
     margins: Vec<f64>,
@@ -153,9 +152,10 @@ impl Displayer {
         //TODO: avoid dimension by 0
         let stretches: Vec<f64> = dimensions.iter().zip(real_dimensions.iter())
             .map(|(&a, &b)| b/a).collect();
-        self.stretch = stretches.iter().cloned().fold(std::f64::INFINITY, f64::min);
+        self.stretch = stretches.iter()
+            .cloned().fold(::std::f64::INFINITY, f64::min);
         self.stroke_width = self.svg_dimensions.iter().cloned()
-            .fold(std::f64::INFINITY, f64::min) / 200.0;
+            .fold(::std::f64::INFINITY, f64::min) / 200.0;
         self.margins = real_dimensions.iter().zip(dimensions.iter()).
             map(|(&real, &fake)| (real - fake*self.stretch)/2.0 + self.margin)
             .collect();

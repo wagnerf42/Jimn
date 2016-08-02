@@ -3,12 +3,11 @@
 //! Provides `BoundingBox` class to bound objects by rectangles.
 //! Allows for example a fast pre-test to know complex shape do not intersect.
 //! Boxes are also used for computing display dimensions.
-extern crate std;
-use std::fmt;
 
 
 /// The bounding box structure stores bounds on each coordinate.
 /// In 2D this translates to rectangles.
+#[derive(Debug)]
 pub struct BoundingBox {
     /// Vector of lower bounds on each coordinate.
     pub min_coordinates: Vec<f64>,
@@ -38,8 +37,8 @@ impl BoundingBox {
             max_coordinates: Vec::with_capacity(dimension as usize)
         };
         for _ in 0..dimension {
-            new_box.min_coordinates.push(std::f64::INFINITY);
-            new_box.max_coordinates.push(std::f64::NEG_INFINITY);
+            new_box.min_coordinates.push(::std::f64::INFINITY);
+            new_box.max_coordinates.push(::std::f64::NEG_INFINITY);
         }
         new_box
     }
@@ -96,13 +95,5 @@ impl BoundingBox {
     pub fn limits(&self, dimension_index:usize) -> (f64, f64) {
         (self.min_coordinates[dimension_index],
          self.max_coordinates[dimension_index])
-    }
-}
-
-impl fmt::Display for BoundingBox {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let min_strings: Vec<_> = self.min_coordinates.iter().map(|&c| c.to_string()).collect();
-        let max_strings: Vec<_> = self.max_coordinates.iter().map(|&c| c.to_string()).collect();
-        write!(f, "[{} ; {}]", min_strings.join(", "), max_strings.join(", "))
     }
 }
