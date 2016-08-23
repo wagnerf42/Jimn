@@ -63,7 +63,8 @@ pub struct Displayer {
     min_coordinates: [f64; 2],
     max_coordinates: [f64; 2],
     margins: Vec<f64>,
-    stretch: f64,
+    /// how much stretch we apply to objects for displaying them.
+    pub stretch: f64,
     /// advised width of stroke for svg lines.
     pub stroke_width: f64
 }

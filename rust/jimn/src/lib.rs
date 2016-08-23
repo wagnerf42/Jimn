@@ -27,7 +27,9 @@ pub mod elementary_path;
 pub mod bounding_box;
 pub mod point;
 pub mod segment;
+pub mod arc;
 pub mod stl;
+pub mod polygon;
 #[macro_use]
 pub mod tycat;
 

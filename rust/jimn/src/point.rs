@@ -5,8 +5,6 @@
 //! which coordinates encode the direction vector of segment(point1,point2).
 use std::io::prelude::*;
 use std::ops::{Add, Sub, Mul, Div};
-use std::fmt;
-use std::f64;
 use bounding_box::{BoundingBox, IsPoint};
 use tycat::{Displayer, Displayable};
 use utils::precision::is_almost;
@@ -64,7 +62,7 @@ impl Point {
         let mut raw_angle = -y_diff.atan2(x_diff);
         println!("xd {} yd {} angle {}", x_diff, y_diff, raw_angle);
         if raw_angle <= 0.0 {
-            raw_angle += 2.0 * f64::consts::PI;
+            raw_angle += 2.0 * ::std::f64::consts::PI;
         }
         raw_angle
     }
@@ -86,12 +84,6 @@ impl Point {
     /// ```
     pub fn cross_product(&self, other: &Point) -> f64 {
         (self.x * other.y) - (self.y * other.x)
-    }
-}
-
-impl fmt::Display for Point {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({}, {})", self.x, self.y)
     }
 }
 
