@@ -11,6 +11,6 @@ fn main() {
     ];
 
     for point in points.iter() {
-        println!("angle avec {} : {}", point, o.angle_with(point))
+        println!("angle avec {:?} : {}", point, o.angle_with(point))
     }
 }

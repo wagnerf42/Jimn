@@ -3,6 +3,7 @@
 use bounding_box::BoundingBox;
 use point::Point;
 use tycat::{Displayer, Displayable};
+use elementary_path::ElementaryPath;
 use std::io::Write;
 use utils::precision::is_almost;
 
@@ -34,6 +35,12 @@ impl Arc {
             center: center,
             reversed_direction: reversed
         }
+    }
+}
+
+impl ElementaryPath for Arc {
+    fn points(&self) -> &[Point; 2] {
+        &self.points
     }
 }
 

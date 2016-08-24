@@ -3,9 +3,10 @@
 //! and [Arc](arc/index.html).
 use point::Point;
 use utils::precision::is_almost;
+use tycat::Displayable;
 
 /// `ElementaryPath` allows common functions on `Segment` and `Arc`.
-pub trait ElementaryPath {
+pub trait ElementaryPath: Displayable {
     /// Returns array of start and end point.
     /// Used as basis for all default trait functions.
     fn points(&self) -> &[Point; 2];

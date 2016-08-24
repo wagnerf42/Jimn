@@ -26,6 +26,7 @@ pub mod utils;
 pub mod elementary_path;
 pub mod bounding_box;
 pub mod point;
+pub mod pocket;
 pub mod segment;
 pub mod arc;
 pub mod stl;
