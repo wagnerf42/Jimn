@@ -8,6 +8,9 @@ use std::ops::{Add, Sub, Mul, Div};
 use bounding_box::{BoundingBox, IsPoint};
 use tycat::{Displayer, Displayable};
 use utils::precision::is_almost;
+use std::mem;
+use std::hash::{Hash, Hasher};
+
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 /// 2D point structure.
@@ -18,6 +21,17 @@ pub struct Point {
     pub y: f64
 }
 
+impl Eq for Point {}
+impl Hash for Point {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        unsafe {
+            let as_int: u64 = mem::transmute::<f64, u64>(self.x);
+            as_int.hash(state);
+            let as_int: u64 = mem::transmute::<f64, u64>(self.y);
+            as_int.hash(state);
+        }
+    }
+}
 impl Point {
     /// Returns a new Point from given coordinates.
     pub fn new(x: f64, y: f64) -> Point {

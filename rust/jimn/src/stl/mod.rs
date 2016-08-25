@@ -74,6 +74,4 @@ impl Stl {
         }
         slices
     }
-    
-        
 }

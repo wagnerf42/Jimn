@@ -22,6 +22,8 @@
 #![deny(missing_docs)]
 
 extern crate byteorder;
+#[macro_use]
+pub mod tycat;
 pub mod utils;
 pub mod elementary_path;
 pub mod bounding_box;
@@ -31,8 +33,6 @@ pub mod segment;
 pub mod arc;
 pub mod stl;
 pub mod polygon;
-#[macro_use]
-pub mod tycat;
 
 use stl::Stl;
 use tycat::{Displayable, display};

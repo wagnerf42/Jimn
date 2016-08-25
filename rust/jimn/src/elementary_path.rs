@@ -10,6 +10,10 @@ pub trait ElementaryPath: Displayable {
     /// Returns array of start and end point.
     /// Used as basis for all default trait functions.
     fn points(&self) -> &[Point; 2];
+    /// Returns a reversed path of same type.
+    /// Since we cannot return a type of unknown size we must box it.
+    /// TODO: solution ?
+    fn reverse(&self) -> Box<ElementaryPath>;
 
     /// Returns endpoint which is not given point.
     /// pre-condition: one of our points is given point.

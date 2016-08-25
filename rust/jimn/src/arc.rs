@@ -42,6 +42,15 @@ impl ElementaryPath for Arc {
     fn points(&self) -> &[Point; 2] {
         &self.points
     }
+
+    fn reverse(&self) -> Box<ElementaryPath> {
+        Box::new(Arc {
+            points: [self.points[1], self.points[0]],
+            radius: self.radius,
+            center: self.center,
+            reversed_direction: !self.reversed_direction
+        })
+    }
 }
 
 impl Displayable for Arc {

@@ -118,4 +118,10 @@ impl ElementaryPath for Segment {
     fn points(&self) -> &[Point; 2] {
         &self.points
     }
+
+    fn reverse(&self) -> Box<ElementaryPath> {
+        Box::new(Segment {
+            points: [self.points[1], self.points[0]]
+        })
+    }
 }

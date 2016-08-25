@@ -1,6 +1,8 @@
 //! Pockets.
 //! Provides `Pocket` structure holding a set of elementary paths delimiting
 //! a plane area by either segments or arcs.
+pub mod builder;
+
 use bounding_box::BoundingBox;
 use tycat::{Displayer, Displayable};
 use elementary_path::ElementaryPath;
