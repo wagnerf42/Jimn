@@ -10,7 +10,7 @@ struct PocketsBuilder {
     pockets: Vec<Pocket>,
     reversed_paths: bool,
     paths: HashMap<usize, Box<ElementaryPath>>,
-    points_neighbours: HashMap<Point, Vec<Box<ElementaryPath>>>
+    points_neighbours: HashMap<Point, Vec<usize>>
 }
 
 fn id(boxed: &Box<ElementaryPath>) -> usize {
@@ -43,13 +43,38 @@ impl PocketsBuilder {
         builder
     }
 
-    // Computes for each point the list of neighbouring points.
+    // Computes for each point the list of neighbouring paths.
     fn hash_points(&mut self) {
-        ()
+        for path in self.paths.values() {
+            let points = (*path).points();
+            if self.reversed_paths {
+                // if paths are duplicated, only add start ;
+                // end will be added by reversed path
+                self.points_neighbours.entry(points[0])
+                    .or_insert(Vec::new()).push(id(&path));
+            } else {
+                for endpoint in points {
+                    self.points_neighbours.entry(*endpoint)
+                        .or_insert(Vec::new()).push(id(&path));
+                }
+            }
+        }
     }
 
     fn sort_neighbours_by_angle(&mut self) {
-        ()
+        let angle = |point: &Point, path_id| {
+            let path = self.paths.get(path_id).expect("failed to find point");
+            let other_point = path.endpoint_not(*point);
+            point.angle_with(&other_point)
+        };
+        for (point, neighbours) in &self.points_neighbours {
+            neighbours.sort_by(
+                |p1, p2| {
+                    let angle1 = angle(point, p1);
+                    let angle2 = angle(point, p2);
+                    angle1.partial_cmp(&angle2).unwrap()
+                });
+        }
     }
 }
 
