@@ -3,5 +3,10 @@ name = "jimn"
 version = "0.1.0"
 authors = ["frederic wagner <frederic.wagner@imag.fr>"]
 
+[[bin]]
+name = "main"
+doc = false
+
 [dependencies]
 byteorder = "0.5.3"
+argparse = "0.2.1"

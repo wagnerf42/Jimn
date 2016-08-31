@@ -2,12 +2,13 @@
 //!
 //! Allows graphical displays under terminology.
 //! Provides a **display** function for **Displayable objects**.
-use std::f64;
 use std::io::prelude::*;
 use std::fs::File;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::process::Command;
 use bounding_box::BoundingBox;
+use std::collections::HashMap;
+use std::hash::Hash;
 
 static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
 
@@ -51,10 +52,10 @@ const SVG_COLORS: [&'static str; 37] = [
     "darkgrey"
 ];
 
-/// a **Displayer** object stores all information for building svg images
-/// of vectors of different **Displayable** objects.
-/// **Displayable** objects need to implement **save_svg_content**
-/// which uses the **Displayer** to write appropriate coordinates in current
+/// a `Displayer` object stores all information for building svg images
+/// of vectors of different `Displayable` objects.
+/// `Displayable` objects need to implement `save_svg_content`
+/// which uses the `Displayer` to write appropriate coordinates in current
 /// svg file.
 pub struct Displayer {
     svg_dimensions: Vec<f64>,
@@ -64,7 +65,8 @@ pub struct Displayer {
     min_coordinates: [f64; 2],
     max_coordinates: [f64; 2],
     margins: Vec<f64>,
-    stretch: f64,
+    /// how much stretch we apply to objects for displaying them.
+    pub stretch: f64,
     /// advised width of stroke for svg lines.
     pub stroke_width: f64
 }
@@ -79,7 +81,19 @@ pub trait Displayable {
     fn save_svg_content(&self, displayer: &mut Displayer, color: &str);
 }
 
+/// Boxed displayables are also displayable
+impl<T: ?Sized + Displayable> Displayable for Box<T> {
+    fn get_bounding_box(&self) -> BoundingBox {
+        (**self).get_bounding_box()
+    }
+    fn save_svg_content(&self, displayer: &mut Displayer, color: &str) {
+        (**self).save_svg_content(displayer, color)
+    }
+}
+
+///vectors of *Displayable* are also *Displayable*.
 impl<T: Displayable> Displayable for Vec<T> {
+//impl<'a, T, U> Displayable for T where T: IntoIterator<Item=&'a U>, U: 'a, U: Displayable {
     fn get_bounding_box(&self) -> BoundingBox {
         let mut bbox = BoundingBox::empty_box(2);
         for content in self {
@@ -87,9 +101,23 @@ impl<T: Displayable> Displayable for Vec<T> {
         }
         bbox
     }
-
     fn save_svg_content(&self, displayer: &mut Displayer, color: &str) {
         for content in self {
+            content.save_svg_content(displayer, color);
+        }
+    }
+}
+
+impl<U, T: Displayable> Displayable for HashMap<U, T> where U: Hash + Eq {
+    fn get_bounding_box(&self) -> BoundingBox {
+        let mut bbox = BoundingBox::empty_box(2);
+        for (_, content) in self {
+            bbox.update(&content.get_bounding_box());
+        }
+        bbox
+    }
+    fn save_svg_content(&self, displayer: &mut Displayer, color: &str) {
+        for (_, content) in self {
             content.save_svg_content(displayer, color);
         }
     }
@@ -98,7 +126,7 @@ impl<T: Displayable> Displayable for Vec<T> {
 impl Displayer {
     /// return a new **Displayer**.
     /// this displayer is auto-calibrated to display given vector of **Displayable**.
-    pub fn new(filename : &str, objects: &Vec<&Displayable>) -> Displayer {
+    pub fn new(filename : &str, objects: &[&Displayable]) -> Displayer {
         let file = File::create(filename).expect("failed opening file for tycat");
         let mut global_box = BoundingBox::empty_box(2);
         for object in objects {
@@ -131,7 +159,7 @@ impl Displayer {
             displayer.svg_dimensions[0],
             displayer.svg_dimensions[1]
         ).expect("cannot write svg file, disk full ?");
-        return displayer;
+        displayer
     }
 
     /// convert given coordinates to display in svg file we are building
@@ -139,8 +167,8 @@ impl Displayer {
         let relative_coordinates: Vec<f64> = coordinates.iter()
             .zip(self.min_coordinates.iter())
             .map(|(&a, &b)| a - b).collect();
-        return self.margins.iter().zip(relative_coordinates.iter())
-            .map(|(&a, &b)| a+b*self.stretch).collect();
+        self.margins.iter().zip(relative_coordinates.iter())
+            .map(|(&a, &b)| a+b*self.stretch).collect()
     }
 
     fn calibrate(&mut self) {
@@ -153,9 +181,10 @@ impl Displayer {
         //TODO: avoid dimension by 0
         let stretches: Vec<f64> = dimensions.iter().zip(real_dimensions.iter())
             .map(|(&a, &b)| b/a).collect();
-        self.stretch = stretches.iter().cloned().fold(f64::INFINITY, f64::min);
+        self.stretch = stretches.iter()
+            .cloned().fold(::std::f64::INFINITY, f64::min);
         self.stroke_width = self.svg_dimensions.iter().cloned()
-            .fold(f64::INFINITY, f64::min) / 200.0;
+            .fold(::std::f64::INFINITY, f64::min) / 200.0;
         self.margins = real_dimensions.iter().zip(dimensions.iter()).
             map(|(&real, &fake)| (real - fake*self.stretch)/2.0 + self.margin)
             .collect();
@@ -163,7 +192,7 @@ impl Displayer {
 }
 
 /// display vector of displayable objects (one color each)
-pub fn display(objects: &Vec<&Displayable>) {
+pub fn display(objects: &[&Displayable]) {
     let file_number = FILE_COUNT.fetch_add(1, Ordering::SeqCst);
     let filename = format!("/tmp/test-{}.svg", file_number);
     println!("[{}]", file_number);
@@ -180,16 +209,28 @@ pub fn display(objects: &Vec<&Displayable>) {
     Command::new("tycat").arg(filename).status().expect("tycat failed");
 }
 
-/// Auto-packs vector for display.
 #[macro_export]
+/// The display macro is used to tycat to terminology **Displayable** structs
+/// or vectors of displayable structs.
+/// # Example
+///
+/// ```
+/// # #[macro_use] extern crate jimn;
+/// use jimn::point::Point;
+/// use jimn::segment::Segment;
+/// use jimn::tycat::{Displayable, display};
+/// # fn main() {
+/// let single_point = Point::new(3.0, 2.0); //NOTE: declared BEFORE display
+/// let segment = Segment::new(Point::new(1.0, 1.0), Point::new(0.0, -1.0));
+/// display!(single_point, segment);
+/// # }
+/// ```
 macro_rules! display {
-    ( $($x:expr),* ) => {
-        {
-            let mut temp_vec = Vec::new();
-            $(
-                temp_vec.push(&$x as &Displayable);
-             )*
-            display(&temp_vec)
-        }
-    };
+    ( $($x:expr ), +) => {
+        let mut temp_vec = Vec::new();
+        $(
+            temp_vec.push(&$x as &Displayable);
+        )*
+        display(&temp_vec);
+    }
 }

@@ -1,16 +1,16 @@
 //! Facet submodule for jimn.
 //!
-//! Provides **Facet** class for handling 3D facets from stl files.
+//! Provides `Facet` class for handling 3D facets from stl files.
+use std::io::{Read, Seek, SeekFrom};
 use byteorder::{ReadBytesExt, LittleEndian};
+
+use bounding_box::BoundingBox;
 use point::Point;
 use segment::Segment;
 use utils::precision::is_almost;
 use stl::point3::Point3;
-use std::io::Read;
-use std::io::Seek;
-use std::io::SeekFrom;
 
-/// A facet is just a triangle in space.
+/// A `Facet` is just a triangle in space.
 #[derive(Debug)]
 pub struct Facet {
     points: [Point3; 3]
@@ -18,22 +18,24 @@ pub struct Facet {
 
 impl Facet {
     /// Parses binary content into of cursor on stl data into facet.
-    pub fn new<R: Read + Seek>(raw_data: &mut R) -> Facet {
+    pub fn new<R: Read + Seek>(raw_data: &mut R, bbox: &mut BoundingBox) -> Facet {
         #[inline]
-        fn read_point<R: Read>(raw_data: &mut R) -> Point3 {
-            Point3::new(
+        fn read_point<R: Read>(raw_data: &mut R, bbox: &mut BoundingBox) -> Point3 {
+            let point = Point3::new(
                 raw_data.read_f32::<LittleEndian>().unwrap() as f64,
                 raw_data.read_f32::<LittleEndian>().unwrap() as f64,
-                raw_data.read_f32::<LittleEndian>().unwrap() as f64)
+                raw_data.read_f32::<LittleEndian>().unwrap() as f64);
+            bbox.add_point(&point);
+            point
         }
         //skip normal vector
         //no pb unwrapping since we already tested for size outside
         raw_data.seek(SeekFrom::Current(12)).unwrap();
         let new_facet = Facet {
             points: [
-                read_point(raw_data),
-                read_point(raw_data),
-                read_point(raw_data)
+                read_point(raw_data, bbox),
+                read_point(raw_data, bbox),
+                read_point(raw_data, bbox)
             ]
         };
         //skip useless bytes
@@ -58,7 +60,6 @@ impl Facet {
     }
 
     /// Intersects facet at given height.
-    //TODO: filter remaining facets
     pub fn intersect(&self, height: f64) -> Option<Segment> {
         let (lower_points, higher_points) = self.points_above_below(height);
         let (together_points, isolated_point);
@@ -76,11 +77,21 @@ impl Facet {
         }
         // intersect segments crossing height
         let intersection_points: Vec<Point> = together_points.iter()
-            .map(|p| p.segment_intersection(&isolated_point, height)).collect();
+            .map(|p| p.segment_intersection(isolated_point, height)).collect();
         // because of rounding
         if intersection_points[0].is_almost(&intersection_points[1]) {
             return None
         }
         Some(Segment::new(intersection_points[0], intersection_points[1]))
+    }
+
+    /// Returns true if facet contains an point strictly below given height.
+    pub fn is_below(&self, height: f64) -> bool {
+        for point in &self.points {
+            if point.z < height {
+                return true;
+            }
+        }
+        false
     }
 }

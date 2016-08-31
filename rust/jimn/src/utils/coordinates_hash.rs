@@ -1,30 +1,39 @@
 //! Fast identification of nearby points.
 //!
-//! Provides a **CoordinatesHash** structure which is used to hash
+//! Provides a `CoordinatesHash` structure which is used to hash
 //! nearby points together in O(1).
+//! The `CoordinatesHash` is created with a given space dimension and
+//! a given precision.
+//! Considering a distance given by infinity norm of difference vector,
+//! we have the following guarantees:
+//! 
+//! * any two points with distance < 5 * 10^-(precision+1) are hashed together.
+//! * no points of distance > 10^-precision are hashed together.
 
 use std::collections::HashMap;
 use point::Point;
 
-/// a **CoordinatesHash** allows for hashing nearby points together in O(1).
+/// a `CoordinatesHash` allows for hashing nearby points together in O(1).
 pub struct CoordinatesHash {
-    hashes: Vec<HashMap<String, Point>>
+    hashes: Vec<HashMap<String, Point>>,
+    precision: usize
 }
 
-//TODO: how to change precision in the format ?
-fn coordinate_key(coordinate: f64) -> String {
-    format!("{:.6}", coordinate)
+fn coordinate_key(coordinate: f64, precision: usize) -> String {
+    format!("{:.p$}", coordinate, p=precision)
 }
 
-fn displaced_coordinate_key(coordinate: f64) -> String {
-    coordinate_key(10.0f64.powi(-6)+ coordinate)
+fn displaced_coordinate_key(coordinate: f64, precision: usize) -> String {
+    coordinate_key(5.0 * 10.0f64.powi(-((precision+1) as i32))+ coordinate, precision)
 }
 
 impl CoordinatesHash {
-    /// creates a new **CoordinatesHash** with given space dimension.
-    pub fn new(dimension: u32) -> CoordinatesHash {
+    /// Creates a new `CoordinatesHash` with given space dimension.
+    /// and given precision.
+    pub fn new(dimension: u32, precision: usize) -> CoordinatesHash {
         CoordinatesHash {
-            hashes: vec![HashMap::new(); 2<<dimension]
+            hashes: vec![HashMap::new(); 1<<dimension],
+            precision: precision
         }
     }
 
@@ -33,9 +42,10 @@ impl CoordinatesHash {
         let mut remaining_bits = hash_number;
         for coordinate in point.coordinates() {
             if (remaining_bits % 2) == 1 {
-                key_parts.push(displaced_coordinate_key(coordinate));
+                key_parts.push(
+                    displaced_coordinate_key(coordinate, self.precision));
             } else {
-                key_parts.push(coordinate_key(coordinate));
+                key_parts.push(coordinate_key(coordinate, self.precision));
             }
             remaining_bits /= 2;
         }
@@ -43,9 +53,27 @@ impl CoordinatesHash {
     }
 
     //TODO: add fast hash ?
-    /// try to add a point to the hash.
-    /// if a nearby point was already there
-    /// return the nearby point, else add point and return it.
+    /// Tries to add a point to the hash.
+    /// If a nearby point was already there
+    /// returns the nearby point, else adds point and returns it.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use jimn::point::Point;
+    /// use jimn::utils::coordinates_hash::CoordinatesHash;
+    /// let points = [
+    ///     Point::new(0.1231, 0.0),
+    ///     Point::new(0.1233, 0.0),
+    ///     Point::new(0.1226, 0.0),
+    ///     Point::new(0.1220, 0.0),
+    /// ];
+    /// let mut hash = CoordinatesHash::new(2, 3);
+    /// hash.hash_point(&points[0]);
+    /// assert_eq!(points[0], hash.hash_point(&points[1]));
+    /// assert_eq!(points[0], hash.hash_point(&points[2]));
+    /// assert!(points[0] != hash.hash_point(&points[3]));
+    /// ```
     pub fn hash_point(&mut self, point: &Point) -> Point {
         let mut keys: Vec<String> = Vec::new();
         for (index, hash) in self.hashes.iter().enumerate() {

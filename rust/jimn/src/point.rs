@@ -5,14 +5,14 @@
 //! which coordinates encode the direction vector of segment(point1,point2).
 use std::io::prelude::*;
 use std::ops::{Add, Sub, Mul, Div};
-use std::fmt;
-use std::f64;
-use bounding_box::BoundingBox;
-use tycat::Displayer;
-use tycat::Displayable;
+use bounding_box::{BoundingBox, IsPoint};
+use tycat::{Displayer, Displayable};
 use utils::precision::is_almost;
+use std::mem;
+use std::hash::{Hash, Hasher};
 
-#[derive(Copy, Clone)]
+
+#[derive(Copy, Clone, Debug, PartialEq)]
 /// 2D point structure.
 pub struct Point {
     /// X coordinate.
@@ -21,6 +21,17 @@ pub struct Point {
     pub y: f64
 }
 
+impl Eq for Point {}
+impl Hash for Point {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        unsafe {
+            let as_int: u64 = mem::transmute::<f64, u64>(self.x);
+            as_int.hash(state);
+            let as_int: u64 = mem::transmute::<f64, u64>(self.y);
+            as_int.hash(state);
+        }
+    }
+}
 impl Point {
     /// Returns a new Point from given coordinates.
     pub fn new(x: f64, y: f64) -> Point {
@@ -65,7 +76,7 @@ impl Point {
         let mut raw_angle = -y_diff.atan2(x_diff);
         println!("xd {} yd {} angle {}", x_diff, y_diff, raw_angle);
         if raw_angle <= 0.0 {
-            raw_angle += 2.0 * f64::consts::PI;
+            raw_angle += 2.0 * ::std::f64::consts::PI;
         }
         raw_angle
     }
@@ -86,13 +97,7 @@ impl Point {
     /// assert!(is_almost(product, 0.0));
     /// ```
     pub fn cross_product(&self, other: &Point) -> f64 {
-        return (self.x * other.y) - (self.y * other.x);
-    }
-}
-
-impl fmt::Display for Point {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({}, {})", self.x, self.y)
+        (self.x * other.y) - (self.y * other.x)
     }
 }
 
@@ -144,5 +149,12 @@ impl Displayable for Point {
         writeln!(displayer.svg_file, " r=\"{}\" fill=\"{}\" opacity=\"0.5\"/>",
                2.0*displayer.stroke_width, color)
             .expect("cannot write svg file, disk full ?");
+    }
+}
+
+//TODO: smart way to avoid duplication ?
+impl IsPoint for Point {
+    fn coordinates(&self) -> Vec<f64> {
+        vec![self.x, self.y]
     }
 }

@@ -1,5 +1,6 @@
 //!Point3 (in 3d space) submodule for jimn.
 //TODO: it would be better to have generic N-dimension points
+use bounding_box::IsPoint;
 use point::Point;
 
 #[derive(Copy, Clone, Debug)]
@@ -30,6 +31,12 @@ impl Point3 {
         let intersecting_y = 
             self.y + (height - self.z)/(end.z - self.z)*(end.y-self.y);
         //TODO: hash
-        return Point::new(intersecting_x, intersecting_y);
+        Point::new(intersecting_x, intersecting_y)
+    }
+}
+
+impl IsPoint for Point3 {
+    fn coordinates(&self) -> Vec<f64> {
+        vec![self.x, self.y, self.z]
     }
 }

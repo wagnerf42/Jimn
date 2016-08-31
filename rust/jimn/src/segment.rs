@@ -1,10 +1,11 @@
 //! Segments on the plane.
+use std::io::Write;
 use bounding_box::BoundingBox;
 use point::Point;
 use tycat::Displayer;
 use tycat::Displayable;
 use utils::precision::is_almost;
-use std::io::Write;
+use elementary_path::ElementaryPath;
 
 /// Oriented segment structure.
 pub struct Segment {
@@ -14,6 +15,7 @@ pub struct Segment {
 impl Segment {
     /// Returns a new segment out of given endpoints.
     pub fn new(start: Point, end: Point) -> Segment {
+        debug_assert!(!(start.is_almost(&end)));
         Segment {
             points: [start, end]
         }
@@ -62,7 +64,7 @@ impl Segment {
         }
         let start_diff = other.points[0] - self.points[0];
         let alpha = start_diff.cross_product(&directions[1]) / denominator;
-        return Some(self.points[0] + directions[0] * alpha);
+        Some(self.points[0] + directions[0] * alpha)
     }
 
     pub fn intersection_with_segment(&self, other: &Segment) -> Option<Point> {
@@ -78,7 +80,7 @@ impl Segment {
         //! assert!(result.unwrap().is_almost(&Point::new(0.0, 1.0)));
         //! ```
         //TODO: reorder segments (small big) to avoid commutativity problems
-        match self.line_intersection_with(&other) {
+        match self.line_intersection_with(other) {
             Some(i) if self.contains(&i) && other.contains(&i) => Some(i),
             _ => None
         }
@@ -91,7 +93,7 @@ impl Displayable for Segment {
         for point in &self.points {
             bbox.add_point(point);
         }
-        return bbox
+        bbox
     }
 
     fn save_svg_content(&self, displayer: &mut Displayer, color: &str) {
@@ -109,5 +111,17 @@ impl Displayable for Segment {
                opacity=\"0.5\"/>",
                displayer.stroke_width, color)
             .expect("cannot write svg file, disk full ?");
+    }
+}
+
+impl ElementaryPath for Segment {
+    fn points(&self) -> &[Point; 2] {
+        &self.points
+    }
+
+    fn reverse(&self) -> Box<ElementaryPath> {
+        Box::new(Segment {
+            points: [self.points[1], self.points[0]]
+        })
     }
 }
