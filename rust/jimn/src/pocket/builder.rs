@@ -61,17 +61,19 @@ impl PocketsBuilder {
         }
     }
 
+
     fn sort_neighbours_by_angle(&mut self) {
-        let angle = |point: &Point, path_id| {
-            let path = self.paths.get(path_id).expect("failed to find point");
+        let paths = &self.paths;
+        let angle = |point: &Point, path_id: usize| {
+            let path = paths.get(&path_id).expect("failed to find path");
             let other_point = path.endpoint_not(*point);
             point.angle_with(&other_point)
         };
-        for (point, neighbours) in &self.points_neighbours {
+        for (point, neighbours) in &mut self.points_neighbours {
             neighbours.sort_by(
                 |p1, p2| {
-                    let angle1 = angle(point, p1);
-                    let angle2 = angle(point, p2);
+                    let angle1 = angle(point, *p1);
+                    let angle2 = angle(point, *p2);
                     angle1.partial_cmp(&angle2).unwrap()
                 });
         }

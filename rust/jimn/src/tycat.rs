@@ -227,10 +227,12 @@ pub fn display(objects: &[&Displayable]) {
 /// ```
 macro_rules! display {
     ( $($x:expr ), +) => {
+        {
         let mut temp_vec = Vec::new();
         $(
             temp_vec.push(&$x as &Displayable);
         )*
         display(&temp_vec);
+        }
     }
 }
