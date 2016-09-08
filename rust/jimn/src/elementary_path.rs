@@ -42,6 +42,16 @@ pub trait ElementaryPath: Displayable {
         }
     }
 
+    /// returns point at start of path
+    fn start(&self) -> Point {
+        self.points()[0]
+    }
+
+    /// returns point at end of path
+    fn end(&self) -> Point {
+        self.points()[1]
+    }
+
     /// Returns slope of line from start to end.
     /// plus or minus infinity if line is vertical.
     fn slope(&self) -> f64 {

@@ -74,7 +74,6 @@ impl Point {
         let x_diff = other.x - self.x;
         let y_diff = other.y - self.y;
         let mut raw_angle = -y_diff.atan2(x_diff);
-        println!("xd {} yd {} angle {}", x_diff, y_diff, raw_angle);
         if raw_angle <= 0.0 {
             raw_angle += 2.0 * ::std::f64::consts::PI;
         }

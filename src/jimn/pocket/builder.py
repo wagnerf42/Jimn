@@ -60,7 +60,7 @@ class PocketsBuilder:
 
     def build_pockets(self):
         """
-        run the algorith.
+        run the algorithm.
         """
         for start_path in self.paths:
             if start_path in self.marked_paths:
