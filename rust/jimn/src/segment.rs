@@ -8,6 +8,7 @@ use utils::precision::is_almost;
 use elementary_path::ElementaryPath;
 
 /// Oriented segment structure.
+#[derive(Debug)]
 pub struct Segment {
     points: [Point; 2]
 }
@@ -115,8 +116,8 @@ impl Displayable for Segment {
 }
 
 impl ElementaryPath for Segment {
-    fn points(&self) -> &[Point; 2] {
-        &self.points
+    fn points(&self) -> (Point, Point) {
+        (self.points[0], self.points[1])
     }
 
     fn reverse(&self) -> Box<ElementaryPath> {

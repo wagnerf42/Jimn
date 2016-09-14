@@ -14,6 +14,7 @@ fn main() {
     let arc = Box::new(Arc::new(
                 3.0, Point::new(0.0, 3.0), Point::new(3.0, 0.0),
                 Point::new(0.0, 0.0), true));
+            
     let s1 = Box::new(Segment::new(
         Point::new(3.0, 0.0),
         Point::new(5.0, 5.0)));

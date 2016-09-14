@@ -9,6 +9,7 @@ use utils::precision::is_almost;
 
 /// Oriented circular arc structure.
 /// Only stores arcs smaller than half circles.
+#[derive(Debug)]
 pub struct Arc {
     points: [Point; 2],
     radius: f64,
@@ -39,8 +40,8 @@ impl Arc {
 }
 
 impl ElementaryPath for Arc {
-    fn points(&self) -> &[Point; 2] {
-        &self.points
+    fn points(&self) -> (Point, Point) {
+        (self.points[0], self.points[1])
     }
 
     fn reverse(&self) -> Box<ElementaryPath> {
