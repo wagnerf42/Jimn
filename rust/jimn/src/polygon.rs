@@ -4,6 +4,7 @@ use bounding_box::BoundingBox;
 use point::Point;
 use tycat::{Displayer, Displayable};
 use std::io::Write;
+use utils::precision::is_almost;
 
 /// Oriented polygons.
 pub struct Polygon {
@@ -16,6 +17,22 @@ impl Polygon {
         Polygon {
             points: points
         }
+    }
+    
+    /// Returns area taken by polygon.
+    /// Negative or Positive depending on orientation.
+    pub fn area(&self) -> f64 {
+        self.points.iter().zip(self.points.iter().cycle().skip(1))
+            .map(|(p1, p2)| p1.cross_product(p2))
+            .fold(0.0, |sum, a| sum + a)
+    }
+
+    /// Returns if polygon is oriented clockwise (with respect to svg
+    /// orientation)
+    pub fn is_oriented_clockwise(&self) -> bool {
+        let area = self.area();
+        assert!(!is_almost(area, 0.0)); // flat or crossing polygon
+        area > 0.0
     }
 }
 

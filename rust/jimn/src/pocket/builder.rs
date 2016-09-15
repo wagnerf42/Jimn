@@ -145,6 +145,8 @@ impl PocketsBuilder {
 /// Turns given set of boxed segments into a set of polygons.
 pub fn build_polygons(paths: Vec<Box<ElementaryPath>>) -> Vec<Polygon> {
     let mut builder = PocketsBuilder::new(paths, true);
-    let pockets = builder.build_pockets();
-    Vec::new()
+    let pockets:Vec<Pocket> = builder.build_pockets();
+    let polygons = pockets.iter().map(|pocket| pocket.to_polygon())
+        .filter(|p| p.is_oriented_clockwise()).collect();
+    polygons
 }

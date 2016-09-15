@@ -24,7 +24,7 @@ fn main() {
         Point::new(0.0, 3.0)));
 
     let polygons = build_polygons(vec![arc, s1, s2]);
-//    display!(polygons);
+    display!(polygons);
 
 //    let pocket = Pocket::new(vec![arc, s1, s2]);
 //    display!(pocket);

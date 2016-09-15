@@ -6,6 +6,7 @@ pub mod builder;
 use bounding_box::BoundingBox;
 use tycat::{Displayer, Displayable};
 use elementary_path::ElementaryPath;
+use polygon::Polygon;
 
 /// A `Pocket` holds a contiguous area delimited by segments or arcs.
 /// It is obtained after computing accessible areas for milling inside
@@ -20,6 +21,11 @@ impl Pocket {
         Pocket {
             paths: paths
         }
+    }
+
+    /// Creates a new Polygon joining all start points of paths in self.
+    pub fn to_polygon(&self) -> Polygon {
+        Polygon::new(self.paths.iter().map(|p| p.start()).collect())
     }
 }
 
