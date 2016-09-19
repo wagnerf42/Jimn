@@ -10,11 +10,6 @@ struct PocketsBuilder {
     points_neighbours: HashMap<Point, Vec<usize>>
 }
 
-fn id(boxed: &Box<ElementaryPath>) -> usize {
-    //cast in fat pointer then thin pointer then address
-    &(**boxed) as *const _ as *const () as usize
-}
-
 impl PocketsBuilder {
     fn new(paths: Vec<Box<ElementaryPath>>,
            reversed_paths: bool) -> PocketsBuilder {
@@ -26,9 +21,9 @@ impl PocketsBuilder {
         for path in paths {
             if reversed_paths {
                 let reversed = path.reverse();
-                builder.paths.insert(id(&reversed), reversed);
+                builder.paths.insert(reversed.id(), reversed);
             }
-            builder.paths.insert(id(&path), path);
+            builder.paths.insert(path.id(), path);
         }
         builder.hash_points();
         builder.sort_neighbours_by_angle();
@@ -40,9 +35,9 @@ impl PocketsBuilder {
         for path in self.paths.values() {
             let (start, end) = path.points();
             self.points_neighbours.entry(start)
-                .or_insert(Vec::new()).push(id(&path));
+                .or_insert(Vec::new()).push(path.id());
             self.points_neighbours.entry(end)
-                .or_insert(Vec::new()).push(id(&path));
+                .or_insert(Vec::new()).push(path.id());
         }
     }
 
@@ -131,7 +126,7 @@ impl PocketsBuilder {
                 if path_start == *current_point {
                     if incoming_count == 0 {
                         let next_point = path.end();
-                        return (id(path), next_point);
+                        return (path.id(), next_point);
                     }
                     incoming_count -= 1;
                 } else {

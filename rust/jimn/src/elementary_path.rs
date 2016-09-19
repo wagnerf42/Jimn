@@ -3,11 +3,12 @@
 //! and [Arc](arc/index.html).
 use point::Point;
 use utils::precision::is_almost;
+use utils::Identifiable;
 use tycat::Displayable;
 use std::fmt::Debug;
 
 /// `ElementaryPath` allows common functions on `Segment` and `Arc`.
-pub trait ElementaryPath: Displayable + Debug {
+pub trait ElementaryPath: Displayable + Debug + Identifiable {
     /// Returns couple of start and end point.
     /// Used as basis for all default trait functions.
     //TODO: if we return a couple we cannot iterate on it :-(

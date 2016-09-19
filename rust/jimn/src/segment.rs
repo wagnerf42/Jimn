@@ -5,6 +5,7 @@ use point::Point;
 use tycat::Displayer;
 use tycat::Displayable;
 use utils::precision::is_almost;
+use utils::Identifiable;
 use elementary_path::ElementaryPath;
 
 /// Oriented segment structure.
@@ -13,6 +14,7 @@ pub struct Segment {
     points: [Point; 2]
 }
 
+impl Identifiable for Segment {}
 impl Segment {
     /// Returns a new segment out of given endpoints.
     pub fn new(start: Point, end: Point) -> Segment {

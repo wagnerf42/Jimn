@@ -8,7 +8,8 @@ use utils::precision::is_almost;
 
 /// Oriented polygons.
 pub struct Polygon {
-    points: Vec<Point>
+    /// Vector of all points forming the edge of the polygon.
+    pub points: Vec<Point>
 }
 
 impl Polygon {
@@ -33,6 +34,115 @@ impl Polygon {
         let area = self.area();
         assert!(!is_almost(area, 0.0)); // flat or crossing polygon
         area > 0.0
+    }
+
+    /// Simplifies polygon by removing points
+    /// without losing too much precision.
+    ///
+    /// # Example
+    /// ```
+    /// use jimn::point::Point;
+    /// use jimn::polygon::Polygon;
+    /// //note: you can add some display! to visualize the example.
+    ///
+    /// let mut complex_polygon = Polygon::new(
+    ///     vec![
+    ///     Point::new(-1.5, 0.2071000039577484),
+    ///     Point::new(-1.29497096657753, 0.7020999744534493),
+    ///     Point::new(-1.2928999662399292, 0.707099974155426),
+    ///     Point::new(-1.1728129839897157, 0.9970709997415542),
+    ///     Point::new(-1.1715999841690063, 1.0),
+    ///     Point::new(-1.1728129839897157, 1.0029289996623993),
+    ///     Point::new(-1.2928999662399292, 1.2928999662399292),
+    ///     Point::new(-1.0029289996623993, 1.1728129839897157),
+    ///     Point::new(-1.0, 1.1715999841690063),
+    ///     Point::new(-0.7100289744138718, 1.2916869664192199),
+    ///     Point::new(-0.707099974155426, 1.2928999662399292),
+    ///     Point::new(-0.2121000036597252, 1.4979289996623992),
+    ///     Point::new(-0.2071000039577484, 1.5),
+    ///     Point::new(-0.002071000039577484, 1.005),
+    ///     Point::new(0.0, 1.0),
+    ///     Point::new(0.20502900391817092, 1.495),
+    ///     Point::new(0.2071000039577484, 1.5),
+    ///     Point::new(0.7020999744534493, 1.29497096657753),
+    ///     Point::new(0.707099974155426, 1.2928999662399292),
+    ///     Point::new(0.9970709997415542, 1.1728129839897157),
+    ///     Point::new(1.0, 1.1715999841690063),
+    ///     Point::new(1.2899709665775299, 1.2916869664192199),
+    ///     Point::new(1.2928999662399292, 1.2928999662399292),
+    ///     Point::new(1.2916869664192199, 1.2899709665775299),
+    ///     Point::new(1.1715999841690063, 1.0),
+    ///     Point::new(1.2916869664192199, 0.7100289744138718),
+    ///     Point::new(1.2928999662399292, 0.707099974155426),
+    ///     Point::new(1.4979289996623992, 0.2121000036597252),
+    ///     Point::new(1.5, 0.2071000039577484),
+    ///     Point::new(1.495, 0.20502900391817092),
+    ///     Point::new(1.0, 0.0),
+    ///     Point::new(1.495, -0.20502900391817092),
+    ///     Point::new(1.5, -0.2071000039577484),
+    ///     Point::new(1.4979289996623992, -0.2121000036597252),
+    ///     Point::new(1.2928999662399292, -0.707099974155426),
+    ///     Point::new(1.2916869664192199, -0.7100289744138718),
+    ///     Point::new(1.1715999841690063, -1.0),
+    ///     Point::new(1.2916869664192199, -1.2899709665775299),
+    ///     Point::new(1.2928999662399292, -1.2928999662399292),
+    ///     Point::new(1.2899709665775299, -1.2916869664192199),
+    ///     Point::new(1.0, -1.1715999841690063),
+    ///     Point::new(0.9970709997415542, -1.1728129839897157),
+    ///     Point::new(0.707099974155426, -1.2928999662399292),
+    ///     Point::new(0.7020999744534493, -1.29497096657753),
+    ///     Point::new(0.2071000039577484, -1.5),
+    ///     Point::new(0.20502900391817092, -1.495),
+    ///     Point::new(0.0, -1.0),
+    ///     Point::new(-0.002071000039577484, -1.005),
+    ///     Point::new(-0.2071000039577484, -1.5),
+    ///     Point::new(-0.2121000036597252, -1.4979289996623992),
+    ///     Point::new(-0.707099974155426, -1.2928999662399292),
+    ///     Point::new(-0.7100289744138718, -1.2916869664192199),
+    ///     Point::new(-1.0, -1.1715999841690063),
+    ///     Point::new(-1.0029289996623993, -1.1728129839897157),
+    ///     Point::new(-1.2928999662399292, -1.2928999662399292),
+    ///     Point::new(-1.1728129839897157, -1.0029289996623993),
+    ///     Point::new(-1.1715999841690063, -1.0),
+    ///     Point::new(-1.1728129839897157, -0.9970709997415542),
+    ///     Point::new(-1.2928999662399292, -0.707099974155426),
+    ///     Point::new(-1.29497096657753, -0.7020999744534493),
+    ///     Point::new(-1.5, -0.2071000039577484),
+    ///     Point::new(-1.005, -0.002071000039577484),
+    ///     Point::new(-1.0, 0.0),
+    ///     Point::new(-1.005, 0.002071000039577484)
+    ///         ]);
+    /// complex_polygon.remove_useless_points();
+    /// assert!(complex_polygon.points.len() == 24);
+    /// ```
+    pub fn remove_useless_points(&mut self) {
+        //triangle area
+        fn area(p1: &Point, p2: &Point, p3: &Point) -> f64 {
+            (p1.cross_product(p2) + p2.cross_product(p3)
+             + p3.cross_product(p1)).abs()/2.0
+        }
+
+        //remove all small triangles
+        //when looping on 3 consecutive points
+        self.points = self.points.iter()
+            .zip(self.points.iter().cycle().skip(1))
+            .zip(self.points.iter().cycle().skip(2))
+            .filter_map(
+                |((p1, p2), p3)|
+                match area(p1, p2, p3) < 0.000001 {
+                    true => None,
+                    false => Some(*p2)
+                }).collect();
+        //now remove aligned points
+        self.points = self.points.iter()
+            .zip(self.points.iter().cycle().skip(1))
+            .zip(self.points.iter().cycle().skip(2))
+            .filter_map(
+                |((p1, p2), p3)| match p1.is_aligned_with(p2, p3) {
+                    true => None,
+                    false => Some(*p2)
+                }).collect();
+        assert!(self.points.len() > 2)
     }
 }
 

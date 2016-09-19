@@ -6,6 +6,7 @@ use tycat::{Displayer, Displayable};
 use elementary_path::ElementaryPath;
 use std::io::Write;
 use utils::precision::is_almost;
+use utils::Identifiable;
 
 /// Oriented circular arc structure.
 /// Only stores arcs smaller than half circles.
@@ -17,6 +18,7 @@ pub struct Arc {
     reversed_direction: bool
 }
 
+impl Identifiable for Arc {}
 impl Arc {
     /// Returns a new arc with given radius, going from start to end.
     /// The `reversed` boolean indicates orientation.

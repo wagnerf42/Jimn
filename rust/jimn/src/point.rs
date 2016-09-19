@@ -38,6 +38,13 @@ impl Point {
         Point{x: x, y: y}
     }
 
+    /// Returns if the three given points are approximately aligned.
+    pub fn is_aligned_with(&self, p2: &Point, p3: &Point) -> bool {
+        let determinant = self.x*p2.y + self.y*p3.x + p2.x*p3.y
+            - (p2.y*p3.x + self.y*p2.x + self.x*p3.y);
+        determinant.abs() < 10.0f64.powi(-5) //TODO: why 5 ?
+    }
+
     /// Returns if given points are almost the same
     /// (see [default precision](precision/fn.is_almost.html)).
     pub fn is_almost(&self, other: &Point) -> bool {
