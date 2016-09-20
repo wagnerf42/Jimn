@@ -8,6 +8,7 @@ use bounding_box::BoundingBox;
 use point::Point;
 use segment::Segment;
 use utils::precision::is_almost;
+use utils::coordinates_hash::CoordinatesHash;
 use stl::point3::Point3;
 
 /// A `Facet` is just a triangle in space.
@@ -18,13 +19,18 @@ pub struct Facet {
 
 impl Facet {
     /// Parses binary content into of cursor on stl data into facet.
-    pub fn new<R: Read + Seek>(raw_data: &mut R, bbox: &mut BoundingBox) -> Facet {
+    pub fn new<R: Read + Seek>(raw_data: &mut R,
+                               bbox: &mut BoundingBox,
+                               heights: &mut CoordinatesHash) -> Facet {
         #[inline]
-        fn read_point<R: Read>(raw_data: &mut R, bbox: &mut BoundingBox) -> Point3 {
+        fn read_point<R: Read>(raw_data: &mut R,
+                               bbox: &mut BoundingBox,
+                               heights: &mut CoordinatesHash) -> Point3 {
             let point = Point3::new(
                 raw_data.read_f32::<LittleEndian>().unwrap() as f64,
                 raw_data.read_f32::<LittleEndian>().unwrap() as f64,
-                raw_data.read_f32::<LittleEndian>().unwrap() as f64);
+                heights.hash_coordinate(
+                    raw_data.read_f32::<LittleEndian>().unwrap() as f64));
             bbox.add_point(&point);
             point
         }
@@ -33,9 +39,9 @@ impl Facet {
         raw_data.seek(SeekFrom::Current(12)).unwrap();
         let new_facet = Facet {
             points: [
-                read_point(raw_data, bbox),
-                read_point(raw_data, bbox),
-                read_point(raw_data, bbox)
+                read_point(raw_data, bbox, heights),
+                read_point(raw_data, bbox, heights),
+                read_point(raw_data, bbox, heights)
             ]
         };
         //skip useless bytes

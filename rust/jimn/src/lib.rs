@@ -45,9 +45,10 @@ pub fn compute_milling_path(thickness: f64, milling_radius: f64,
                  stl_file, thickness, milling_radius
                  );
     });
-    let model = Stl::new(&stl_file).expect("error loading stl file");
+    let mut model = Stl::new(&stl_file).expect("error loading stl file");
     let slices = model.compute_slices(thickness);
     for (_, segments) in slices {
+        display!(segments);
         let polygons = build_polygons(segments);
         display!(polygons);
     }

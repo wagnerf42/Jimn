@@ -13,8 +13,8 @@
 use std::collections::HashMap;
 use point::Point;
 
-/// a `CoordinatesHash` allows for hashing nearby points together in O(1).
-pub struct CoordinatesHash {
+/// a `PointsHash` allows for hashing nearby points together in O(1).
+pub struct PointsHash {
     hashes: Vec<HashMap<String, Point>>,
     precision: usize
 }
@@ -27,11 +27,11 @@ fn displaced_coordinate_key(coordinate: f64, precision: usize) -> String {
     coordinate_key(5.0 * 10.0f64.powi(-((precision+1) as i32))+ coordinate, precision)
 }
 
-impl CoordinatesHash {
+impl PointsHash {
     /// Creates a new `CoordinatesHash` with given space dimension.
     /// and given precision.
-    pub fn new(dimension: u32, precision: usize) -> CoordinatesHash {
-        CoordinatesHash {
+    pub fn new(dimension: u32, precision: usize) -> PointsHash {
+        PointsHash {
             hashes: vec![HashMap::new(); 1<<dimension],
             precision: precision
         }
@@ -89,5 +89,42 @@ impl CoordinatesHash {
             hash.insert(key, *point);
         }
         *point
+    }
+
+}
+
+/// a `CoordinatesHash` allows for hashing nearby coordinates together in O(1).
+pub struct CoordinatesHash {
+    hashes: Vec<HashMap<String, f64>>,
+    precision: usize
+}
+
+impl CoordinatesHash {
+    /// Creates a new `CoordinatesHash` with given precision.
+    pub fn new(precision: usize) -> CoordinatesHash {
+        CoordinatesHash {
+            hashes: vec![HashMap::new(); 2],
+            precision: precision
+        }
+    }
+
+    /// Hash given coordinate.
+    /// If no nearby coordinate in the hash, adds it and returns it
+    /// else returns the nearby coordinate.
+    pub fn hash_coordinate(&mut self, coordinate: f64) -> f64 {
+        let keys = vec![
+            coordinate_key(coordinate, self.precision),
+            displaced_coordinate_key(coordinate, self.precision)
+        ];
+        for (hash, key) in self.hashes.iter().zip(keys.iter()) {
+            let possible_old_coordinate = hash.get(key);
+            if possible_old_coordinate.is_some() {
+                return *possible_old_coordinate.unwrap();
+            }
+        }
+        for (hash, key) in self.hashes.iter_mut().zip(keys.into_iter()) {
+            hash.insert(key, coordinate);
+        }
+        coordinate
     }
 }
