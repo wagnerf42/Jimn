@@ -21,5 +21,9 @@ fn main() {
             .add_argument("stl_file", Store, "filename of STL model");
         ap.parse_args_or_exit();
     }
-    compute_milling_path(thickness, milling_radius, stl_file);
+    if stl_file != "" {
+        compute_milling_path(thickness, milling_radius, stl_file);
+    } else {
+        println!("missing stl file, see help")
+    }
 }

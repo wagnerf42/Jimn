@@ -1,5 +1,7 @@
 //! Polygons.
 //! Provides `Polygon` structure.
+pub mod builder;
+
 use bounding_box::BoundingBox;
 use point::Point;
 use tycat::{Displayer, Displayable};
@@ -45,7 +47,7 @@ impl Polygon {
     /// use jimn::polygon::Polygon;
     /// //note: you can add some display! to visualize the example.
     ///
-    /// let mut complex_polygon = Polygon::new(
+    /// let complex_polygon = Polygon::new(
     ///     vec![
     ///     Point::new(-1.5, 0.2071000039577484),
     ///     Point::new(-1.29497096657753, 0.7020999744534493),
@@ -112,10 +114,10 @@ impl Polygon {
     ///     Point::new(-1.0, 0.0),
     ///     Point::new(-1.005, 0.002071000039577484)
     ///         ]);
-    /// complex_polygon.remove_useless_points();
-    /// assert!(complex_polygon.points.len() == 24);
+    /// let simple_polygon = complex_polygon.simplify();
+    /// assert!(simple_polygon.points.len() == 24);
     /// ```
-    pub fn remove_useless_points(&mut self) {
+    pub fn simplify(&self) -> Polygon {
         //triangle area
         fn area(p1: &Point, p2: &Point, p3: &Point) -> f64 {
             (p1.cross_product(p2) + p2.cross_product(p3)
@@ -124,7 +126,7 @@ impl Polygon {
 
         //remove all small triangles
         //when looping on 3 consecutive points
-        self.points = self.points.iter()
+        let new_points:Vec<Point> = self.points.iter()
             .zip(self.points.iter().cycle().skip(1))
             .zip(self.points.iter().cycle().skip(2))
             .filter_map(
@@ -134,15 +136,16 @@ impl Polygon {
                     false => Some(*p2)
                 }).collect();
         //now remove aligned points
-        self.points = self.points.iter()
-            .zip(self.points.iter().cycle().skip(1))
-            .zip(self.points.iter().cycle().skip(2))
+        let final_points:Vec<Point> = new_points.iter()
+            .zip(new_points.iter().cycle().skip(1))
+            .zip(new_points.iter().cycle().skip(2))
             .filter_map(
                 |((p1, p2), p3)| match p1.is_aligned_with(p2, p3) {
                     true => None,
                     false => Some(*p2)
                 }).collect();
-        assert!(self.points.len() > 2)
+        assert!(final_points.len() > 2);
+        Polygon::new(final_points)
     }
 }
 

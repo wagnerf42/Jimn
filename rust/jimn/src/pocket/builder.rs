@@ -2,9 +2,9 @@
 use std::collections::HashMap;
 use elementary_path::ElementaryPath;
 use pocket::Pocket;
-use polygon::Polygon;
 use point::Point;
 
+//TODO: remove polygon builder code
 struct PocketsBuilder {
     paths: HashMap<usize, Box<ElementaryPath>>,
     points_neighbours: HashMap<Point, Vec<usize>>
@@ -135,13 +135,4 @@ impl PocketsBuilder {
             }
             panic!("no way to find next path")
         }
-}
-
-/// Turns given set of boxed segments into a set of polygons.
-pub fn build_polygons(paths: Vec<Box<ElementaryPath>>) -> Vec<Polygon> {
-    let mut builder = PocketsBuilder::new(paths, true);
-    let pockets:Vec<Pocket> = builder.build_pockets();
-    let polygons = pockets.iter().map(|pocket| pocket.to_polygon())
-        .filter(|p| p.is_oriented_clockwise()).collect();
-    polygons
 }

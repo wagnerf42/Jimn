@@ -5,7 +5,7 @@ use jimn::tycat::{Displayable, display};
 use jimn::polygon::Polygon;
 
 fn main() {
-    let mut complex_polygon = Polygon::new(
+    let complex_polygon = Polygon::new(
         vec![
         Point::new(-1.5, 0.2071000039577484),
         Point::new(-1.29497096657753, 0.7020999744534493),
@@ -73,7 +73,7 @@ fn main() {
         Point::new(-1.005, 0.002071000039577484)
             ]);
     display!(complex_polygon, complex_polygon.points);
-    complex_polygon.remove_useless_points();
-    assert!(complex_polygon.points.len() == 24);
-    display!(complex_polygon, complex_polygon.points);
+    let simple_polygon = complex_polygon.simplify();
+    assert!(simple_polygon.points.len() == 24);
+    display!(simple_polygon, simple_polygon.points);
 }

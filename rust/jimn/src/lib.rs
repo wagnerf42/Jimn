@@ -17,6 +17,7 @@
 //! Compile them with cargo !
 
 #![deny(missing_docs)]
+#![feature(btree_range, collections_bound)]
 
 extern crate byteorder;
 #[macro_use]
@@ -33,6 +34,7 @@ pub mod polygon;
 
 use stl::Stl;
 use tycat::{Displayable, display};
+use polygon::builder::build_polygons;
 
 /// Loads stl file, slices it at given thickness, mills all slices
 /// and return global path.
@@ -46,6 +48,7 @@ pub fn compute_milling_path(thickness: f64, milling_radius: f64,
     let model = Stl::new(&stl_file).expect("error loading stl file");
     let slices = model.compute_slices(thickness);
     for (_, segments) in slices {
-        display!(segments);
+        let polygons = build_polygons(segments);
+        display!(polygons);
     }
 }
