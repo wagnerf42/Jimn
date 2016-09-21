@@ -5,11 +5,13 @@ use pocket::Pocket;
 use point::Point;
 
 //TODO: remove polygon builder code
+#[allow(dead_code)]
 struct PocketsBuilder {
     paths: HashMap<usize, Box<ElementaryPath>>,
     points_neighbours: HashMap<Point, Vec<usize>>
 }
 
+#[allow(dead_code)]
 impl PocketsBuilder {
     fn new(paths: Vec<Box<ElementaryPath>>,
            reversed_paths: bool) -> PocketsBuilder {

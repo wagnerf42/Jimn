@@ -8,7 +8,7 @@ use bounding_box::BoundingBox;
 use point::Point;
 use segment::Segment;
 use utils::precision::is_almost;
-use utils::coordinates_hash::CoordinatesHash;
+use utils::coordinates_hash::{CoordinatesHash, PointsHash};
 use stl::point3::Point3;
 
 /// A `Facet` is just a triangle in space.
@@ -66,7 +66,8 @@ impl Facet {
     }
 
     /// Intersects facet at given height.
-    pub fn intersect(&self, height: f64) -> Option<Segment> {
+    pub fn intersect(&self, height: f64,
+                     hasher: &mut PointsHash) -> Option<Segment> {
         let (lower_points, higher_points) = self.points_above_below(height);
         let (together_points, isolated_point);
         if lower_points.len() == 2 {
@@ -83,7 +84,8 @@ impl Facet {
         }
         // intersect segments crossing height
         let intersection_points: Vec<Point> = together_points.iter()
-            .map(|p| p.segment_intersection(isolated_point, height)).collect();
+            .map(|p| p.segment_intersection(isolated_point, height, hasher))
+            .collect();
         // because of rounding
         if intersection_points[0].is_almost(&intersection_points[1]) {
             return None

@@ -2,6 +2,7 @@
 //TODO: it would be better to have generic N-dimension points
 use bounding_box::IsPoint;
 use point::Point;
+use utils::coordinates_hash::PointsHash;
 
 #[derive(Copy, Clone, Debug)]
 /// 3D Point structure.
@@ -25,13 +26,15 @@ impl Point3 {
     /// at given height.
     /// Pre-condition: one point on each side of the height.
     #[inline]
-    pub fn segment_intersection(&self, end: &Point3, height: f64) -> Point {
+    pub fn segment_intersection(&self, end: &Point3,
+                                height: f64,
+                                hasher: &mut PointsHash) -> Point {
         let intersecting_x = 
             self.x + (height - self.z)/(end.z - self.z)*(end.x-self.x);
         let intersecting_y = 
             self.y + (height - self.z)/(end.z - self.z)*(end.y-self.y);
-        //TODO: hash
-        Point::new(intersecting_x, intersecting_y)
+        let point = Point::new(intersecting_x, intersecting_y);
+        hasher.hash_point(&point)
     }
 }
 

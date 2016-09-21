@@ -61,14 +61,14 @@ impl PointsHash {
     ///
     /// ```
     /// use jimn::point::Point;
-    /// use jimn::utils::coordinates_hash::CoordinatesHash;
+    /// use jimn::utils::coordinates_hash::PointsHash;
     /// let points = [
     ///     Point::new(0.1231, 0.0),
     ///     Point::new(0.1233, 0.0),
     ///     Point::new(0.1226, 0.0),
     ///     Point::new(0.1220, 0.0),
     /// ];
-    /// let mut hash = CoordinatesHash::new(2, 3);
+    /// let mut hash = PointsHash::new(2, 3);
     /// hash.hash_point(&points[0]);
     /// assert_eq!(points[0], hash.hash_point(&points[1]));
     /// assert_eq!(points[0], hash.hash_point(&points[2]));

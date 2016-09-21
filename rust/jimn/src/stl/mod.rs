@@ -11,7 +11,7 @@ mod point3;
 use segment::Segment;
 use stl::facet::Facet;
 use bounding_box::BoundingBox;
-use utils::coordinates_hash::CoordinatesHash;
+use utils::coordinates_hash::{CoordinatesHash, PointsHash};
 
 /// The **Stl** structure holds a set of [facets](facet/struct.Facet.html).
 pub struct Stl {
@@ -57,7 +57,8 @@ impl Stl {
 
     /// Cuts model into slices of given thickness (starting at the top).
     /// Returns vector of tuples (height, slice).
-    pub fn compute_slices(&mut self, thickness: f64) -> Vec<(f64, Vec<Segment>)> {
+    pub fn compute_slices(&mut self, thickness: f64,
+                          hasher: &mut PointsHash) -> Vec<(f64, Vec<Segment>)> {
         let (min_height, max_height) = self.dimensions.limits(2);
         let slices_number = ((max_height - min_height)/thickness).ceil() as usize;
         let mut remaining_facets:Vec<&Facet> = self.facets.iter().collect();
@@ -66,12 +67,14 @@ impl Stl {
         for slice_number in 0..slices_number {
             let mut lower_boundary = max_height - ((slice_number + 1) as f64) * thickness;
             if lower_boundary < min_height + 0.01 {
-                lower_boundary = min_height + 0.01; //TODO: do a special case instead
+                lower_boundary = min_height + 0.01;
+                //TODO: do a special case instead
             }
             lower_boundary = self.heights.hash_coordinate(lower_boundary);
             //cut facets at given height
             let current_slice:Vec<_> = remaining_facets.iter()
-                .filter_map(|f| f.intersect(lower_boundary)).collect();
+                .filter_map(|f| f.intersect(lower_boundary, hasher))
+                .collect();
             assert!(!current_slice.is_empty());
             slices.push((lower_boundary, current_slice));
 

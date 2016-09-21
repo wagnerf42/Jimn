@@ -53,6 +53,14 @@ impl PolygonsBuilder {
                 .or_insert(BTreeMap::new())
                 .insert(AngleKey::new(&segment, &start), segment);
         }
+        if cfg!(debug_assertions) {
+            for neighbours in builder.points.values() {
+                if neighbours.len() <=1 {
+                    println!("cannot leave point : {:?}", neighbours);
+                    panic!("bad input in polygon builder");
+                }
+            }
+        }
         builder
     }
 
@@ -98,11 +106,12 @@ impl PolygonsBuilder {
         {
             let next_segments = self.points.get(&next_point).unwrap();
             key = match next_segments
-                .range(Excluded(&AngleKey::new(&from, &next_point)), Unbounded).next() {
+                .range(Excluded(&AngleKey::new(from, &next_point)), Unbounded).next() {
                     Some(k) => *k.0,
-                    None => *next_segments.keys().next().unwrap()
+                    None => {*next_segments.keys().next().unwrap()}
                 };
         }
+        assert!(AngleKey::new(from, &next_point) != key);
         self.remove_segment(next_point, key)
     }
 
@@ -111,9 +120,13 @@ impl PolygonsBuilder {
         let mut current_segment = self.get_start_segment();
         let (start_point, mut current_point) = current_segment.points();
         points.push(current_point);
+        let mut previous_point = start_point;
         while start_point != current_point {
             current_segment = self.next_segment(&current_segment);
-            current_point = current_segment.end();
+            let next_point = current_segment.end();
+            assert!(next_point != previous_point);
+            previous_point = current_point;
+            current_point = next_point;
             points.push(current_point);
         }
         Polygon {points: points}

@@ -35,6 +35,7 @@ pub mod polygon;
 use stl::Stl;
 use tycat::{Displayable, display};
 use polygon::builder::build_polygons;
+use utils::coordinates_hash::PointsHash;
 
 /// Loads stl file, slices it at given thickness, mills all slices
 /// and return global path.
@@ -46,9 +47,10 @@ pub fn compute_milling_path(thickness: f64, milling_radius: f64,
                  );
     });
     let mut model = Stl::new(&stl_file).expect("error loading stl file");
-    let slices = model.compute_slices(thickness);
+    let mut points_hash = PointsHash::new(2, 6);
+    let slices = model.compute_slices(thickness, &mut points_hash);
     for (_, segments) in slices {
-        display!(segments);
+        assert!(!segments.is_empty());
         let polygons = build_polygons(segments);
         display!(polygons);
     }
