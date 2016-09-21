@@ -39,10 +39,10 @@ pub trait ElementaryPath: Displayable + Debug + Identifiable {
     fn endpoint_not(&self, avoided_point: &Point) -> Point {
         let points = self.points();
         if points.0 == *avoided_point {
-            return points.1;
+            points.1
         } else {
             assert_eq!(points.1, *avoided_point);
-            return points.0;
+            points.0
         }
     }
 

@@ -37,9 +37,9 @@ impl PocketsBuilder {
         for path in self.paths.values() {
             let (start, end) = path.points();
             self.points_neighbours.entry(start)
-                .or_insert(Vec::new()).push(path.id());
+                .or_insert_with(Vec::new).push(path.id());
             self.points_neighbours.entry(end)
-                .or_insert(Vec::new()).push(path.id());
+                .or_insert_with(Vec::new).push(path.id());
         }
     }
 
@@ -50,9 +50,10 @@ impl PocketsBuilder {
             let other_point = path.endpoint_not(point);
             let angle = point.angle_with(&other_point);
             //starting paths go first
-            match path.start() == *point {
-                true => (angle, 0),
-                false => (angle, 1),
+            if path.start() == *point {
+                (angle, 0)
+            } else {
+                (angle, 1)
             }
         };
         for (point, neighbours) in &mut self.points_neighbours {

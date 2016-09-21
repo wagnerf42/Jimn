@@ -10,3 +10,4 @@ doc = false
 [dependencies]
 byteorder = "0.5.3"
 argparse = "0.2.1"
+clippy = "*"

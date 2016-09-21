@@ -72,10 +72,7 @@ impl Displayable for Arc {
         let svg_coordinates:Vec<Vec<f64>> = self.points.iter()
             .map(|&p| displayer.convert_coordinates(p.coordinates()))
             .collect();
-        let sweep_flag = match self.reversed_direction {
-            true => 0,
-            false => 1
-        };
+        let sweep_flag = if self.reversed_direction { 0 } else { 1 };
         let stretched_radius = self.radius * displayer.stretch;
         self.center.save_svg_content(displayer, color);
         writeln!(displayer.svg_file,

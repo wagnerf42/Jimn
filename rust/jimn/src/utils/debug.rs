@@ -27,15 +27,11 @@ macro_rules! module_debug {
     ($b:block) => {
         {
             if cfg!(debug_assertions) {
-                match std::env::var("JIMN_DEBUG") {
-                    Ok(debugged) => {
-                        if debugged.split(':')
-                            .any(|s| &*s == module_path!()) {
-                                $b
-                            }
-                    },
-                    //TODO: what's the rust equivalent for python's pass
-                    _ => ()
+                if let Ok(debugged) = std::env::var("JIMN_DEBUG") {
+                    if debugged.split(':')
+                        .any(|s| &*s == module_path!()) {
+                            $b
+                        }
                 }
             }
         }

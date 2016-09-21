@@ -111,13 +111,13 @@ impl<T: Displayable> Displayable for Vec<T> {
 impl<U, T: Displayable> Displayable for HashMap<U, T> where U: Hash + Eq {
     fn get_bounding_box(&self) -> BoundingBox {
         let mut bbox = BoundingBox::empty_box(2);
-        for (_, content) in self {
+        for content in self.values() {
             bbox.update(&content.get_bounding_box());
         }
         bbox
     }
     fn save_svg_content(&self, displayer: &mut Displayer, color: &str) {
-        for (_, content) in self {
+        for content in self.values() {
             content.save_svg_content(displayer, color);
         }
     }

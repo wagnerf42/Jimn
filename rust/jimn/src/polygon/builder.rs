@@ -29,11 +29,10 @@ impl Ord for AngleKey {
     fn cmp(&self, other: &Self) -> Ordering {
         if self.angle == other.angle {
             Ordering::Equal
+        } else if self.angle < other.angle {
+            Ordering::Less
         } else {
-            match self.angle < other.angle {
-                true => Ordering::Less,
-                false => Ordering::Greater
-            }
+            Ordering::Greater
         }
     }
 }
@@ -50,7 +49,7 @@ impl PolygonsBuilder {
 
             let start = segment.start();
             builder.points.entry(start)
-                .or_insert(BTreeMap::new())
+                .or_insert_with(BTreeMap::new)
                 .insert(AngleKey::new(&segment, &start), segment);
         }
         if cfg!(debug_assertions) {

@@ -131,18 +131,20 @@ impl Polygon {
             .zip(self.points.iter().cycle().skip(2))
             .filter_map(
                 |((p1, p2), p3)|
-                match area(p1, p2, p3) < 0.000001 {
-                    true => None,
-                    false => Some(*p2)
+                if area(p1, p2, p3) < 0.000001 {
+                    None
+                } else {
+                    Some(*p2)
                 }).collect();
         //now remove aligned points
         let final_points:Vec<Point> = new_points.iter()
             .zip(new_points.iter().cycle().skip(1))
             .zip(new_points.iter().cycle().skip(2))
             .filter_map(
-                |((p1, p2), p3)| match p1.is_aligned_with(p2, p3) {
-                    true => None,
-                    false => Some(*p2)
+                |((p1, p2), p3)| if p1.is_aligned_with(p2, p3) {
+                    None
+                } else {
+                    Some(*p2)
                 }).collect();
         assert!(final_points.len() > 2);
         Polygon::new(final_points)

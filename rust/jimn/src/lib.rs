@@ -17,7 +17,8 @@
 //! Compile them with cargo !
 
 #![deny(missing_docs)]
-#![feature(btree_range, collections_bound)]
+#![feature(btree_range, collections_bound, plugin)]
+#![plugin(clippy)]
 
 extern crate byteorder;
 #[macro_use]
