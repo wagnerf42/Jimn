@@ -9,6 +9,7 @@ use std::io::Write;
 use utils::precision::is_almost;
 
 /// Oriented polygons.
+#[derive(Clone)]
 pub struct Polygon {
     /// Vector of all points forming the edge of the polygon.
     pub points: Vec<Point>

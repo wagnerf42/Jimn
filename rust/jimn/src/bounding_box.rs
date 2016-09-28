@@ -96,4 +96,11 @@ impl BoundingBox {
         (self.min_coordinates[dimension_index],
          self.max_coordinates[dimension_index])
     }
+    /// Adds border of given size around self.
+    pub fn inflate(&mut self, border_size: f64) {
+        self.min_coordinates = self.min_coordinates.iter()
+            .map(|c| c-border_size).collect();
+        self.max_coordinates = self.max_coordinates.iter()
+            .map(|c| c+border_size).collect();
+    }
 }

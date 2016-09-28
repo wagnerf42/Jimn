@@ -23,6 +23,7 @@
 extern crate byteorder;
 #[macro_use]
 pub mod tycat;
+pub mod tree;
 pub mod utils;
 pub mod elementary_path;
 pub mod bounding_box;
@@ -32,6 +33,7 @@ pub mod segment;
 pub mod arc;
 pub mod stl;
 pub mod polygon;
+pub mod sweeping_lines;
 
 use stl::Stl;
 use tycat::{Displayable, display};

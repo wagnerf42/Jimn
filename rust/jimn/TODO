@@ -1,3 +1,0 @@
-- understand if we need to inline 
-- understand when arguments and returns require extra copy
-- try cargo check

@@ -1,8 +1,8 @@
 //! Fast identification of nearby points.
 //!
-//! Provides a `CoordinatesHash` structure which is used to hash
+//! Provides a `PointsHash` structure which is used to hash
 //! nearby points together in O(1).
-//! The `CoordinatesHash` is created with a given space dimension and
+//! The `PointsHash` is created with a given space dimension and
 //! a given precision.
 //! Considering a distance given by infinity norm of difference vector,
 //! we have the following guarantees:
@@ -10,12 +10,14 @@
 //! * any two points with distance < 5 * 10^-(precision+1) are hashed together.
 //! * no points of distance > 10^-precision are hashed together.
 
-use std::collections::HashMap;
+use std::collections::{HashSet, HashMap};
 use point::Point;
+use bounding_box::BoundingBox;
 
 /// a `PointsHash` allows for hashing nearby points together in O(1).
 pub struct PointsHash {
     hashes: Vec<HashMap<String, Point>>,
+    fast_hash: HashSet<Point>, //quick check for points already here
     precision: usize
 }
 
@@ -28,11 +30,12 @@ fn displaced_coordinate_key(coordinate: f64, precision: usize) -> String {
 }
 
 impl PointsHash {
-    /// Creates a new `CoordinatesHash` with given space dimension.
+    /// Creates a new `PointsHash` with given space dimension.
     /// and given precision.
     pub fn new(dimension: u32, precision: usize) -> PointsHash {
         PointsHash {
             hashes: vec![HashMap::new(); 1<<dimension],
+            fast_hash: HashSet::new(),
             precision: precision
         }
     }
@@ -52,7 +55,6 @@ impl PointsHash {
         key_parts.join(";")
     }
 
-    //TODO: add fast hash ?
     /// Tries to add a point to the hash.
     /// If a nearby point was already there
     /// returns the nearby point, else adds point and returns it.
@@ -75,6 +77,9 @@ impl PointsHash {
     /// assert!(points[0] != hash.hash_point(&points[3]));
     /// ```
     pub fn hash_point(&mut self, point: &Point) -> Point {
+        if self.fast_hash.contains(point) {
+            return *point;
+        }
         let mut keys: Vec<String> = Vec::new();
         for (index, hash) in self.hashes.iter().enumerate() {
             let key = self.compute_key(index, point);
@@ -88,9 +93,18 @@ impl PointsHash {
         for (key, hash) in keys.into_iter().zip(self.hashes.iter_mut()) {
             hash.insert(key, *point);
         }
+        self.fast_hash.insert(*point);
         *point
     }
 
+    /// Returns `BoundingBox` delimiting all points we contain.
+    pub fn get_bounding_box(&self) -> BoundingBox {
+        let mut bbox = BoundingBox::empty_box(2);
+        for point in &self.fast_hash {
+            bbox.add_point(point);
+        }
+        bbox
+    }
 }
 
 /// a `CoordinatesHash` allows for hashing nearby coordinates together in O(1).
