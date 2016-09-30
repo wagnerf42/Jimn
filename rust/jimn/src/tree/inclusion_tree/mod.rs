@@ -5,6 +5,8 @@ use sweeping_lines::{SweepingLineAlgorithm, SweepingLineState};
 use polygon::Polygon;
 use tree::Tree;
 use point::Point;
+use tycat::{Displayable, display};
+pub mod polygon_segment;
 
 struct Builder {
     polygons: Vec<Polygon>
@@ -23,4 +25,7 @@ impl SweepingLineAlgorithm for Builder {
 /// In case of equalities, height information is used (top contains bottom).
 pub fn build_inclusion_tree(slices: Vec<(f64, Vec<Polygon>)>) {
     //-> Tree<(f64, Polygon)> {
+    for (_, polygons) in slices {
+        display!(polygons)
+    }
 }

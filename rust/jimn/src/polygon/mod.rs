@@ -4,12 +4,13 @@ pub mod builder;
 
 use bounding_box::BoundingBox;
 use point::Point;
+use segment::Segment;
 use tycat::{Displayer, Displayable};
 use std::io::Write;
 use utils::precision::is_almost;
 
 /// Oriented polygons.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Polygon {
     /// Vector of all points forming the edge of the polygon.
     pub points: Vec<Point>
@@ -149,6 +150,15 @@ impl Polygon {
                 }).collect();
         assert!(final_points.len() > 2);
         Polygon::new(final_points)
+    }
+
+    /// Returns segment between points of polygon numbered
+    /// point_index and point_index+1
+    pub fn segment(&self, index: usize) -> Segment {
+        Segment::new(
+            self.points[index],
+            self.points[(index+1) % self.points.len()]
+        )
     }
 }
 

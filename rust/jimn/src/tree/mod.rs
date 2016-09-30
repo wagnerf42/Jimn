@@ -1,5 +1,6 @@
 //! Trees used in jimn.
 //! `InclusionTree` contains `Polygons` included in each others.
+pub mod treap;
 pub mod inclusion_tree;
 use std::collections::vec_deque::VecDeque;
 use point::Point;

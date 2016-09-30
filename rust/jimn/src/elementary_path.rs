@@ -14,10 +14,6 @@ pub trait ElementaryPath: Displayable + Debug + Identifiable {
     //TODO: if we return a couple we cannot iterate on it :-(
     //TODO: if we return an array reference we cannot assign it to couple :-(
     fn points(&self) -> (Point, Point);
-    /// Returns a reversed path of same type.
-    /// Since we cannot return a type of unknown size we must box it.
-    fn reverse(&self) -> Box<ElementaryPath>;
-
 
     /// Returns endpoint which is not given point.
     /// pre-condition: one of our points is given point.

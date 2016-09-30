@@ -8,6 +8,7 @@ name = "main"
 doc = false
 
 [dependencies]
+rand = "0.3"
 byteorder = "0.5.3"
 argparse = "0.2.1"
 clippy = "*"

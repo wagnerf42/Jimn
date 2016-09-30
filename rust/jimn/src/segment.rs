@@ -2,8 +2,7 @@
 use std::io::Write;
 use bounding_box::BoundingBox;
 use point::Point;
-use tycat::Displayer;
-use tycat::Displayable;
+use tycat::{Displayer, Displayable};
 use utils::precision::is_almost;
 use utils::Identifiable;
 use elementary_path::ElementaryPath;
@@ -88,6 +87,12 @@ impl Segment {
             _ => None
         }
     }
+    /// Returns `Segment` going from end to start.
+    pub fn reverse(&self) -> Segment {
+        Segment {
+            points: [self.points[1], self.points[0]]
+        }
+    }
 }
 
 impl Displayable for Segment {
@@ -122,9 +127,4 @@ impl ElementaryPath for Segment {
         (self.points[0], self.points[1])
     }
 
-    fn reverse(&self) -> Box<ElementaryPath> {
-        Box::new(Segment {
-            points: [self.points[1], self.points[0]]
-        })
-    }
 }

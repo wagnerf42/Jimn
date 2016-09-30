@@ -13,18 +13,14 @@ struct PocketsBuilder {
 
 #[allow(dead_code)]
 impl PocketsBuilder {
-    fn new(paths: Vec<Box<ElementaryPath>>,
-           reversed_paths: bool) -> PocketsBuilder {
+    fn new(paths: Vec<Box<ElementaryPath>>) -> PocketsBuilder {
+           
         let mut builder = PocketsBuilder {
             paths: HashMap::new(),
             points_neighbours: HashMap::new()
         };
 
         for path in paths {
-            if reversed_paths {
-                let reversed = path.reverse();
-                builder.paths.insert(reversed.id(), reversed);
-            }
             builder.paths.insert(path.id(), path);
         }
         builder.hash_points();

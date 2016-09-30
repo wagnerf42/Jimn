@@ -21,6 +21,7 @@
 #![plugin(clippy)]
 
 extern crate byteorder;
+extern crate rand;
 #[macro_use]
 pub mod tycat;
 pub mod tree;

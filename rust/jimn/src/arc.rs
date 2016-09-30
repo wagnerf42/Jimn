@@ -39,20 +39,20 @@ impl Arc {
             reversed_direction: reversed
         }
     }
+    /// Returns `Arc` going from end to start (on same path).
+    pub fn reverse(&self) -> Arc {
+        Arc {
+            points: [self.points[1], self.points[0]],
+            radius: self.radius,
+            center: self.center,
+            reversed_direction: !self.reversed_direction
+        }
+    }
 }
 
 impl ElementaryPath for Arc {
     fn points(&self) -> (Point, Point) {
         (self.points[0], self.points[1])
-    }
-
-    fn reverse(&self) -> Box<ElementaryPath> {
-        Box::new(Arc {
-            points: [self.points[1], self.points[0]],
-            radius: self.radius,
-            center: self.center,
-            reversed_direction: !self.reversed_direction
-        })
     }
 }
 
