@@ -11,4 +11,5 @@ doc = false
 rand = "0.3"
 byteorder = "0.5.3"
 argparse = "0.2.1"
+ordered-float = "0.2.3"
 clippy = "*"

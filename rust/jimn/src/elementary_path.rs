@@ -5,15 +5,22 @@ use point::Point;
 use utils::precision::is_almost;
 use utils::Identifiable;
 use tycat::Displayable;
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
+use ordered_float::OrderedFloat;
 
 /// `ElementaryPath` allows common functions on `Segment` and `Arc`.
-pub trait ElementaryPath: Displayable + Debug + Identifiable {
+pub trait ElementaryPath: Display + Displayable + Debug + Identifiable {
     /// Returns couple of start and end point.
     /// Used as basis for all default trait functions.
-    //TODO: if we return a couple we cannot iterate on it :-(
-    //TODO: if we return an array reference we cannot assign it to couple :-(
-    fn points(&self) -> (Point, Point);
+    fn points(&self) -> &[Point; 2];
+
+    /// When comparing two paths p1 and p2 in a sweeping line algorithm
+    /// we need to figure out which one is above which other.
+    /// Of course this depends on current x position.
+    /// TODO: better documentation
+    fn comparison_key(&self, current_x: f64) -> (OrderedFloat<f64>,
+                                                 OrderedFloat<f64>,
+                                                 OrderedFloat<f64>);
 
     /// Returns endpoint which is not given point.
     /// pre-condition: one of our points is given point.
@@ -34,28 +41,28 @@ pub trait ElementaryPath: Displayable + Debug + Identifiable {
     /// ```
     fn endpoint_not(&self, avoided_point: &Point) -> Point {
         let points = self.points();
-        if points.0 == *avoided_point {
-            points.1
+        if points[0] == *avoided_point {
+            points[1]
         } else {
-            assert_eq!(points.1, *avoided_point);
-            points.0
+            assert_eq!(points[1], *avoided_point);
+            points[0]
         }
     }
 
     /// returns point at start of path
     fn start(&self) -> Point {
-        self.points().0
+        self.points()[0]
     }
 
     /// returns point at end of path
     fn end(&self) -> Point {
-        self.points().1
+        self.points()[1]
     }
 
     /// Returns slope of line from start to end.
     /// plus or minus infinity if line is vertical.
     fn slope(&self) -> f64 {
-        let (start, end) = self.points();
+        let &[start, end] = self.points();
         if is_almost(start.x, end.x) {
             if end.y > start.y {
                 return ::std::f64::INFINITY;

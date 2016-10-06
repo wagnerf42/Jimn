@@ -5,13 +5,11 @@ use pocket::Pocket;
 use point::Point;
 
 //TODO: remove polygon builder code
-#[allow(dead_code)]
 struct PocketsBuilder {
     paths: HashMap<usize, Box<ElementaryPath>>,
     points_neighbours: HashMap<Point, Vec<usize>>
 }
 
-#[allow(dead_code)]
 impl PocketsBuilder {
     fn new(paths: Vec<Box<ElementaryPath>>) -> PocketsBuilder {
            
@@ -31,7 +29,7 @@ impl PocketsBuilder {
     // Computes for each point the list of neighbouring paths.
     fn hash_points(&mut self) {
         for path in self.paths.values() {
-            let (start, end) = path.points();
+            let &[start, end] = path.points();
             self.points_neighbours.entry(start)
                 .or_insert_with(Vec::new).push(path.id());
             self.points_neighbours.entry(end)
@@ -74,7 +72,7 @@ impl PocketsBuilder {
     fn build_pocket(&mut self, start_id: usize) -> Pocket {
         // start with start_path and follow edge building the pocket
         let mut current_id = start_id;
-        let (start_point, mut current_point) = self.paths.get(&start_id)
+        let &[start_point, mut current_point] = self.paths.get(&start_id)
             .unwrap().points();
 
         let mut edge = Vec::new();

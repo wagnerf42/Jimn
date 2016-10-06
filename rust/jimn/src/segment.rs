@@ -1,5 +1,9 @@
 //! Segments on the plane.
 use std::io::Write;
+use std::f64::consts::PI;
+use std::fmt;
+use ordered_float::OrderedFloat;
+
 use bounding_box::BoundingBox;
 use point::Point;
 use tycat::{Displayer, Displayable};
@@ -14,6 +18,11 @@ pub struct Segment {
 }
 
 impl Identifiable for Segment {}
+impl Default for Segment {
+    fn default() -> Segment {
+        Segment::new(Point::new(0.0, 0.0), Point::new(1.0, 0.0))
+    }
+}
 impl Segment {
     /// Returns a new segment out of given endpoints.
     pub fn new(start: Point, end: Point) -> Segment {
@@ -22,7 +31,7 @@ impl Segment {
             points: [start, end]
         }
     }
-
+    
     /// Does given segment contain given point ?
     ///
     /// # Example
@@ -93,6 +102,38 @@ impl Segment {
             points: [self.points[1], self.points[0]]
         }
     }
+
+    /// Intersects line going through segment
+    /// with vertical line going through given x (returns y).
+    /// If we are a vertical segment at given x, returns y with highest value.
+    /// If we are a vertical segment not at given x, returns None.
+    ///
+    /// # Example
+    /// ```
+    /// use jimn::point::Point;
+    /// use jimn::segment::Segment;
+    /// use jimn::utils::precision::is_almost;
+    /// let s = Segment::new(Point::new(0.0, 0.0), Point::new(4.0, 8.0));
+    /// let y = s.vertical_intersection_at(2.0).unwrap();
+    /// assert!(is_almost(y, 4.0));
+    /// ```
+    pub fn vertical_intersection_at(&self, intersecting_x: f64)
+        -> Option<f64> {
+        let [p1, p2] = self.points;
+        if is_almost(p1.x, p2.x) {
+            if is_almost(intersecting_x, p1.x) {
+                if p1.y < p2.y { Some(p1.y) } else { Some(p2.y) }
+            } else {
+                None
+            }
+        }
+        else if is_almost(intersecting_x, p1.x) { Some(p1.y) }
+        else if is_almost(intersecting_x, p2.x) { Some(p2.y) }
+        else {
+            let slope = (p2.y - p1.y) / (p2.x - p1.x);
+            Some(p1.y + slope*(intersecting_x - p1.x))
+        }
+    }
 }
 
 impl Displayable for Segment {
@@ -122,9 +163,43 @@ impl Displayable for Segment {
     }
 }
 
+impl fmt::Display for Segment {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "[{}, {}]", self.points[0], self.points[1])
+    }
+}
+
 impl ElementaryPath for Segment {
-    fn points(&self) -> (Point, Point) {
-        (self.points[0], self.points[1])
+    fn points(&self) -> &[Point; 2] {
+        &self.points
     }
 
+    fn comparison_key(&self, current_x: f64)
+        -> (OrderedFloat<f64>, OrderedFloat<f64>, OrderedFloat<f64>) {
+        if cfg!(debug_assertions) {
+            let mut x_coordinates:Vec<f64> = self.points.iter()
+                .map(|p| p.x).collect();
+            x_coordinates.sort_by(|a, b| a.partial_cmp(b).unwrap());
+            assert!(x_coordinates[0] <= current_x);
+            assert!(current_x <= x_coordinates[1]);
+        }
+        let point_key =
+            Point::new(current_x,
+                       self.vertical_intersection_at(current_x).unwrap());
+        //TODO: round ?
+        let terminal_angle = self.points[0].angle_with(&self.points[1]) % PI;
+        if self.points[1].is_almost(&point_key) {
+            (
+                OrderedFloat(point_key.y),
+                OrderedFloat(-terminal_angle),
+                OrderedFloat(-terminal_angle)
+            )
+        } else {
+            (
+                OrderedFloat(point_key.y),
+                OrderedFloat(terminal_angle),
+                OrderedFloat(terminal_angle)
+            )
+        }
+    }
 }

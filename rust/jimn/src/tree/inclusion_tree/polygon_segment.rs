@@ -1,5 +1,7 @@
 //! `Segment` part of a `Polygon`.
 //! Used for classifying polygons when building `InclusionTree`.
+use std::fmt;
+use ordered_float::OrderedFloat;
 
 use point::Point;
 use segment::Segment;
@@ -41,8 +43,18 @@ impl<'a> Displayable for PolygonSegment<'a> {
 }
 
 impl<'a> Identifiable for PolygonSegment<'a> {}
+impl<'a> fmt::Display for PolygonSegment<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.segment)
+    }
+}
 impl<'a> ElementaryPath for PolygonSegment<'a> {
-    fn points(&self) -> (Point, Point) {
+    fn points(&self) -> &[Point; 2] {
         self.segment.points()
+    }
+
+    fn comparison_key(&self, current_x: f64)
+        -> (OrderedFloat<f64>, OrderedFloat<f64>, OrderedFloat<f64>) {
+        self.segment.comparison_key(current_x)
     }
 }

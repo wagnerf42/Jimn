@@ -26,6 +26,7 @@ impl AngleKey {
 
 impl Eq for AngleKey {}
 impl Ord for AngleKey {
+    #[allow(float_cmp)]
     fn cmp(&self, other: &Self) -> Ordering {
         if self.angle == other.angle {
             Ordering::Equal
@@ -117,7 +118,7 @@ impl PolygonsBuilder {
     fn build_polygon(&mut self) -> Polygon {
         let mut points = Vec::new();
         let mut current_segment = self.get_start_segment();
-        let (start_point, mut current_point) = current_segment.points();
+        let &[start_point, mut current_point] = current_segment.points();
         points.push(current_point);
         let mut previous_point = start_point;
         while start_point != current_point {

@@ -3,13 +3,15 @@
 //! Provides a **Point** structure for storing 2d points.
 //! Points can also serve as vectors: for example point2-point1 is a point
 //! which coordinates encode the direction vector of segment(point1,point2).
+use std::fmt;
 use std::io::prelude::*;
 use std::ops::{Add, Sub, Mul, Div};
+use std::mem;
+use std::hash::{Hash, Hasher};
+
 use bounding_box::{BoundingBox, IsPoint};
 use tycat::{Displayer, Displayable};
 use utils::precision::is_almost;
-use std::mem;
-use std::hash::{Hash, Hasher};
 
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -22,6 +24,7 @@ pub struct Point {
 }
 
 impl Eq for Point {}
+#[allow(derive_hash_xor_eq)]
 impl Hash for Point {
     fn hash<H: Hasher>(&self, state: &mut H) {
         unsafe {
@@ -162,5 +165,11 @@ impl Displayable for Point {
 impl IsPoint for Point {
     fn coordinates(&self) -> Vec<f64> {
         vec![self.x, self.y]
+    }
+}
+
+impl fmt::Display for Point {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
     }
 }

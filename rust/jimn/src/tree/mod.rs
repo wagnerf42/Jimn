@@ -66,6 +66,7 @@ impl<'a, T> BreadthFirstIterator<'a, T> {
 
 impl<'a, T> Iterator for DepthFirstIterator<'a, T> {
     type Item = &'a T;
+    #[allow(extend_from_slice)]
     fn next(&mut self) -> Option<&'a T> {
         if let Some(next_node) = self.stack.pop() {
             self.stack.extend(next_node.children.iter());

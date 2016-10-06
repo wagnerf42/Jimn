@@ -1,10 +1,13 @@
 //! Arcs.
 //! Provides `Arc` structure storing arcs segments (less than half circle).
+use std::io::Write;
+use std::fmt;
+use ordered_float::OrderedFloat;
+
 use bounding_box::BoundingBox;
 use point::Point;
 use tycat::{Displayer, Displayable};
 use elementary_path::ElementaryPath;
-use std::io::Write;
 use utils::precision::is_almost;
 use utils::Identifiable;
 
@@ -50,9 +53,20 @@ impl Arc {
     }
 }
 
+impl fmt::Display for Arc {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{{{}, {}}}", self.points[0], self.points[1])
+    }
+}
+
 impl ElementaryPath for Arc {
-    fn points(&self) -> (Point, Point) {
-        (self.points[0], self.points[1])
+    fn points(&self) -> &[Point; 2] {
+        &self.points
+    }
+
+    fn comparison_key(&self, current_x: f64)
+        -> (OrderedFloat<f64>, OrderedFloat<f64>, OrderedFloat<f64>) {
+        (OrderedFloat(0.0), OrderedFloat(0.0), OrderedFloat(0.0))
     }
 }
 

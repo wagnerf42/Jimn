@@ -17,11 +17,13 @@
 //! Compile them with cargo !
 
 #![deny(missing_docs)]
-#![feature(btree_range, collections_bound, plugin)]
+#![allow(dead_code, unused_imports, unused_variables)]
+#![feature(btree_range, collections_bound, plugin, slice_patterns)]
 #![plugin(clippy)]
 
 extern crate byteorder;
 extern crate rand;
+extern crate ordered_float;
 #[macro_use]
 pub mod tycat;
 pub mod tree;
