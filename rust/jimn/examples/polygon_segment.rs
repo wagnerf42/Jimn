@@ -1,7 +1,6 @@
 extern crate jimn;
 use jimn::polygon::Polygon;
 use jimn::point::Point;
-use jimn::segment::Segment;
 use jimn::tree::inclusion_tree::polygon_segment::PolygonSegment;
 
 fn main() {

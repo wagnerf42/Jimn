@@ -13,6 +13,6 @@ fn main() {
         Segment::new(Point::new(3.0, 1.0), Point::new(0.0, 0.0)),
         ]
         );
-    display!(polygons);
-
+    let iterator = polygons.iter();
+    display!(iterator);
 }

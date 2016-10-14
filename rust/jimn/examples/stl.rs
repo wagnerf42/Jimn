@@ -11,5 +11,6 @@ fn main() {
     let mut points_hash = PointsHash::new(2, 6);
     let slice: Vec<Segment> = model.facets.iter()
         .filter_map(|f| f.intersect(0.96, &mut points_hash)).collect();
-    display!(slice);
+    let iterator = slice.iter();
+    display!(iterator);
 }

@@ -25,7 +25,7 @@ impl SweepingLineAlgorithm for Builder {
 /// In case of equalities, height information is used (top contains bottom).
 pub fn build_inclusion_tree(slices: Vec<(f64, Vec<Polygon>)>) {
     //-> Tree<(f64, Polygon)> {
-    for (_, polygons) in slices {
-        display!(polygons)
-    }
+//    for (_, polygons) in slices {
+//        display!(polygons)
+//    }
 }

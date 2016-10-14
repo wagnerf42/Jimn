@@ -72,8 +72,10 @@ fn main() {
         Point::new(-1.0, 0.0),
         Point::new(-1.005, 0.002071000039577484)
             ]);
-    display!(complex_polygon, complex_polygon.points);
+    let points = complex_polygon.points.iter();
+    display!(complex_polygon, points);
     let simple_polygon = complex_polygon.simplify();
     assert!(simple_polygon.points.len() == 24);
-    display!(simple_polygon, simple_polygon.points);
+    let simple_points = simple_polygon.points.iter();
+    display!(simple_polygon, simple_points);
 }

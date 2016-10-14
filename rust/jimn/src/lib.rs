@@ -58,6 +58,6 @@ pub fn compute_milling_path(thickness: f64, milling_radius: f64,
     for (_, segments) in slices {
         assert!(!segments.is_empty());
         let polygons = build_polygons(segments);
-        display!(polygons);
+        //display!(polygons);
     }
 }

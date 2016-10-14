@@ -81,43 +81,17 @@ pub trait Displayable {
     fn save_svg_content(&self, displayer: &mut Displayer, color: &str);
 }
 
-/// Boxed displayables are also displayable
-impl<T: ?Sized + Displayable> Displayable for Box<T> {
-    fn get_bounding_box(&self) -> BoundingBox {
-        (**self).get_bounding_box()
-    }
-    fn save_svg_content(&self, displayer: &mut Displayer, color: &str) {
-        (**self).save_svg_content(displayer, color)
-    }
-}
-
-///vectors of *Displayable* are also *Displayable*.
-impl<T: Displayable> Displayable for Vec<T> {
-//impl<'a, T, U> Displayable for T where T: IntoIterator<Item=&'a U>, U: 'a, U: Displayable {
+/// Clonable `Iterators` on `&Displayable` are also `Displayable`
+impl<'a, T, U> Displayable for U where T: 'a, T: Displayable, U : Iterator<Item=&'a T> + Clone {
     fn get_bounding_box(&self) -> BoundingBox {
         let mut bbox = BoundingBox::empty_box(2);
-        for content in self {
+        for content in self.clone() {
             bbox.update(&content.get_bounding_box());
         }
         bbox
     }
     fn save_svg_content(&self, displayer: &mut Displayer, color: &str) {
-        for content in self {
-            content.save_svg_content(displayer, color);
-        }
-    }
-}
-
-impl<U, T: Displayable> Displayable for HashMap<U, T> where U: Hash + Eq {
-    fn get_bounding_box(&self) -> BoundingBox {
-        let mut bbox = BoundingBox::empty_box(2);
-        for content in self.values() {
-            bbox.update(&content.get_bounding_box());
-        }
-        bbox
-    }
-    fn save_svg_content(&self, displayer: &mut Displayer, color: &str) {
-        for content in self.values() {
+        for content in self.clone() {
             content.save_svg_content(displayer, color);
         }
     }
