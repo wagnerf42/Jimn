@@ -5,8 +5,6 @@ use std::cmp::{Ord, Ordering};
 use point::Point;
 use segment::Segment;
 use polygon::Polygon;
-use elementary_path::ElementaryPath;
-
 
 #[derive(PartialEq, PartialOrd, Clone, Copy, Debug)]
 struct AngleKey {
@@ -118,7 +116,7 @@ impl PolygonsBuilder {
     fn build_polygon(&mut self) -> Polygon {
         let mut points = Vec::new();
         let mut current_segment = self.get_start_segment();
-        let &[start_point, mut current_point] = current_segment.points();
+        let [start_point, mut current_point] = current_segment.points;
         points.push(current_point);
         let mut previous_point = start_point;
         while start_point != current_point {

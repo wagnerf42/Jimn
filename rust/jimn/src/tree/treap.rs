@@ -11,11 +11,21 @@ use std::f64::NEG_INFINITY;
 use rand;
 
 use utils::Identifiable;
-use elementary_path::ElementaryPath;
 use ordered_float::OrderedFloat;
 
 /// sequential counter for tycat files
 static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
+
+/// Objets inside a treap must be comparable.
+/// We assume each object provides a function taking current x position
+/// in a sweeping line algorithm and returning
+/// a comparison key (3 floats here).
+pub trait Positionable : Identifiable {
+    /// Returns comparison key for sweeping line algorithm.
+    fn comparison_key(&self, current_x: f64) -> (OrderedFloat<f64>,
+                                                 OrderedFloat<f64>,
+                                                 OrderedFloat<f64>);
+}
 
 /// Treap Node
 pub struct RawNode<T: Display> {
@@ -225,12 +235,12 @@ impl<T: Display> Node<T> {
 /// Treap BST structure.
 /// This structure is specialized for sweeping line algorithms and contains
 /// the current position (used in paths comparisons).
-pub struct Treap<T: ElementaryPath> {
+pub struct Treap<T> where T: Positionable + Display {
     root: Node<T>,
     current_x: f64
 }
 
-impl<T: ElementaryPath + Default> Treap<T> {
+impl<T: Positionable + Display + Default> Treap<T> {
     /// Creates a new Treap.
     pub fn new() -> Treap<T> {
         let tree = Treap {

@@ -1,4 +1,5 @@
 extern crate jimn;
+extern crate ordered_float;
 use jimn::tree::treap::Treap;
 use jimn::point::Point;
 use jimn::segment::Segment;

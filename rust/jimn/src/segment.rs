@@ -7,14 +7,15 @@ use ordered_float::OrderedFloat;
 use bounding_box::BoundingBox;
 use point::Point;
 use tycat::{Displayer, Displayable};
+use tree::treap::Positionable;
 use utils::precision::is_almost;
 use utils::Identifiable;
-use elementary_path::ElementaryPath;
 
 /// Oriented segment structure.
 #[derive(Debug)]
 pub struct Segment {
-    points: [Point; 2]
+    /// Segment's two endpoints (start and end).
+    pub points: [Point; 2]
 }
 
 impl Identifiable for Segment {}
@@ -134,6 +135,26 @@ impl Segment {
             Some(p1.y + slope*(intersecting_x - p1.x))
         }
     }
+
+    ///Returns endpoint of segment.
+    pub fn end(&self) -> Point {
+        self.points[1]
+    }
+
+    ///Returns startpoint of segment.
+    pub fn start(&self) -> Point {
+        self.points[0]
+    }
+
+    ///Returns endpoint not the given one in segment.
+    pub fn endpoint_not(&self, avoided_point: &Point) -> Point {
+        if self.points[0] == *avoided_point {
+            self.points[1]
+        } else {
+            assert_eq!(*avoided_point, self.points[1]);
+            self.points[0]
+        }
+    }
 }
 
 impl Displayable for Segment {
@@ -169,11 +190,7 @@ impl fmt::Display for Segment {
     }
 }
 
-impl ElementaryPath for Segment {
-    fn points(&self) -> &[Point; 2] {
-        &self.points
-    }
-
+impl Positionable for Segment {
     fn comparison_key(&self, current_x: f64)
         -> (OrderedFloat<f64>, OrderedFloat<f64>, OrderedFloat<f64>) {
         if cfg!(debug_assertions) {

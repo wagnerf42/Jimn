@@ -7,7 +7,6 @@ use ordered_float::OrderedFloat;
 use bounding_box::BoundingBox;
 use point::Point;
 use tycat::{Displayer, Displayable};
-use elementary_path::ElementaryPath;
 use utils::precision::is_almost;
 use utils::Identifiable;
 
@@ -51,22 +50,17 @@ impl Arc {
             reversed_direction: !self.reversed_direction
         }
     }
+
+    ///key for sweeping line
+    pub fn comparison_key(&self, current_x: f64)
+        -> (OrderedFloat<f64>, OrderedFloat<f64>, OrderedFloat<f64>) {
+        (OrderedFloat(0.0), OrderedFloat(0.0), OrderedFloat(0.0))
+    }
 }
 
 impl fmt::Display for Arc {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{{{}, {}}}", self.points[0], self.points[1])
-    }
-}
-
-impl ElementaryPath for Arc {
-    fn points(&self) -> &[Point; 2] {
-        &self.points
-    }
-
-    fn comparison_key(&self, current_x: f64)
-        -> (OrderedFloat<f64>, OrderedFloat<f64>, OrderedFloat<f64>) {
-        (OrderedFloat(0.0), OrderedFloat(0.0), OrderedFloat(0.0))
     }
 }
 
@@ -78,7 +72,7 @@ impl Displayable for Arc {
         }
         bbox
     }
-    
+
     fn save_svg_content(&self, displayer: &mut Displayer, color: &str) {
         // display first point for viewer to know orientation
         self.points[0].save_svg_content(displayer, color);
