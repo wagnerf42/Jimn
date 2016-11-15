@@ -1,10 +1,10 @@
 import Point
 import Segment
+import Facet
 
 main =
-  print(svg v "red" p1) where
-    p1 = Point [1,4]
-    p2 = Point [3,2]
-    s = Segment p1 p2
-    b = Segment.box s
-    v = view [640, 480] b
+  print(Facet.intersect 0 f) where
+    p1 = Point [0,0,-1]
+    p2 = Point [1,0,-1]
+    p3 = Point [0.5,0,1]
+    f = Facet p1 p2 p3
