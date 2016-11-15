@@ -10,9 +10,10 @@ module Point( Point(..)
             , ViewPort
             , svgCoordinates
             , view
+            , fuseBoxes
             ) where
 
-data Point = Point [Double] deriving (Show)
+data Point = Point [Double] deriving (Show, Eq, Ord)
 data Box = Box [Double] [Double] deriving (Show)
 
 -- translate (before scale) then scale then translate (after scale)
@@ -56,3 +57,8 @@ times (Point c) scalar = Point $ map (*scalar) c
 
 box :: Point -> Box
 box (Point c) = Box c c
+
+fuseBoxes :: Box -> Box -> Box
+fuseBoxes (Box minc1 maxc1) (Box minc2 maxc2) = Box minc maxc where
+  minc = zipWith min minc1 minc2
+  maxc = zipWith max maxc1 maxc2
