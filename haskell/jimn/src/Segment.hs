@@ -1,3 +1,14 @@
+{-|
+Module      : Segment
+Description : Segments
+Copyright   : (c) frederic wagner
+License     : GPL-3
+Maintainer  : frederic.wagner@imag.fr
+Stability   : experimental
+Portability : POSIX
+
+This modules provides a Segment type and its related functions.
+-}
 module Segment( Segment(..)
               , Segment.box
               , Segment.intersect
@@ -5,11 +16,15 @@ module Segment( Segment(..)
 import Point
 import Data.List
 
+-- | Oriented Segment between two Points.
 data Segment = Segment Point Point deriving(Show)
+
+-- | Returns the smallest Box around given Segment.
 box :: Segment -> Box
 box (Segment (Point c1) (Point c2)) = Box (map minimum c) (map maximum c) where
   c = transpose [c1, c2]
 
+-- | Intersects given 3D Segment with an horizontal plane at given height.
 intersect :: Double -> Segment -> Maybe Point
 intersect height (Segment p1 p2)
   | divisor == 0 = Nothing
