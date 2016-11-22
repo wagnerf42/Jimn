@@ -14,6 +14,8 @@ module Segment( Segment(..)
               , Segment.intersect
               , Segment.svg
               ) where
+
+import Box
 import Point
 import Data.List
 

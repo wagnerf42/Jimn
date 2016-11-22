@@ -4,6 +4,7 @@ module Model( Model(..)
             ) where
 
 import Point
+import Box
 import Segment
 import Data.Maybe
 import Data.List

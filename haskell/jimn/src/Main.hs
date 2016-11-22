@@ -1,6 +1,7 @@
 module Main where
 --import Tycat
 import qualified Model
+import Box
 import Point
 import qualified Segment
 
