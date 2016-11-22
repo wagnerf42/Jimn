@@ -12,6 +12,7 @@ This modules provides a Segment type and its related functions.
 module Segment( Segment(..)
               , Segment.box
               , Segment.intersect
+              , Segment.svg
               ) where
 import Point
 import Data.List
@@ -34,3 +35,9 @@ intersect height (Segment p1 p2)
     Point [_,_,z1] = p1
     factor = (height - z1) / divisor
     Point intersectingCoordinates = plus p1 (times diff factor)
+
+-- | Takes a ViewPort and a Segment and generates the
+-- corresponding String for displaying the Segment into an svg file.
+svg :: ViewPort -> Segment -> String
+svg v (Segment p1 p2) = "<line"++pos++"/>\n" where
+  pos = labelJoin ["x1", "y1", "x2", "y2"] $ concatMap (svgCoordinates v) [p1, p2]

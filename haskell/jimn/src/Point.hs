@@ -22,6 +22,7 @@ module Point( Point(..)
             , view
             , svgCoordinates
             , svg
+            , labelJoin
             ) where
 
 -- | Point type storing points in any dimensions
@@ -97,6 +98,6 @@ labelJoin strings things = concat $ zipWith together strings things where
 
 -- | Takes a ViewPort and a Point and generates the
 -- corresponding String for displaying the Point into an svg file.
-svg :: Point -> ViewPort -> String
-svg p v = "<circle"++pos++"/>\n" where
+svg :: ViewPort -> Point -> String
+svg v p = "<circle"++pos++"/>\n" where
   pos = labelJoin ["cx", "cy"] $ svgCoordinates v p
