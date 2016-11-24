@@ -15,9 +15,7 @@ module Point( Point(..)
             , minus
             , plus
             , times
-            , box
-            , svgCoordinates
-            , svg
+            , Point.box
             ) where
 
 import Box
@@ -50,16 +48,9 @@ times (Point c) scalar = Point $ map (*scalar) c
 box :: Point -> Box
 box (Point c) = Box c c
 
--- | Applies Viewport coordinates transformations to given Point.
--- Returns a coordinates list.
-svgCoordinates :: ViewPort -> Point -> [Double]
-svgCoordinates (ViewPort minc scale translation) (Point c) = new_coordinates where
-  translatedCoordinates = zipWith (-) c minc
-  scaledCoordinates = map (*scale) translatedCoordinates
-  new_coordinates = zipWith (+) scaledCoordinates translation
-
--- | Takes a ViewPort and a Point and generates the
--- corresponding String for displaying the Point into an svg file.
-svg :: ViewPort -> Point -> String
-svg v p = "<circle"++pos++"/>\n" where
-  pos = labelJoin ["cx", "cy"] $ svgCoordinates v p
+-- | Takes a Point and generates the
+-- corresponding String for displaying it into an svg file.
+instance DisplaySVG Point where
+  svg (Point coordinates) = "<circle"++pos++" r=\"0.1\"/>\n" where
+    pos = labelJoin ["cx", "cy"] coordinates
+  box = Point.box
