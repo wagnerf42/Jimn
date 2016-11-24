@@ -1,6 +1,7 @@
 module Model( Model(..)
             , load
             , slice
+            , Slice(..)
             ) where
 
 import Point

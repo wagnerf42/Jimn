@@ -1,25 +1,19 @@
 {-|
 Module      : Box
-Description : Boxes, svg related functions
+Description : Boxes
 Copyright   : (c) frederic wagner
 License     : GPL-3
 Maintainer  : frederic.wagner@imag.fr
 Stability   : experimental
 Portability : POSIX
 
-This modules provides a Box type and basic svg related types.
+This modules provides a Box type for delimiting subsets of space between
+coordinates limits.
 -}
-{-# LANGUAGE FlexibleInstances #-}
 module Box( Box(..)
           , fuseBoxes
-          , labelJoin
-          , DisplaySVG(..)
-          , svgString
-          , tycat
+          , emptyBox
           ) where
-
-import Data.List
-import System.Process
 
 -- | A Box allows to delimit a region of space between minimal and
 -- maximal coordinates.
@@ -37,57 +31,3 @@ fuseBoxes :: Box -> Box -> Box
 fuseBoxes (Box minc1 maxc1) (Box minc2 maxc2) = Box minc maxc where
   minc = zipWith min minc1 minc2
   maxc = zipWith max maxc1 maxc2
-
--- | Helper function to easily generate svg properties.
--- we take some properties labels, some variables holding properties content
--- and build a usable svg string holding all properties, correctly labeled.
-labelJoin :: (Show a) => [String] -> [a] -> String
-labelJoin strings things = concat $ zipWith together strings things where
-  together s t = " "++s++"=\""++show t++"\""
-
-class DisplaySVG a where
-  svg :: a -> String
-  box :: a -> Box
-
-instance DisplaySVG a => DisplaySVG [a] where
-  svg = concatMap svg
-  box objects = foldl1' fuseBoxes $ map box objects
-
-
--- some magic for a variadic function
--- see http://rosettacode.org/wiki/Variadic_function#Haskell
-
--- | Turns Box surrounding objects and all objects' svg Strings into
--- a full svg file String.
-svgString :: (Box, [String]) -> String
-svgString (bbox, strings) = header ++ strokeGroup ++ groups ++ footer where
-  colors = cycle ["red", "green", "blue", "purple"]
-  groupsStart = map (\c -> "<g stroke=\"" ++ c ++ "\">\n") colors
-  groupsContent = map (++"</g>\n") strings
-  groups = concat $ zipWith (++) groupsStart groupsContent
-  Box minc maxc = bbox
-  viewBoxParameters = minc ++ zipWith (-) maxc minc
-  viewBox = unwords $ map show viewBoxParameters
-  header = "<svg width=\"800\" height=\"600\" viewBox=\"" ++ viewBox ++ "\">\n"
-  strokeGroup = "<g stroke-width=\"0.1\">\n"
-  footer = "</g></svg>"
-
-class TycatType t where
-  process :: (Box, [String]) -> t
-
--- final step
-instance TycatType (IO a) where
-  process args = do
-    writeFile "/tmp/test.svg" $ svgString args
-    callCommand "tycat /tmp/test.svg 2> /dev/null"
-    return undefined
-
--- accumulate fusing boxes and storing strings
-instance (DisplaySVG a, TycatType r) => TycatType (a -> r) where
-  process (ibox, istrings) a = process (bbox, strings) where
-    bbox = fuseBoxes ibox $ box a
-    strings = istrings ++ [svg a]
-
--- init
-tycat :: (TycatType t) => t
-tycat = process (emptyBox 2, [])

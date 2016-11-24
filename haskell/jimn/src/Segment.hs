@@ -16,6 +16,7 @@ module Segment( Segment(..)
 
 import Box
 import Point
+import Display
 import Data.List
 
 -- | Oriented Segment between two Points.

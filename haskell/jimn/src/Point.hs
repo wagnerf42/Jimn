@@ -19,6 +19,8 @@ module Point( Point(..)
             ) where
 
 import Box
+import Display
+
 -- | Point type storing points in any dimensions
 data Point = Point [Double] deriving (Show, Eq, Ord)
 

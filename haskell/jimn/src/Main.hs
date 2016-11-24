@@ -1,18 +1,9 @@
 module Main where
---import Tycat
 import qualified Model
-import Box
-import Point
-import Segment
-
+import Display
+import Control.Monad
 
 main = do
-  tycat p3 s [p1,p2] where
-    p1 = Point [0, 0]
-    p2 = Point [1, 1]
-    p3 = Point [2, 4]
-    s = Segment p1 p3
-  --model <- Model.load "../../test_files/cordoba.stl"
-  --print(model)
---  let slices = Model.slice model 0.3 in
---      forM_ slices (\(Slice _ segments) -> tycat segments)
+  model <- Model.load "../../test_files/cordoba.stl"
+  let slices = Model.slice model 0.3 in
+      forM_ slices (\(Model.Slice _ segments) -> tycat segments)
