@@ -18,6 +18,7 @@ module Display( DisplaySVG(..)
           ) where
 
 import System.Process
+import System.IO
 import Data.List
 import Box
 
@@ -61,8 +62,10 @@ class TycatType t where
 -- final step
 instance TycatType (IO a) where
   process args = do
-    writeFile "/tmp/test.svg" $ svgString args
-    callCommand "tycat /tmp/test.svg 2> /dev/null"
+    (tmpFile, h) <- openTempFile "/tmp" "jimn.svg"
+    hPutStr h $ svgString args
+    hClose h
+    callCommand $ "tycat " ++ tmpFile ++ " 2> /dev/null"
     return undefined
 
 -- accumulate fusing boxes and storing strings

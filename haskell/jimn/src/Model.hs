@@ -1,9 +1,14 @@
 module Model( Model(..)
             , load
+            , pyramid
             , slice
+            , sliceAt
             , Slice(..)
             ) where
 
+import Control.Exception
+import Debug.Trace
+import Debug
 import Point
 import Box
 import Segment
@@ -39,6 +44,7 @@ parseFacet = do
   c1 <- sequence [getFloatle, getFloatle, getFloatle]
   c2 <- sequence [getFloatle, getFloatle, getFloatle]
   c3 <- sequence [getFloatle, getFloatle, getFloatle]
+  skip 2
   let coordinates = [c1, c2, c3]
       doubleCoordinates = map (map float2Double) coordinates
       [p1, p2, p3] = map Point doubleCoordinates in
@@ -49,6 +55,17 @@ load :: FilePath -> IO Model
 load filename = do
   contents <- B.readFile filename
   return $ Model $ runGet parseFacets (B.drop 80 contents)
+
+-- | Returns a pyramid Model for testing purposes.
+pyramid :: Model
+pyramid = Model facets where
+  points = [Point [x, y, 0] | (x,y) <- [(-1,-1),(-1,1),(1,1),(1,-1)]]
+  pairs = zip points $ tail $ cycle points
+  top = Point [0, 0, 1]
+  topFacets = map (\(p1, p2) -> Facet p1 p2 top) pairs
+  bottomFacet1 = Facet (Point [1,1,0]) (Point [1,-1,0]) (Point [-1,-1,0])
+  bottomFacet2 = Facet (Point [-1,-1,0]) (Point [1,1,0]) (Point [-1,1,0])
+  facets = topFacets ++ [bottomFacet1, bottomFacet2]
 
 -- facets related functions
 
@@ -92,10 +109,12 @@ facetsEvents = concatMap facetEvents
 
 sliceEvents :: [Facet] -> Double -> [Event]
 sliceEvents facets sliceHeight =
-  map SlicingEvent [minZ,minZ+sliceHeight..maxZ] where
+  map SlicingEvent
+  (assert (slicesNumber<1000) [minZ,minZ+sliceHeight..maxZ]) where
   boxes = map facetBox facets
   bounding_box = foldl1' fuseBoxes boxes
   Box [_,_,minZ] [_,_,maxZ] = bounding_box
+  slicesNumber = (maxZ-minZ)/sliceHeight
 
 eventKey :: Event -> (Double, Int)
 eventKey (FacetStartEvent d _) = (d, 0)
@@ -107,17 +126,19 @@ allEvents facets sliceHeight =
   sortOn eventKey events where
     events = facetsEvents facets ++ sliceEvents facets sliceHeight
 
+handleEvent :: (Set.Set Facet, [Slice]) -> Event -> (Set.Set Facet, [Slice])
+handleEvent (currentFacets, slices) (FacetStartEvent _ facet) =
+  (Set.insert facet currentFacets, slices)
+handleEvent (currentFacets, slices) (FacetEndEvent _ facet) =
+  (Set.delete facet currentFacets, slices)
+handleEvent (currentFacets, slices) (SlicingEvent height) =
+  (currentFacets,
+    slices ++ maybeToList (sliceAt (Set.toList currentFacets) height))
+
 -- | Slices Model into Slices with slices of height of the given value.
 -- We use here a sweeping line algorithm where only active facets are
 -- intersected at a given height.
 slice :: Model -> Double -> [Slice]
 slice (Model facets) sliceHeight = slices where
   events = allEvents facets sliceHeight
-  handleEvent (currentFacets, slices) (FacetStartEvent _ facet) =
-    (Set.insert facet currentFacets, slices)
-  handleEvent (currentFacets, slices) (FacetEndEvent _ facet) =
-    (Set.delete facet currentFacets, slices)
-  handleEvent (currentFacets, slices) (SlicingEvent height) =
-    (currentFacets,
-    slices ++ maybeToList (sliceAt (Set.toList currentFacets) height))
   (_, slices) = foldl' handleEvent (Set.empty, []) events
