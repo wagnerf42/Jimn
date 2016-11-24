@@ -57,36 +57,37 @@ instance DisplaySVG a => DisplaySVG [a] where
 -- some magic for a variadic function
 -- see http://rosettacode.org/wiki/Variadic_function#Haskell
 
-class SvgStringType t where
+-- | Turns Box surrounding objects and all objects' svg Strings into
+-- a full svg file String.
+svgString :: (Box, [String]) -> String
+svgString (bbox, strings) = header ++ strokeGroup ++ groups ++ footer where
+  colors = cycle ["red", "green", "blue", "purple"]
+  groupsStart = map (\c -> "<g stroke=\"" ++ c ++ "\">\n") colors
+  groupsContent = map (++"</g>\n") strings
+  groups = concat $ zipWith (++) groupsStart groupsContent
+  Box minc maxc = bbox
+  viewBoxParameters = minc ++ zipWith (-) maxc minc
+  viewBox = unwords $ map show viewBoxParameters
+  header = "<svg width=\"800\" height=\"600\" viewBox=\"" ++ viewBox ++ "\">\n"
+  strokeGroup = "<g stroke-width=\"0.1\">\n"
+  footer = "</g></svg>"
+
+class TycatType t where
   process :: (Box, [String]) -> t
 
--- compute final string
-instance SvgStringType [Char] where
-  process (bbox, strings) = header ++ strokeGroup ++ groups ++ footer where
-    colors = cycle ["red", "green", "blue", "purple"]
-    groupsStart = map (\c -> "<g stroke=\"" ++ c ++ "\">\n") colors
-    groupsContent = map (++"</g>\n") strings
-    groups = concat $ zipWith (++) groupsStart groupsContent
-    Box minc maxc = bbox
-    viewBoxParameters = minc ++ zipWith (-) maxc minc
-    viewBox = unwords $ map show viewBoxParameters
-    header = "<svg width=\"800\" height=\"600\" viewBox=\"" ++ viewBox ++ "\">\n"
-    strokeGroup = "<g stroke-width=\"0.1\">\n"
-    footer = "</g></svg>"
-
+-- final step
+instance TycatType (IO a) where
+  process args = do
+    writeFile "/tmp/test.svg" $ svgString args
+    callCommand "tycat /tmp/test.svg 2> /dev/null"
+    return undefined
 
 -- accumulate fusing boxes and storing strings
-instance (DisplaySVG a, SvgStringType r) => SvgStringType (a -> r) where
+instance (DisplaySVG a, TycatType r) => TycatType (a -> r) where
   process (ibox, istrings) a = process (bbox, strings) where
     bbox = fuseBoxes ibox $ box a
     strings = istrings ++ [svg a]
 
 -- init
-svgString :: (SvgStringType t) => t
-svgString = process (emptyBox 2, [])
-
-tycat :: String -> IO ()
-tycat s = do
-  writeFile "/tmp/test.svg" s
-  callCommand "tycat /tmp/test.svg 2> /dev/null"
-  return ()
+tycat :: (TycatType t) => t
+tycat = process (emptyBox 2, [])
