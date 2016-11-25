@@ -1,5 +1,5 @@
 {-|
-Module      : Segment
+Module      : Jimn.Segment
 Description : Segments
 Copyright   : (c) frederic wagner
 License     : GPL-3
@@ -9,15 +9,15 @@ Portability : POSIX
 
 This modules provides a Segment type and its related functions.
 -}
-module Segment( Segment(..)
-              , Segment.box
-              , Segment.intersect
+module Jimn.Segment( Segment(..)
+              , Jimn.Segment.box
+              , Jimn.Segment.intersect
               ) where
 
-import Box
-import Point
-import Display
 import Data.List
+import Jimn.Box
+import Jimn.Point
+import Jimn.Display
 
 -- | Oriented Segment between two Points.
 data Segment = Segment Point Point deriving(Show)
@@ -43,4 +43,4 @@ intersect height (Segment p1 p2)
 instance DisplaySVG Segment where
   svg (Segment (Point c1) (Point c2)) = "<line"++pos++"/>\n" where
     pos = labelJoin ["x1", "y1", "x2", "y2"] $ c1++c2
-  box = Segment.box
+  box = Jimn.Segment.box

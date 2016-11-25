@@ -1,4 +1,4 @@
-module Model( Model(..)
+module Jimn.Model( Model(..)
             , load
             , pyramid
             , slice
@@ -8,10 +8,6 @@ module Model( Model(..)
 
 import Control.Exception
 import Debug.Trace
-import Debug
-import Point
-import Box
-import Segment
 import Data.Maybe
 import Data.List
 import qualified Data.Set as Set
@@ -20,6 +16,10 @@ import qualified Data.ByteString.Lazy as B
 import Data.Binary.Get
 import GHC.Float
 import Control.Monad
+
+import Jimn.Point
+import Jimn.Box
+import Jimn.Segment
 
 -- | 3D Facet (3 3D points)
 data Facet = Facet Point Point Point deriving(Show, Eq, Ord)
@@ -83,7 +83,7 @@ intersectFacet height (Facet p1 p2 p3)
   | otherwise = Nothing where
   pointsPairs = [(p1,p2), (p1,p3), (p2,p3)]
   segments = map (uncurry Segment) pointsPairs
-  intersections = mapMaybe (Segment.intersect height) segments
+  intersections = mapMaybe (Jimn.Segment.intersect height) segments
 
 -- | Intersects a list of Facets at given height. Returns a Slice.
 sliceAt :: [Facet] -> Double -> Maybe Slice

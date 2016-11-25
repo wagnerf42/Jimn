@@ -1,5 +1,5 @@
 {-|
-Module      : Point
+Module      : Jimn.Point
 Description : Points
 Copyright   : (c) frederic wagner
 License     : GPL-3
@@ -9,17 +9,17 @@ Portability : POSIX
 
 This modules provides the Point type.
 -}
-module Point( Point(..)
+module Jimn.Point( Point(..)
             , norm
             , distanceBetween
             , minus
             , plus
             , times
-            , Point.box
+            , Jimn.Point.box
             ) where
 
-import Box
-import Display
+import Jimn.Box
+import Jimn.Display
 
 -- | Point type storing points in any dimensions
 data Point = Point [Double] deriving (Show, Eq, Ord)
@@ -55,4 +55,4 @@ box (Point c) = Box c c
 instance DisplaySVG Point where
   svg (Point coordinates) = "<circle"++pos++" r=\"0.1\"/>\n" where
     pos = labelJoin ["cx", "cy"] coordinates
-  box = Point.box
+  box = Jimn.Point.box

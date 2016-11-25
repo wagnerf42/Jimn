@@ -1,5 +1,5 @@
 {-|
-Module      : Display
+Module      : Jimn.Display
 Description : all svg related functions. see tycat.
 Copyright   : (c) frederic wagner
 License     : GPL-3
@@ -12,7 +12,7 @@ any object or list of object instanciating the DisplaySVG typeclass.
 It displays all of them in different colors under e17 terminal's terminology.
 -}
 {-# LANGUAGE FlexibleInstances #-}
-module Display( DisplaySVG(..)
+module Jimn.Display( DisplaySVG(..)
           , labelJoin
           , tycat
           ) where
@@ -20,7 +20,7 @@ module Display( DisplaySVG(..)
 import System.Process
 import System.IO
 import Data.List
-import Box
+import Jimn.Box
 
 -- | Helper function to easily generate svg properties.
 -- we take some properties labels, some variables holding properties content

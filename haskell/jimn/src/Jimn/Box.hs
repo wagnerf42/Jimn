@@ -1,5 +1,5 @@
 {-|
-Module      : Box
+Module      : Jimn.Box
 Description : Boxes
 Copyright   : (c) frederic wagner
 License     : GPL-3
@@ -10,7 +10,7 @@ Portability : POSIX
 This modules provides a Box type for delimiting subsets of space between
 coordinates limits.
 -}
-module Box( Box(..)
+module Jimn.Box( Box(..)
           , fuseBoxes
           , emptyBox
           ) where
