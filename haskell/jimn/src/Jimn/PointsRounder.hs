@@ -64,17 +64,22 @@ empty precision dimension =
 
 -- | Looks up in the rounder if a nearby Point is already there.
 lookup :: Rounder -> Point -> Maybe Point
-lookup (Rounder precision maps) p
+lookup (Rounder precision maps) point
   | Just result  <- find isJust values  = result
   | otherwise = Nothing where
-    keys = pointKey precision p
+    keys = pointKey precision point
     values = zipWith Map.lookup keys maps
 
--- | Adds new Point in Rounder, eventually erasing nearby Points.
+-- | Adds new Point in Rounder replacing nearby Points.
 insert :: Rounder -> Point -> Rounder
-insert (Rounder precision maps) p = where
-  keys = pointKey precision p
-  --TODO: map here ? how to reverse args ?
+insert (Rounder precision maps) point = Rounder precision newMaps where
+  keys = pointKey precision point
+  newMaps = zipWith Map.insert maps keys
 
---wagnerf: for reference, the HashMap I'm talking      │ AdituV
---                   | about is from the unordered-containers package
+-- | Adds given point to rounder. We first try to find a nearby point inside. If
+-- there is none, we add ourselves and return ourselves. If there is one we
+-- return it directly.
+add :: Rounder -> Point -> (Rounder, Point)
+add rounder point
+  | Just existingPoint <- lookup rounder point = (rounder, existingPoint)
+  | otherwise = (insert rounder point, point)
