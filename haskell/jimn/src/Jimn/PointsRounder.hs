@@ -67,9 +67,7 @@ empty precision dimension =
 
 -- | Looks up in the rounder if a nearby Point is already there.
 lookup :: Rounder -> Point -> Maybe Point
-lookup (Rounder precision maps) point
-  | Just result  <- find isJust values  = result
-  | otherwise = Nothing where
+lookup (Rounder precision maps) point = listToMaybe $ catMaybes values where
     keys = pointKey precision point
     values = zipWith Map.lookup keys maps
 
