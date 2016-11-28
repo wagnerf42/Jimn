@@ -11,11 +11,14 @@ This modules provides the Rounder type allowing to identify nearby points
 in O(1).
 -}
 module Jimn.PointsRounder ( Rounder(..)
-                       , empty
-                       ) where
+                          , empty
+                          , add
+                          , insert
+                          , Jimn.PointsRounder.lookup
+                          ) where
 
 import Numeric
-import Data.List
+import Data.List (transpose, find)
 import Data.Maybe
 import qualified Data.HashMap.Strict as Map
 import Jimn.Point
@@ -74,12 +77,13 @@ lookup (Rounder precision maps) point
 insert :: Rounder -> Point -> Rounder
 insert (Rounder precision maps) point = Rounder precision newMaps where
   keys = pointKey precision point
-  newMaps = zipWith Map.insert maps keys
+  newMaps = zipWith3 Map.insert keys (repeat point) maps
 
 -- | Adds given point to rounder. We first try to find a nearby point inside. If
 -- there is none, we add ourselves and return ourselves. If there is one we
 -- return it directly.
 add :: Rounder -> Point -> (Rounder, Point)
 add rounder point
-  | Just existingPoint <- lookup rounder point = (rounder, existingPoint)
+  | Just existingPoint <- Jimn.PointsRounder.lookup rounder point =
+    (rounder, existingPoint)
   | otherwise = (insert rounder point, point)
