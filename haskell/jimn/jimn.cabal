@@ -16,7 +16,7 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Jimn, Jimn.Display, Jimn.Box, Jimn.Point, Jimn.Segment, Jimn.Model, Jimn.PointsRounder
-  build-depends:       base >= 4.7 && < 5, containers, bytestring, binary >= 0.8.4.0, process, unordered-containers
+  build-depends:       base >= 4.7 && < 5, containers, bytestring, binary >= 0.8.4.0, process, unordered-containers, mtl
   default-language:    Haskell2010
 
 executable jimn-exe

@@ -9,17 +9,19 @@ module Jimn.Model( Model(..)
 import Control.Exception
 import Debug.Trace
 import Data.Maybe
-import Data.List
+import Data.List hiding(insert)
 import qualified Data.Set as Set
 
 import qualified Data.ByteString.Lazy as B
 import Data.Binary.Get
 import GHC.Float
 import Control.Monad
+import Control.Monad.State
 
 import Jimn.Point
 import Jimn.Box
 import Jimn.Segment
+import Jimn.PointsRounder (empty, add, Rounder(..), insert)
 
 -- | 3D Facet (3 3D points)
 data Facet = Facet Point Point Point deriving(Show, Eq, Ord)
@@ -50,11 +52,29 @@ parseFacet = do
       [p1, p2, p3] = map Point doubleCoordinates in
       return $ Facet p1 p2 p3
 
+-- | Adjusts height of given point to existing nearby heights.
+adjustPoint :: Point -> State Rounder Point
+adjustPoint (Point [x, y, z]) = do
+  rounder <- get
+  let (newRounder, Point [adjustedZ]) = add rounder (Point [z]) in do
+      put newRounder
+      return $ Point [x, y, adjustedZ]
+
+-- | Adjusts height of facet's points to existing nearby heights.
+adjustFacet :: Facet -> State Rounder Facet
+adjustFacet (Facet p1 p2 p3) = do
+  rounder <- get
+  let ([newP1, newP2, newP3], newRounder) =
+        runState (mapM adjustPoint [p1,p2,p3]) rounder in do
+          put newRounder
+          return $ Facet newP1 newP2 newP3
+
 -- | Loads given stl file as a Model.
 load :: FilePath -> IO Model
 load filename = do
   contents <- B.readFile filename
-  return $ Model $ runGet parseFacets (B.drop 80 contents)
+  let facets = runGet parseFacets (B.drop 80 contents) in
+      return $ Model facets
 
 -- | Returns a pyramid Model for testing purposes.
 pyramid :: Model
@@ -107,14 +127,18 @@ facetEvents facet = [FacetStartEvent minZ facet, FacetEndEvent maxZ facet] where
 facetsEvents :: [Facet] -> [Event]
 facetsEvents = concatMap facetEvents
 
-sliceEvents :: [Facet] -> Double -> [Event]
-sliceEvents facets sliceHeight =
-  map SlicingEvent
-  (assert (slicesNumber<1000) [minZ,minZ+sliceHeight..maxZ]) where
-  boxes = map facetBox facets
-  bounding_box = foldl1' fuseBoxes boxes
-  Box [_,_,minZ] [_,_,maxZ] = bounding_box
-  slicesNumber = (maxZ-minZ)/sliceHeight
+adjustHeight :: Rounder -> Double -> Double
+adjustHeight rounder height = newHeight where
+  (_, Point [newHeight]) = add rounder (Point [height])
+
+sliceEvents :: [Facet] -> Double -> Rounder -> [Event]
+sliceEvents facets sliceHeight heightsRounder =
+  map (SlicingEvent . (adjustHeight heightsRounder))
+    [minZ,minZ+sliceHeight..maxZ] where
+      boxes = map facetBox facets
+      bounding_box = foldl1' fuseBoxes boxes
+      Box [_,_,minZ] [_,_,maxZ] = bounding_box
+      slicesNumber = (maxZ-minZ)/sliceHeight
 
 eventKey :: Event -> (Double, Int)
 eventKey (FacetStartEvent d _) = (d, 0)
@@ -124,7 +148,9 @@ eventKey (FacetEndEvent d _) = (d, 2)
 allEvents :: [Facet] -> Double -> [Event]
 allEvents facets sliceHeight =
   sortOn eventKey events where
-    events = facetsEvents facets ++ sliceEvents facets sliceHeight
+    (adjustedFacets, heightsRounder) = runState (mapM adjustFacet facets) (empty 5 1)
+    events = facetsEvents adjustedFacets ++
+      sliceEvents adjustedFacets sliceHeight heightsRounder
 
 handleEvent :: (Set.Set Facet, [Slice]) -> Event -> (Set.Set Facet, [Slice])
 handleEvent (currentFacets, slices) (FacetStartEvent _ facet) =

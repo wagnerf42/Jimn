@@ -39,7 +39,7 @@ import Jimn.Point
 
 data Rounder = Rounder { precision :: Int
                        , maps :: [Map.HashMap String Point]
-                       }
+                       } deriving(Show)
 
 -- | Key for given float at given precision. (Round at precision decimals)
 baseKey :: Int -> Double -> String
