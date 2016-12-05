@@ -8,6 +8,6 @@ const PRECISION: i32 = 6;
 //TODO: avoid recomputing limit over and over again
 /// Returns if two given coordinates are nearby (absolute difference is
 /// less than jimn's default precision limit).
-pub fn is_almost(coordinate1: f64, coordinate2: f64) -> bool {
-    (coordinate1 - coordinate2).abs() < 10.0f64.powi(-PRECISION)
+pub fn is_almost<T:Into<f64>>(coordinate1: T, coordinate2: T) -> bool {
+    (coordinate1.into() - coordinate2.into()).abs() < 10.0f64.powi(-PRECISION)
 }

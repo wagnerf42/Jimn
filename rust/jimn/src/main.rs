@@ -1,7 +1,7 @@
 extern crate jimn;
 extern crate argparse;
 use argparse::{ArgumentParser, Store};
-use jimn::compute_milling_path;
+//use jimn::compute_milling_path;
 
 
 fn main() {
@@ -22,7 +22,8 @@ fn main() {
         ap.parse_args_or_exit();
     }
     if stl_file != "" {
-        compute_milling_path(thickness, milling_radius, stl_file);
+        println!("TODO");
+        //compute_milling_path(thickness, milling_radius, stl_file);
     } else {
         println!("missing stl file, see help")
     }

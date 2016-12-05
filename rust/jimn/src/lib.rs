@@ -18,47 +18,47 @@
 
 #![deny(missing_docs)]
 #![allow(dead_code, unused_imports, unused_variables)]
-#![feature(btree_range, collections_bound, plugin, slice_patterns)]
-#![plugin(clippy)]
+//#![feature(btree_range, collections_bound, plugin, slice_patterns)]
+//#![plugin(clippy)]
 
 extern crate byteorder;
 extern crate rand;
 extern crate ordered_float;
-#[macro_use]
-pub mod tycat;
-pub mod tree;
-pub mod utils;
-pub mod elementary_path;
+//#[macro_use]
+//pub mod tycat;
+//pub mod tree;
+//pub mod utils;
+//pub mod elementary_path;
 pub mod bounding_box;
 pub mod point;
-pub mod pocket;
-pub mod segment;
-pub mod arc;
-pub mod stl;
-pub mod polygon;
-pub mod sweeping_lines;
-
-use stl::Stl;
-use tycat::{Displayable, display};
-use polygon::builder::build_polygons;
-use utils::coordinates_hash::PointsHash;
-
-/// Loads stl file, slices it at given thickness, mills all slices
-/// and return global path.
-pub fn compute_milling_path(thickness: f64, milling_radius: f64,
-                            stl_file: String) {
-    module_debug!({
-        println!("Starting jimn, loading {}, thickness is {}, radius is {}",
-                 stl_file, thickness, milling_radius
-                 );
-    });
-    let mut model = Stl::new(&stl_file).expect("error loading stl file");
-    let mut points_hash = PointsHash::new(2, 6);
-    let slices = model.compute_slices(thickness, &mut points_hash);
-    for (_, segments) in slices {
-        assert!(!segments.is_empty());
-        let polygons = build_polygons(segments);
-        let ipoly = polygons.iter();
-        display!(ipoly);
-    }
-}
+//pub mod pocket;
+//pub mod segment;
+//pub mod arc;
+//pub mod stl;
+//pub mod polygon;
+////pub mod sweeping_lines;
+//
+//use stl::Stl;
+//use tycat::{Displayable, display};
+//use polygon::builder::build_polygons;
+//use utils::coordinates_hash::PointsHash;
+//
+///// Loads stl file, slices it at given thickness, mills all slices
+///// and return global path.
+//pub fn compute_milling_path(thickness: f64, milling_radius: f64,
+//                            stl_file: String) {
+//    module_debug!({
+//        println!("Starting jimn, loading {}, thickness is {}, radius is {}",
+//                 stl_file, thickness, milling_radius
+//                 );
+//    });
+//    let mut model = Stl::new(&stl_file).expect("error loading stl file");
+//    let mut points_hash = PointsHash::new(2, 6);
+//    let slices = model.compute_slices(thickness, &mut points_hash);
+//    for (_, segments) in slices {
+//        assert!(!segments.is_empty());
+//        let polygons = build_polygons(segments);
+//        let ipoly = polygons.iter();
+//        display!(ipoly);
+//    }
+//}

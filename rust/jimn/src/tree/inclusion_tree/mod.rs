@@ -1,7 +1,7 @@
 //! Provides `InclusionTree` structure : which polygon is included
 //! in which one.
 //! First tree structure in use in milling algorithm.
-use sweeping_lines::{SweepingLineAlgorithm, SweepingLineState};
+//use sweeping_lines::{SweepingLineAlgorithm, SweepingLineState};
 use polygon::Polygon;
 use tree::Tree;
 use point::Point;
@@ -10,15 +10,6 @@ pub mod polygon_segment;
 
 struct Builder {
     polygons: Vec<Polygon>
-}
-
-impl SweepingLineAlgorithm for Builder {
-    fn add_path(&mut self, state: &mut SweepingLineState) {
-        return;
-    }
-    fn remove_path(&mut self, state: &mut SweepingLineState) {
-        return;
-    }
 }
 
 /// Figures out which polygon is inside which other.

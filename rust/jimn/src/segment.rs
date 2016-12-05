@@ -120,7 +120,8 @@ impl Segment {
     /// ```
     pub fn vertical_intersection_at(&self, intersecting_x: f64)
         -> Option<f64> {
-        let [p1, p2] = self.points;
+        let p1 = self.points[0];
+        let p2 = self.points[1];
         if is_almost(p1.x, p2.x) {
             if is_almost(intersecting_x, p1.x) {
                 if p1.y < p2.y { Some(p1.y) } else { Some(p2.y) }

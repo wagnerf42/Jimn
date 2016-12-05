@@ -15,13 +15,17 @@ module Jimn.PointsRounder ( Rounder(..)
                           , add
                           , insert
                           , Jimn.PointsRounder.lookup
+                          , adjust
                           ) where
 
 import Numeric
 import Data.List (transpose, find)
 import Data.Maybe
+--import qualified Data.Map.Strict as Map
 import qualified Data.HashMap.Strict as Map
 import Jimn.Point
+import Control.Monad.State
+import Debug.Trace
 
 -- | Rounder structure.
 -- Rounder is a structure providing a very fast way (O(1)) of
@@ -38,6 +42,7 @@ import Jimn.Point
 -- increase this value but it is very unlikely).
 
 data Rounder = Rounder { precision :: Int
+                       --, maps :: [Map.Map String Point]
                        , maps :: [Map.HashMap String Point]
                        } deriving(Show)
 
@@ -85,3 +90,10 @@ add rounder point
   | Just existingPoint <- Jimn.PointsRounder.lookup rounder point =
     (rounder, existingPoint)
   | otherwise = (insert rounder point, point)
+
+adjust :: Point -> State Rounder Point
+adjust p = do
+  rounder <- get
+  let (newRounder, p2) = add rounder p in do
+      put newRounder
+      return p2

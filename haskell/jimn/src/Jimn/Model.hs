@@ -133,7 +133,7 @@ adjustHeight rounder height = newHeight where
 
 sliceEvents :: [Facet] -> Double -> Rounder -> [Event]
 sliceEvents facets sliceHeight heightsRounder =
-  map (SlicingEvent . (adjustHeight heightsRounder))
+  map (SlicingEvent . adjustHeight heightsRounder)
     [minZ,minZ+sliceHeight..maxZ] where
       boxes = map facetBox facets
       bounding_box = foldl1' fuseBoxes boxes

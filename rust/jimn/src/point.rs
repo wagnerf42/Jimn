@@ -1,44 +1,29 @@
 //! Points on the plane.
 //!
-//! Provides a **Point** structure for storing 2d points.
+//! Provides a `Point` structure for storing 2d points.
 //! Points can also serve as vectors: for example point2-point1 is a point
 //! which coordinates encode the direction vector of segment(point1,point2).
-use std::fmt;
 use std::io::prelude::*;
 use std::ops::{Add, Sub, Mul, Div};
-use std::mem;
-use std::hash::{Hash, Hasher};
 
-use bounding_box::{BoundingBox, IsPoint};
-use tycat::{Displayer, Displayable};
-use utils::precision::is_almost;
+use bounding_box::BoundingBox;
+//use utils::precision::is_almost;
+use ordered_float::NotNaN;
 
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 /// 2D point structure.
 pub struct Point {
     /// X coordinate.
-    pub x: f64,
+    pub x: NotNaN<f64>,
     /// Y coordinate.
-    pub y: f64
+    pub y: NotNaN<f64>
 }
 
-impl Eq for Point {}
-#[allow(derive_hash_xor_eq)]
-impl Hash for Point {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        unsafe {
-            let as_int: u64 = mem::transmute::<f64, u64>(self.x);
-            as_int.hash(state);
-            let as_int: u64 = mem::transmute::<f64, u64>(self.y);
-            as_int.hash(state);
-        }
-    }
-}
 impl Point {
     /// Returns a new Point from given coordinates.
-    pub fn new(x: f64, y: f64) -> Point {
-        Point{x: x, y: y}
+    pub fn new<T:Into<NotNaN<f64>>>(x: T, y: T) -> Point {
+        Point{x: x.into(), y: y.into()}
     }
 
     /// Returns if the three given points are approximately aligned.
@@ -48,11 +33,11 @@ impl Point {
         determinant.abs() < 10.0f64.powi(-5) //TODO: why 5 ?
     }
 
-    /// Returns if given points are almost the same
-    /// (see [default precision](precision/fn.is_almost.html)).
-    pub fn is_almost(&self, other: &Point) -> bool {
-        is_almost(self.x, other.x) && is_almost(self.y, other.y)
-    }
+//    /// Returns if given points are almost the same
+//    /// (see [default precision](precision/fn.is_almost.html)).
+//    pub fn is_almost(&self, other: &Point) -> bool {
+//        is_almost(self.x, other.x) && is_almost(self.y, other.y)
+//    }
 
     /// Returns distance between given points.
     ///
@@ -70,29 +55,29 @@ impl Point {
         squared_distance.sqrt()
     }
 
-    /// Returns angle from origin between self and other.
-    ///
-    ///  other
-    ///  (0, -1)
-    ///     |
-    ///     |
-    ///  (0, 0) ------------ (1, 0) self
-    ///
-    ///
-    //TODO: ?????
-    pub fn angle_with(self: &Point, other: &Point) -> f64 {
-        let x_diff = other.x - self.x;
-        let y_diff = other.y - self.y;
-        let mut raw_angle = -y_diff.atan2(x_diff);
-        if raw_angle <= 0.0 {
-            raw_angle += 2.0 * ::std::f64::consts::PI;
-        }
-        raw_angle
-    }
+//    /// Returns angle from origin between self and other.
+//    ///
+//    ///  other
+//    ///  (0, -1)
+//    ///     |
+//    ///     |
+//    ///  (0, 0) ------------ (1, 0) self
+//    ///
+//    ///
+//    //TODO: ?????
+//    pub fn angle_with(self: &Point, other: &Point) -> f64 {
+//        let x_diff = other.x - self.x;
+//        let y_diff = other.y - self.y;
+//        let mut raw_angle = -y_diff.atan2(x_diff);
+//        if raw_angle <= 0.0 {
+//            raw_angle += 2.0 * ::std::f64::consts::PI;
+//        }
+//        raw_angle
+//    }
 
     /// Returns vector of our coordinates.
     /// Useful for mapping.
-    pub fn coordinates(&self) -> Vec<f64> {
+    pub fn coordinates(&self) -> Vec<NotNaN<f64>> {
         vec![self.x, self.y]
     }
 
@@ -105,8 +90,21 @@ impl Point {
     /// let product = Point::new(1.0, 2.0).cross_product(&Point::new(2.0, 4.0));
     /// assert!(is_almost(product, 0.0));
     /// ```
-    pub fn cross_product(&self, other: &Point) -> f64 {
+    pub fn cross_product(&self, other: &Point) -> NotNaN<f64> {
         (self.x * other.y) - (self.y * other.x)
+    }
+
+    /// Returns BoundigBox containing point.
+    pub fn get_bounding_box(&self) -> BoundingBox {
+        BoundingBox {
+            min_coordinates: vec![self.x, self.y],
+            max_coordinates: vec![self.x, self.y],
+        }
+    }
+
+    /// Returns svg string for displaying point in svg file.
+    pub fn svg_string(&self) -> String {
+        format!("<circle cx=\"{}\" cy=\"{}\" r=\"0.1\"/>", self.x, self.y)
     }
 }
 
@@ -126,50 +124,18 @@ impl Sub for Point {
     }
 }
 
-impl Mul<f64> for Point {
+impl<T: Into<NotNaN<f64>>> Mul<T> for Point {
     type Output = Point;
-    fn mul(self: Point, rhs: f64) -> Point {
-        Point{x: self.x * rhs, y: self.y * rhs}
+    fn mul(self: Point, rhs: T) -> Point {
+        let factor = rhs.into();
+        Point{x: self.x * factor, y: self.y * factor}
     }
 }
 
-impl Div<f64> for Point {
+impl<T: Into<NotNaN<f64>>> Div<T> for Point {
     type Output = Point;
-    fn div(self: Point, rhs: f64) -> Point {
-        Point{x: self.x / rhs, y: self.y / rhs}
-    }
-}
-
-impl Displayable for Point {
-    fn get_bounding_box(&self) -> BoundingBox {
-        BoundingBox {
-            min_coordinates: vec![self.x, self.y],
-            max_coordinates: vec![self.x, self.y],
-        }
-    }
-
-    fn save_svg_content(&self, displayer: &mut Displayer, color: &str) {
-        let svg_coordinates = displayer
-            .convert_coordinates(self.coordinates());
-        //TODO: fill format with one vector ?
-        write!(displayer.svg_file, "<circle cx=\"{}\" cy=\"{}\"",
-               svg_coordinates[0], svg_coordinates[1])
-            .expect("cannot write svg file, disk full ?");
-        writeln!(displayer.svg_file, " r=\"{}\" fill=\"{}\" opacity=\"0.5\"/>",
-               2.0*displayer.stroke_width, color)
-            .expect("cannot write svg file, disk full ?");
-    }
-}
-
-//TODO: smart way to avoid duplication ?
-impl IsPoint for Point {
-    fn coordinates(&self) -> Vec<f64> {
-        vec![self.x, self.y]
-    }
-}
-
-impl fmt::Display for Point {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({}, {})", self.x, self.y)
+    fn div(self: Point, rhs: T) -> Point {
+        let divisor = rhs.into();
+        Point{x: self.x / divisor, y: self.y / divisor}
     }
 }

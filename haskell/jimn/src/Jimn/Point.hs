@@ -9,6 +9,7 @@ Portability : POSIX
 
 This modules provides the Point type.
 -}
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 module Jimn.Point( Point(..)
             , norm
             , distanceBetween
@@ -18,11 +19,15 @@ module Jimn.Point( Point(..)
             , Jimn.Point.box
             ) where
 
+import System.Random
 import Jimn.Box
 import Jimn.Display
+import GHC.Generics (Generic)
+import Control.DeepSeq
+
 
 -- | Point type storing points in any dimensions
-data Point = Point [Double] deriving (Show, Eq, Ord)
+newtype Point = Point [Double] deriving (Show, Eq, Ord, Generic, NFData)
 
 -- points functions
 -- | Returns norm of given point.
@@ -56,3 +61,13 @@ instance DisplaySVG Point where
   svg (Point coordinates) = "<circle"++pos++" r=\"0.1\"/>\n" where
     pos = labelJoin ["cx", "cy"] coordinates
   box = Jimn.Point.box
+
+-- randomly generate 2d points
+instance Random Point where
+  random g = (Point [x, y], g2) where
+    (x, g1) = random g
+    (y, g2) = random g1
+
+  randomR (Point[x1, y1], Point[x2,y2]) g = (Point [x, y], g2) where
+    (x, g1) = randomR (x1, x2) g
+    (y, g2) = randomR (y1, y2) g

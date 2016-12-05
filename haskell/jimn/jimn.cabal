@@ -16,7 +16,7 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Jimn, Jimn.Display, Jimn.Box, Jimn.Point, Jimn.Segment, Jimn.Model, Jimn.PointsRounder
-  build-depends:       base >= 4.7 && < 5, containers, bytestring, binary >= 0.8.4.0, process, unordered-containers, mtl
+  build-depends:       base >= 4.7 && < 5, containers, bytestring, binary >= 0.8.4.0, process, unordered-containers, mtl, random, deepseq
   default-language:    Haskell2010
 
 executable jimn-exe
@@ -34,6 +34,14 @@ test-suite jimn-test
   build-depends:       base
                      , jimn, hspec
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
+
+Benchmark bench-jimn
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      benchmarks
+  main-is:             bench-jimn.hs
+  build-depends:       base, time, jimn, random, mtl, deepseq
+  ghc-options:         -O2 -optc-O3
   default-language:    Haskell2010
 
 source-repository head

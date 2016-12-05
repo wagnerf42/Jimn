@@ -1,2 +1,7 @@
 - pointsrounder1d avec des double au lieu de points ?
 - point: newtype ??
+- is hlint working in vim ?
+- non standard patternguards
+- is point creation benchmarked correctly ?
+
+- read :  wagnerf: https://en.wikibooks.org/wiki/Haskell/Laziness#Thunks_and_Weak_head_normal_form

@@ -116,7 +116,8 @@ impl PolygonsBuilder {
     fn build_polygon(&mut self) -> Polygon {
         let mut points = Vec::new();
         let mut current_segment = self.get_start_segment();
-        let [start_point, mut current_point] = current_segment.points;
+        let start_point = current_segment.points[0];
+        let mut current_point = current_segment.points[1];
         points.push(current_point);
         let mut previous_point = start_point;
         while start_point != current_point {
