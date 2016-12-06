@@ -11,9 +11,13 @@ from jimn.facet import Facet, binary_facet
 from jimn.bounding_box import BoundingBox
 from jimn.utils.coordinates_hash import CoordinatesHash
 from jimn.utils.debug import is_module_debugged
+from jimn.displayable import tycat
 
-#some constants for more readable slicing events
-START, INTERSECTION, END = 0, 1, 2
+# some constants for more readable slicing events
+# this number is used for sorting events
+# at same height we start by ending below facets
+# then starting above facets and then intersecting
+START, INTERSECTION, END = 1, 2, 0
 
 class Stl:
     """
@@ -37,7 +41,6 @@ class Stl:
         also translate all points by given vector to end up with positive
         coordinates.
         """
-        slices = {}
         min_height, max_height = self.bounding_box.limits(2)
         events = []
         slices_number = ceil((max_height - min_height)/slice_size)
@@ -53,19 +56,7 @@ class Stl:
             events.append((max(heights), END, facet))
 
         events.sort(key=lambda t: t[0:2])
-        facets = set()
-        for height, event_type, facet in events:
-            if event_type == START:
-                facets.add(facet)
-            elif event_type == END:
-                facets.remove(facet)
-            else:
-                segments = []
-                for facet in facets:
-                    facet.intersect(height, segments, translation_vector)
-                slices[height] = segments
-
-        return slices
+        return run_slicing_events(events, translation_vector)
 
     def parse_stl(self, file_name):
         """
@@ -95,7 +86,8 @@ class Stl:
                 fields = facet_struct.unpack(data)
                 new_facet = binary_facet(fields, self.heights_hash,
                                          self.bounding_box)
-                self.facets.append(new_facet)
+                if not new_facet.is_horizontal():
+                    self.facets.append(new_facet)
 
     def parse_ascii_stl(self, file_name):
         """
@@ -187,3 +179,27 @@ def _binary_stl_header(file_name):
             if value != b'\x00':
                 return False
         return True
+
+
+def run_slicing_events(events, translation_vector):
+    """
+    executes all events, adding, removing and intersecting facets
+    """
+    slices = dict()
+    facets = set()
+    for height, event_type, facet in events:
+        if event_type == START:
+            facets.add(facet)
+        elif event_type == END:
+            facets.remove(facet)
+        else:
+            segments = []
+            for facet in facets:
+                facet.intersect(height, segments, translation_vector)
+            slices[height] = segments
+            if is_module_debugged(__name__):
+                print(height)
+                # print("\n".join(str(f) for f in facets))
+                tycat(segments)
+
+    return slices

@@ -4,7 +4,6 @@ facet in stl file (three ordered 3d points)
 from jimn.point import Point
 from jimn.segment import Segment
 from jimn.utils.iterators import all_two_elements
-from jimn.utils.precision import is_almost, check_precision
 from jimn.utils.coordinates_hash import ROUNDER2D
 
 
@@ -19,65 +18,40 @@ class Facet:
         points_strings = [str(p) for p in self.points]
         return "Facet([{}])".format(', '.join(points_strings))
 
+    def is_horizontal(self):
+        """
+        returns if we are a horizontal facet
+        """
+        return self.points[0].coordinates[2] ==\
+            self.points[1].coordinates[2] ==\
+            self.points[2].coordinates[2]
+
     def segments(self):
         """
         returns the three segments forming the facet
         """
         return [Segment([p, q]) for p, q in all_two_elements(self.points)]
 
-    def is_vertical(self):
-        """
-        are we vertical (in 3d) ?
-        """
-        point1, point2, point3 = [p.projection(2) for p in self.points]
-        return point1.is_aligned_with(point2, point3)
-
-    def _find_points_above_and_below(self, height):
-        """
-        used in plane intersection.
-        return facet's points above given height
-        and facet's points below
-        """
-        points = [[], []]
-        for point in self.points:
-            points[point.coordinates[2] > height].append(point)
-        return points
-
     def intersect(self, height, segments, translation_vector):
         """
         intersect facet at given height
         if intersection is a segment add it to segments list
-        if facet is not strictly above plane add it to remaining_facets
-        for later use
         """
-        lower_points, higher_points = self._find_points_above_and_below(height)
-        if len(lower_points) == 2:
-            together_points = lower_points
-            isolated_point = higher_points[0]
-        elif len(higher_points) == 2:
-            together_points = higher_points
-            isolated_point = lower_points[0]
-            if is_almost(isolated_point.get_z(), height):
+        intersections = []
+        for start, end in all_two_elements(self.points):
+            if (start.coordinates[2] == height) and (end.coordinates[2] == height):
+                segment_start = ROUNDER2D.hash_point(
+                    Point(start.coordinates[0:2]) + translation_vector)
+                segment_end = ROUNDER2D.hash_point(
+                    Point(end.coordinates[0:2]) + translation_vector)
+                segments.append(Segment([segment_start, segment_end]).sort_endpoints())
                 return
-        else:
-            return
+            intersection = segment_plane_intersection(start, end, height, translation_vector)
+            if intersection is not None:
+                intersections.append(intersection)
 
-        traversing_segments = [
-            Segment([p, isolated_point]) for p in together_points
-        ]
-        intersection_points = [
-            segment_plane_intersection(s, height, translation_vector)
-            for s in traversing_segments
-        ]
-
-        # because we round coordinates in intersection
-        # it is possible that the two obtained points are now the same
-        # check it to avoid creating a one point segment
-        if intersection_points[0] == intersection_points[1]:
-            return
-        intersection_segment = Segment(intersection_points)
-        # sort endpoints for remaining algorithms
-        segments.append(intersection_segment.sort_endpoints())
+        if len(intersections) == 2:
+            segments.append(Segment(intersections).sort_endpoints())
 
 
 def binary_facet(all_coordinates, heights_hash, box):
@@ -96,32 +70,19 @@ def binary_facet(all_coordinates, heights_hash, box):
     return Facet(points)
 
 
-def __segment_intersection_at(self, intersecting_y):
+def segment_plane_intersection(p_1, p_2, intersecting_z, translation_vector):
     """
-    return point on segment (self) at given y.
-    precondition : y is valid height in segment.
+    cut 3d segment between p_1, p_2 with plane at given height.
     """
-    (x_1, y_1), (x_2, y_2) = [p.coordinates for p in self.endpoints]
-    if is_almost(x_1, x_2):
-        return Point([x_1, intersecting_y])
-    else:
-        slope = (y_1 - y_2) / (x_1 - x_2)
-        intersecting_x = (intersecting_y - y_1) / slope + x_1
-
-    return Point([intersecting_x, intersecting_y])
-
-
-def segment_plane_intersection(self, intersecting_z, translation_vector):
-    """
-    cut self (3d segment) with plane at given height.
-    requires h between hmin and hmax of segment
-    """
-    p_1, p_2 = self.endpoints
     x_1, y_1, z_1 = p_1.coordinates
     x_2, y_2, z_2 = p_2.coordinates
 
-    if __debug__:
-        check_precision(z_1, z_2, 'horizontal_plane_intersection')
+    if z_1 == z_2:
+        return
+
+    alpha = (intersecting_z - z_1) / (z_2 - z_1)
+    if not 0 < alpha < 1:  # endpoints excluded
+        return
 
     intersecting_x = x_1 + (intersecting_z - z_1)/(z_2 - z_1)*(x_2 - x_1)
     intersecting_y = y_1 + (intersecting_z - z_1)/(z_2 - z_1)*(y_2 - y_1)

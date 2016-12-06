@@ -1,3 +1,10 @@
+
+- why do we translate points in stl?
+- slices : why are final endpoints sorted ? 
+
+**************
+
+
 float : 
     - use rounding ?
     - use isclose ?
