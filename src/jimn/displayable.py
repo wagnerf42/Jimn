@@ -3,7 +3,6 @@ graphical display system.
 save objects sets as svg files and view them in terminology
 """
 from tempfile import NamedTemporaryFile
-from math import ceil
 import os
 import getpass
 from jimn.bounding_box import BoundingBox
@@ -105,7 +104,7 @@ def tycat_start(things, bounding_box=None):
     return display
 
 
-def tycat(*things):
+def tycat(*things, bounding_box=None):
     """
     graphically displays a list of objects.
     requires :
@@ -115,7 +114,7 @@ def tycat(*things):
             * svg_content
     """
 
-    display = tycat_start(things)
+    display = tycat_start(things, bounding_box)
     color_index = 0
     for thing in things:
         color = display.svg_colors[color_index]
@@ -123,7 +122,10 @@ def tycat(*things):
         if isinstance(thing, list) or isinstance(thing, tuple):
             for subthing in thing:
                 if subthing is not None:
-                    display.svg_file.write(subthing.svg_content())
+                    if isinstance(subthing, str):
+                        display.svg_file.write(subthing)
+                    else:
+                        display.svg_file.write(subthing.svg_content())
         else:
             if thing is not None:
                 display.svg_file.write(thing.svg_content())

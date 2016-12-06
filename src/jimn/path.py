@@ -4,6 +4,7 @@ a path is a list of arcs, segments or vertical paths
 import os
 from math import floor
 from collections import defaultdict
+from sortedcontainers import SortedDict
 from jimn.utils.coordinates_hash import CoordinatesHash
 from jimn.vertical_path import VerticalPath
 from jimn.bounding_box import BoundingBox
@@ -12,7 +13,7 @@ from jimn.segment import Segment
 from jimn.arc import Arc
 from jimn.envelope import Envelope
 from jimn.elementary_path import ElementaryPath
-from jimn.displayable import tycat_start, tycat_end, Displayer
+from jimn.displayable import tycat
 
 
 PATH_IMAGES = os.environ.get("JIMN_PATH_ANIMATION")
@@ -70,7 +71,7 @@ class Path:
         """
         svg for tycat
         """
-        #TODO
+        raise Exception("TODO")
         self.get_first_point().save_svg_content(display)
         horizontal_paths = self.hash_horizontal_paths_by_height()
         for height in sorted(list(horizontal_paths.keys()), reverse=True):
@@ -114,24 +115,16 @@ class Path:
         step by step animation for carving the path with
         given milling radius.
         """
-        # TODO: very ugly. give it second thoughts
         total_length = self.length()
         steps_length = total_length / PATH_IMAGES
 
-        seen_envelopes = []  # all paths moved upon and seen
-        unseen_envelopes = []  # all paths moved upon but yet unseen
-        bounding_box = BoundingBox.empty_box(2)  # their boxes
-        last_used_box = BoundingBox.empty_box(2)  # last box used in display
-        # if box does not change between two displays, we can keep
-        # all generated strings
-        svg_paths_strings = defaultdict(list)
+        # all paths strings up to now (by height)
+        current_strings = SortedDict()
+        bounding_box = BoundingBox.empty_box(2)  # bounding box up to now
 
         current_height = 0
         current_length = 0
         heights_hash = CoordinatesHash()
-        color_index = 0
-        height_colors = dict()
-        height_colors[0] = Displayer.svg_colors[0]
 
         for path in self.elementary_paths:
             new_length = current_length + path.length()
@@ -139,23 +132,16 @@ class Path:
             if isinstance(path, VerticalPath):
                 current_height = path.update_height(current_height)
                 current_height = heights_hash.hash_coordinate(current_height)
-                if current_height not in height_colors:
-                    color_index += 1
-                    color = Displayer.svg_colors[color_index
-                                                 % len(Displayer.svg_colors)]
-                    height_colors[current_height] = color
             else:
                 envelope = Envelope(path, milling_radius)
-                unseen_envelopes.append((envelope, current_height))
+                if current_height not in current_strings:
+                    current_strings[current_height] = []
+                current_strings[current_height].append(envelope.svg_content())
                 bounding_box.update(envelope.get_bounding_box())
 
             if floor(current_length / steps_length) != \
                     floor(new_length / steps_length):
-                _display_animation(last_used_box, bounding_box,
-                                   seen_envelopes, unseen_envelopes,
-                                   svg_paths_strings,
-                                   height_colors)
-                last_used_box = bounding_box.copy()
+                tycat(*list(reversed(current_strings.values())), bounding_box=bounding_box)
 
             current_length = new_length
 
@@ -200,66 +186,6 @@ class Path:
         return "Path([\n    " + ",\n    ".join(path_strings) + "\n])"
 
 
-def _display_animation(last_used_box, bounding_box,
-                       seen_envelopes, unseen_envelopes,
-                       svg_paths_strings, height_colors):
-    """
-    one step of animation process.
-    strings are pre-computed to avoid re-computations for each frame.
-    we only recompute strings when forced : when bounding box changes.
-    """
-
-    # invalidate strings cache if needed
-    if last_used_box != bounding_box:
-        seen_envelopes.extend(unseen_envelopes)
-        unseen_envelopes[:] = seen_envelopes
-        seen_envelopes.clear()
-        svg_paths_strings.clear()
-
-    # compute missing strings
-    display = tycat_start(None, bounding_box)
-    for envelope, height in unseen_envelopes:
-        color = height_colors[height]
-        svg_paths_strings[height].append(envelope.get_display_string(display,
-                                                                     color))
-
-    # save svg
-    for height in sorted(list(svg_paths_strings.keys()), reverse=True):
-        for string in svg_paths_strings[height]:
-            display.write(string)
-
-    tycat_end(display)
-    seen_envelopes.extend(unseen_envelopes)
-    unseen_envelopes.clear()
-
-
-def __segment_display_string(self, display):
-    """
-    return svg code for including segment in a svg path.
-    """
-    real_coordinates = self.endpoints[1].coordinates
-    coordinates = display.convert_coordinates(real_coordinates)
-    return "L {},{}".format(*coordinates)
-
-
-def __arc_display_string(self, display):
-    """
-    return svg code for including arc in a svg path.
-    """
-    end = self.endpoints[1]
-    coordinates = display.convert_coordinates(end.coordinates)
-    stretched_radius = display.svg_stretch * self.radius
-    if self.reversed_direction:
-        sweep_flag = 0
-    else:
-        sweep_flag = 1
-
-    return 'A{},{} 0 0,{} {},{}'.format(stretched_radius,
-                                        stretched_radius,
-                                        sweep_flag,
-                                        *coordinates)
-
-
 def __update_elementary_height(self, height):
     # pylint: disable=unused-argument
     """
@@ -267,6 +193,4 @@ def __update_elementary_height(self, height):
     """
     return height
 
-setattr(Segment, "get_display_string", __segment_display_string)
-setattr(Arc, "get_display_string", __arc_display_string)
 setattr(ElementaryPath, "update_height", __update_elementary_height)

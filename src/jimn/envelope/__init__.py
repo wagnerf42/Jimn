@@ -59,29 +59,22 @@ class Envelope:
             box.update(displaced_path.path.get_bounding_box())
         return box
 
-    def get_display_string(self, display, color):
-        """
-        return svg string used for displaying envelope in final display.
-        there is less info than in the standard tycat and returning
-        the string instead of directly displaying it allows for caching.
-        """
-
-        first_point = self.paths[0].path.endpoints[0]
-        first_coordinates = display.convert_coordinates(first_point.coordinates)
-        initial_move = "M {},{}".format(*first_coordinates)
-
-        head = "<path d=\""
-        paths_strings = [p.path.get_display_string(display) for p in self.paths]
-        foot = "\" fill=\"" + color + "\" stroke=\"none\"/>\n"
-
-        return head + initial_move + " ".join(paths_strings) + foot
-
     def svg_content(self):
         """
         svg for tycat
         """
-        string = "".join([p.svg_content() for p in self.paths])
-        string += self.inside_content.svg_content()
+
+        first_point = self.paths[0].path.endpoints[0]
+        initial_move = "M {},{}".format(*first_point.coordinates)
+
+        head = '<path d="'
+        foot = '" stroke="none"/>\n'
+
+        # string += self.inside_content.svg_content()
+
+        return head + initial_move + \
+                " ".join(p.path.path_string() for p in self.paths) + foot
+
 
     def junction_points(self, inner_envelope):
         """

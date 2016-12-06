@@ -69,6 +69,6 @@ class HoledPolygon:
         return diff_vector
 
     def __str__(self):
-        holes = ",\n".join([str(h) for h in self.holes])
+        holes = ",\n".join(str(h) for h in self.holes)
         return "HoledPolygon(" + str(self.polygon) \
             + ", holes=[" + holes + "])\n"

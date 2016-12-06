@@ -282,7 +282,7 @@ class Pocket:
         return True
 
     def __str__(self):
-        strings = ",\n    ".join([str(p) for p in self.paths])
+        strings = ",\n    ".join(str(p) for p in self.paths)
         return "Pocket([\n    " + strings + "\n])"
 
 

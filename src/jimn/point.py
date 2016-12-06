@@ -212,7 +212,7 @@ class Point:
         """
         print code generating the point.
         """
-        return "Point([" + ', '.join([str(c) for c in self.coordinates]) + "])"
+        return "Point([" + ', '.join(str(c) for c in self.coordinates) + "])"
 
 
 def __tour():

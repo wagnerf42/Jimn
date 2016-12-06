@@ -86,12 +86,11 @@ class Graph:
             box.update(small_box)
         return box
 
-    def save_svg_content(self, display):
+    def svg_content(self):
         """
         svg for tycat.
         """
-        for vertex in self.vertices:
-            vertex.save_svg_content(display)
+        return "".join(v.svg_content() for v in self.vertices)
 
     def add_vertex(self, vertex_object):
         """

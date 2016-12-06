@@ -151,7 +151,7 @@ class Polygon:
         return '<polygon points="{}"/>'.format(svg_formatted)
 
     def __str__(self):
-        points = ",\n".join([str(p) for p in self.points])
+        points = ",\n".join(str(p) for p in self.points)
         return "Polygon([" + points + "])\n"
 
     def __eq__(self, other):

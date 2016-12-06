@@ -179,11 +179,27 @@ class Arc(ElementaryPath):
             sweep_flag = 1
         arc_string += self.center.svg_content()
 
-        arc_string += '<path d="M{},{} A{},{} 0 0,{} {},{}" fill="none"/>'.format(x_1, y_1,
+        arc_string += '<path d="M{},{} A{},{} 0 0,{} {},{}" fill="none"/>'.format(
+            x_1, y_1,
             self.radius, self.radius,
             sweep_flag,
             x_2, y_2)
         return arc_string
+
+    def path_string(self):
+        """
+        return svg code for including arc in a svg path.
+        """
+        end = self.endpoints[1]
+        if self.reversed_direction:
+            sweep_flag = 0
+        else:
+            sweep_flag = 1
+
+        return 'A{},{} 0 0,{} {},{}'.format(
+            self.radius, self.radius, sweep_flag, *end.coordinates)
+
+
 
     def vertical_intersection_at(self, intersecting_x):
         """return y of lowest intersection given vertical line"""

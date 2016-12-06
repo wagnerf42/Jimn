@@ -94,13 +94,16 @@ class Segment(ElementaryPath):
         """
         svg for tycat.
         """
-        svg_coordinates = [
-            c for point in self.endpoints
-            for c in point.coordinates
-        ]
-        segment_string = ('<line x1="{}" y1="{}" x2="{}" y2="{}"/>\n'.format(*svg_coordinates))
+        return '<line x1="{}" y1="{}" x2="{}" y2="{}"/>\n'.format(
+            *self.endpoints[0].coordinates,
+            *self.endpoints[1].coordinates)
 
-        return segment_string
+    def path_string(self):
+        """
+        return svg code for including segment in a svg path.
+        """
+        return "L {},{}".format(*self.endpoints[1].coordinates)
+
 
     def is_vertical_3d(self):
         """

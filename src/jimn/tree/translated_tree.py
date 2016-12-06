@@ -40,6 +40,6 @@ class TranslatedTree(Tree):
             return label
         elif len(self.translations) < 10:
             return label + "(" + \
-                ",".join([str(t) for t in self.translations]) + ")"
+                ",".join(str(t) for t in self.translations) + ")"
         else:
             return label + "(...)"
