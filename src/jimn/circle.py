@@ -13,20 +13,12 @@ class Circle:
         self.center = center
         self.radius = radius
 
-    def save_svg_content(self, display, color):
+    def save_svg_content(self, display):
         """
         svg content for tycat.
         """
-        svg_coordinates = display.convert_coordinates(
-            self.center.coordinates
-        )
-        display.write("<circle cx=\"{}\" cy=\"{}\"".format(*svg_coordinates))
-        display.write(" r=\"{}\" fill=\"none\" stroke=\"{}\"".format(
-            self.radius * display.svg_stretch, color
-        ))
-        display.write(" opacity=\"0.5\" stroke-width=\"{}\"/>\n".format(
-            display.stroke_width()
-        ))
+        display.write('<circle cx="{}" cy="{}"'.format(*self.center.coordinates))
+        display.write(' r="{}"/>'.format(self.radius * display.svg_stretch))
 
     def get_bounding_box(self):
         """

@@ -90,28 +90,17 @@ class Segment(ElementaryPath):
             box.add_point(point)
         return box
 
-    def save_svg_content(self, display, color):
+    def svg_content(self):
         """
         svg for tycat.
         """
         svg_coordinates = [
             c for point in self.endpoints
-            for c in display.convert_coordinates(point.coordinates)
+            for c in point.coordinates
         ]
-        stroke_width = display.stroke_width()
-        display.write("<line x1=\"{}\" y1=\"{}\"\
-                      x2=\"{}\" y2=\"{}\"".format(*svg_coordinates))
-        display.write(" stroke-width=\"{}\" stroke=\"{}\"\
-                      opacity=\"0.5\"/>\n".format(stroke_width, color))
-        # have a small arrow
-        center = (self.endpoints[0] + self.endpoints[1])/2
-        stroke = stroke_width / display.svg_stretch
-        point1 = center + Point([stroke, 0])
-        point2 = center + Point([-stroke, stroke])
-        point3 = center + Point([-stroke, -stroke])
-        triangle = [p.rotate_around(center, self.angle())
-                    for p in (point1, point2, point3)]
-        Polygon(triangle).save_svg_content(display, color)
+        segment_string = ('<line x1="{}" y1="{}" x2="{}" y2="{}"/>\n'.format(*svg_coordinates))
+
+        return segment_string
 
     def is_vertical_3d(self):
         """

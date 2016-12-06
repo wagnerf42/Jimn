@@ -76,13 +76,12 @@ class Envelope:
 
         return head + initial_move + " ".join(paths_strings) + foot
 
-    def save_svg_content(self, display, color):
+    def svg_content(self):
         """
         svg for tycat
         """
-        for displaced_path in self.paths:
-            displaced_path.path.save_svg_content(display, color)
-        self.inside_content.save_svg_content(display, color)
+        string = "".join([p.svg_content() for p in self.paths])
+        string += self.inside_content.svg_content()
 
     def junction_points(self, inner_envelope):
         """

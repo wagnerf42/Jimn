@@ -47,13 +47,13 @@ class HoledPocket:
         """
         return self.outer_edge.get_bounding_box()
 
-    def save_svg_content(self, displayer, color):
+    def save_svg_content(self, displayer):
         """
         svg content for tycat.
         """
-        self.outer_edge.save_svg_content(displayer, color)
+        self.outer_edge.save_svg_content(displayer)
         for inner_edge in self.inner_edges:
-            inner_edge.save_svg_content(displayer, color)
+            inner_edge.save_svg_content(displayer)
 
     def get_dot_label(self):
         """

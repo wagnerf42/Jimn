@@ -51,24 +51,8 @@ class Displayer:
         """
         coordinates = self.bounding_box.get_arrays()
         self.min_coordinates, self.max_coordinates = coordinates
-        dimensions = [
+        self.dimensions = [
             a - b for a, b in zip(self.max_coordinates, self.min_coordinates)
-        ]
-        real_dimensions = [d-2*self.margin for d in self.svg_dimensions]
-        adjusted_dimensions = []
-        for size in dimensions:
-            if size == 0:
-                adjusted_dimensions.append(0.001)
-            else:
-                adjusted_dimensions.append(size)
-
-        stretches = [
-            a / b for a, b in zip(real_dimensions, adjusted_dimensions)
-        ]
-        self.svg_stretch = min(stretches)
-        self.margins = [
-            (a-b*self.svg_stretch)/2
-            for a, b in zip(self.svg_dimensions, adjusted_dimensions)
         ]
 
     def open_svg(self, filename):
@@ -76,77 +60,25 @@ class Displayer:
         open new svg file
         """
         self.svg_file = open(filename, 'w')
-        self.svg_file.write("<svg width=\"{}\"\
-                      height=\"{}\">\n".format(*self.svg_dimensions))
-        self.svg_file.write("<rect width=\"{}\" height=\"{}\"\
-                      fill=\"white\"/>\n".format(*self.svg_dimensions))
+        ratios = [a/b for a, b in zip(self.svg_dimensions, self.dimensions)]
+        scale = min(ratios)
+        stroke = 3/scale
+        self.svg_file.write('<svg width="{}" height="{}"'.format(*self.svg_dimensions))
+        self.svg_file.write(' viewBox="{} {}'.format(*self.min_coordinates))
+        self.svg_file.write(' {} {}"'.format(*self.dimensions))
+        self.svg_file.write(' xmlns:xlink="http://www.w3.org/1999/xlink">\n')
+        self.svg_file.write('<rect x="{}" y="{}"'.format(*self.min_coordinates))
+        self.svg_file.write(' width="{}" height="{}" fill="white"/>\n'.format(*self.dimensions))
+        self.svg_file.write('<defs><symbol id="c"><circle r="{}"/></symbol></defs>\n'.format(2*stroke))
+        self.svg_file.write('<g stroke-width="{}" opacity="0.7">\n'.format(stroke))
 
     def close_svg(self):
         """
         close svg file
         """
+        self.svg_file.write("</g>\n")
         self.svg_file.write("</svg>\n")
         self.svg_file.close()
-
-    def convert_coordinates(self, coordinates):
-        """
-        convert coordinates to svg coordinates
-        """
-        relative_coordinates = [
-            a - b for a, b in zip(coordinates, self.min_coordinates)
-        ]
-        return [
-            a+b*self.svg_stretch
-            for a, b in zip(self.margins, relative_coordinates)
-        ]
-
-    def write(self, string):
-        """
-        write a string to svg file
-        """
-        self.svg_file.write(string)
-
-    def stroke_width(self):
-        """
-        return size of stroke to use in svg
-        """
-        min_dimension = min(self.svg_dimensions)
-        expected_size = ceil(min_dimension / 500)
-        return expected_size
-
-    def svg_color(self, index):
-        """
-        return color corresponding to given index
-        """
-        return self.svg_colors[index % len(self.svg_colors)]
-
-    def svg_color_after(self, color, shift):
-        """
-        returns 'shift' colors after given color
-        """
-        color_index = self.svg_colors.index(color)
-        color_index += shift
-        return self.svg_colors[color_index % len(self.svg_colors)]
-
-    def __hash__(self):
-        """
-        WARNING : only hash things useful for coordinates computations.
-        """
-        return hash(tuple(self.min_coordinates)) ^ hash(self.svg_stretch) ^ \
-            hash(tuple(self.margins))
-
-    def __eq__(self, other):
-        """
-        WARNING : only compare things useful for coordinates computations.
-        """
-        if self.svg_stretch != other.svg_stretch:
-            return False
-        if self.min_coordinates != other.min_coordinates:
-            return False
-        if self.margins != other.margins:
-            return False
-        return True
-
 
 def tycat_start(things, bounding_box=None):
     """
@@ -180,20 +112,22 @@ def tycat(*things):
         - the terminology terminal emulator
         - each object displays implements
             * get_bounding_box
-            * save_svg_content
+            * svg_content
     """
 
     display = tycat_start(things)
     color_index = 0
     for thing in things:
         color = display.svg_colors[color_index]
+        display.svg_file.write('<g fill="{}" stroke="{}">\n'.format(color, color))
         if isinstance(thing, list) or isinstance(thing, tuple):
             for subthing in thing:
                 if subthing is not None:
-                    subthing.save_svg_content(display, color)
+                    display.svg_file.write(subthing.svg_content())
         else:
             if thing is not None:
-                thing.save_svg_content(display, color)
+                display.svg_file.write(thing.svg_content())
+        display.svg_file.write('</g>\n')
         color_index = (color_index+1) % len(display.svg_colors)
 
     tycat_end(display)

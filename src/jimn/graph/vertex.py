@@ -39,15 +39,15 @@ class Vertex:
             box.update(edge_box)
         return box
 
-    def save_svg_content(self, display, color):
+    def save_svg_content(self, display):
         """
         svg for tycat.
         """
-        self.bound_object.save_svg_content(display, color)
+        self.bound_object.save_svg_content(display)
         for edge in self.edges:
             path = edge.path
             count = edge.multiplicity
-            path.save_svg_content(display, display.svg_color(count+7))
+            path.save_svg_content(display)
 
     def remove_any_edge(self):
         """

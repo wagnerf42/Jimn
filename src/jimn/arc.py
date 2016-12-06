@@ -161,33 +161,29 @@ class Arc(ElementaryPath):
             intersecting_segment.contains(p)
         ]
 
-    def save_svg_content(self, display, color):
+    def svg_content(self):
         """
         svg for tycat.
         """
         # display first point to know orientation
-        self.endpoints[0].save_svg_content(display, color)
+        arc_string = self.endpoints[0].svg_content()
 
         # display arc
         x_1, y_1, x_2, y_2 = [
             c for p in self.endpoints
-            for c in display.convert_coordinates(p.coordinates)
+            for c in p.coordinates
         ]
         if self.reversed_direction:
             sweep_flag = 0
         else:
             sweep_flag = 1
-        stretched_radius = display.svg_stretch * self.radius
-        self.center.save_svg_content(display, color)
-        stroke_width = display.stroke_width()
+        arc_string += self.center.svg_content()
 
-        display.write('<path d="M{},{} A{},{} 0 0,{} {},{}" \
-                      fill="none" stroke="{}" \
-                      opacity="0.5" stroke-width="{}"\
-                      />'.format(x_1, y_1,
-                                 stretched_radius, stretched_radius,
-                                 sweep_flag,
-                                 x_2, y_2, color, stroke_width))
+        arc_string += '<path d="M{},{} A{},{} 0 0,{} {},{}" fill="none"/>'.format(x_1, y_1,
+            self.radius, self.radius,
+            sweep_flag,
+            x_2, y_2)
+        return arc_string
 
     def vertical_intersection_at(self, intersecting_x):
         """return y of lowest intersection given vertical line"""

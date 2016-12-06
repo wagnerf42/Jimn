@@ -66,19 +66,17 @@ class Path:
             box.update(path.get_bounding_box())
         return box
 
-    def save_svg_content(self, display, color):
+    def save_svg_content(self, display):
         """
         svg for tycat
         """
-        self.get_first_point().save_svg_content(display, color)
+        #TODO
+        self.get_first_point().save_svg_content(display)
         horizontal_paths = self.hash_horizontal_paths_by_height()
-        count = 0
         for height in sorted(list(horizontal_paths.keys()), reverse=True):
             paths = horizontal_paths[height]
-            new_color = display.svg_color_after(color, count)
             for path in paths:
-                path.save_svg_content(display, new_color)
-            count += 1
+                path.save_svg_content(display)
 
     def hash_horizontal_paths_by_height(self):
         """

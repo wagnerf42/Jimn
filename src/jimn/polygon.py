@@ -139,20 +139,16 @@ class Polygon:
             box.add_point(point)
         return box
 
-    def save_svg_content(self, display, color):
+    def svg_content(self):
         """
         svg for tycat.
         """
         svg_coordinates = [
-            "{},{}".format(
-                *display.convert_coordinates(p.coordinates)
-            )
+            "{},{}".format(*p.coordinates)
             for p in self.points
         ]
         svg_formatted = " ".join(svg_coordinates)
-        display.write("<polygon points=\"{}\"".format(svg_formatted))
-        display.write(" style=\"fill:{};stroke:{};\
-                      stroke-width:1;opacity:0.4\" />".format(color, color))
+        return '<polygon points="{}"/>'.format(svg_formatted)
 
     def __str__(self):
         points = ",\n".join([str(p) for p in self.points])

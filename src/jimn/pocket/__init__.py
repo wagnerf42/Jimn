@@ -74,12 +74,11 @@ class Pocket:
             box.update(pbox)
         return box
 
-    def save_svg_content(self, display, color):
+    def svg_content(self):
         """
         svg code for tycat
         """
-        for path in self.paths:
-            path.save_svg_content(display, color)
+        return "".join(p.svg_content() for p in self.paths)
 
     @invalidate_cache
     def extend(self, additional_paths):

@@ -83,15 +83,11 @@ class Point:
         """
         return BoundingBox(self.coordinates, self.coordinates)
 
-    def save_svg_content(self, display, color):
+    def svg_content(self):
         """
         svg display for tycat.
         """
-        svg_coordinates = display.convert_coordinates(self.coordinates)
-        stroke_width = 2*display.stroke_width()
-        display.write("<circle cx=\"{}\" cy=\"{}\"".format(*svg_coordinates))
-        display.write(" r=\"{}\" fill=\"{}\" opacity=\"0.5\"/>\n".format(
-            stroke_width, color))
+        return '<use xlink:href="#c" x="{}" y="{}"/>\n'.format(*self.coordinates)
 
     def rotate(self, angle):
         """
