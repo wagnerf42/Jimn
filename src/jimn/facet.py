@@ -43,8 +43,7 @@ class Facet:
             points[point.coordinates[2] > height].append(point)
         return points
 
-    def intersect(self, height, segments, remaining_facets,
-                  translation_vector):
+    def intersect(self, height, segments, translation_vector):
         """
         intersect facet at given height
         if intersection is a segment add it to segments list
@@ -52,8 +51,6 @@ class Facet:
         for later use
         """
         lower_points, higher_points = self._find_points_above_and_below(height)
-        if len(higher_points) != 3:  # are we reused later ?
-            remaining_facets.append(self)
         if len(lower_points) == 2:
             together_points = lower_points
             isolated_point = higher_points[0]

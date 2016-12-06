@@ -12,6 +12,8 @@ from jimn.bounding_box import BoundingBox
 from jimn.utils.coordinates_hash import CoordinatesHash
 from jimn.utils.debug import is_module_debugged
 
+#some constants for more readable slicing events
+START, INTERSECTION, END = 0, 1, 2
 
 class Stl:
     """
@@ -29,20 +31,6 @@ class Stl:
             if is_module_debugged(__name__):
                 print('stl file loaded')
 
-    def horizontal_intersection(self, height, translation_vector):
-        """
-        intersect model at given height.
-        update remaining facets to keep only facets below (or at) given
-        height.
-        """
-        segments = []
-        remaining_facets = []
-        for facet in self.facets:
-            facet.intersect(height, segments, remaining_facets,
-                            translation_vector)
-        self.facets = remaining_facets
-        return segments
-
     def compute_slices(self, slice_size, translation_vector):
         """
         cut stl into set of horizontal 2d slices spaced by slice_size.
@@ -51,15 +39,32 @@ class Stl:
         """
         slices = {}
         min_height, max_height = self.bounding_box.limits(2)
+        events = []
         slices_number = ceil((max_height - min_height)/slice_size)
         for slice_number in range(slices_number):
             lower_boundary = max_height - (slice_number+1) * slice_size
             lower_boundary = self.heights_hash.hash_coordinate(lower_boundary)
             if lower_boundary < min_height + 0.01:
                 lower_boundary = min_height + 0.01
-            current_slice = self.horizontal_intersection(lower_boundary,
-                                                         translation_vector)
-            slices[lower_boundary] = current_slice
+            events.append((lower_boundary, INTERSECTION, None))
+        for facet in self.facets:
+            heights = [p.coordinates[2] for p in facet.points]
+            events.append((min(heights), START, facet))
+            events.append((max(heights), END, facet))
+
+        events.sort(key=lambda t: t[0:2])
+        facets = set()
+        for height, event_type, facet in events:
+            if event_type == START:
+                facets.add(facet)
+            elif event_type == END:
+                facets.remove(facet)
+            else:
+                segments = []
+                for facet in facets:
+                    facet.intersect(height, segments, translation_vector)
+                slices[height] = segments
+
         return slices
 
     def parse_stl(self, file_name):
