@@ -3,6 +3,7 @@ hash nearby points together in O(1).
 """
 from jimn.utils.precision import coordinate_key, displaced_coordinate_key, \
     PRECISION
+from jimn.point import Point
 
 
 class CoordinatesHash:
@@ -27,7 +28,7 @@ class CoordinatesHash:
         # dimension is displaced
         # (hash 0 : nothing displaced ; hash 1 : first dimension's coordinate
         # is displaced, ....)
-        self.hashes = [{} for _ in range(2**dimension)]
+        self.hashes = [{} for _ in range(2*dimension)]
         self.precision = wanted_precision
         self.fast_hash = set()  # fast test for exact match
 
@@ -40,71 +41,39 @@ class CoordinatesHash:
         if point in self.fast_hash:
             return point
 
-        # lookup
-        keys = []
-        for key_index, points_hash in enumerate(self.hashes):
-            key = self._compute_key(key_index, point)
-            keys.append(key)
-            if key in points_hash:
-                return points_hash[key].copy()
+        new_coordinates = [self.hash_coordinate(c, i) for i, c in enumerate(point.coordinates)]
+        new_point = Point(new_coordinates)
 
-        # new point ; store it
-        for key, points_hash in zip(keys, self.hashes):
-            points_hash[key] = point
+        self.fast_hash.add(new_point)
+        return new_point
 
-        self.fast_hash.add(point)
-        return point
-
-    def hash_coordinate(self, coordinate):
+    def hash_coordinate(self, coordinate, index=0):
         """
         same as hash_point but with 1d points.
         """
-        if coordinate in self.fast_hash:
-            return coordinate
         key = coordinate_key(coordinate, self.precision)
         displaced_key = displaced_coordinate_key(coordinate, self.precision)
-        if key in self.hashes[0]:
-            return self.hashes[0][key]
-        if displaced_key in self.hashes[1]:
-            return self.hashes[1][displaced_key]
+        if key in self.hashes[index]:
+            return self.hashes[index][key]
+        if displaced_key in self.hashes[index+1]:
+            return self.hashes[index+1][displaced_key]
 
-        self.hashes[0][key] = coordinate
-        self.hashes[1][displaced_key] = coordinate
-        self.fast_hash.add(coordinate)
+        self.hashes[index][key] = coordinate
+        self.hashes[index+1][displaced_key] = coordinate
         return coordinate
 
-    def contains_coordinate(self, coordinate):
+    def contains_coordinate(self, coordinate, index=0):
         """
         do we contain given coordinate ?
         prerequisite: self is 1d-hash.
         """
-        if coordinate in self.fast_hash:
-            return True
         key = coordinate_key(coordinate, self.precision)
-        if key in self.hashes[0]:
+        if key in self.hashes[index]:
             return True
         displaced_key = displaced_coordinate_key(coordinate, self.precision)
-        if displaced_key in self.hashes[1]:
+        if displaced_key in self.hashes[index+1]:
             return True
         return False
-
-    def _compute_key(self, hash_number, point):
-        """
-        compute key for given point for use in hash numbered hash number.
-        """
-        key_parts = []
-        remaining_bits = hash_number
-        for coordinate in point.coordinates:
-            if remaining_bits % 2:
-                key_parts.append(
-                    displaced_coordinate_key(coordinate, self.precision))
-            else:
-                key_parts.append(coordinate_key(coordinate, self.precision))
-
-            remaining_bits //= 2
-
-        key = ";".join(key_parts)
-        return key
 
     def clear(self):
         """
