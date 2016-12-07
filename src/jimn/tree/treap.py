@@ -389,7 +389,7 @@ class Treap(Tree):
         """
         if self.children[False] is None:
             return
-        count = 2
+        count = 3
         for node in self.children[False].infix_exploration():
             node.color = Displayer.svg_colors[
                 count % len(Displayer.svg_colors)]

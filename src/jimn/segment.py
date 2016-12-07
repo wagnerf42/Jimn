@@ -298,12 +298,13 @@ class Segment(ElementaryPath):
 
         return intersections
 
-    def sweeping_key(self, current_x):
+    def sweeping_key(self, current_point):
         """
         return key used for comparing paths in sweeping line algorithms.
         for any given vline at x, key is current intersection on self and
         direction towards which we go (twice).
         """
+        current_x = current_point.coordinates[0]
         if __debug__:
             x_coordinates = sorted([p.get_x() for p in self.endpoints])
             if not x_coordinates[0] <= current_x <= x_coordinates[1]:
@@ -311,8 +312,13 @@ class Segment(ElementaryPath):
                 raise Exception("non comparable paths in tree")
 
         # start by finding the path's y for current x
-        point_key = Point([current_x,
-                           self.vertical_intersection_at(current_x)])
+        if self.endpoints[0].is_almost(current_point):
+            point_key = current_point
+        elif self.endpoints[1].is_almost(current_point):
+            point_key = current_point
+        else:
+            point_key = Point([current_x,
+                               self.vertical_intersection_at(current_x)])
 
         # we dont use sorted since this function is critical to performances
         if self.endpoints[0] < self.endpoints[1]:

@@ -1,6 +1,8 @@
 
+- bentley ottmann : events are not rounded, points are
 - why do we translate points in stl?
 - slices : why are final endpoints sorted ? 
+- rename bbox quadrant ??
 
 **************
 
