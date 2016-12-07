@@ -21,7 +21,7 @@ class Cutter:
         self.events = SortedSet()  # all events go here for easy access
 
         # we store results : associate to each path a list of intersections
-        self.intersections = dict()
+        self.intersections = defaultdict(list)
 
         # how to react at a given event point ?
         # -> we remember what path (list) start here, end here and which nodes will be swapped
@@ -59,8 +59,8 @@ class Cutter:
         node = self.crossed_paths.add(path)
         for neighbour in node.neighbours():
             neighbour_path = neighbour.content
-            intersection = path.intersection_with(neighbour_path)
-            if intersection:
+            intersections = path.intersections_with(neighbour_path)
+            for intersection in intersections:
                 self.add_intersection(intersection, [node, neighbour])
 
     def remove_paths(self, ending_paths):
@@ -81,6 +81,8 @@ class Cutter:
         """
         store intersection, prepare for nodes swap
         """
+        if intersection == self.current_point:
+            return
         assert intersection > self.current_point
         self.events.add(intersection)
         for node in nodes:
@@ -93,7 +95,7 @@ class Cutter:
         """
         remove and re-insert nodes intersecting at given point
         """
-        nodes = self.events_data[2]
+        nodes = self.events_data[2][point]
         for node in nodes:
             node.remove()
 
