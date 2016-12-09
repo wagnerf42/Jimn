@@ -11,6 +11,7 @@ from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.tour import tour
 from jimn.utils.iterators import all_two_elements
+from jimn.utils.coordinates_hash import ROUNDER2D
 
 
 class Segment(ElementaryPath):
@@ -316,14 +317,10 @@ class Segment(ElementaryPath):
             return (current_point, pi, pi)
 
         # start by finding the path's y for current x
-        # TODO: do we really need all that precautions ?
-        if self.endpoints[0].is_almost(current_point):
-            point_key = current_point
-        elif self.endpoints[1].is_almost(current_point):
-            point_key = current_point
-        else:
-            point_key = Point([current_x,
-                               self.vertical_intersection_at(current_x)])
+        point_key = Point([current_x,
+                           self.vertical_intersection_at(current_x)])
+        point_key = ROUNDER2D.hash_point(point_key)
+        point_key.coordinates[0] = current_x
 
         # we dont use sorted since this function is critical to performances
         if self.endpoints[0] < self.endpoints[1]:

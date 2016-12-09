@@ -8,6 +8,7 @@ from jimn.tree.treap import Treap
 from jimn.point import Point
 from jimn.displayable import tycat
 from jimn.bounding_box import BoundingBox
+from jimn.utils.coordinates_hash import ROUNDER2D
 from jimn.segment import Segment
 
 
@@ -82,6 +83,11 @@ class Cutter:
         """
         store intersection, prepare for nodes swap
         """
+        #TODO: change to only round y
+        old_x = intersection.coordinates[0]
+        intersection = ROUNDER2D.hash_point(intersection)
+        intersection.coordinates[0] = old_x
+
         if intersection <= self.current_point:
             return
         self.events.add(intersection)
@@ -102,11 +108,17 @@ class Cutter:
             self.remove_paths(self.events_data[1][event_point])
 
             self.current_point = event_point
+            if __debug__:
+                if is_module_debugged(__name__):
+                    print("current point is now", self.current_point)
 
             # add starting paths
             for starting_path in self.events_data[0][event_point]:
                 self.add_path(starting_path)
-            # self.tycat()
+
+            if __debug__:
+                if is_module_debugged(__name__):
+                    self.tycat()
         return []
 
     def tycat(self):

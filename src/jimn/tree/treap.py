@@ -75,7 +75,7 @@ class Treap(Tree):
             node_key = self.comparer.key(node.content)
             if content_key == node_key:
                 raise ConflictingKeys(node, content)
-            direction = self.comparer.key(node.content) < content_key
+            direction = node_key < content_key
 
         new_child = Treap(content)
         node._set_child(direction, new_child)
