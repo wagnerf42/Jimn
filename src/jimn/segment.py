@@ -338,7 +338,7 @@ class Segment(ElementaryPath):
             full_key = (point_key, -terminal_angle, -terminal_angle)
         else:
             full_key = (point_key, terminal_angle, terminal_angle)
-        print("key for", self, "is", str(full_key[0]), full_key[1:])
+        # print("key for", self, "is", str(full_key[0]), full_key[1:])
         return full_key
 
     def clip(self, center, size):

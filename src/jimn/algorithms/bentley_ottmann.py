@@ -24,8 +24,8 @@ class Cutter:
         self.intersections = defaultdict(list)
 
         # how to react at a given event point ?
-        # -> we remember what path (list) start here, end here and which nodes will be swapped
-        self.events_data = (defaultdict(list), defaultdict(list), defaultdict(set))
+        # -> we remember what path (list) start here, end here
+        self.events_data = (defaultdict(set), defaultdict(set))
 
         # we store paths cut by current vertical line
         sentinel = Segment([Point([-10000, 10000]), Point([10000, 10000])])
@@ -36,7 +36,7 @@ class Cutter:
         for path in self.paths:
             for point, path_storage in zip(sorted(path.endpoints), self.events_data):
                 self.events.add(point)
-                path_storage[point].append(path)
+                path_storage[point].add(path)
 
         self.current_point = None
 
@@ -61,7 +61,7 @@ class Cutter:
             neighbour_path = neighbour.content
             intersections = path.intersections_with(neighbour_path)
             for intersection in intersections:
-                self.add_intersection(intersection, [node, neighbour])
+                self.add_intersection(intersection, (path, neighbour_path))
 
     def remove_paths(self, ending_paths):
         """
@@ -73,36 +73,23 @@ class Cutter:
             neighbours = node.neighbours()
             node.remove()
             if len(neighbours) == 2:
-                intersections = neighbours[0].content.intersections_with(neighbours[1].content)
+                paths = [n.content for n in neighbours]
+                intersections = paths[0].intersections_with(paths[1])
                 for intersection in intersections:
-                    self.add_intersection(intersection, neighbours)
+                    self.add_intersection(intersection, paths)
 
-    def add_intersection(self, intersection, nodes):
+    def add_intersection(self, intersection, intersecting_paths):
         """
         store intersection, prepare for nodes swap
         """
         if intersection <= self.current_point:
             return
         self.events.add(intersection)
-        for node in nodes:
-            path = node.content
+        for path in intersecting_paths:
             if intersection != path.endpoints[0] and intersection != path.endpoints[1]:
-                self.events_data[2][intersection].add(node)
+                self.events_data[1][intersection].add(path)  # path will end
+                self.events_data[0][intersection].add(path)  # and restart
                 self.intersections[id(path)].append(intersection)
-
-    def swap_nodes(self, point):
-        """
-        remove and re-insert nodes intersecting at given point
-        """
-        # optimize by avoiding checking all neighbours
-        nodes = self.events_data[2][point]
-        for node in nodes:
-            node.remove()
-
-        self.current_point = point
-
-        for node in nodes:
-            self.add_path(node.content)
 
     def execute(self):
         """
@@ -114,13 +101,12 @@ class Cutter:
             # remove ending paths
             self.remove_paths(self.events_data[1][event_point])
 
-            # swap nodes
-            self.swap_nodes(event_point)
+            self.current_point = event_point
 
             # add starting paths
             for starting_path in self.events_data[0][event_point]:
                 self.add_path(starting_path)
-            self.tycat()
+            # self.tycat()
         return []
 
     def tycat(self):
