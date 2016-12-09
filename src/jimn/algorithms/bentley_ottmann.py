@@ -34,7 +34,7 @@ class Cutter:
 
         # create all start/end events
         for path in self.paths:
-            for point, path_storage in zip(path.endpoints, self.events_data):
+            for point, path_storage in zip(sorted(path.endpoints), self.events_data):
                 self.events.add(point)
                 path_storage[point].append(path)
 
@@ -73,17 +73,16 @@ class Cutter:
             neighbours = node.neighbours()
             node.remove()
             if len(neighbours) == 2:
-                intersection = neighbours[0].content.intersection_with(neighbours[1].content)
-                if intersection:
+                intersections = neighbours[0].content.intersections_with(neighbours[1].content)
+                for intersection in intersections:
                     self.add_intersection(intersection, neighbours)
 
     def add_intersection(self, intersection, nodes):
         """
         store intersection, prepare for nodes swap
         """
-        if intersection == self.current_point:
+        if intersection <= self.current_point:
             return
-        assert intersection > self.current_point
         self.events.add(intersection)
         for node in nodes:
             path = node.content
@@ -95,6 +94,7 @@ class Cutter:
         """
         remove and re-insert nodes intersecting at given point
         """
+        # optimize by avoiding checking all neighbours
         nodes = self.events_data[2][point]
         for node in nodes:
             node.remove()
@@ -102,7 +102,7 @@ class Cutter:
         self.current_point = point
 
         for node in nodes:
-            self.crossed_paths.add(node.content)
+            self.add_path(node.content)
 
     def execute(self):
         """
@@ -148,8 +148,8 @@ class Cutter:
         ])
 
         # display figure
-        tycat(self.paths, [self.current_point, vertical_line],
-              intersections, *self.crossed_paths.ordered_contents())
+        tycat(self.paths, intersections, [self.current_point, vertical_line],
+              *self.crossed_paths.ordered_contents())
         # display treap
         self.crossed_paths.tycat()
 
@@ -158,5 +158,7 @@ def compute_intersections(paths):
     """
     slice given paths into elementary paths
     """
-    tycat(paths, Cutter(paths).execute())
-    raise Exception("TODO")
+    #tycat(paths, Cutter(paths).execute())
+    Cutter(paths).execute()
+    #raise Exception("TODO")
+    return []

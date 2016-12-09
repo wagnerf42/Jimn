@@ -10,7 +10,7 @@ from jimn.point import Point
 from jimn.segment import Segment
 from jimn.arc import Arc
 from jimn.displayable import tycat
-from jimn.algorithms.sweeping_line_algorithms.kuhn_munkres import kuhn_munkres
+from jimn.algorithms.bentley_ottmann import compute_intersections
 from jimn.utils.coordinates_hash import ROUNDER2D
 
 
@@ -27,8 +27,8 @@ def test(seconds=None):
 
     paths = [Segment([ROUNDER2D.hash_point(Point([random(), random()])),
                       ROUNDER2D.hash_point(Point([random(), random()]))])
-             for _ in range(2)]
-    for _ in range(2):
+             for _ in range(3)]
+    for _ in range(0):
         center = ROUNDER2D.hash_point(Point([random(), random()]))
         radius = 0
         while radius < 0.02:
@@ -43,7 +43,7 @@ def test(seconds=None):
     if display:
         tycat(paths)
     try:
-        small_paths = kuhn_munkres(paths, cut_arcs=True)
+        small_paths = compute_intersections(paths)
     except:
         print("seed", seconds)
         tycat(paths)
@@ -60,9 +60,10 @@ def main():
         print("using seed", sys.argv[1])
         tycat(*test(sys.argv[1]))
     else:
-        for iteration in range(200):
+        for iteration in range(2000):
             print(iteration)
             test()
+            ROUNDER2D.clear()
         print("done")
 
 

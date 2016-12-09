@@ -227,11 +227,12 @@ class Segment(ElementaryPath):
         x_1, y_1 = self.endpoints[0].coordinates
         x_2, y_2 = self.endpoints[1].coordinates
         if is_almost(x_1, x_2):
-            if is_almost(intersecting_x, x_1):
-                min_point = min(self.endpoints)
-                return min_point.get_y()
-            else:
-                return None
+            raise Exception("vertical intersection with vertical segment")
+            # if is_almost(intersecting_x, x_1):
+            #     min_point = min(self.endpoints)
+            #     return min_point.get_y()
+            # else:
+            #     return None
         if is_almost(intersecting_x, x_1):
             return y_1
         if is_almost(intersecting_x, x_2):
@@ -311,7 +312,11 @@ class Segment(ElementaryPath):
                 print("path is", self, "current x is:", current_x)
                 raise Exception("non comparable paths in tree")
 
+        if self.endpoints[0].coordinates[0] == self.endpoints[1].coordinates[0]:
+            return (current_point, pi, pi)
+
         # start by finding the path's y for current x
+        # TODO: do we really need all that precautions ?
         if self.endpoints[0].is_almost(current_point):
             point_key = current_point
         elif self.endpoints[1].is_almost(current_point):
@@ -333,6 +338,7 @@ class Segment(ElementaryPath):
             full_key = (point_key, -terminal_angle, -terminal_angle)
         else:
             full_key = (point_key, terminal_angle, terminal_angle)
+        print("key for", self, "is", str(full_key[0]), full_key[1:])
         return full_key
 
     def clip(self, center, size):
