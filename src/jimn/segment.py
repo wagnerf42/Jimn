@@ -319,7 +319,7 @@ class Segment(ElementaryPath):
         # start by finding the path's y for current x
         point_key = Point([current_x,
                            self.vertical_intersection_at(current_x)])
-        point_key = ROUNDER2D.hash_point(point_key)
+        # point_key = ROUNDER2D.hash_point(point_key)
         point_key.coordinates[0] = current_x
 
         # we dont use sorted since this function is critical to performances

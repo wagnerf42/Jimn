@@ -11,7 +11,6 @@ from jimn.bounding_box import BoundingBox
 from jimn.utils.coordinates_hash import ROUNDER2D
 from jimn.segment import Segment
 
-
 class Cutter:
     """
     state object for executing bentley ottmann intersection algorithm.
@@ -20,6 +19,11 @@ class Cutter:
     def __init__(self, paths):
         self.paths = paths  # we store paths for debugging purposes
         self.events = SortedSet()  # all events go here for easy access
+
+        # we store all keys used for comparing paths
+        # this speeds up keys computations and more importantly removes
+        # rounding errors
+        self.sweeping_keys = dict()
 
         # we store results : associate to each path a list of intersections
         self.intersections = defaultdict(list)
@@ -50,7 +54,15 @@ class Cutter:
         """
         returns key at current point for given path.
         """
-        return path.sweeping_key(self.current_point)
+        key_id = (id(path), self.current_point)
+        if key_id in self.sweeping_keys:
+            return self.sweeping_keys[key_id]
+        else:
+            # TODO: remove this else by computing all keys on intersections and
+            # at start
+            comparison_key = path.sweeping_key(self.current_point)
+            self.sweeping_keys[key_id] = comparison_key
+            return comparison_key
 
     def add_path(self, path):
         """
@@ -70,7 +82,13 @@ class Cutter:
         """
         #TODO: optimize by only comparing top neighbour with bottom one
         for ending_path in ending_paths:
-            node = self.crossed_paths.find(ending_path)
+            try:
+                node = self.crossed_paths.find_object(ending_path)
+            except:
+                print("failure finding", ending_path)
+                self.crossed_paths.debug_find(ending_path)
+                raise
+
             neighbours = node.neighbours()
             node.remove()
             if len(neighbours) == 2:
@@ -84,14 +102,24 @@ class Cutter:
         store intersection, prepare for nodes swap
         """
         #TODO: change to only round y
-        old_x = intersection.coordinates[0]
-        intersection = ROUNDER2D.hash_point(intersection)
-        intersection.coordinates[0] = old_x
+        # old_x = intersection.coordinates[0]
+        # intersection = ROUNDER2D.hash_point(intersection)
+        # intersection.coordinates[0] = old_x
 
         if intersection <= self.current_point:
             return
         self.events.add(intersection)
         for path in intersecting_paths:
+            if __debug__:
+                end = max(path.endpoints)
+                assert path.sweeping_key(end) > path.sweeping_key(intersection),\
+                    "intersection after end"
+
+            # we immediately register comparison key at this intersection
+            comparison_key = path.sweeping_key(intersection)
+            comparison_key = (intersection, comparison_key[1], comparison_key[2])
+            self.sweeping_keys[(id(path), intersection)] = comparison_key
+
             if intersection != path.endpoints[0] and intersection != path.endpoints[1]:
                 self.events_data[1][intersection].add(path)  # path will end
                 self.events_data[0][intersection].add(path)  # and restart
@@ -99,7 +127,7 @@ class Cutter:
 
     def execute(self):
         """
-        run bentley ottmann and gives back intersections
+        run bentley ottmann
         """
         while self.events:
             event_point = self.events.pop(0)
@@ -119,7 +147,8 @@ class Cutter:
             if __debug__:
                 if is_module_debugged(__name__):
                     self.tycat()
-        return []
+
+        return self
 
     def tycat(self):
         """
@@ -157,6 +186,6 @@ def compute_intersections(paths):
     slice given paths into elementary paths
     """
     #tycat(paths, Cutter(paths).execute())
-    Cutter(paths).execute()
-    #raise Exception("TODO")
-    return []
+    cutter = Cutter(paths).execute()
+    #TODO
+    return list(cutter.intersections.values())

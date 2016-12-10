@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-test kuhn munkres intersection algorithm.
+test bentley ottmann intersection algorithm.
 """
 from math import cos, sin
 import sys
@@ -27,7 +27,7 @@ def test(seconds=None):
 
     paths = [Segment([ROUNDER2D.hash_point(Point([random(), random()])),
                       ROUNDER2D.hash_point(Point([random(), random()]))])
-             for _ in range(3)]
+             for _ in range(10)]
     for _ in range(0):
         center = ROUNDER2D.hash_point(Point([random(), random()]))
         radius = 0
@@ -43,13 +43,14 @@ def test(seconds=None):
     if display:
         tycat(paths)
     try:
-        small_paths = compute_intersections(paths)
+        intersections = compute_intersections(paths)
     except:
         print("seed", seconds)
         tycat(paths)
         raise
 
-    return small_paths
+    intersections.append(paths)
+    return intersections
 
 
 def main():

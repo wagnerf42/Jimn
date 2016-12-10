@@ -141,9 +141,9 @@ def tycat_end(display):
     """
     display.close_svg()
 
-    os.system("convert {} {}.jpg".format(display.filename, display.filename))
-    os.system("tycat {}.jpg".format(display.filename))
-    # os.system("tycat {}".format(filename))
+    # os.system("convert {} {}.jpg".format(display.filename, display.filename))
+    # os.system("tycat {}.jpg".format(display.filename))
+    os.system("tycat {}".format(display.filename))
 
 
 def tycat_set_svg_dimensions(width, height):
