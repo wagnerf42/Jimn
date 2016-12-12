@@ -11,7 +11,6 @@ from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.tour import tour
 from jimn.utils.iterators import all_two_elements
-from jimn.utils.coordinates_hash import ROUNDER2D
 
 
 class Segment(ElementaryPath):
@@ -162,7 +161,7 @@ class Segment(ElementaryPath):
         only return point if included on the two segments.
         """
         # compute point
-        if not(self < other):  # to avoid commutativity problems
+        if self < other:  # to avoid commutativity problems
             self, other = other, self
 
         i = self.line_intersection_with(other)
@@ -211,7 +210,7 @@ class Segment(ElementaryPath):
         """
         is given point inside us ?
         """
-        distance = sum([possible_point.distance_to(p) for p in self.endpoints])
+        distance = sum(possible_point.distance_to(p) for p in self.endpoints)
         # we have precisions issues here
         # we need to compare rounded distances
         # by rounding at PRECISION+1 we ensure that imprecision is less than
@@ -307,44 +306,6 @@ class Segment(ElementaryPath):
         angle = self.endpoints[0].angle_with(self.endpoints[1])
         return (pi/2 - angle) % pi
 
-    def sweeping_key(self, current_point):
-        """
-        return key used for comparing paths in sweeping line algorithms.
-        for any given vline at x, key is current intersection on self and
-        direction towards which we go (twice).
-        """
-        current_x = current_point.coordinates[0]
-        if __debug__:
-            x_coordinates = sorted([p.get_x() for p in self.endpoints])
-            if not x_coordinates[0] <= current_x <= x_coordinates[1]:
-                print("path is", self, "current x is:", current_x)
-                raise Exception("non comparable paths in tree")
-
-        if self.endpoints[0].coordinates[0] == self.endpoints[1].coordinates[0]:
-            return (current_point, pi, pi)
-
-        # start by finding the path's y for current x
-        point_key = Point([current_x,
-                           self.vertical_intersection_at(current_x)])
-        # point_key = ROUNDER2D.hash_point(point_key)
-        point_key.coordinates[0] = current_x
-
-        # we dont use sorted since this function is critical to performances
-        if self.endpoints[0] < self.endpoints[1]:
-            first_point, last_point = self.endpoints
-        else:
-            last_point, first_point = self.endpoints
-
-        terminal_angle = round(
-            (pi/2 - first_point.angle_with(last_point)) % pi, 10)
-        # now just reverse angles based on direction
-        if last_point.is_almost(point_key):
-            full_key = (point_key, -terminal_angle, -terminal_angle)
-        else:
-            full_key = (point_key, terminal_angle, terminal_angle)
-        # print("key for", self, "is", str(full_key[0]), full_key[1:])
-        return full_key
-
     def clip(self, center, size):
         """
         clip self in square of given size at given center.
@@ -375,6 +336,10 @@ class Segment(ElementaryPath):
     def __str__(self):
         return "Segment([" + str(self.endpoints[0]) + ", " + \
             str(self.endpoints[1]) + "])"
+
+    def __repr__(self):
+        return "[" + repr(self.endpoints[0]) + ", " + \
+            repr(self.endpoints[1]) + "])"
 
     def __eq__(self, other):
         if not isinstance(other, Segment):

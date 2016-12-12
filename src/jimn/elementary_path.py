@@ -6,6 +6,15 @@ from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost, SEGMENT_LIMIT
 
+COMPARER = None
+
+def set_comparer(new_comparer):
+    """
+    set object used for comparing paths
+    """
+    global COMPARER
+    COMPARER = new_comparer
+
 
 class ElementaryPath:
     """
@@ -159,3 +168,7 @@ class ElementaryPath:
             else:
                 return float("-inf")
         return (y_2 - y_1)/(x_2 - x_1)
+
+    def __lt__(self, other):
+        print("comparing", self, other)
+        return COMPARER.key(self) < COMPARER.key(other)

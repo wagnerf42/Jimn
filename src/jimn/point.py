@@ -214,6 +214,9 @@ class Point:
         """
         return "Point([" + ', '.join(str(c) for c in self.coordinates) + "])"
 
+    def __repr__(self):
+        return "(" + ', '.join(str(c) for c in self.coordinates) + ")"
+
 
 def __tour():
     """

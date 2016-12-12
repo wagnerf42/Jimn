@@ -2,14 +2,16 @@
 implementation of betley ottmann intersection algorithm.
 """
 from collections import defaultdict
-from sortedcontainers import SortedSet
+from sortedcontainers import SortedSet, SortedList
 from jimn.utils.debug import is_module_debugged
 from jimn.tree.treap import Treap
 from jimn.point import Point
 from jimn.displayable import tycat
 from jimn.bounding_box import BoundingBox
 from jimn.utils.coordinates_hash import ROUNDER2D
+from jimn.utils.iterators import triplets
 from jimn.segment import Segment
+from jimn.elementary_path import set_comparer
 
 class Cutter:
     """
@@ -32,10 +34,11 @@ class Cutter:
         # -> we remember what path (list) start here, end here
         self.events_data = (defaultdict(set), defaultdict(set))
 
+        # set ourselves as comparison tool for paths
+        set_comparer(self)
+
         # we store paths cut by current vertical line
-        sentinel = Segment([Point([-10000, 10000]), Point([10000, 10000])])
-        self.crossed_paths = Treap(sentinel, root_node=True)
-        self.crossed_paths.set_comparer(self)
+        self.crossed_paths = SortedList()
 
         # create all start/end events
         for path in self.paths:
@@ -77,51 +80,54 @@ class Cutter:
         handles incoming path.
         add to crossed path and check for neighbouring intersections.
         """
-        node = self.crossed_paths.add(path)
-        for neighbour in node.neighbours():
-            neighbour_path = neighbour.content
-            intersections = path.intersections_with(neighbour_path)
-            for intersection in intersections:
-                self.add_intersection(intersection, (path, neighbour_path))
+        self.crossed_paths.add(path)
+        new_index = self.crossed_paths.index(path)
+        for index in (new_index-1, new_index+1):
+            if 0 < index < len(self.crossed_paths)-1:
+                neighbour_path = self.crossed_paths[index]
+                intersections = path.intersections_with(neighbour_path)
+                for intersection in intersections:
+                    self.add_intersection(intersection, (path, neighbour_path))
 
     def remove_paths(self, ending_paths):
         """
         remove some paths and check for neighbouring intersections.
         """
-        #TODO: optimize by only comparing top neighbour with bottom one
-        for ending_path in ending_paths:
-            try:
-                node = self.crossed_paths.find_object(ending_path)
-            except:
-                print("failure finding", ending_path)
-                self.crossed_paths.debug_find(ending_path)
-                raise
+        def contiguous_ranges(indices):
+            """
+            iterate on all starts-1 and ends+1 of contiguous ranges of numbers
+            given by iterator
+            """
+            current_index = next(indices)
+            start = current_index-1
+            for index in indices:
+                if index > current_index+1:
+                    yield start, current_index+1
+                    start = index-1
+                current_index = index
+            yield start, current_index+1
 
-            neighbours = node.neighbours()
-            node.remove()
-            if len(neighbours) == 2:
-                paths = [n.content for n in neighbours]
+        indices = [self.crossed_paths.index(p) for p in ending_paths]
+        paths = []
+        for neighbour_indices in contiguous_ranges(iter(indices)):
+            if neighbour_indices[0] >= 0 and neighbour_indices[1] < len(self.crossed_paths):
+                paths = [self.crossed_paths[i] for i in neighbour_indices]
                 intersections = paths[0].intersections_with(paths[1])
                 for intersection in intersections:
                     self.add_intersection(intersection, paths)
+
+        #now, remove everyone
+        for index in sorted(indices, reverse=True):
+            del self.crossed_paths[index]
 
     def add_intersection(self, intersection, intersecting_paths):
         """
         store intersection, prepare for nodes swap
         """
-        #TODO: change to only round y
-        # old_x = intersection.coordinates[0]
-        # intersection = ROUNDER2D.hash_point(intersection)
-        # intersection.coordinates[0] = old_x
-
         if intersection <= self.current_point:
             return
         self.events.add(intersection)
         for path in intersecting_paths:
-            if __debug__:
-                end = max(path.endpoints)
-                assert path.sweeping_key(end) > path.sweeping_key(intersection),\
-                    "intersection after end"
 
             # we immediately register comparison key at this intersection
             self.add_key(path, intersection)
@@ -182,9 +188,9 @@ class Cutter:
 
         # display figure
         tycat(self.paths, intersections, [self.current_point, vertical_line],
-              *self.crossed_paths.ordered_contents())
-        # display treap
-        self.crossed_paths.tycat()
+              *self.crossed_paths)
+
+        print(list(self.key(p) for p in self.crossed_paths))
 
 
 def compute_intersections(paths):
