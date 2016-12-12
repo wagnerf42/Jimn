@@ -300,6 +300,13 @@ class Segment(ElementaryPath):
 
         return intersections
 
+    def key_angle(self):
+        """
+        path angle, used for comparisons in sweeping line algorithms.
+        """
+        angle = self.endpoints[0].angle_with(self.endpoints[1])
+        return (pi/2 - angle) % pi
+
     def sweeping_key(self, current_point):
         """
         return key used for comparing paths in sweeping line algorithms.

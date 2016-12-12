@@ -153,7 +153,7 @@ def tycat_set_svg_dimensions(width, height):
     Displayer.svg_dimensions = (width, height)
 
 
-def gnuplot(data):
+def gnuplot(labels, data):
     """
     display given multi-dimensional array with gnuplot.
     """
@@ -166,10 +166,10 @@ def gnuplot(data):
         command = "gnuplot -e \"set terminal pngcairo ;"
         command += " set output \\\"/tmp/test.png\\\" ;"
         command += " plot "
-        for index in range(1, len(data[0])):
+        for index, label in enumerate(labels):
             command += \
-                " \\\"{}\\\" using 1:{} with linespoints, ".format(
-                    data_file.name, index+1)
+                " \\\"{}\\\" using 1:{} with linespoints title \\\"{}\\\",".format(
+                    data_file.name, index+2, label)
         command += "\""
         os.system(command)
         os.system("tycat /tmp/test.png")

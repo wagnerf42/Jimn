@@ -39,9 +39,11 @@ class Cutter:
 
         # create all start/end events
         for path in self.paths:
-            for point, path_storage in zip(sorted(path.endpoints), self.events_data):
+            for point, path_storage, angle_multiplier in \
+                    zip(sorted(path.endpoints), self.events_data, (1, -1)):
                 self.events.add(point)
                 path_storage[point].add(path)
+                self.add_key(path, point, angle_multiplier)
 
         self.current_point = None
 
@@ -49,6 +51,15 @@ class Cutter:
             if is_module_debugged(__name__):
                 print("starting bentley ottmann")
                 tycat(self.paths)
+
+    def add_key(self, path, point, angle_multiplier=1):
+        """
+        register a key.
+        angle multiplier for inverting angles at end of path.
+        """
+        new_key = (point.coordinates[1], path.key_angle()*angle_multiplier)
+        self.sweeping_keys[(id(path), point)] = new_key
+        return new_key
 
     def key(self, path):
         """
@@ -58,11 +69,8 @@ class Cutter:
         if key_id in self.sweeping_keys:
             return self.sweeping_keys[key_id]
         else:
-            # TODO: remove this else by computing all keys on intersections and
-            # at start
-            comparison_key = path.sweeping_key(self.current_point)
-            self.sweeping_keys[key_id] = comparison_key
-            return comparison_key
+            current_x = self.current_point.coordinates[0]
+            return (path.vertical_intersection_at(current_x), path.key_angle())
 
     def add_path(self, path):
         """
@@ -116,9 +124,7 @@ class Cutter:
                     "intersection after end"
 
             # we immediately register comparison key at this intersection
-            comparison_key = path.sweeping_key(intersection)
-            comparison_key = (intersection, comparison_key[1], comparison_key[2])
-            self.sweeping_keys[(id(path), intersection)] = comparison_key
+            self.add_key(path, intersection)
 
             if intersection != path.endpoints[0] and intersection != path.endpoints[1]:
                 self.events_data[1][intersection].add(path)  # path will end
