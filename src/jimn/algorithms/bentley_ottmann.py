@@ -9,7 +9,6 @@ from jimn.point import Point
 from jimn.displayable import tycat
 from jimn.bounding_box import BoundingBox
 from jimn.utils.coordinates_hash import ROUNDER2D
-from jimn.utils.iterators import triplets
 from jimn.segment import Segment
 from jimn.elementary_path import set_comparer
 
@@ -83,7 +82,7 @@ class Cutter:
         self.crossed_paths.add(path)
         new_index = self.crossed_paths.index(path)
         for index in (new_index-1, new_index+1):
-            if 0 < index < len(self.crossed_paths)-1:
+            if 0 <= index < len(self.crossed_paths):
                 neighbour_path = self.crossed_paths[index]
                 intersections = path.intersections_with(neighbour_path)
                 for intersection in intersections:

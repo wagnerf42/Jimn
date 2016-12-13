@@ -170,5 +170,4 @@ class ElementaryPath:
         return (y_2 - y_1)/(x_2 - x_1)
 
     def __lt__(self, other):
-        print("comparing", self, other)
         return COMPARER.key(self) < COMPARER.key(other)
