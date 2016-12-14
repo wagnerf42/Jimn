@@ -148,7 +148,7 @@ class Polygon:
             for p in self.points
         ]
         svg_formatted = " ".join(svg_coordinates)
-        return '<polygon points="{}"/>'.format(svg_formatted)
+        return '<polygon points="{}" opacity="0.4"/>'.format(svg_formatted)
 
     def __str__(self):
         points = ",\n".join(str(p) for p in self.points)

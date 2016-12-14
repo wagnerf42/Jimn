@@ -6,14 +6,12 @@ from jimn.displayable import tycat
 from jimn.utils.debug import is_module_debugged
 from jimn.utils.precision import is_almost, SEGMENT_LIMIT
 
-COMPARER = None
 
 def set_comparer(new_comparer):
     """
     set object used for comparing paths
     """
-    global COMPARER
-    COMPARER = new_comparer
+    ElementaryPath.comparer = new_comparer
 
 
 class ElementaryPath:
@@ -21,6 +19,8 @@ class ElementaryPath:
     elementary path is a small path between two endpoints.
     class is further refined into segments and arcs.
     """
+    comparer = None
+
     def __init__(self, points):
         self.endpoints = points
         assert self.endpoints[0].distance_to(self.endpoints[1]) \
@@ -170,4 +170,4 @@ class ElementaryPath:
         return (y_2 - y_1)/(x_2 - x_1)
 
     def __lt__(self, other):
-        return COMPARER.key(self) < COMPARER.key(other)
+        return self.comparer.key(self) < self.comparer.key(other)

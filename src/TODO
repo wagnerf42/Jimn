@@ -1,8 +1,14 @@
 
+- finish inclusion tree algorithm
+- remove polygonsegment file (merge in inclusion tree)
+- change inclusion tree algorithmn to work on pockets
+- bentley ottmann / inclusion tree : hash all keys instead of just intersections and start/end ?
+- inclusion tree : round angles ?
+- inclusion tree : factorize code ??
 - bentley ottmann : events are not rounded, points are
-- why do we translate points in stl?
 - slices : why are final endpoints sorted ? 
 - rename bbox quadrant ??
+- look for now unused functions
 
 **************
 

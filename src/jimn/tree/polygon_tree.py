@@ -3,8 +3,7 @@ tree of holed polygons.
 """
 from math import pi
 from jimn.displayable import tycat
-from jimn.algorithms.sweeping_line_algorithms.inclusion_tree_builder\
-    import build_inclusion_tree
+from jimn.algorithms.inclusion_tree_builder import build_inclusion_tree
 from jimn.holed_polygon import HoledPolygon
 from jimn.tree.translated_tree import TranslatedTree
 from jimn.utils.debug import is_module_debugged
