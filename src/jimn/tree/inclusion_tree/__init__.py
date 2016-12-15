@@ -15,8 +15,6 @@ class InclusionTree(TranslatedTree):
     """
     def __init__(self, contained_polygon=None, height=None, father=None):
         super().__init__(contained_polygon)
-        # polygons not closed yet
-        self.alive_children = {}
         self.height = height
         if father is not None:
             self.is_polygon = self.compute_polygonality(father)
@@ -39,17 +37,15 @@ class InclusionTree(TranslatedTree):
         delete all children.
         """
         self.children = []
-        self.alive_children = {}
 
     def add_child(self, new_segment):
         """"
-        add new alive child with polygon contained in provided segment.
+        add new child with polygon contained in provided segment.
         """
         new_polygon = new_segment.polygon
         height = new_segment.height
         leaf = InclusionTree(new_polygon, height, self)
         self.children.append(leaf)
-        self.alive_children[id(new_polygon)] = leaf
         return leaf
 
     def ascend_polygons(self, father=None, grandfather=None):

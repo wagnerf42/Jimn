@@ -6,6 +6,7 @@ from sortedcontainers import SortedList
 from jimn.elementary_path import set_comparer
 from jimn.tree.inclusion_tree import InclusionTree
 from jimn.tree.inclusion_tree.polygonsegment import polygon_segments
+from jimn.utils.debug import is_module_debugged
 
 
 class InclusionTreeBuilder:
@@ -34,14 +35,14 @@ class InclusionTreeBuilder:
         # rounding errors
         self.sweeping_keys = dict()
 
-        self._create_events(polygons)
+        polygons_number = self._create_events(polygons)
         self.current_point = None
         self.tree = InclusionTree()
-        self.identified_polygons = set()
+        self.nodes = dict()  # store for each poly its node and father node
 
         for event in self.events:
             self.execute_event(event)
-            if len(self.identified_polygons) == len(polygons):
+            if len(self.nodes) == polygons_number:
                 return  # no need to finish the sweep once everyone is identified
 
     def _create_events(self, polygons):
@@ -50,17 +51,21 @@ class InclusionTreeBuilder:
         each event is : a comparison key ; the path.
         """
         self.events = []
+        polygons_number = 0
         for height, polygons in polygons.items():
             for polygon in polygons:
+                polygons_number += 1
                 for segment in polygon_segments(height, polygon):
                     angle = segment.angle()
                     for point in sorted(segment.endpoints):
                         key = (point, angle, -height)
                         self.events.append((key, segment))
-                        self.sweeping_keys[(id(segment), point)] = key
+                        self.sweeping_keys[(id(segment), point)] =\
+                            (point.coordinates[1], angle, -height)
                         angle *= -1
 
         self.events.sort(key=lambda e: e[0])
+        return polygons_number
 
     def key(self, path):
         """
@@ -95,17 +100,42 @@ class InclusionTreeBuilder:
         """
         handles incoming path
         """
-        self.crossed_paths.add(path)
+        index = self.crossed_paths.bisect(path)
+        self.crossed_paths.insert(index, path)
         polygon = path.polygon_id()
         self.polygons[polygon].add(path)
-        if polygon not in self.identified_polygons:
-            self.identified_polygons.add(polygon)
-            raise Exception("TODO")
+
+        if polygon not in self.nodes:
+            father_node = self.identify_father_node(path, index)
+            new_node = father_node.add_child(path)
+            self.nodes[polygon] = (new_node, father_node)
+            print("adding", polygon, "as child of", id(father_node.content))
+
+    def identify_father_node(self, path, index):
+        """
+        identify where polygon is in tree.
+        we need the path and its position in crossed paths
+        """
+        if index == 0:
+            # no one above us, we are below root
+            return self.tree
+        else:
+            neighbour_polygon = self.crossed_paths[index-1].polygon_id()
+            above_paths = self.polygons[neighbour_polygon].bisect(path)
+            if above_paths % 2:
+                # odd neighbour's paths above us
+                # we are inside him
+                return self.nodes[neighbour_polygon][0]
+            else:
+                # event neighbour's paths above us
+                # we are beside him
+                return self.nodes[neighbour_polygon][1]
 
     def end_path(self, path):
         """
         handles ending path
         """
+        print("removing", path, "from", self.crossed_paths)
         self.crossed_paths.remove(path)
         self.polygons[path.polygon_id()].remove(path)
 
@@ -115,4 +145,8 @@ def build_inclusion_tree(polygons):
     turn a set of polygons hashed by height into a polygon tree.
     """
     builder = InclusionTreeBuilder(polygons)
+    if __debug__:
+        if is_module_debugged(__name__):
+            print("inclusion tree")
+            builder.tree.tycat()
     return builder.tree
