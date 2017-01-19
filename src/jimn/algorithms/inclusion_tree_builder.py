@@ -12,6 +12,28 @@ from jimn.displayable import tycat
 END_EVENT = 0
 START_EVENT = 1
 
+# TODO:
+# quelles sont les clef de comparaisons ???
+# comment sont ordonnes les evenements ???
+# cas simple : il n'y a pas de hauteurs differentes
+# la regle est : quand un segment entre en jeu, tous ceux au dessus de lui sont deja la
+# point -> type (fin,debut) -> angle 
+# avec pour les angles : pour la fin : on s'en fiche, pour le debut :
+#
+#                     1
+#
+#                         2
+#
+#                   x        3
+#
+#                         4
+#
+#                    5
+
+# me souviens pas pourquoi on serait sense inverser l'angle a la fin du segment
+# un angle negatif peut il servir a eviter le type ?
+
+
 class InclusionTreeBuilder:
     """
     this class builds a tree of polygons included in one another.
@@ -30,7 +52,7 @@ class InclusionTreeBuilder:
         # now if we are contained inside it, we are its child
         # if we are not contained inside it, we are its brother
         # to figure out whether we are inside or not, we look at #paths smaller than us
-        # in the nieghbour polygon's SortedList
+        # in the neighbour polygon's SortedList
 
         set_comparer(self)
         # we store all keys used for comparing paths
@@ -64,6 +86,7 @@ class InclusionTreeBuilder:
                     for point, event_type in zip(
                             sorted(segment.endpoints), (START_EVENT, END_EVENT)):
                         key = (point, event_type, -height)
+                        raise Exception("we lack an angle here")
                         self.events.append((key, segment))
                         self.sweeping_keys[(id(segment), point)] =\
                             (point.coordinates[1], angle, -height)

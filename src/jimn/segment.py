@@ -303,7 +303,7 @@ class Segment(ElementaryPath):
         """
         path angle, used for comparisons in sweeping line algorithms.
         """
-        if self.endpoints[0].coordinates[0] == self.endpoints[1].coordinates[0]:
+        if is_almost(self.endpoints[0].coordinates[0], self.endpoints[1].coordinates[0]):
             return pi
         angle = self.endpoints[0].angle_with(self.endpoints[1])
         return (pi/2 - angle) % pi

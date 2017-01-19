@@ -13,7 +13,7 @@ class InclusionTree(TranslatedTree):
     """
     store a set of polygons included one inside another.
     """
-    def __init__(self, contained_polygon=None, height=None, father=None):
+    def __init__(self, contained_polygon=None, height=None):
         super().__init__(contained_polygon)
         self.height = height
 
@@ -29,7 +29,7 @@ class InclusionTree(TranslatedTree):
         """
         new_polygon = new_segment.polygon
         height = new_segment.height
-        leaf = InclusionTree(new_polygon, height, self)
+        leaf = InclusionTree(new_polygon, height)
         self.children.append(leaf)
         return leaf
 
@@ -39,12 +39,6 @@ class InclusionTree(TranslatedTree):
         for each hole, move its children to its grand father.
         """
         raise Exception("TODO")
-        for child in self.children:
-            child.ascend_polygons(self, father)
-
-        if (self.content is not None) and not self.is_polygon:
-            grandfather.children.extend(self.children)
-            self.remove_children()
 
 
 def __polygon_label(self):
@@ -53,4 +47,4 @@ def __polygon_label(self):
     """
     return str(id(self))
 
-    setattr(Polygon, 'get_dot_label', __polygon_label)
+setattr(Polygon, 'get_dot_label', __polygon_label)
