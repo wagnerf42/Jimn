@@ -45,11 +45,11 @@ class HoledPolygon:
 
     def normalize(self):
         """
-        return new holed polygon prepared for hashing by reordering points.
+        normalize all content for hashing by reordering points.
         """
-        polygon = self.polygon.normalize_starting_point()
-        holes = [h.normalize_starting_point() for h in self.holes]
-        return HoledPolygon(polygon, holes, self.height)
+        self.polygon.normalize_starting_point()
+        for hole in self.holes:
+            hole.normalize_starting_point()
 
     def translation_vector(self, other):
         """

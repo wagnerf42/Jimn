@@ -16,21 +16,6 @@ class InclusionTree(TranslatedTree):
     def __init__(self, contained_polygon=None, height=None, father=None):
         super().__init__(contained_polygon)
         self.height = height
-        if father is not None:
-            self.is_polygon = self.compute_polygonality(father)
-
-    def compute_polygonality(self, father):
-        """
-        compute if we are a polygon
-        or a hole.
-        """
-        if father.content is None:  # father is root node
-            return True
-        else:
-            if __debug__:
-                if not father.is_polygon:
-                    assert father.height == self.height
-            return (not father.is_polygon) or father.height > self.height
 
     def remove_children(self):
         """
@@ -53,6 +38,7 @@ class InclusionTree(TranslatedTree):
         recursively works on the whole subtree.
         for each hole, move its children to its grand father.
         """
+        raise Exception("TODO")
         for child in self.children:
             child.ascend_polygons(self, father)
 
@@ -67,4 +53,4 @@ def __polygon_label(self):
     """
     return str(id(self))
 
-setattr(Polygon, 'get_dot_label', __polygon_label)
+    setattr(Polygon, 'get_dot_label', __polygon_label)

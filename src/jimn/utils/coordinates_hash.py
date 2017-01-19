@@ -53,13 +53,13 @@ class CoordinatesHash:
         """
         key = coordinate_key(coordinate, self.precision)
         displaced_key = displaced_coordinate_key(coordinate, self.precision)
-        if key in self.hashes[index]:
-            return self.hashes[index][key]
-        if displaced_key in self.hashes[index+1]:
-            return self.hashes[index+1][displaced_key]
+        if key in self.hashes[2*index]:
+            return self.hashes[2*index][key]
+        if displaced_key in self.hashes[2*index+1]:
+            return self.hashes[2*index+1][displaced_key]
 
-        self.hashes[index][key] = coordinate
-        self.hashes[index+1][displaced_key] = coordinate
+        self.hashes[2*index][key] = coordinate
+        self.hashes[2*index+1][displaced_key] = coordinate
         return coordinate
 
     def contains_coordinate(self, coordinate, index=0):

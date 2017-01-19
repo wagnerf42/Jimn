@@ -7,7 +7,10 @@ from jimn.elementary_path import set_comparer
 from jimn.tree.inclusion_tree import InclusionTree
 from jimn.tree.inclusion_tree.polygonsegment import polygon_segments
 from jimn.utils.debug import is_module_debugged
+from jimn.displayable import tycat
 
+END_EVENT = 0
+START_EVENT = 1
 
 class InclusionTreeBuilder:
     """
@@ -56,13 +59,14 @@ class InclusionTreeBuilder:
             for polygon in polygons:
                 polygons_number += 1
                 for segment in polygon_segments(height, polygon):
-                    angle = segment.angle()
-                    for point in sorted(segment.endpoints):
-                        key = (point, angle, -height)
+                    angle = segment.key_angle()
+                    print("angle for", segment, "is", angle)
+                    for point, event_type in zip(
+                            sorted(segment.endpoints), (START_EVENT, END_EVENT)):
+                        key = (point, event_type, -height)
                         self.events.append((key, segment))
                         self.sweeping_keys[(id(segment), point)] =\
                             (point.coordinates[1], angle, -height)
-                        angle *= -1
 
         self.events.sort(key=lambda e: e[0])
         return polygons_number
@@ -78,23 +82,35 @@ class InclusionTreeBuilder:
             current_x = self.current_point.coordinates[0]
             return (path.vertical_intersection_at(current_x),
                     path.key_angle(),
-                    path.height)
+                    -path.height)
 
     def execute_event(self, event):
         """
         execute start path or end path event
         """
         event_key, event_path = event
-        event_point, event_angle = event_key[0:2]
+        event_point, event_type = event_key[0:2]
 
-        if event_angle >= 0:
-            # start event
+        if event_type == START_EVENT:
             self.current_point = event_point
             self.start_path(event_path)
         else:
-            # end event
             self.end_path(event_path)
             self.current_point = event_point
+
+        if __debug__:
+            # very slow
+            paths = iter(self.crossed_paths)
+            previous_path = next(paths, None)
+            for path in paths:
+                if self.key(previous_path) >= self.key(path):
+                    paths = list(self.crossed_paths)
+                    print(paths)
+                    print("previous", previous_path, self.key(previous_path))
+                    print("current", path, self.key(path))
+                    tycat(self.current_point, paths, previous_path, path)
+                    raise Exception("pb ordre")
+                previous_path = path
 
     def start_path(self, path):
         """

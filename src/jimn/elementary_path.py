@@ -171,3 +171,6 @@ class ElementaryPath:
 
     def __lt__(self, other):
         return self.comparer.key(self) < self.comparer.key(other)
+
+    def __le__(self, other):
+        return self.comparer.key(self) <= self.comparer.key(other)

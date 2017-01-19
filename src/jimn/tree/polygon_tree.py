@@ -133,7 +133,7 @@ class PolygonTree(TranslatedTree):
                                key=lambda c: c.content.polygon.points[0])
 
         if self.content is not None:
-            self.content = self.content.normalize()
+            self.content.normalize()
 
     def __eq__(self, other):
         """
