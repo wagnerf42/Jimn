@@ -3,11 +3,9 @@
 //! Provides a `Point` structure for storing 2d points.
 //! Points can also serve as vectors: for example point2-point1 is a point
 //! which coordinates encode the direction vector of segment(point1,point2).
-use std::io::prelude::*;
 use std::ops::{Add, Sub, Mul, Div};
 
-use bounding_box::BoundingBox;
-//use utils::precision::is_almost;
+use quadrant::Quadrant;
 use ordered_float::NotNaN;
 
 
@@ -33,12 +31,6 @@ impl Point {
         determinant.abs() < 10.0f64.powi(-5) //TODO: why 5 ?
     }
 
-//    /// Returns if given points are almost the same
-//    /// (see [default precision](precision/fn.is_almost.html)).
-//    pub fn is_almost(&self, other: &Point) -> bool {
-//        is_almost(self.x, other.x) && is_almost(self.y, other.y)
-//    }
-
     /// Returns distance between given points.
     ///
     /// # Example
@@ -55,30 +47,17 @@ impl Point {
         squared_distance.sqrt()
     }
 
-//    /// Returns angle from origin between self and other.
-//    ///
-//    ///  other
-//    ///  (0, -1)
-//    ///     |
-//    ///     |
-//    ///  (0, 0) ------------ (1, 0) self
-//    ///
-//    ///
-//    //TODO: ?????
-//    pub fn angle_with(self: &Point, other: &Point) -> f64 {
-//        let x_diff = other.x - self.x;
-//        let y_diff = other.y - self.y;
-//        let mut raw_angle = -y_diff.atan2(x_diff);
-//        if raw_angle <= 0.0 {
-//            raw_angle += 2.0 * ::std::f64::consts::PI;
-//        }
-//        raw_angle
-//    }
-
     /// Returns vector of our coordinates.
-    /// Useful for mapping.
-    pub fn coordinates(&self) -> Vec<NotNaN<f64>> {
+    /// Useful for mapping or arithmetic operations.
+    pub fn to_vector(&self) -> Vec<NotNaN<f64>> {
         vec![self.x, self.y]
+    }
+
+    /// Returns the angle needed for going towards other.
+    pub fn angle_with(&self, other: &Point) -> NotNaN<f64> {
+        let x = other.x - self.x;
+        let y = other.y - self.y;
+        NotNaN::new(y.atan2(x.into_inner())).unwrap()
     }
 
     /// Returns cross product between vector in self and vector in other.
@@ -94,9 +73,9 @@ impl Point {
         (self.x * other.y) - (self.y * other.x)
     }
 
-    /// Returns BoundigBox containing point.
-    pub fn get_bounding_box(&self) -> BoundingBox {
-        BoundingBox {
+    /// Returns `Quadrant` containing point.
+    pub fn get_quadrant(&self) -> Quadrant {
+        Quadrant {
             min_coordinates: vec![self.x, self.y],
             max_coordinates: vec![self.x, self.y],
         }

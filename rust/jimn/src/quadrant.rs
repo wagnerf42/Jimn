@@ -1,33 +1,34 @@
 //! Bound objects with rectangles.
 //!
-//! Provides `BoundingBox` class to bound objects by rectangles.
+//! Provides `Quadrant` class to bound objects by rectangles.
 //! Allows for example a fast pre-test to know complex shape do not intersect.
-//! Boxes are also used for computing display dimensions.
+//! Quadrants are also used for computing display dimensions.
 
 use ordered_float::NotNaN;
+use point::Point;
 
 /// The bounding box structure stores bounds on each coordinate.
 /// In 2D this translates to rectangles.
 #[derive(Debug)]
-pub struct BoundingBox {
+pub struct Quadrant {
     /// Vector of lower bounds on each coordinate.
     pub min_coordinates: Vec<NotNaN<f64>>,
     /// Vector of upper bounds on each coordinate.
     pub max_coordinates: Vec<NotNaN<f64>>
 }
 
-impl BoundingBox {
-    /// Builds a bounding box (unconstrained) in space of given dimension.
+impl Quadrant {
+    /// Builds a `Quadrant` (unconstrained) in space of given dimension.
     ///
     /// # Examples
     ///
     /// ```
-    /// // create an empty box in 2D
-    /// use jimn::bounding_box::BoundingBox;
-    /// let bbox = BoundingBox::new(2);
+    /// // create an empty quadrant in 2D
+    /// use jimn::quadrant::Quadrant;
+    /// let bbox = Quadrant::new(2);
     /// ```
-    pub fn new(dimension: usize) -> BoundingBox {
-        BoundingBox {
+    pub fn new(dimension: usize) -> Quadrant {
+        Quadrant {
             min_coordinates:
                 vec![NotNaN::new(::std::f64::INFINITY).unwrap(); dimension],
             max_coordinates:
@@ -35,14 +36,14 @@ impl BoundingBox {
         }
     }
 
-    /// Updates box by fusing in limits from other.
+    /// Updates `Quadrant` by fusing in limits from other.
     ///
     /// self-> ##                 ###
     ///        ##           ->    ### self after self.update(&other)
     ///                           ###
     ///         ##                ###
     ///         ## <-other        ###
-    pub fn update(&mut self, other: &BoundingBox) {
+    pub fn update(&mut self, other: &Quadrant) {
 
         for (min_coordinate, coordinate) in self.min_coordinates.iter_mut()
             .zip(other.min_coordinates.iter()) {
@@ -72,5 +73,11 @@ impl BoundingBox {
             .map(|&c| c-border).collect();
         self.max_coordinates = self.max_coordinates.iter()
             .map(|&c| c+border).collect();
+    }
+
+    /// Adds given point to ourselves.
+    pub fn add_point(&mut self, point: &Point) {
+        let quadrant = point.get_quadrant();
+        self.update(&quadrant)
     }
 }
