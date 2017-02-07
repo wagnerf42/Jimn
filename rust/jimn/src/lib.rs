@@ -20,5 +20,6 @@ extern crate rand;
 extern crate ordered_float;
 //#[macro_use]
 pub mod utils;
+pub mod tycat;
 pub mod quadrant;
 pub mod point;
