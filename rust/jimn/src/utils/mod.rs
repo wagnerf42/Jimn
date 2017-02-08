@@ -3,7 +3,7 @@
 //#![macro_use]
 //#[macro_use]
 //pub mod debug;
-//pub mod coordinates_hash;
+pub mod coordinates_hash;
 pub mod precision;
 
 /// `Identifiable` allows equivalent to python's `id`
