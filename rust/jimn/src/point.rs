@@ -83,7 +83,7 @@ impl Point {
 
     /// Returns svg string for displaying point in svg file.
     pub fn svg_string(&self) -> String {
-        format!("<circle cx=\"{}\" cy=\"{}\" r=\"0.1\"/>", self.x, self.y)
+        format!("<use xlink:href=\"#c\" x=\"{}\" y=\"{}\"/>", self.x, self.y)
     }
 }
 

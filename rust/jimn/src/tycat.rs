@@ -2,11 +2,14 @@
 //!
 //! Allows graphical displays under terminology.
 //! Provides a **display** function for **Displayable objects**.
+use std::io;
+use std::cmp::min;
 use std::io::prelude::*;
 use std::fs::File;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::process::Command;
 use quadrant::Quadrant;
+use ordered_float::NotNaN;
 
 static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
 
@@ -51,19 +54,41 @@ const SVG_COLORS: [&'static str; 37] = [
 ];
 
 /// tycat given svg strings bounded by given quadrant.
-pub fn display(quadrant: &Quadrant, svg_strings: &Vec<String>) {
+pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
     let file_number = FILE_COUNT.fetch_add(1, Ordering::SeqCst);
     let filename = format!("/tmp/test-{}.svg", file_number);
     println!("[{}]", file_number);
-    let mut svg_file = File::create(&filename).expect("cannot create svg file");
-    svg_file.write_all(b"<svg width=\"640\" height=\"480\">")
-        .expect("cannot write svg file, disk full ?");
-    for svg_string in svg_strings {
-        svg_file.write(svg_string.as_bytes());
+    let mut svg_file = File::create(&filename)?;
+
+    // write header
+    svg_file.write_all(b"<svg width=\"640\" height=\"480\" ")?;
+    let (xmin, xmax) = quadrant.limits(0);
+    let (ymin, ymax) = quadrant.limits(1);
+    let width = xmax - xmin;
+    let height = ymax - ymin;
+    write!(svg_file, "viewBox=\"{} {} {} {}\" ", xmin, ymin, width, height)?;
+    svg_file.write_all(b"xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n")?;
+
+    // white background
+    write!(svg_file, "<rect x=\"{}\" y=\"{}\" ", xmin, ymin)?;
+    write!(svg_file, "width=\"{}\" height=\"{}\" fill=\"white\"/>\n", width, height)?;
+
+    // circle definition and stroke size
+    let xscale = NotNaN::new(640.0).unwrap() / width;
+    let yscale = NotNaN::new(480.0).unwrap() / height;
+    let scale = min(xscale, yscale);
+    let stroke = 3.0 / scale.into_inner();
+    write!(svg_file, "<defs><symbol id=\"c\"><circle r=\"{}\"/></symbol></defs>\n", 2.0*stroke)?;
+    write!(svg_file, "<g stroke-width=\"{}\" opacity=\"0.7\">\n", stroke)?;
+
+    for (svg_string, color) in svg_strings.iter().zip(SVG_COLORS.iter()) {
+        write!(svg_file, "<g fill=\"{}\" stroke=\"{}\">\n", color, color)?;
+        svg_file.write_all(svg_string.as_bytes())?;
+        svg_file.write_all(b"\n</g>\n")?;
     }
-    svg_file.write_all(b"</svg>")
-        .expect("cannot write svg file, disk full ?");
-    Command::new("tycat").arg(filename).status().expect("tycat failed");
+    svg_file.write_all(b"</g></svg>")?;
+    Command::new("tycat").arg(filename).status()?;
+    Ok(())
 }
 
 #[macro_export]
@@ -74,12 +99,13 @@ pub fn display(quadrant: &Quadrant, svg_strings: &Vec<String>) {
 /// ```
 /// # #[macro_use] extern crate jimn;
 /// use jimn::point::Point;
-/// use jimn::segment::Segment;
-/// use jimn::tycat::{Displayable, display};
+/// use jimn::quadrant::Quadrant;
+/// use jimn::tycat::display;
 /// # fn main() {
-/// let single_point = Point::new(3.0, 2.0); //NOTE: declared BEFORE display
-/// let segment = Segment::new(Point::new(1.0, 1.0), Point::new(0.0, -1.0));
-/// display!(single_point, segment);
+/// let p1 = Point::new(3.0, 2.0);
+/// let p2 = Point::new(1.0, 1.0);
+/// let p3 = Point::new(5.0, 1.0);
+/// display!(p1, p2, p3);
 /// # }
 /// ```
 macro_rules! display {
@@ -94,7 +120,7 @@ macro_rules! display {
             }
             svg_strings.push($x.svg_string());
         )*
-        display(&quadrant, &svg_strings);
+        display(&quadrant, &svg_strings).expect("tycat failed");
         }
     }
 }
