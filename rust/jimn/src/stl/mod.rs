@@ -8,7 +8,8 @@ use byteorder::{ReadBytesExt, LittleEndian};
 
 mod facet;
 mod point3;
-//use segment::Segment;
+use ordered_float::NotNaN;
+use segment::Segment;
 use stl::facet::Facet;
 use quadrant::Quadrant;
 use utils::coordinates_hash::{CoordinatesHash, PointsHash};
@@ -20,7 +21,7 @@ pub struct Stl {
     /// Box containing all 3D points.
     pub dimensions: Quadrant,
     /// hash of heights (needed to align nearby heights coordinate)
-    heights: CoordinatesHash
+    heights: CoordinatesHash,
 }
 
 impl Stl {
@@ -32,9 +33,9 @@ impl Stl {
         let facets_number = try!(file.read_u32::<LittleEndian>());
 
         // for each facet 4 vectors of 3 32bits floats + 2 unused bytes
-        let size = (facets_number * (4*3*4+2)) as usize;
+        let size = (facets_number * (4 * 3 * 4 + 2)) as usize;
 
-        let mut buffer:Vec<u8> = Vec::with_capacity(size);
+        let mut buffer: Vec<u8> = Vec::with_capacity(size);
         let loaded = try!(file.take(size as u64).read_to_end(&mut buffer));
         //TODO: replace assert with error
         assert_eq!(loaded, size);
@@ -43,25 +44,28 @@ impl Stl {
         let mut model = Stl {
             facets: Vec::with_capacity(size),
             dimensions: Quadrant::new(3),
-            heights: CoordinatesHash::new(5)
+            heights: CoordinatesHash::new(5),
         };
         let mut facets_data = Cursor::new(buffer);
         for _ in 0..facets_number {
-            model.facets.push(
-                Facet::new(&mut facets_data,
-                           &mut model.dimensions,
-                           &mut model.heights));
+            model.facets
+                .push(Facet::new(&mut facets_data, &mut model.dimensions, &mut model.heights));
         }
         Ok(model)
     }
 
-    /// Cuts model into slices of given thickness (starting at the top).
+    /// Cuts model into slices of given thickness.
     /// Returns vector of tuples (height, slice).
-    pub fn compute_slices(&mut self, thickness: f64,
-                          hasher: &mut PointsHash) {
-                          //hasher: &mut PointsHash) -> Vec<(f64, Vec<Segment>)> {
+    pub fn compute_slices(&self,
+                          thickness: NotNaN<f64>,
+                          hasher: &mut PointsHash)
+                          -> Vec<(NotNaN<f64>, Vec<Segment>)> {
         let (min_height, max_height) = self.dimensions.limits(2);
-        let slices_number = ((max_height - min_height)/thickness).ceil() as usize;
+        let height = max_height - min_height;
+        let slices_number = (height / thickness).ceil() as usize;
+        let extra_height = (thickness * (slices_number as f64) - height) / 2.0;
+        let cut_heights = (0..slices_number)
+            .map(|z| min_height - extra_height + thickness / 2.0 + thickness * (z as f64));
         panic!("TODO");
     }
 }

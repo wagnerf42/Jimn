@@ -13,45 +13,43 @@ use ordered_float::NotNaN;
 
 static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
 
-const SVG_COLORS: [&'static str; 37] = [
-    "red",
-    "green",
-    "blue",
-    "purple",
-    "orange",
-    "saddlebrown",
-    "mediumseagreen",
-    "darkolivegreen",
-    "lightskyblue",
-    "dimgray",
-    "mediumpurple",
-    "midnightblue",
-    "olive",
-    "chartreuse",
-    "darkorchid",
-    "hotpink",
-    "darkred",
-    "peru",
-    "goldenrod",
-    "mediumslateblue",
-    "orangered",
-    "darkmagenta",
-    "darkgoldenrod",
-    "mediumslateblue",
-    "firebrick",
-    "palegreen",
-    "royalblue",
-    "tan",
-    "tomato",
-    "springgreen",
-    "pink",
-    "orchid",
-    "saddlebrown",
-    "moccasin",
-    "mistyrose",
-    "cornflowerblue",
-    "darkgrey"
-];
+const SVG_COLORS: [&'static str; 37] = ["red",
+                                        "green",
+                                        "blue",
+                                        "purple",
+                                        "orange",
+                                        "saddlebrown",
+                                        "mediumseagreen",
+                                        "darkolivegreen",
+                                        "lightskyblue",
+                                        "dimgray",
+                                        "mediumpurple",
+                                        "midnightblue",
+                                        "olive",
+                                        "chartreuse",
+                                        "darkorchid",
+                                        "hotpink",
+                                        "darkred",
+                                        "peru",
+                                        "goldenrod",
+                                        "mediumslateblue",
+                                        "orangered",
+                                        "darkmagenta",
+                                        "darkgoldenrod",
+                                        "mediumslateblue",
+                                        "firebrick",
+                                        "palegreen",
+                                        "royalblue",
+                                        "tan",
+                                        "tomato",
+                                        "springgreen",
+                                        "pink",
+                                        "orchid",
+                                        "saddlebrown",
+                                        "moccasin",
+                                        "mistyrose",
+                                        "cornflowerblue",
+                                        "darkgrey"];
 
 /// tycat given svg strings bounded by given quadrant.
 pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
@@ -66,20 +64,32 @@ pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
     let (ymin, ymax) = quadrant.limits(1);
     let width = xmax - xmin;
     let height = ymax - ymin;
-    write!(svg_file, "viewBox=\"{} {} {} {}\" ", xmin, ymin, width, height)?;
+    write!(svg_file,
+           "viewBox=\"{} {} {} {}\" ",
+           xmin,
+           ymin,
+           width,
+           height)?;
     svg_file.write_all(b"xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n")?;
 
     // white background
     write!(svg_file, "<rect x=\"{}\" y=\"{}\" ", xmin, ymin)?;
-    write!(svg_file, "width=\"{}\" height=\"{}\" fill=\"white\"/>\n", width, height)?;
+    write!(svg_file,
+           "width=\"{}\" height=\"{}\" fill=\"white\"/>\n",
+           width,
+           height)?;
 
     // circle definition and stroke size
     let xscale = NotNaN::new(640.0).unwrap() / width;
     let yscale = NotNaN::new(480.0).unwrap() / height;
     let scale = min(xscale, yscale);
     let stroke = 3.0 / scale.into_inner();
-    write!(svg_file, "<defs><symbol id=\"c\"><circle r=\"{}\"/></symbol></defs>\n", 2.0*stroke)?;
-    write!(svg_file, "<g stroke-width=\"{}\" opacity=\"0.7\">\n", stroke)?;
+    write!(svg_file,
+           "<defs><symbol id=\"c\"><circle r=\"{}\"/></symbol></defs>\n",
+           2.0 * stroke)?;
+    write!(svg_file,
+           "<g stroke-width=\"{}\" opacity=\"0.7\">\n",
+           stroke)?;
 
     for (svg_string, color) in svg_strings.iter().zip(SVG_COLORS.iter()) {
         write!(svg_file, "<g fill=\"{}\" stroke=\"{}\">\n", color, color)?;

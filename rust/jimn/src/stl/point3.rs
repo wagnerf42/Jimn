@@ -3,6 +3,7 @@ use quadrant::{Shape, Quadrant};
 use point::Point;
 use utils::coordinates_hash::PointsHash;
 use ordered_float::NotNaN;
+use std::cmp::{min, max};
 
 #[derive(Copy, Clone, Debug)]
 /// 3D Point structure.
@@ -12,14 +13,18 @@ pub struct Point3 {
     /// Y coordinate.
     pub y: NotNaN<f64>,
     /// Z coordinate (height).
-    pub z: NotNaN<f64>
+    pub z: NotNaN<f64>,
 }
 
 impl Point3 {
     /// Returns a new point with given coordinates.
     #[inline]
-    pub fn new<T:Into<NotNaN<f64>>>(x: T, y: T, z: T) -> Point3 {
-        Point3{x: x.into(), y: y.into(), z: z.into()}
+    pub fn new<T: Into<NotNaN<f64>>>(x: T, y: T, z: T) -> Point3 {
+        Point3 {
+            x: x.into(),
+            y: y.into(),
+            z: z.into(),
+        }
     }
 
     /// Intersects segment between *self* and *end* with horizontal plane
@@ -27,12 +32,22 @@ impl Point3 {
     /// Pre-condition: one point on each side of the height.
     /// TODO: hash point
     #[inline]
-    pub fn segment_intersection(&self, end: &Point3,
-                                height: NotNaN<f64>) -> Point {
-        let alpha = (height - self.z)/(end.z - self.z);
-        let intersecting_x = self.x + alpha*(end.x-self.x);
-        let intersecting_y = self.y + alpha*(end.y-self.y);
-        Point::new(intersecting_x, intersecting_y)
+    pub fn segment_intersection(&self,
+                                end: &Point3,
+                                height: NotNaN<f64>,
+                                hasher: &mut PointsHash)
+                                -> Option<Point> {
+        let lower_z = min(self.z, end.z);
+        let higher_z = max(self.z, end.z);
+        if height < lower_z || height > higher_z {
+            None
+        } else {
+            let alpha = (height - self.z) / (end.z - self.z);
+            let intersecting_x = self.x + alpha * (end.x - self.x);
+            let intersecting_y = self.y + alpha * (end.y - self.y);
+            let intersection = Point::new(intersecting_x, intersecting_y);
+            Some(hasher.hash_point(&intersection))
+        }
     }
 }
 

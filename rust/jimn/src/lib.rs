@@ -13,8 +13,6 @@
 
 #![deny(missing_docs)]
 #![allow(dead_code, unused_imports, unused_variables)]
-#![feature(plugin)]
-#![plugin(clippy)]
 
 extern crate byteorder;
 extern crate rand;
@@ -26,3 +24,14 @@ pub mod quadrant;
 pub mod point;
 pub mod segment;
 pub mod stl;
+
+use ordered_float::NotNaN;
+use stl::Stl;
+use utils::coordinates_hash::PointsHash;
+
+/// Computes the milling path for given slices thickness, milling radius and stl file.
+pub fn compute_milling_path(thickness: f64, milling_radius: f64, stl_file: String) {
+    let model = Stl::new(stl_file.as_str()).expect("unable to load stl file");
+    let mut rounder = PointsHash::new(6);
+    model.compute_slices(NotNaN::new(thickness).unwrap(), &mut rounder);
+}

@@ -10,6 +10,6 @@ pub mod precision;
 pub trait Identifiable {
     /// Returns address of object which serves as unique identifier.
     fn id(&self) -> usize {
-        self as *const _ as *const() as usize
+        self as *const _ as *const () as usize
     }
 }

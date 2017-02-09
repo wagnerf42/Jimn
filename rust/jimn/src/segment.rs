@@ -9,7 +9,7 @@ pub struct Segment {
     /// start point
     start: Point,
     /// end point
-    end: Point
+    end: Point,
 }
 
 impl Segment {
@@ -17,7 +17,7 @@ impl Segment {
     pub fn new(start: Point, end: Point) -> Segment {
         Segment {
             start: start,
-            end: end
+            end: end,
         }
     }
 
@@ -32,7 +32,9 @@ impl Segment {
     /// Returns svg string for tycat.
     pub fn svg_string(&self) -> String {
         format!("<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>",
-                self.start.x, self.start.y,
-                self.end.x, self.end.y)
+                self.start.x,
+                self.start.y,
+                self.end.x,
+                self.end.y)
     }
 }

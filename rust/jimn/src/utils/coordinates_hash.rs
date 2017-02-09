@@ -16,17 +16,18 @@ use quadrant::Quadrant;
 use ordered_float::NotNaN;
 
 fn coordinate_key(coordinate: NotNaN<f64>, precision: usize) -> String {
-    format!("{:.p$}", coordinate, p=precision)
+    format!("{:.p$}", coordinate, p = precision)
 }
 
 fn displaced_coordinate_key(coordinate: NotNaN<f64>, precision: usize) -> String {
-    coordinate_key(coordinate + 5.0 * 10.0f64.powi(-((precision+1) as i32)), precision)
+    coordinate_key(coordinate + 5.0 * 10.0f64.powi(-((precision + 1) as i32)),
+                   precision)
 }
 
 /// a `CoordinatesHash` allows for hashing nearby coordinates together in O(1).
 pub struct CoordinatesHash {
     hashes: Vec<HashMap<String, NotNaN<f64>>>,
-    precision: usize
+    precision: usize,
 }
 
 impl CoordinatesHash {
@@ -34,7 +35,7 @@ impl CoordinatesHash {
     pub fn new(precision: usize) -> CoordinatesHash {
         CoordinatesHash {
             hashes: vec![HashMap::new(); 2],
-            precision: precision
+            precision: precision,
         }
     }
 
@@ -42,10 +43,8 @@ impl CoordinatesHash {
     /// If no nearby coordinate in the hash, adds it and returns it
     /// else returns the nearby coordinate.
     pub fn hash_coordinate(&mut self, coordinate: NotNaN<f64>) -> NotNaN<f64> {
-        let keys = vec![
-            coordinate_key(coordinate, self.precision),
-            displaced_coordinate_key(coordinate, self.precision)
-        ];
+        let keys = vec![coordinate_key(coordinate, self.precision),
+                        displaced_coordinate_key(coordinate, self.precision)];
         for (hash, key) in self.hashes.iter().zip(keys.iter()) {
             let possible_old_coordinate = hash.get(key);
             if possible_old_coordinate.is_some() {
@@ -61,15 +60,13 @@ impl CoordinatesHash {
 
 /// a `PointsHash` allows for adjusting nearby coordinates O(1).
 pub struct PointsHash {
-    hashes: [CoordinatesHash; 2]
+    hashes: [CoordinatesHash; 2],
 }
 
 impl PointsHash {
     /// Creates a new `PointsHash` with given precision.
     pub fn new(precision: usize) -> PointsHash {
-        PointsHash {
-            hashes: [CoordinatesHash::new(precision), CoordinatesHash::new(precision)]
-        }
+        PointsHash { hashes: [CoordinatesHash::new(precision), CoordinatesHash::new(precision)] }
     }
 
     /// Tries to add a point to the hash, adjusting coordinates.
@@ -100,9 +97,7 @@ impl PointsHash {
 
     /// Returns `Quadrant` delimiting all points we contain.
     /// TODO
-    pub fn get_quadrant(&self) -> Quadrant{
+    pub fn get_quadrant(&self) -> Quadrant {
         Quadrant::new(2)
     }
 }
-
-

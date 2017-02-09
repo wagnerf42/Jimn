@@ -9,25 +9,28 @@ use quadrant::{Quadrant, Shape};
 use ordered_float::NotNaN;
 
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 /// 2D point structure.
 pub struct Point {
     /// X coordinate.
     pub x: NotNaN<f64>,
     /// Y coordinate.
-    pub y: NotNaN<f64>
+    pub y: NotNaN<f64>,
 }
 
 impl Point {
     /// Returns a new Point from given coordinates.
-    pub fn new<T:Into<NotNaN<f64>>>(x: T, y: T) -> Point {
-        Point{x: x.into(), y: y.into()}
+    pub fn new<T: Into<NotNaN<f64>>>(x: T, y: T) -> Point {
+        Point {
+            x: x.into(),
+            y: y.into(),
+        }
     }
 
     /// Returns if the three given points are approximately aligned.
     pub fn is_aligned_with(&self, p2: &Point, p3: &Point) -> bool {
-        let determinant = self.x*p2.y + self.y*p3.x + p2.x*p3.y
-            - (p2.y*p3.x + self.y*p2.x + self.x*p3.y);
+        let determinant = self.x * p2.y + self.y * p3.x + p2.x * p3.y -
+                          (p2.y * p3.x + self.y * p2.x + self.x * p3.y);
         determinant.abs() < 10.0f64.powi(-5) //TODO: why 5 ?
     }
 
@@ -101,14 +104,20 @@ impl Shape for Point {
 impl Add for Point {
     type Output = Point;
     fn add(self, other: Point) -> Point {
-        Point{x : self.x + other.x, y : self.y + other.y}
+        Point {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
     }
 }
 
 impl Sub for Point {
     type Output = Point;
     fn sub(self, other: Point) -> Point {
-        Point{x: self.x - other.x, y: self.y - other.y}
+        Point {
+            x: self.x - other.x,
+            y: self.y - other.y,
+        }
     }
 }
 
@@ -116,7 +125,10 @@ impl<T: Into<NotNaN<f64>>> Mul<T> for Point {
     type Output = Point;
     fn mul(self: Point, rhs: T) -> Point {
         let factor = rhs.into();
-        Point{x: self.x * factor, y: self.y * factor}
+        Point {
+            x: self.x * factor,
+            y: self.y * factor,
+        }
     }
 }
 
@@ -124,6 +136,9 @@ impl<T: Into<NotNaN<f64>>> Div<T> for Point {
     type Output = Point;
     fn div(self: Point, rhs: T) -> Point {
         let divisor = rhs.into();
-        Point{x: self.x / divisor, y: self.y / divisor}
+        Point {
+            x: self.x / divisor,
+            y: self.y / divisor,
+        }
     }
 }
