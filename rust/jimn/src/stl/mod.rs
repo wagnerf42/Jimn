@@ -14,7 +14,7 @@ use stl::facet::Facet;
 use quadrant::Quadrant;
 use utils::coordinates_hash::{CoordinatesHash, PointsHash};
 
-/// The **Stl** structure holds a set of [facets](facet/struct.Facet.html).
+/// The **Stl** structure holds a set of [Facets](facet/struct.Facet.html).
 pub struct Stl {
     /// Vector containing all facets.
     pub facets: Vec<Facet>,
@@ -22,6 +22,22 @@ pub struct Stl {
     pub dimensions: Quadrant,
     /// hash of heights (needed to align nearby heights coordinate)
     heights: CoordinatesHash,
+}
+
+/// slicing algorithm is event based
+enum EventType {
+    FacetEnd,
+    Cut,
+    FacetStart,
+}
+
+struct CuttingEvent {
+    /// Height at which event is happening
+    height: NotNaN<f64>,
+    /// Event type
+    event_type: EventType,
+    /// Optional facet for facets creations / destructions
+    facet: Option<usize>,
 }
 
 impl Stl {
@@ -66,6 +82,9 @@ impl Stl {
         let extra_height = (thickness * (slices_number as f64) - height) / 2.0;
         let cut_heights = (0..slices_number)
             .map(|z| min_height - extra_height + thickness / 2.0 + thickness * (z as f64));
+        let events = Vec::with_capacity(slices_number + 2 * self.facets.len());
+
+
         panic!("TODO");
     }
 }
