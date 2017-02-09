@@ -1,45 +1,46 @@
 //!Point3 (in 3d space) submodule for jimn.
-//TODO: it would be better to have generic N-dimension points
-use bounding_box::IsPoint;
+use quadrant::{Shape, Quadrant};
 use point::Point;
 use utils::coordinates_hash::PointsHash;
+use ordered_float::NotNaN;
 
 #[derive(Copy, Clone, Debug)]
 /// 3D Point structure.
 pub struct Point3 {
     /// X coordinate.
-    pub x: f64,
+    pub x: NotNaN<f64>,
     /// Y coordinate.
-    pub y: f64,
+    pub y: NotNaN<f64>,
     /// Z coordinate (height).
-    pub z: f64
+    pub z: NotNaN<f64>
 }
 
 impl Point3 {
     /// Returns a new point with given coordinates.
     #[inline]
-    pub fn new(x: f64, y: f64, z: f64) -> Point3 {
-        Point3{x: x, y: y, z: z}
+    pub fn new<T:Into<NotNaN<f64>>>(x: T, y: T, z: T) -> Point3 {
+        Point3{x: x.into(), y: y.into(), z: z.into()}
     }
 
     /// Intersects segment between *self* and *end* with horizontal plane
     /// at given height.
     /// Pre-condition: one point on each side of the height.
+    /// TODO: hash point
     #[inline]
     pub fn segment_intersection(&self, end: &Point3,
-                                height: f64,
-                                hasher: &mut PointsHash) -> Point {
-        let intersecting_x = 
-            self.x + (height - self.z)/(end.z - self.z)*(end.x-self.x);
-        let intersecting_y = 
-            self.y + (height - self.z)/(end.z - self.z)*(end.y-self.y);
-        let point = Point::new(intersecting_x, intersecting_y);
-        hasher.hash_point(&point)
+                                height: NotNaN<f64>) -> Point {
+        let alpha = (height - self.z)/(end.z - self.z);
+        let intersecting_x = self.x + alpha*(end.x-self.x);
+        let intersecting_y = self.y + alpha*(end.y-self.y);
+        Point::new(intersecting_x, intersecting_y)
     }
 }
 
-impl IsPoint for Point3 {
-    fn coordinates(&self) -> Vec<f64> {
-        vec![self.x, self.y, self.z]
+impl Shape for Point3 {
+    fn get_quadrant(&self) -> Quadrant {
+        Quadrant {
+            min_coordinates: vec![self.x, self.y, self.z],
+            max_coordinates: vec![self.x, self.y, self.z],
+        }
     }
 }

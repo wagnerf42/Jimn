@@ -99,13 +99,15 @@ pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
 /// ```
 /// # #[macro_use] extern crate jimn;
 /// use jimn::point::Point;
+/// use jimn::segment::Segment;
 /// use jimn::quadrant::Quadrant;
 /// use jimn::tycat::display;
 /// # fn main() {
 /// let p1 = Point::new(3.0, 2.0);
 /// let p2 = Point::new(1.0, 1.0);
 /// let p3 = Point::new(5.0, 1.0);
-/// display!(p1, p2, p3);
+/// let s = Segment::new(p2, p3);
+/// display!(p1, p2, p3, s);
 /// # }
 /// ```
 macro_rules! display {

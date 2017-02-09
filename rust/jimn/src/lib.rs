@@ -12,6 +12,7 @@
 //! Compile them with cargo !
 
 #![deny(missing_docs)]
+#![allow(dead_code, unused_imports, unused_variables)]
 #![feature(plugin)]
 #![plugin(clippy)]
 
@@ -23,3 +24,5 @@ pub mod utils;
 pub mod tycat;
 pub mod quadrant;
 pub mod point;
+pub mod segment;
+pub mod stl;

@@ -3,10 +3,11 @@
 //! Provides `Facet` class for handling 3D facets from stl files.
 use std::io::{Read, Seek, SeekFrom};
 use byteorder::{ReadBytesExt, LittleEndian};
+use ordered_float::NotNaN;
 
-use bounding_box::BoundingBox;
+use quadrant::Quadrant;
 use point::Point;
-use segment::Segment;
+//use segment::Segment;
 use utils::precision::is_almost;
 use utils::coordinates_hash::{CoordinatesHash, PointsHash};
 use stl::point3::Point3;
@@ -20,18 +21,18 @@ pub struct Facet {
 impl Facet {
     /// Parses binary content into of cursor on stl data into facet.
     pub fn new<R: Read + Seek>(raw_data: &mut R,
-                               bbox: &mut BoundingBox,
+                               quadrant: &mut Quadrant,
                                heights: &mut CoordinatesHash) -> Facet {
         #[inline]
         fn read_point<R: Read>(raw_data: &mut R,
-                               bbox: &mut BoundingBox,
+                               quadrant: &mut Quadrant,
                                heights: &mut CoordinatesHash) -> Point3 {
             let point = Point3::new(
-                raw_data.read_f32::<LittleEndian>().unwrap() as f64,
-                raw_data.read_f32::<LittleEndian>().unwrap() as f64,
+                NotNaN::new(raw_data.read_f32::<LittleEndian>().unwrap() as f64).unwrap(),
+                NotNaN::new(raw_data.read_f32::<LittleEndian>().unwrap() as f64).unwrap(),
                 heights.hash_coordinate(
-                    raw_data.read_f32::<LittleEndian>().unwrap() as f64));
-            bbox.add_point(&point);
+                    NotNaN::new(raw_data.read_f32::<LittleEndian>().unwrap() as f64).unwrap()));
+            quadrant.add(&point);
             point
         }
         //skip normal vector
@@ -39,9 +40,9 @@ impl Facet {
         raw_data.seek(SeekFrom::Current(12)).unwrap();
         let new_facet = Facet {
             points: [
-                read_point(raw_data, bbox, heights),
-                read_point(raw_data, bbox, heights),
-                read_point(raw_data, bbox, heights)
+                read_point(raw_data, quadrant, heights),
+                read_point(raw_data, quadrant, heights),
+                read_point(raw_data, quadrant, heights)
             ]
         };
         //skip useless bytes
@@ -49,57 +50,10 @@ impl Facet {
         new_facet
     }
 
-    /// Returns two vector of references on our points.
-    /// First one contains points below given height and other
-    /// one points above given height.
-    fn points_above_below(&self, height: f64)
-        -> (Vec<&Point3>, Vec<&Point3>) {
-            let (mut low_points, mut high_points) = (Vec::new(), Vec::new());
-            for point in &self.points {
-                if point.z > height {
-                    high_points.push(point)
-                } else {
-                    low_points.push(point)
-                }
-            }
-            (low_points, high_points)
-    }
-
     /// Intersects facet at given height.
     pub fn intersect(&self, height: f64,
-                     hasher: &mut PointsHash) -> Option<Segment> {
-        let (lower_points, higher_points) = self.points_above_below(height);
-        let (together_points, isolated_point);
-        if lower_points.len() == 2 {
-            together_points = lower_points;
-            isolated_point = higher_points[0];
-        } else if higher_points.len() == 2 {
-            together_points = higher_points;
-            isolated_point = lower_points[0];
-            if is_almost(isolated_point.z, height) {
-                return None
-            }
-        } else {
-            return None
-        }
-        // intersect segments crossing height
-        let intersection_points: Vec<Point> = together_points.iter()
-            .map(|p| p.segment_intersection(isolated_point, height, hasher))
-            .collect();
-        // because of rounding
-        if intersection_points[0].is_almost(&intersection_points[1]) {
-            return None
-        }
-        Some(Segment::new(intersection_points[0], intersection_points[1]))
-    }
-
-    /// Returns true if facet contains an point strictly below given height.
-    pub fn is_below(&self, height: f64) -> bool {
-        for point in &self.points {
-            if point.z < height {
-                return true;
-            }
-        }
-        false
-    }
+                     hasher: &mut PointsHash) {
+                     //hasher: &mut PointsHash) -> Option<Segment> {
+        panic!("TODO")
+     }
 }

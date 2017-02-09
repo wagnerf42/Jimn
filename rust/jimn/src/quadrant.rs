@@ -5,7 +5,6 @@
 //! Quadrants are also used for computing display dimensions.
 
 use ordered_float::NotNaN;
-use point::Point;
 
 /// The bounding box structure stores bounds on each coordinate.
 /// In 2D this translates to rectangles.
@@ -15,6 +14,12 @@ pub struct Quadrant {
     pub min_coordinates: Vec<NotNaN<f64>>,
     /// Vector of upper bounds on each coordinate.
     pub max_coordinates: Vec<NotNaN<f64>>
+}
+
+/// Any `Shape` is enclosed in a quadrant.
+pub trait Shape {
+    /// get min quadrant in which we are enclosed.
+    fn get_quadrant(&self) -> Quadrant;
 }
 
 impl Quadrant {
@@ -76,8 +81,8 @@ impl Quadrant {
     }
 
     /// Adds given point to ourselves.
-    pub fn add_point(&mut self, point: &Point) {
-        let quadrant = point.get_quadrant();
+    pub fn add<T: Shape>(&mut self, shape: &T) {
+        let quadrant = shape.get_quadrant();
         self.update(&quadrant)
     }
 }

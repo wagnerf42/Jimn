@@ -7,7 +7,7 @@ fn main() {
     let o2 = Point::new(1.3, 2.5);
     let mut quadrant = Quadrant::new(2);
     println!("quadrant is {:?}", quadrant);
-    quadrant.add_point(&o);
-    quadrant.add_point(&o2);
+    quadrant.add(&o);
+    quadrant.add(&o2);
     println!("quadrant is {:?}", quadrant);
 }

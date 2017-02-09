@@ -8,9 +8,9 @@ use byteorder::{ReadBytesExt, LittleEndian};
 
 mod facet;
 mod point3;
-use segment::Segment;
+//use segment::Segment;
 use stl::facet::Facet;
-use bounding_box::BoundingBox;
+use quadrant::Quadrant;
 use utils::coordinates_hash::{CoordinatesHash, PointsHash};
 
 /// The **Stl** structure holds a set of [facets](facet/struct.Facet.html).
@@ -18,7 +18,7 @@ pub struct Stl {
     /// Vector containing all facets.
     pub facets: Vec<Facet>,
     /// Box containing all 3D points.
-    pub dimensions: BoundingBox,
+    pub dimensions: Quadrant,
     /// hash of heights (needed to align nearby heights coordinate)
     heights: CoordinatesHash
 }
@@ -42,7 +42,7 @@ impl Stl {
         // parse facets
         let mut model = Stl {
             facets: Vec::with_capacity(size),
-            dimensions: BoundingBox::empty_box(3),
+            dimensions: Quadrant::new(3),
             heights: CoordinatesHash::new(5)
         };
         let mut facets_data = Cursor::new(buffer);
@@ -58,30 +58,10 @@ impl Stl {
     /// Cuts model into slices of given thickness (starting at the top).
     /// Returns vector of tuples (height, slice).
     pub fn compute_slices(&mut self, thickness: f64,
-                          hasher: &mut PointsHash) -> Vec<(f64, Vec<Segment>)> {
+                          hasher: &mut PointsHash) {
+                          //hasher: &mut PointsHash) -> Vec<(f64, Vec<Segment>)> {
         let (min_height, max_height) = self.dimensions.limits(2);
         let slices_number = ((max_height - min_height)/thickness).ceil() as usize;
-        let mut remaining_facets:Vec<&Facet> = self.facets.iter().collect();
-        let mut slices = Vec::with_capacity(slices_number);
-
-        for slice_number in 0..slices_number {
-            let mut lower_boundary = max_height - ((slice_number + 1) as f64) * thickness;
-            if lower_boundary < min_height + 0.01 {
-                lower_boundary = min_height + 0.01;
-                //TODO: do a special case instead
-            }
-            lower_boundary = self.heights.hash_coordinate(lower_boundary);
-            //cut facets at given height
-            let current_slice:Vec<_> = remaining_facets.iter()
-                .filter_map(|f| f.intersect(lower_boundary, hasher))
-                .collect();
-            assert!(!current_slice.is_empty());
-            slices.push((lower_boundary, current_slice));
-
-            //discard all facets too high
-            remaining_facets = remaining_facets.into_iter()
-                .filter(|f| f.is_below(lower_boundary)).collect();
-        }
-        slices
+        panic!("TODO");
     }
 }
