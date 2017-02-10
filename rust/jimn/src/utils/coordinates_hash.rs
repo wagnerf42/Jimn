@@ -56,6 +56,24 @@ impl CoordinatesHash {
         }
         coordinate
     }
+
+    /// Lookup a coordinate in the table. Returns nearby coordinate if any or unchanged
+    /// value if none. Leaves table unmodified.
+    pub fn lookup_coordinate(&self, coordinate: NotNaN<f64>) -> NotNaN<f64> {
+        let base_key = coordinate_key(coordinate, self.precision);
+        let base_lookup = self.hashes[0].get(&base_key);
+        match base_lookup {
+            Some(x) => *x,
+            None => {
+                let displaced_key = displaced_coordinate_key(coordinate, self.precision);
+                let displaced_lookup = self.hashes[1].get(&displaced_key);
+                match displaced_lookup {
+                    Some(x) => *x,
+                    None => coordinate,
+                }
+            }
+        }
+    }
 }
 
 /// a `PointsHash` allows for adjusting nearby coordinates O(1).

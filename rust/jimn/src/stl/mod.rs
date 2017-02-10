@@ -70,21 +70,48 @@ impl Stl {
         Ok(model)
     }
 
-    /// Cuts model into slices of given thickness.
-    /// Returns vector of tuples (height, slice).
-    pub fn compute_slices(&self,
-                          thickness: NotNaN<f64>,
-                          hasher: &mut PointsHash)
-                          -> Vec<(NotNaN<f64>, Vec<Segment>)> {
+    /// Prepares for cutting by generating all events.
+    fn generate_cutting_events(&self, thickness: NotNaN<f64>) -> Vec<CuttingEvent> {
         let (min_height, max_height) = self.dimensions.limits(2);
         let height = max_height - min_height;
         let slices_number = (height / thickness).ceil() as usize;
         let extra_height = (thickness * (slices_number as f64) - height) / 2.0;
         let cut_heights = (0..slices_number)
             .map(|z| min_height - extra_height + thickness / 2.0 + thickness * (z as f64));
-        let events = Vec::with_capacity(slices_number + 2 * self.facets.len());
+        let mut events: Vec<CuttingEvent> = Vec::with_capacity(slices_number +
+                                                               2 * self.facets.len());
+        for (index, facet) in self.facets.iter().enumerate() {
+            let (zmin, zmax) = facet.height_limits();
+            let start_event = CuttingEvent {
+                height: zmin,
+                event_type: EventType::FacetStart,
+                facet: Some(index),
+            };
+            events.push(start_event);
+            let end_event = CuttingEvent {
+                height: zmax,
+                event_type: EventType::FacetEnd,
+                facet: Some(index),
+            };
+        }
 
+        for height in cut_heights {
+            events.push(CuttingEvent {
+                height: self.heights.lookup_coordinate(height),
+                event_type: EventType::Cut,
+                facet: None,
+            });
+        }
+        events
+    }
 
+    /// Cuts model into slices of given thickness.
+    /// Returns vector of tuples (height, slice).
+    pub fn compute_slices(&self,
+                          thickness: NotNaN<f64>,
+                          hasher: &mut PointsHash)
+                          -> Vec<(NotNaN<f64>, Vec<Segment>)> {
+        let events = self.generate_cutting_events(thickness);
         panic!("TODO");
     }
 }
