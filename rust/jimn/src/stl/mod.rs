@@ -4,6 +4,7 @@
 //! Color information is discarded.
 use std::fs::File;
 use std::io::{Error, Read, SeekFrom, Seek, Cursor};
+use std::collections::HashSet;
 use byteorder::{ReadBytesExt, LittleEndian};
 
 mod facet;
@@ -25,6 +26,7 @@ pub struct Stl {
 }
 
 /// slicing algorithm is event based
+#[derive(PartialEq, PartialOrd, Eq, Ord, Clone, Copy)]
 enum EventType {
     FacetEnd,
     Cut,
@@ -93,6 +95,7 @@ impl Stl {
                 event_type: EventType::FacetEnd,
                 facet: Some(index),
             };
+            events.push(end_event);
         }
 
         for height in cut_heights {
@@ -111,7 +114,26 @@ impl Stl {
                           thickness: NotNaN<f64>,
                           hasher: &mut PointsHash)
                           -> Vec<(NotNaN<f64>, Vec<Segment>)> {
-        let events = self.generate_cutting_events(thickness);
-        panic!("TODO");
+        let mut events = self.generate_cutting_events(thickness);
+        events.sort_by_key(|a| (a.height, a.event_type));
+        let mut facets: HashSet<usize> = HashSet::new();
+        let mut slices = Vec::new();
+        for event in &events {
+            match event.event_type {
+                EventType::Cut => {
+                    let intersections: Vec<Segment> = facets.iter()
+                        .filter_map(|i: &usize| self.facets[*i].intersect(event.height, hasher))
+                        .collect();
+                    slices.push((event.height, intersections));
+                }
+                EventType::FacetStart => {
+                    facets.insert(event.facet.unwrap());
+                }
+                EventType::FacetEnd => {
+                    facets.remove(&event.facet.unwrap());
+                }
+            }
+        }
+        slices
     }
 }

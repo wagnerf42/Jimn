@@ -33,5 +33,5 @@ use utils::coordinates_hash::PointsHash;
 pub fn compute_milling_path(thickness: f64, milling_radius: f64, stl_file: String) {
     let model = Stl::new(stl_file.as_str()).expect("unable to load stl file");
     let mut rounder = PointsHash::new(6);
-    model.compute_slices(NotNaN::new(thickness).unwrap(), &mut rounder);
+    let slices = model.compute_slices(NotNaN::new(thickness).unwrap(), &mut rounder);
 }
