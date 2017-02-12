@@ -2,7 +2,7 @@
 //!
 //! Provides a `Segment` structure for storing oriented 2d segments.
 use point::Point;
-use quadrant::Quadrant;
+use quadrant::{Quadrant, Shape};
 
 /// Segment in plane
 pub struct Segment {
@@ -20,9 +20,11 @@ impl Segment {
             end: end,
         }
     }
+}
 
+impl Shape for Segment {
     /// Returns the smallest `Quadrant` containing us.
-    pub fn get_quadrant(&self) -> Quadrant {
+    fn get_quadrant(&self) -> Quadrant {
         let mut quadrant = Quadrant::new(2);
         quadrant.add(&self.start);
         quadrant.add(&self.end);
@@ -30,7 +32,7 @@ impl Segment {
     }
 
     /// Returns svg string for tycat.
-    pub fn svg_string(&self) -> String {
+    fn svg_string(&self) -> String {
         format!("<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>",
                 self.start.x,
                 self.start.y,

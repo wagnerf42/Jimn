@@ -16,10 +16,27 @@ pub struct Quadrant {
     pub max_coordinates: Vec<NotNaN<f64>>,
 }
 
-/// Any `Shape` is enclosed in a quadrant.
+/// Any displayable `Shape` is enclosed in a quadrant.
 pub trait Shape {
-    /// get min quadrant in which we are enclosed.
+    /// Gets min quadrant in which we are enclosed.
     fn get_quadrant(&self) -> Quadrant;
+    /// Returns svg code displaying it.
+    fn svg_string(&self) -> String;
+}
+
+impl<T: Shape> Shape for Vec<T> {
+    fn get_quadrant(&self) -> Quadrant {
+        let mut quadrant = Quadrant::new(2);
+        for e in self {
+            quadrant.add(e);
+        }
+        quadrant
+    }
+
+    fn svg_string(&self) -> String {
+        let strings: Vec<String> = self.iter().map(|e| e.svg_string()).collect();
+        strings.join("")
+    }
 }
 
 impl Quadrant {

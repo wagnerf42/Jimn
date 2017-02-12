@@ -8,7 +8,7 @@ use std::io::prelude::*;
 use std::fs::File;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::process::Command;
-use quadrant::Quadrant;
+use quadrant::{Quadrant, Shape};
 use ordered_float::NotNaN;
 
 static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
@@ -102,7 +102,7 @@ pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
 }
 
 #[macro_export]
-/// The display macro is used to tycat to terminology **Displayable** structs
+/// The display macro is used to tycat to terminology `Displayable` structs
 /// or vectors of displayable structs.
 /// # Example
 ///
@@ -110,7 +110,7 @@ pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
 /// # #[macro_use] extern crate jimn;
 /// use jimn::point::Point;
 /// use jimn::segment::Segment;
-/// use jimn::quadrant::Quadrant;
+/// use jimn::quadrant::{Quadrant, Shape};
 /// use jimn::tycat::display;
 /// # fn main() {
 /// let p1 = Point::new(3.0, 2.0);

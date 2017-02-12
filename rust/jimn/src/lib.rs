@@ -12,13 +12,13 @@
 //! Compile them with cargo !
 
 #![deny(missing_docs)]
-#![allow(dead_code, unused_imports, unused_variables)]
+//#![allow(dead_code, unused_imports, unused_variables)]
 
 extern crate byteorder;
 extern crate rand;
 extern crate ordered_float;
-//#[macro_use]
 pub mod utils;
+#[macro_use]
 pub mod tycat;
 pub mod quadrant;
 pub mod point;
@@ -28,10 +28,16 @@ pub mod stl;
 use ordered_float::NotNaN;
 use stl::Stl;
 use utils::coordinates_hash::PointsHash;
+use quadrant::{Quadrant, Shape};
+use tycat::display;
 
 /// Computes the milling path for given slices thickness, milling radius and stl file.
 pub fn compute_milling_path(thickness: f64, milling_radius: f64, stl_file: String) {
     let model = Stl::new(stl_file.as_str()).expect("unable to load stl file");
     let mut rounder = PointsHash::new(6);
     let slices = model.compute_slices(NotNaN::new(thickness).unwrap(), &mut rounder);
+    for slice in &slices {
+        println!("height is {}", slice.0);
+        display!(slice.1);
+    }
 }

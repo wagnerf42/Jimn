@@ -75,19 +75,6 @@ impl Point {
     pub fn cross_product(&self, other: &Point) -> NotNaN<f64> {
         (self.x * other.y) - (self.y * other.x)
     }
-
-    /// Returns `Quadrant` containing point.
-    pub fn get_quadrant(&self) -> Quadrant {
-        Quadrant {
-            min_coordinates: vec![self.x, self.y],
-            max_coordinates: vec![self.x, self.y],
-        }
-    }
-
-    /// Returns svg string for displaying point in svg file.
-    pub fn svg_string(&self) -> String {
-        format!("<use xlink:href=\"#c\" x=\"{}\" y=\"{}\"/>", self.x, self.y)
-    }
 }
 
 impl Shape for Point {
@@ -96,6 +83,9 @@ impl Shape for Point {
             min_coordinates: vec![self.x, self.y],
             max_coordinates: vec![self.x, self.y],
         }
+    }
+    fn svg_string(&self) -> String {
+        format!("<use xlink:href=\"#c\" x=\"{}\" y=\"{}\"/>", self.x, self.y)
     }
 }
 

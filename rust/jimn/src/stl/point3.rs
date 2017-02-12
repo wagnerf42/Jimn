@@ -58,4 +58,8 @@ impl Shape for Point3 {
             max_coordinates: vec![self.x, self.y, self.z],
         }
     }
+    fn svg_string(&self) -> String {
+        //flatten in 2d
+        format!("<use xlink:href=\"#c\" x=\"{}\" y=\"{}\"/>", self.x, self.y)
+    }
 }
