@@ -247,16 +247,16 @@ pub struct Treap<T, U, V>
           V: KeyComputer<T, U>
 {
     root: Node<T>,
-    comparer: V,
+    key_generator: V,
     ghost: PhantomData<U>,
 }
 
 impl<T: Display + Default + Eq, U: Ord, V: KeyComputer<T, U>> Treap<T, U, V> {
     /// Creates a new Treap.
-    pub fn new(comparer: V) -> Treap<T, U, V> {
+    pub fn new(key_generator: V) -> Treap<T, U, V> {
         let tree = Treap {
             root: Node::new(Default::default()),
-            comparer: comparer,
+            key_generator: key_generator,
             ghost: PhantomData,
         };
         tree.root.borrow_mut().priority = 0;
@@ -283,9 +283,9 @@ impl<T: Display + Default + Eq, U: Ord, V: KeyComputer<T, U>> Treap<T, U, V> {
     /// ```
     pub fn find_node(&self, value: T) -> Option<Node<T>> {
         let mut current_node = self.root.clone();
-        let target_key = self.comparer.compute_key(&value);
+        let target_key = self.key_generator.compute_key(&value);
         while current_node.borrow().value != value {
-            let current_key = self.comparer.compute_key(&current_node.borrow().value);
+            let current_key = self.key_generator.compute_key(&current_node.borrow().value);
             let direction = (target_key > current_key) as usize;
             if let Some(next_node) = current_node.child(direction) {
                 current_node = next_node;
@@ -300,11 +300,11 @@ impl<T: Display + Default + Eq, U: Ord, V: KeyComputer<T, U>> Treap<T, U, V> {
     pub fn add(&self, value: T) -> Node<T> {
         let mut current_node = self.root.clone();
 
-        let key = self.comparer.compute_key(&value);
+        let key = self.key_generator.compute_key(&value);
         let mut direction = 1; // because sentinel has min key
         while let Some(next_node) = current_node.child(direction) {
             current_node = next_node;
-            let node_key = self.comparer.compute_key(&current_node.borrow().value);
+            let node_key = self.key_generator.compute_key(&current_node.borrow().value);
             assert!(node_key != key);
             direction = (key > node_key) as usize;
         }

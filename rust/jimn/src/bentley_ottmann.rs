@@ -1,17 +1,33 @@
 //! Bentley Ottmann intersection algorithm.
+use std::cell::RefCell;
 use std::collections::{HashMap, HashSet, BinaryHeap};
 use ordered_float::NotNaN;
 use point::Point;
 use segment::Segment;
+use tree::treap::{Treap, KeyComputer};
+
+///We need someone able to compute comparison keys for our segments.
+struct KeyGenerator<'a, 'b> {
+    /// Where we currently are.
+    current_point: &'a RefCell<Point>,
+    /// We need a reference to our segments in order to perform index <-> segment conversion.
+    segments: &'b [Segment],
+}
+
+impl<'a, 'b> KeyComputer<usize, (NotNaN<f64>, NotNaN<f64>)> for KeyGenerator<'a, 'b> {
+    fn compute_key(&self, segment: &usize) -> (NotNaN<f64>, NotNaN<f64>) {
+        panic!("TODO: key computations");
+    }
+}
 
 /// The `Cutter` structure holds all data needed for bentley ottmann's execution.
-struct Cutter {
+struct Cutter<'a, 'b> {
     /// Results: we associate to each segment (identified by it's position in input vector)
     /// a set of intersections.
     intersections: HashMap<usize, HashSet<Point>>,
 
-    /// Current position during algorithm's execution.
-    current_position: Point,
+    /// Where we currently are.
+    current_point: &'a RefCell<Point>,
 
     /// Remaining events.
     events: BinaryHeap<Point>,
@@ -29,21 +45,30 @@ struct Cutter {
     /// The use of set instead of vector allows us to not bother about intersections
     /// being detected twice.
     events_data: HashMap<Point, [HashSet<usize>; 2]>,
+
+    /// We store currently crossed segments in a treap (again their positions in input vector).
+    crossed_segments: Treap<usize, (NotNaN<f64>, NotNaN<f64>), KeyGenerator<'a, 'b>>,
 }
 
-impl Cutter {
-    fn new(segments: &[Segment]) -> Cutter {
+impl<'a, 'b> Cutter<'a, 'b> {
+    fn new(current_point: &'a RefCell<Point>, segments: &'b [Segment]) -> Cutter<'a, 'b> {
 
         //guess the capacity of all our events related hash tables.
         //we need to be above truth to avoid collisions but not too much above.
         let capacity = 8 * segments.len();
 
+        let generator = KeyGenerator {
+            current_point: current_point,
+            segments: segments,
+        };
+
         let mut cutter = Cutter {
             intersections: HashMap::new(),
-            current_position: Point::new(0.0, 0.0), //does not matter
+            current_point: current_point, // initial value does not matter
             events: BinaryHeap::new(),
             x_coordinates: HashMap::with_capacity(capacity),
             events_data: HashMap::with_capacity(capacity),
+            crossed_segments: Treap::new(generator),
         };
 
         for (index, segment) in segments.iter().enumerate() {
@@ -86,7 +111,7 @@ impl Cutter {
             let event_point = self.events.pop().unwrap();
             let event_data = self.events_data.remove(&event_point).expect("no event data");
             self.end_segments(&event_data[1]);
-            self.current_position = event_point;
+            *self.current_point.borrow_mut() = event_point;
             self.start_segments(&event_data[0]);
         }
     }
@@ -95,6 +120,9 @@ impl Cutter {
 /// Computes all intersections amongst given segments
 /// and return vector of obtained elementary segments.
 pub fn bentley_ottmann(segments: &[Segment]) -> Vec<Segment> {
-    Cutter::new(segments).run();
+    // I need to declare current point outside of the main structure to avoid cyclic constructors
+    // problems. (sigh)
+    let current_point = RefCell::new(Point::new(0.0, 0.0));
+    Cutter::new(&current_point, segments).run();
     panic!("TODO bentley ottmann");
 }
