@@ -8,7 +8,6 @@ use ordered_float::NotNaN;
 use quadrant::Quadrant;
 use point::Point;
 use segment::Segment;
-use utils::precision::is_almost;
 use utils::coordinates_hash::{CoordinatesHash, PointsHash};
 use stl::point3::Point3;
 

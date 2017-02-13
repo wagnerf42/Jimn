@@ -9,13 +9,15 @@ use quadrant::{Quadrant, Shape};
 use ordered_float::NotNaN;
 
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 /// 2D point structure.
+/// Note that Y is defined first so that lexicographical comparisons will
+/// start with y.
 pub struct Point {
-    /// X coordinate.
-    pub x: NotNaN<f64>,
     /// Y coordinate.
     pub y: NotNaN<f64>,
+    /// X coordinate.
+    pub x: NotNaN<f64>,
 }
 
 impl Point {

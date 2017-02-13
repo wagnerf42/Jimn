@@ -20,6 +20,27 @@ impl Segment {
             end: end,
         }
     }
+
+    /// Returns start and end point for sweeping line algorithm.
+    /// We go for ymax to ymin and for equal ys from xmax to xmin.
+    /// # Example
+    /// ```
+    /// use jimn::point::Point;
+    /// use jimn::segment::Segment;
+    /// let p1 = Point::new(0.0, 3.0);
+    /// let p2 = Point::new(-1.0, 4.0);
+    /// let s = Segment::new(p1, p2);
+    /// let (start, end) = s.ordered_points();
+    /// assert!(start == p2);
+    /// assert!(end == p1);
+    /// ```
+    pub fn ordered_points(&self) -> (Point, Point) {
+        if self.start > self.end {
+            (self.start, self.end)
+        } else {
+            (self.end, self.start)
+        }
+    }
 }
 
 impl Shape for Segment {

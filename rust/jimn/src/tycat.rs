@@ -8,7 +8,7 @@ use std::io::prelude::*;
 use std::fs::File;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::process::Command;
-use quadrant::{Quadrant, Shape};
+use quadrant::Quadrant;
 use ordered_float::NotNaN;
 
 static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
