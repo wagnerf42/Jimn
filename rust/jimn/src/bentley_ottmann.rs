@@ -4,9 +4,10 @@ use std::collections::{HashMap, HashSet, BinaryHeap};
 use ordered_float::NotNaN;
 use point::Point;
 use segment::Segment;
-use tree::treap::{Treap, KeyComputer};
+use tree::treap::{Treap, KeyComputer, Node};
 
 ///We need someone able to compute comparison keys for our segments.
+#[derive(Clone)]
 struct KeyGenerator<'a, 'b> {
     /// Where we currently are.
     current_point: &'a RefCell<Point>,
@@ -48,6 +49,9 @@ struct Cutter<'a, 'b> {
 
     /// We store currently crossed segments in a treap (again their positions in input vector).
     crossed_segments: Treap<usize, (NotNaN<f64>, NotNaN<f64>), KeyGenerator<'a, 'b>>,
+
+    /// We store the key generator for our own segments comparison purposes.
+    key_generator: KeyGenerator<'a, 'b>,
 }
 
 impl<'a, 'b> Cutter<'a, 'b> {
@@ -68,7 +72,8 @@ impl<'a, 'b> Cutter<'a, 'b> {
             events: BinaryHeap::new(),
             x_coordinates: HashMap::with_capacity(capacity),
             events_data: HashMap::with_capacity(capacity),
-            crossed_segments: Treap::new(generator),
+            crossed_segments: Treap::new(generator.clone()),
+            key_generator: generator,
         };
 
         for (index, segment) in segments.iter().enumerate() {
@@ -93,10 +98,33 @@ impl<'a, 'b> Cutter<'a, 'b> {
             .insert(segment);
     }
 
+    /// Try intersecting segments in two given nodes.
+    fn try_intersecting(&mut self, node1: &Node<usize>, node2: &Node<usize>) {
+        panic!("TODO: intersection code");
+    }
+
     /// End a set of segments.
     /// Checks for possible intersections to add in the system.
-    fn end_segments(&mut self, ended_segments: &HashSet<usize>) {
-        panic!("TODO: end segments");
+    fn end_segments(&mut self, ended_segments: &mut HashSet<usize>) {
+        let mut segments: Vec<usize> = ended_segments.drain().collect();
+        if segments.is_empty() {
+            return;
+        }
+        segments.sort_by(|a, b| {
+            self.key_generator.compute_key(a).cmp(&self.key_generator.compute_key(b))
+        });
+        let small_node = self.crossed_segments.find_node(*segments.first().unwrap()).unwrap();
+        let small_neighbour = small_node.nearest_node(0);
+        if small_neighbour.is_some() {
+            let big_node = self.crossed_segments.find_node(*segments.last().unwrap()).unwrap();
+            let big_neighbour = big_node.nearest_node(1);
+            if big_neighbour.is_some() {
+                self.try_intersecting(&small_node, &big_node);
+            }
+        }
+        for segment in segments {
+            self.crossed_segments.find_node(segment).unwrap().remove();
+        }
     }
 
     /// Start a set of segments.
@@ -109,8 +137,8 @@ impl<'a, 'b> Cutter<'a, 'b> {
     fn run(&mut self) {
         while !self.events.is_empty() {
             let event_point = self.events.pop().unwrap();
-            let event_data = self.events_data.remove(&event_point).expect("no event data");
-            self.end_segments(&event_data[1]);
+            let mut event_data = self.events_data.remove(&event_point).expect("no event data");
+            self.end_segments(&mut event_data[1]);
             *self.current_point.borrow_mut() = event_point;
             self.start_segments(&event_data[0]);
         }
