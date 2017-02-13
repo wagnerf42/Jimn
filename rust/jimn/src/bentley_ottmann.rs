@@ -1,5 +1,5 @@
 //! Bentley Ottmann intersection algorithm.
-use std::collections::{HashMap, HashSet, BTreeSet, BinaryHeap};
+use std::collections::{HashMap, HashSet, BinaryHeap};
 use ordered_float::NotNaN;
 use point::Point;
 use segment::Segment;
@@ -68,13 +68,27 @@ impl Cutter {
             .insert(segment);
     }
 
-    fn run(&self) -> HashMap<usize, HashSet<Point>> {
-        for point in &self.events {
-            println!("event point is {:?}", point);
+    /// End a set of segments.
+    /// Checks for possible intersections to add in the system.
+    fn end_segments(&mut self, ended_segments: &HashSet<usize>) {
+        panic!("TODO: end segments");
+    }
+
+    /// Start a set of segments.
+    /// Checks for possible intersections to add in the system.
+    fn start_segments(&mut self, started_segments: &HashSet<usize>) {
+        panic!("TODO: start segments");
+    }
+
+    /// Main algorithm's loop.
+    fn run(&mut self) {
+        while !self.events.is_empty() {
+            let event_point = self.events.pop().unwrap();
+            let event_data = self.events_data.remove(&event_point).expect("no event data");
+            self.end_segments(&event_data[1]);
+            self.current_position = event_point;
+            self.start_segments(&event_data[0]);
         }
-        //while !self.events.is_empty() {
-        //}
-        panic!("TODO");
     }
 }
 
@@ -82,5 +96,5 @@ impl Cutter {
 /// and return vector of obtained elementary segments.
 pub fn bentley_ottmann(segments: &[Segment]) -> Vec<Segment> {
     Cutter::new(segments).run();
-    panic!("TODO");
+    panic!("TODO bentley ottmann");
 }

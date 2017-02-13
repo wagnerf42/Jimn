@@ -24,6 +24,7 @@ pub mod quadrant;
 pub mod point;
 pub mod segment;
 pub mod stl;
+pub mod tree;
 pub mod bentley_ottmann;
 
 use ordered_float::NotNaN;

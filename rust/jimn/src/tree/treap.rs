@@ -7,24 +7,32 @@ use std::process::Command;
 use std::io::prelude::*;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::fmt::Display;
-use std::f64::NEG_INFINITY;
+use std::marker::PhantomData;
+use std::cmp::Ord;
 use rand;
 
 use utils::Identifiable;
-use ordered_float::OrderedFloat;
 
 /// sequential counter for tycat files
 static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
 
-/// Objets inside a treap must be comparable.
-/// We assume each object provides a function taking current x position
-/// in a sweeping line algorithm and returning
-/// a comparison key (3 floats here).
-pub trait Positionable : Identifiable {
-    /// Returns comparison key for sweeping line algorithm.
-    fn comparison_key(&self, current_x: f64) -> (OrderedFloat<f64>,
-                                                 OrderedFloat<f64>,
-                                                 OrderedFloat<f64>);
+
+//TODO: we have leaks. look at weak references.
+
+/// Objets inside a treap must be comparable by someone.
+/// We use a `KeyComputer` to return a comparison key for an object.
+pub trait KeyComputer<T, U: Ord> {
+    ///Returns a comparison key of type *U* for comparing objects of type *T*.
+    fn compute_key(&self, object: &T) -> U;
+}
+
+/// We give a default comparer for cases where comparison keys are directly the
+/// objects compared.
+pub struct IdentityKeyComputer();
+impl<T: Clone + Ord> KeyComputer<T, T> for IdentityKeyComputer {
+    fn compute_key(&self, object: &T) -> T {
+        object.clone()
+    }
 }
 
 /// Treap Node
@@ -33,7 +41,7 @@ pub struct RawNode<T: Display> {
     pub value: T,
     priority: u64,
     father: Option<Node<T>>,
-    children: [Option<Node<T>>; 2]
+    children: [Option<Node<T>>; 2],
 }
 
 /// Treap node (tuple struct to implement methods)
@@ -61,7 +69,7 @@ impl<T: Display> Node<T> {
             value: value,
             priority: rand::random::<u64>(),
             father: None,
-            children: [None, None]
+            children: [None, None],
         })))
     }
 
@@ -75,7 +83,7 @@ impl<T: Display> Node<T> {
     fn child(&self, direction: usize) -> Option<Node<T>> {
         match self.borrow().children[direction].as_ref() {
             Some(node_ref) => Some(node_ref.clone()),
-            _ => None
+            _ => None,
         }
     }
 
@@ -92,12 +100,12 @@ impl<T: Display> Node<T> {
 
     /// Link given child to us (and back).
     /// Accepts Node, None or option.
-    fn set_child<U: Into<Option<Node<T>>>>(&self,
-                                        direction: usize,
-                                        child: U) {
+    fn set_child<U: Into<Option<Node<T>>>>(&self, direction: usize, child: U) {
         let child_option = child.into();
         if child_option.is_some() {
-            child_option.as_ref().unwrap().borrow_mut()
+            child_option.as_ref()
+                .unwrap()
+                .borrow_mut()
                 .father = Some(self.clone());
         }
         self.borrow_mut().children[direction] = child_option;
@@ -141,9 +149,9 @@ impl<T: Display> Node<T> {
     /// Returns node just bigger or just smaller
     /// (can be None, hence the option).
     pub fn nearest_node(&self, direction: usize) -> Option<Node<T>> {
-        let reversed_direction = 1-direction;
+        let reversed_direction = 1 - direction;
         if let Some(child) = self.child(direction) {
-            return Some(child.extreme_node(reversed_direction));
+            Some(child.extreme_node(reversed_direction))
         } else {
             let mut current_node = self.clone();
             let mut father = self.father();
@@ -155,7 +163,7 @@ impl<T: Display> Node<T> {
                 current_node = father;
                 father = grandfather;
             }
-            return None;
+            None
         }
     }
 
@@ -197,8 +205,7 @@ impl<T: Display> Node<T> {
         if other_father.id() == self.id() {
             // special case: exchanging with direct child
             other.set_child(other_direction, self.clone());
-            other.set_child(1-other_direction,
-                            children[1-other_direction].clone());
+            other.set_child(1 - other_direction, children[1 - other_direction].clone());
         } else {
             other_father.set_child(other_direction, self.clone());
             for (direction, child) in children.iter().enumerate() {
@@ -214,7 +221,8 @@ impl<T: Display> Node<T> {
     /// Writes lines in dot (graphviz) file for displaying
     /// node and links to its children.
     fn write_dot(&self, file: &mut File) {
-        writeln!(file, "n{}[label=\"{} / {}\"];",
+        writeln!(file,
+                 "n{}[label=\"{} / {}\"];",
                  self.id(),
                  self.borrow().value,
                  self.borrow().priority)
@@ -223,9 +231,7 @@ impl<T: Display> Node<T> {
         for child in &self.borrow().children {
             if let Some(ref child_node) = *child {
                 child_node.write_dot(file);
-                writeln!(file, "n{} -> n{};",
-                         self.id(),
-                         child_node.id())
+                writeln!(file, "n{} -> n{};", self.id(), child_node.id())
                     .expect("failed writing dot");
             }
         }
@@ -235,65 +241,70 @@ impl<T: Display> Node<T> {
 /// Treap BST structure.
 /// This structure is specialized for sweeping line algorithms and contains
 /// the current position (used in paths comparisons).
-pub struct Treap<T> where T: Positionable + Display {
+pub struct Treap<T, U, V>
+    where T: Display + Eq,
+          U: Ord,
+          V: KeyComputer<T, U>
+{
     root: Node<T>,
-    current_x: f64
+    comparer: V,
+    ghost: PhantomData<U>,
 }
 
-impl<T: Positionable + Display + Default> Treap<T> {
+impl<T: Display + Default + Eq, U: Ord, V: KeyComputer<T, U>> Treap<T, U, V> {
     /// Creates a new Treap.
-    pub fn new() -> Treap<T> {
+    pub fn new(comparer: V) -> Treap<T, U, V> {
         let tree = Treap {
             root: Node::new(Default::default()),
-            current_x: 0.0
+            comparer: comparer,
+            ghost: PhantomData,
         };
         tree.root.borrow_mut().priority = 0;
         tree
     }
 
     /// Fills the tree with given content.
-    pub fn populate<U: IntoIterator<Item=T>> (&self, content: U) {
+    pub fn populate<W: IntoIterator<Item = T>>(&self, content: W) {
         for value in content {
             self.add(value);
         }
     }
 
-//    /// Returns Node with given value or None.
-//    /// # Example
-//    /// ```
-//    /// use jimn::tree::treap::Treap;
-//    /// let tree = Treap::new();
-//    /// tree.populate(1..10);
-//    /// let node5 = tree.find_node(5);
-//    /// assert!(node5.is_some());
-//    /// let node = node5.unwrap();
-//    /// assert_eq!(node.borrow().value, 5);
-//    /// ```
-//    pub fn find_node(&self, value: u32) -> Option<Node> {
-//        let mut current_node = self.root.clone();
-//        let target_key = self.comparison_key(value);
-//        while current_node.borrow().value != value {
-//            let current_key = self.comparison_key(current_node.borrow().value);
-//            let direction = (target_key > current_key) as usize;
-//            if let Some(next_node) = current_node.child(direction) {
-//                current_node = next_node;
-//            } else {
-//                return None
-//            }
-//        }
-//        Some(current_node)
-//    }
+    /// Returns Node with given value or None.
+    /// # Example
+    /// ```
+    /// use jimn::tree::treap::{IdentityKeyComputer, Treap};
+    /// let tree = Treap::new(IdentityKeyComputer());
+    /// tree.populate(1..10);
+    /// let node5 = tree.find_node(5);
+    /// assert!(node5.is_some());
+    /// let node = node5.unwrap();
+    /// assert_eq!(node.borrow().value, 5);
+    /// ```
+    pub fn find_node(&self, value: T) -> Option<Node<T>> {
+        let mut current_node = self.root.clone();
+        let target_key = self.comparer.compute_key(&value);
+        while current_node.borrow().value != value {
+            let current_key = self.comparer.compute_key(&current_node.borrow().value);
+            let direction = (target_key > current_key) as usize;
+            if let Some(next_node) = current_node.child(direction) {
+                current_node = next_node;
+            } else {
+                return None;
+            }
+        }
+        Some(current_node)
+    }
 
     /// Adds a node to treap with given value.
     pub fn add(&self, value: T) -> Node<T> {
         let mut current_node = self.root.clone();
 
-        let key = self.comparison_key(&value);
+        let key = self.comparer.compute_key(&value);
         let mut direction = 1; // because sentinel has min key
         while let Some(next_node) = current_node.child(direction) {
             current_node = next_node;
-            let node_key = self.comparison_key(
-                &current_node.borrow().value);
+            let node_key = self.comparer.compute_key(&current_node.borrow().value);
             assert!(node_key != key);
             direction = (key > node_key) as usize;
         }
@@ -308,33 +319,21 @@ impl<T: Positionable + Display + Default> Treap<T> {
         let dot_filename = format!("/tmp/test-{}.dot", file_number);
         let png_filename = format!("/tmp/test-{}.png", file_number);
         {
-            let mut file = File::create(&dot_filename)
-                .expect("cannot create dot file");
-            writeln!(file, "digraph g {{")
-                .expect("failed writing dot");
+            let mut file = File::create(&dot_filename).expect("cannot create dot file");
+            writeln!(file, "digraph g {{").expect("failed writing dot");
             self.root.write_dot(&mut file);
-            writeln!(file, "}}")
-                .expect("failed writing dot");
+            writeln!(file, "}}").expect("failed writing dot");
         }
-        Command::new("dot").arg("-Tpng").arg(&dot_filename)
-            .arg("-o").arg(&png_filename)
-            .status().expect("dot failed");
-        Command::new("tycat").arg(&png_filename)
-            .status().expect("tycat failed");
-    }
-    /// Get key from value to compare nodes.
-    /// Uses current position.
-    fn comparison_key(&self, value: &T)
-        -> (OrderedFloat<f64>, OrderedFloat<f64>, OrderedFloat<f64>) {
-            if value.id() == self.root.borrow().value.id() {
-                (OrderedFloat(NEG_INFINITY), OrderedFloat(0.0), OrderedFloat(0.0))
-            } else {
-                value.comparison_key(self.current_x)
-            }
-    }
-
-    /// Sets current position of sweeping line to given value.
-    pub fn set_position(&mut self, next_x: f64) {
-        self.current_x = next_x;
+        Command::new("dot")
+            .arg("-Tpng")
+            .arg(&dot_filename)
+            .arg("-o")
+            .arg(&png_filename)
+            .status()
+            .expect("dot failed");
+        Command::new("tycat")
+            .arg(&png_filename)
+            .status()
+            .expect("tycat failed");
     }
 }
