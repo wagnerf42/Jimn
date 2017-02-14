@@ -118,7 +118,19 @@ impl<'a, 'b, 'c> Cutter<'a, 'b, 'c> {
 
     /// Try intersecting segments in two given nodes.
     fn try_intersecting(&mut self, node1: &Node<usize>, node2: &Node<usize>) {
-        panic!("TODO: intersection code");
+        //TODO: use rounder for computing intersection
+        let s1 = &self.key_generator.segments[node1.borrow().value];
+        let s2 = &self.key_generator.segments[node2.borrow().value];
+        let possible_intersection = s1.intersection_with(s2);
+        if possible_intersection.is_some() {
+            let intersection = possible_intersection.unwrap();
+            if !s1.has_endpoint(&intersection) {
+                panic!("TODO: add intersection events");
+            }
+            if !s2.has_endpoint(&intersection) {
+                panic!("TODO: add intersection events");
+            }
+        }
     }
 
     /// End a set of segments.

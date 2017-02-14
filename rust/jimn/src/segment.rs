@@ -85,6 +85,16 @@ impl Segment {
         let (sweeping_start, sweeping_end) = self.ordered_points();
         sweeping_start.angle_with(&sweeping_end)
     }
+
+    /// Compute intersection between two segments.
+    pub fn intersection_with(&self, other: &Segment) -> Option<Point> {
+        panic!("TODO: intersection");
+    }
+
+    /// Do we have given point as EXACTLY one of our endpoints ?
+    pub fn has_endpoint(&self, point: &Point) -> bool {
+        (self.start == *point) || (self.end == *point)
+    }
 }
 
 impl Shape for Segment {

@@ -83,6 +83,11 @@ impl Point {
     pub fn is_almost(&self, other: &Point) -> bool {
         is_almost(self.x, other.x) && is_almost(self.y, other.y)
     }
+
+    /// Return our x and y coordinates as a tuple.
+    pub fn coordinates(&self) -> (NotNaN<f64>, NotNaN<f64>) {
+        (self.x, self.y)
+    }
 }
 
 impl Shape for Point {
