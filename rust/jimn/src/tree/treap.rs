@@ -282,18 +282,24 @@ impl<T: Display + Default + Eq, U: Ord, V: KeyComputer<T, U>> Treap<T, U, V> {
     /// assert_eq!(node.borrow().value, 5);
     /// ```
     pub fn find_node(&self, value: T) -> Option<Node<T>> {
-        let mut current_node = self.root.clone();
-        let target_key = self.key_generator.compute_key(&value);
-        while current_node.borrow().value != value {
-            let current_key = self.key_generator.compute_key(&current_node.borrow().value);
-            let direction = (target_key > current_key) as usize;
-            if let Some(next_node) = current_node.child(direction) {
-                current_node = next_node;
-            } else {
-                return None;
+        //let mut current_node = self.root.clone();
+        let possible_start = self.root.child(1);
+        if possible_start.is_some() {
+            let mut current_node = possible_start.unwrap();
+            let target_key = self.key_generator.compute_key(&value);
+            while current_node.borrow().value != value {
+                let current_key = self.key_generator.compute_key(&current_node.borrow().value);
+                let direction = (target_key > current_key) as usize;
+                if let Some(next_node) = current_node.child(direction) {
+                    current_node = next_node;
+                } else {
+                    return None;
+                }
             }
+            Some(current_node)
+        } else {
+            None
         }
-        Some(current_node)
     }
 
     /// Adds a node to treap with given value.

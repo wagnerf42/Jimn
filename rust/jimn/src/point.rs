@@ -4,9 +4,10 @@
 //! Points can also serve as vectors: for example point2-point1 is a point
 //! which coordinates encode the direction vector of segment(point1,point2).
 use std::ops::{Add, Sub, Mul, Div};
+use ordered_float::NotNaN;
 
 use quadrant::{Quadrant, Shape};
-use ordered_float::NotNaN;
+use utils::precision::is_almost;
 
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -76,6 +77,11 @@ impl Point {
     /// ```
     pub fn cross_product(&self, other: &Point) -> NotNaN<f64> {
         (self.x * other.y) - (self.y * other.x)
+    }
+
+    /// Check if we are nearly the same as the other point.
+    pub fn is_almost(&self, other: &Point) -> bool {
+        is_almost(self.x, other.x) && is_almost(self.y, other.y)
     }
 }
 
