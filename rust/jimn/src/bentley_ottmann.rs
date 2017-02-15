@@ -124,6 +124,9 @@ impl<'a, 'b, 'c> Cutter<'a, 'b, 'c> {
         let possible_intersection = s1.intersection_with(s2);
         if possible_intersection.is_some() {
             let intersection = possible_intersection.unwrap();
+            if intersection >= *self.key_generator.current_point.borrow() {
+                return;
+            }
             if !s1.has_endpoint(&intersection) {
                 panic!("TODO: add intersection events");
             }

@@ -87,8 +87,44 @@ impl Segment {
     }
 
     /// Compute intersection between two segments.
+    /// # Example
+    /// ```
+    /// use jimn::point::Point;
+    /// use jimn::segment::Segment;
+    /// let s1 = Segment::new(Point::new(0.0, 0.0), Point::new(2.0, 2.0));
+    /// let s2 = Segment::new(Point::new(0.0, 2.0), Point::new(2.0, 0.0));
+    /// let i = s1.intersection_with(&s2);
+    /// assert!(i.is_some());
+    /// assert!(i.unwrap().is_almost(&Point::new(1.0, 1.0)));
+    /// ```
     pub fn intersection_with(&self, other: &Segment) -> Option<Point> {
-        panic!("TODO: intersection");
+        // we solve system obtained by considering the point is inside both segments.
+        // p = self.start + alpha * self.direction_vector()
+        // p = other.start + beta * self.direction_vector()
+        let direction = self.end - self.start;
+        let (x_diff, y_diff) = direction.coordinates();
+        let (x_diff2, y_diff2) = (other.end - other.start).coordinates();
+        let denominator = x_diff2 * y_diff - x_diff * y_diff2;
+        if is_almost(denominator, 0.0) {
+            println!("denominator is 0");
+            None // almost parallel lines
+        } else {
+            let alpha = (x_diff2 * (other.start.y - self.start.y) +
+                         y_diff2 * (self.start.x - other.start.x)) /
+                        denominator;
+            let beta = (x_diff * (other.start.y - self.start.y) +
+                        y_diff * (self.start.x - other.start.x)) /
+                       denominator;
+            let zero = NotNaN::new(0.0).unwrap();
+            let one = NotNaN::new(1.0).unwrap();
+            println!("alpha is {}, beta is {}", alpha, beta);
+            if (is_almost(0.0, alpha) || is_almost(1.0, alpha) || (zero < alpha && alpha < one)) &&
+               (is_almost(0.0, beta) || is_almost(1.0, beta) || (zero < beta && beta < one)) {
+                Some(self.start + direction * alpha)
+            } else {
+                None
+            }
+        }
     }
 
     /// Do we have given point as EXACTLY one of our endpoints ?
