@@ -106,7 +106,6 @@ impl Segment {
         let (x_diff2, y_diff2) = (other.end - other.start).coordinates();
         let denominator = x_diff2 * y_diff - x_diff * y_diff2;
         if is_almost(denominator, 0.0) {
-            println!("denominator is 0");
             None // almost parallel lines
         } else {
             let alpha = (x_diff2 * (other.start.y - self.start.y) +
@@ -117,7 +116,6 @@ impl Segment {
                        denominator;
             let zero = NotNaN::new(0.0).unwrap();
             let one = NotNaN::new(1.0).unwrap();
-            println!("alpha is {}, beta is {}", alpha, beta);
             if (is_almost(0.0, alpha) || is_almost(1.0, alpha) || (zero < alpha && alpha < one)) &&
                (is_almost(0.0, beta) || is_almost(1.0, beta) || (zero < beta && beta < one)) {
                 Some(self.start + direction * alpha)

@@ -5,6 +5,7 @@ use ordered_float::NotNaN;
 use point::Point;
 use segment::Segment;
 use tree::treap::{Treap, KeyComputer, Node};
+use utils::ArrayMap;
 
 ///We need someone able to compute comparison keys for our segments.
 #[derive(Clone, Debug)]
@@ -39,6 +40,7 @@ impl<'a, 'b, 'c> KeyComputer<usize, (NotNaN<f64>, NotNaN<f64>)> for KeyGenerator
 
 /// The `Cutter` structure holds all data needed for bentley ottmann's execution.
 struct Cutter<'a, 'b, 'c> {
+    //TODO: could we replace the hashset by a vector ?
     /// Results: we associate to each segment (identified by it's position in input vector)
     /// a set of intersections.
     intersections: HashMap<usize, HashSet<Point>>,
@@ -58,6 +60,7 @@ struct Cutter<'a, 'b, 'c> {
     x_coordinates: &'c RefCell<HashMap<(usize, NotNaN<f64>), NotNaN<f64>>>,
 
     //TODO: switch to vectors
+    //we would need to remember the pairs of segments already tested for intersections
     /// We store for each event point sets of segments ending and starting there.
     /// The use of set instead of vector allows us to not bother about intersections
     /// being detected twice.
@@ -119,19 +122,27 @@ impl<'a, 'b, 'c> Cutter<'a, 'b, 'c> {
     /// Try intersecting segments in two given nodes.
     fn try_intersecting(&mut self, node1: &Node<usize>, node2: &Node<usize>) {
         //TODO: use rounder for computing intersection
-        let s1 = &self.key_generator.segments[node1.borrow().value];
-        let s2 = &self.key_generator.segments[node2.borrow().value];
-        let possible_intersection = s1.intersection_with(s2);
+        let nodes = [node1, node2];
+        let indices = nodes.map(|n| n.borrow().value);
+        let segments = indices.map(|i| &self.key_generator.segments[*i]);
+        let possible_intersection = segments[0].intersection_with(segments[1]);
         if possible_intersection.is_some() {
             let intersection = possible_intersection.unwrap();
             if intersection >= *self.key_generator.current_point.borrow() {
-                return;
+                return; // too late, we are already aware of it !
             }
-            if !s1.has_endpoint(&intersection) {
-                panic!("TODO: add intersection events");
-            }
-            if !s2.has_endpoint(&intersection) {
-                panic!("TODO: add intersection events");
+            for (index, segment) in indices.iter().zip(segments.iter()) {
+                if !segment.has_endpoint(&intersection) {
+                    self.x_coordinates
+                        .borrow_mut()
+                        .insert((*index, intersection.y), intersection.x);
+                    self.add_event(intersection, *index, 0);
+                    self.add_event(intersection, *index, 1);
+                    self.intersections
+                        .entry(*index)
+                        .or_insert_with(HashSet::new)
+                        .insert(intersection);
+                }
             }
         }
     }
@@ -174,7 +185,6 @@ impl<'a, 'b, 'c> Cutter<'a, 'b, 'c> {
         for segment in &segments {
             self.crossed_segments.add(*segment);
         }
-        self.crossed_segments.tycat();
 
         let small_node = self.crossed_segments.find_node(*segments.first().unwrap()).unwrap();
         let small_neighbour = small_node.nearest_node(0);
@@ -212,6 +222,14 @@ pub fn bentley_ottmann(segments: &[Segment]) -> Vec<Segment> {
     // again, to avoid lifetimes problems I need to declare this outside of main struct.
     let x_coordinates = RefCell::new(HashMap::with_capacity(capacity));
 
-    Cutter::new(capacity, &current_point, &x_coordinates, segments).run();
+    let mut cutter = Cutter::new(capacity, &current_point, &x_coordinates, segments);
+    cutter.run();
+
+    for (intersected_segment, intersections) in &cutter.intersections {
+        println!("we have {} intersections for segment {}",
+                 intersections.len(),
+                 intersected_segment);
+    }
+
     panic!("TODO bentley ottmann");
 }
