@@ -24,6 +24,17 @@ pub trait Shape {
     fn svg_string(&self) -> String;
 }
 
+// references on shapes are still shapes
+impl<'a, T: Shape> Shape for &'a T {
+    fn get_quadrant(&self) -> Quadrant {
+        (**self).get_quadrant()
+    }
+
+    fn svg_string(&self) -> String {
+        (**self).svg_string()
+    }
+}
+
 impl<T: Shape> Shape for Vec<T> {
     fn get_quadrant(&self) -> Quadrant {
         let mut quadrant = Quadrant::new(2);
@@ -38,6 +49,23 @@ impl<T: Shape> Shape for Vec<T> {
         strings.join("")
     }
 }
+
+//TODO: how to factorize it ?
+impl<'a, T: Shape> Shape for &'a [T] {
+    fn get_quadrant(&self) -> Quadrant {
+        let mut quadrant = Quadrant::new(2);
+        for e in *self {
+            quadrant.add(e);
+        }
+        quadrant
+    }
+
+    fn svg_string(&self) -> String {
+        let strings: Vec<String> = self.iter().map(|e| e.svg_string()).collect();
+        strings.join("")
+    }
+}
+
 
 impl Quadrant {
     /// Builds a `Quadrant` (unconstrained) in space of given dimension.

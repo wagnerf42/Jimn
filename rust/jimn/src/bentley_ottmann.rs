@@ -7,6 +7,11 @@ use segment::Segment;
 use tree::treap::{Treap, KeyComputer, Node};
 use utils::ArrayMap;
 
+//for tycat
+use quadrant::{Quadrant, Shape};
+use tycat::display;
+
+
 ///We need someone able to compute comparison keys for our segments.
 #[derive(Clone, Debug)]
 struct KeyGenerator<'a, 'b, 'c> {
@@ -24,16 +29,24 @@ impl<'a, 'b, 'c> KeyComputer<usize, (NotNaN<f64>, NotNaN<f64>)> for KeyGenerator
         let current_y = self.current_point.borrow().y;
         let s = &self.segments[*segment];
         let angle = s.sweeping_angle();
-        if s.is_horizontal() {
-            panic!("TODO: handle key for horizontal segments")
+        let x = if s.is_horizontal() {
+            current_x
         } else {
-            let x = s.horizontal_line_intersection(current_y)
-                .expect("computing key for non intersecting segment");
-            if x > current_x {
-                (x, angle)
+            let key = (*segment, current_y);
+            let table = self.x_coordinates.borrow();
+            let stored_x = table.get(&key);
+            if let Some(&x) = stored_x {
+                x
             } else {
-                (x, -angle)
+                s.horizontal_line_intersection(current_y)
+                    .expect("computing key for non intersecting segment")
             }
+        };
+
+        if x > current_x {
+            (x, -angle)
+        } else {
+            (x, angle)
         }
     }
 }
@@ -126,6 +139,7 @@ impl<'a, 'b, 'c> Cutter<'a, 'b, 'c> {
         let indices = nodes.map(|n| n.borrow().value);
         let segments = indices.map(|i| &self.key_generator.segments[*i]);
         let possible_intersection = segments[0].intersection_with(segments[1]);
+        //TODO: use if let
         if possible_intersection.is_some() {
             let intersection = possible_intersection.unwrap();
             if intersection >= *self.key_generator.current_point.borrow() {
@@ -157,7 +171,9 @@ impl<'a, 'b, 'c> Cutter<'a, 'b, 'c> {
         segments.sort_by(|a, b| {
             self.key_generator.compute_key(a).cmp(&self.key_generator.compute_key(b))
         });
-        let small_node = self.crossed_segments.find_node(*segments.first().unwrap()).unwrap();
+        let small_node = self.crossed_segments
+            .find_node(*segments.first().unwrap())
+            .expect("ending : no small node in crossed segments");
         let small_neighbour = small_node.nearest_node(0);
         if small_neighbour.is_some() {
             let big_node = self.crossed_segments.find_node(*segments.last().unwrap()).unwrap();
@@ -225,11 +241,8 @@ pub fn bentley_ottmann(segments: &[Segment]) -> Vec<Segment> {
     let mut cutter = Cutter::new(capacity, &current_point, &x_coordinates, segments);
     cutter.run();
 
-    for (intersected_segment, intersections) in &cutter.intersections {
-        println!("we have {} intersections for segment {}",
-                 intersections.len(),
-                 intersected_segment);
-    }
-
-    panic!("TODO bentley ottmann");
+    let points: Vec<&Point> =
+        cutter.intersections.values().flat_map(|points| points.iter()).collect();
+    display!(segments, points);
+    Vec::new()
 }

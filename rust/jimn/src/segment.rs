@@ -83,7 +83,7 @@ impl Segment {
     /// This function is used for key computations in sweeping line algorithms.
     pub fn sweeping_angle(&self) -> NotNaN<f64> {
         let (sweeping_start, sweeping_end) = self.ordered_points();
-        sweeping_start.angle_with(&sweeping_end)
+        sweeping_end.angle_with(&sweeping_start)
     }
 
     /// Compute intersection between two segments.

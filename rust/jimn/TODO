@@ -1,0 +1,12 @@
+bentley ottmann:
+
+    - examples with intersections on endpoints
+    - examples with multiple segments on a single intersection
+    - hashing of found intersections
+    - random examples generator
+    - treap memory cleaning
+
+general:
+
+    - check if we can replace some is_some with if let
+    - check where to use array map (point ?)

@@ -9,6 +9,7 @@ use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::fmt::Display;
 use std::marker::PhantomData;
 use std::cmp::Ord;
+use std;
 use rand;
 
 use utils::Identifiable;
@@ -221,9 +222,16 @@ impl<T: Display> Node<T> {
     /// Writes lines in dot (graphviz) file for displaying
     /// node and links to its children.
     fn write_dot(&self, file: &mut File) {
+        let has_father = self.borrow().father.as_ref().is_some();
+        let color = if has_father {
+            ["red", "green"][self.father().direction_to(self)]
+        } else {
+            "cyan"
+        };
         writeln!(file,
-                 "n{}[label=\"{} / {}\"];",
+                 "n{}[style=filled,color={},label=\"{} / {}\"];",
                  self.id(),
+                 color,
                  self.borrow().value,
                  self.borrow().priority)
             .expect("failed writing dot");
@@ -251,7 +259,7 @@ pub struct Treap<T, U, V>
     ghost: PhantomData<U>,
 }
 
-impl<T: Display + Default + Eq, U: Ord, V: KeyComputer<T, U>> Treap<T, U, V> {
+impl<T: Display + Default + Eq, U: Ord + std::fmt::Debug, V: KeyComputer<T, U>> Treap<T, U, V> {
     /// Creates a new Treap.
     pub fn new(key_generator: V) -> Treap<T, U, V> {
         let tree = Treap {
