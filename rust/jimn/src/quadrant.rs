@@ -6,7 +6,7 @@
 
 use ordered_float::NotNaN;
 
-/// The bounding box structure stores bounds on each coordinate.
+/// The `Quadrant` structure stores bounds on each coordinate.
 /// In 2D this translates to rectangles.
 #[derive(Debug)]
 pub struct Quadrant {
@@ -51,6 +51,7 @@ impl<T: Shape> Shape for Vec<T> {
 }
 
 //TODO: how to factorize it ?
+//---> see borrow trait
 impl<'a, T: Shape> Shape for &'a [T] {
     fn get_quadrant(&self) -> Quadrant {
         let mut quadrant = Quadrant::new(2);

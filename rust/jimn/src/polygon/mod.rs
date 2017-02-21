@@ -1,35 +1,33 @@
 //! Polygons.
 //! Provides `Polygon` structure.
-pub mod builder;
 
-use bounding_box::BoundingBox;
+use ordered_float::NotNaN;
+use quadrant::{Quadrant, Shape};
 use point::Point;
-use segment::Segment;
-use tycat::{Displayer, Displayable};
-use std::io::Write;
 use utils::precision::is_almost;
 
 /// Oriented polygons.
 #[derive(Clone, Debug)]
 pub struct Polygon {
     /// Vector of all points forming the edge of the polygon.
-    pub points: Vec<Point>
+    pub points: Vec<Point>,
 }
 
 impl Polygon {
     /// Create polygon out of given points vector.
     pub fn new(points: Vec<Point>) -> Polygon {
-        Polygon {
-            points: points
-        }
+        Polygon { points: points }
     }
-    
+
     /// Returns area taken by polygon.
     /// Negative or Positive depending on orientation.
-    pub fn area(&self) -> f64 {
-        self.points.iter().zip(self.points.iter().cycle().skip(1))
+    pub fn area(&self) -> NotNaN<f64> {
+        //TODO: change ordered_float library to allow sum
+        self.points
+            .iter()
+            .zip(self.points.iter().cycle().skip(1))
             .map(|(p1, p2)| p1.cross_product(p2))
-            .fold(0.0, |sum, a| sum + a)
+            .fold(NotNaN::new(0.0).unwrap(), |s, x| s + x)
     }
 
     /// Returns if polygon is oriented clockwise (with respect to svg
@@ -37,7 +35,7 @@ impl Polygon {
     pub fn is_oriented_clockwise(&self) -> bool {
         let area = self.area();
         assert!(!is_almost(area, 0.0)); // flat or crossing polygon
-        area > 0.0
+        area > NotNaN::new(0.0).unwrap()
     }
 
     /// Simplifies polygon by removing points
@@ -121,69 +119,51 @@ impl Polygon {
     /// ```
     pub fn simplify(&self) -> Polygon {
         //triangle area
-        fn area(p1: &Point, p2: &Point, p3: &Point) -> f64 {
-            (p1.cross_product(p2) + p2.cross_product(p3)
-             + p3.cross_product(p1)).abs()/2.0
+        fn area(p1: &Point, p2: &Point, p3: &Point) -> NotNaN<f64> {
+            let a = (p1.cross_product(p2) + p2.cross_product(p3) + p3.cross_product(p1)).abs() /
+                    2.0;
+            NotNaN::new(a).unwrap()
         }
 
         //remove all small triangles
         //when looping on 3 consecutive points
-        let new_points:Vec<Point> = self.points.iter()
+        let new_points: Vec<Point> = self.points
+            .iter()
             .zip(self.points.iter().cycle().skip(1))
             .zip(self.points.iter().cycle().skip(2))
-            .filter_map(
-                |((p1, p2), p3)|
-                if area(p1, p2, p3) < 0.000001 {
-                    None
-                } else {
-                    Some(*p2)
-                }).collect();
+            .filter_map(|((p1, p2), p3)| if area(p1, p2, p3) < NotNaN::new(0.000001).unwrap() {
+                None
+            } else {
+                Some(*p2)
+            })
+            .collect();
         //now remove aligned points
-        let final_points:Vec<Point> = new_points.iter()
+        let final_points: Vec<Point> = new_points.iter()
             .zip(new_points.iter().cycle().skip(1))
             .zip(new_points.iter().cycle().skip(2))
-            .filter_map(
-                |((p1, p2), p3)| if p1.is_aligned_with(p2, p3) {
-                    None
-                } else {
-                    Some(*p2)
-                }).collect();
+            .filter_map(|((p1, p2), p3)| if p1.is_aligned_with(p2, p3) {
+                None
+            } else {
+                Some(*p2)
+            })
+            .collect();
         assert!(final_points.len() > 2);
         Polygon::new(final_points)
     }
-
-    /// Returns segment between points of polygon numbered
-    /// point_index and point_index+1
-    pub fn segment(&self, index: usize) -> Segment {
-        Segment::new(
-            self.points[index],
-            self.points[(index+1) % self.points.len()]
-        )
-    }
 }
 
-impl Displayable for Polygon {
-    fn get_bounding_box(&self) -> BoundingBox {
-        //TODO: next line is not ok since add_point does not return a bbox
-        //can we change it to return a bbox or does it incur extra copies ?
-        //self.points.iter().fold(BoundingBox::empty_box(2), |bbox, point| bbox.add_point(point))
-        let mut bbox = BoundingBox::empty_box(2);
+impl Shape for Polygon {
+    fn get_quadrant(&self) -> Quadrant {
+        let mut quadrant = Quadrant::new(2);
         for point in &self.points {
-            bbox.add_point(point);
+            quadrant.add(point);
         }
-        bbox
+        quadrant
     }
-    fn save_svg_content(&self, displayer: &mut Displayer, color: &str) {
-        let coordinates: Vec<Vec<f64>> = self.points.iter()
-            .map(|point| displayer.convert_coordinates(point.coordinates()))
-            .collect();
-        let strings: Vec<String> = coordinates.iter()
-            .map(|c| format!("{},{}", c[0], c[1])).collect();
+
+    fn svg_string(&self) -> String {
+        let strings: Vec<String> = self.points.iter().map(|p| format!("{},{}", p.x, p.y)).collect();
         let points_string = strings.join(" ");
-        writeln!(displayer.svg_file, 
-                 "<polygon points=\"{}\" \
-                 style=\"fill:{};stroke:none;opacity:0.5\"/>",
-                 points_string, color
-                 ).expect("cannot write svg file, disk full ?");
+        format!("<polygon points=\"{}\"/>", points_string)
     }
 }

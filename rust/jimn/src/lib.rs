@@ -26,6 +26,7 @@ pub mod segment;
 pub mod stl;
 pub mod tree;
 pub mod bentley_ottmann;
+pub mod polygon;
 
 use ordered_float::NotNaN;
 use stl::Stl;
