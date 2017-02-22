@@ -23,7 +23,7 @@ pub struct Point {
 
 impl Point {
     /// Returns a new Point from given coordinates.
-    pub fn new<T: Into<NotNaN<f64>>>(x: T, y: T) -> Point {
+    pub fn new<T: Into<NotNaN<f64>>, U: Into<NotNaN<f64>>>(x: T, y: U) -> Point {
         Point {
             x: x.into(),
             y: y.into(),

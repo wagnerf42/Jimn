@@ -27,6 +27,7 @@ pub mod stl;
 pub mod tree;
 pub mod bentley_ottmann;
 pub mod polygon;
+pub mod tile;
 
 use ordered_float::NotNaN;
 use stl::Stl;

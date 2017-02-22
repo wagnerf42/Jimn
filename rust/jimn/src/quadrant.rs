@@ -85,6 +85,15 @@ impl Quadrant {
         }
     }
 
+    /// Return dimensions (width, height, ...) of given `Quadrant`.
+    pub fn dimensions(&self) -> Vec<NotNaN<f64>> {
+        self.min_coordinates
+            .iter()
+            .zip(self.max_coordinates.iter())
+            .map(|(&a, &b)| NotNaN::new((b - a).abs()).unwrap())
+            .collect()
+    }
+
     /// Updates `Quadrant` by fusing in limits from other.
     ///
     /// self-> ##                 ###
