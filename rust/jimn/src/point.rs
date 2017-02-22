@@ -114,6 +114,17 @@ impl Add for Point {
     }
 }
 
+//TODO: factorize using borrow or asref ?
+impl<'a> Add<&'a Point> for Point {
+    type Output = Point;
+    fn add(self, other: &Point) -> Point {
+        Point {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
 impl Sub for Point {
     type Output = Point;
     fn sub(self, other: Point) -> Point {

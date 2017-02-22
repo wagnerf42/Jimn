@@ -35,7 +35,10 @@ impl Tile {
 
     /// Tile ourselves on target quadrant.
     pub fn tile(&self, target: &Quadrant) -> Vec<Segment> {
-        self.rectangular_tile(target)
+        match self.tile_type {
+            TileType::Hexagon => panic!("TODO: hexagonal tiles"),
+            TileType::Rectangle => self.rectangular_tile(target),
+        }
     }
 
     /// Tile ourselves on target quadrant.
@@ -50,16 +53,21 @@ impl Tile {
         let extra_space = [tile_dimensions[0] * (needed_tiles[0] as f64) - dimensions[0],
                            tile_dimensions[1] * (needed_tiles[1] as f64) - dimensions[1]];
 
-        let segments: Vec<Segment> = Vec::with_capacity(needed_tiles[0] * needed_tiles[1] *
-                                                        self.segments.len());
+        let mut segments: Vec<Segment> = Vec::with_capacity(needed_tiles[0] * needed_tiles[1] *
+                                                            self.segments.len());
 
+        let min_x = target.min_coordinates[0] - extra_space[0] / 2.0;
+        let min_y = target.min_coordinates[1] - extra_space[1] / 2.0;
+        let mut translation_vector = Point::new(0.0, 0.0);
         for i in 0..needed_tiles[0] {
+            translation_vector.x = min_x + tile_dimensions[0] * (i as f64);
             for j in 0..needed_tiles[1] {
-                println!("{} {}", i, j);
+                //TODO: hash
+                translation_vector.y = min_y + tile_dimensions[1] * (j as f64);
+                segments.extend(self.segments.iter().map(|s| s.translate(&translation_vector)));
             }
         }
-
-        panic!("TODO");
+        segments
     }
 }
 
@@ -68,5 +76,5 @@ pub fn rectangular_tile<T: Into<NotNaN<f64>>, U: Into<NotNaN<f64>>>(width: T, he
     let origin = Point::new(0.0, 0.0);
     Tile::new(vec![Segment::new(origin, Point::new(width, 0.0)),
                    Segment::new(origin, Point::new(0.0, height))],
-              TileType::Hexagon)
+              TileType::Rectangle)
 }

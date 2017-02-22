@@ -129,6 +129,14 @@ impl Segment {
     pub fn has_endpoint(&self, point: &Point) -> bool {
         (self.start == *point) || (self.end == *point)
     }
+
+    /// Translate ourselves by given vector.
+    pub fn translate(&self, vector: &Point) -> Segment {
+        Segment {
+            start: self.start + vector,
+            end: self.end + vector,
+        }
+    }
 }
 
 impl Shape for Segment {

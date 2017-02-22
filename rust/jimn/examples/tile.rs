@@ -17,7 +17,7 @@ fn main() {
     for point in &points {
         quadrant.add(point);
     }
-    let square_tile = rectangular_tile(1.0, 1.0);
+    let square_tile = rectangular_tile(2.0, 1.0);
     let tiled_triangle = square_tile.tile(&quadrant);
     display!(triangle, tiled_triangle);
 }
