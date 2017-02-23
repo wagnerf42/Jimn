@@ -3,6 +3,7 @@ use ordered_float::NotNaN;
 use quadrant::{Quadrant, Shape};
 use point::Point;
 use segment::Segment;
+use utils::coordinates_hash::PointsHash;
 
 /// should we tile using hexagons or rectangles ?
 enum TileType {
@@ -33,17 +34,17 @@ impl Tile {
         }
     }
 
-    /// Tile ourselves on target quadrant.
-    pub fn tile(&self, target: &Quadrant) -> Vec<Segment> {
+    /// Tile ourselves on target quadrant, adjusting new points using rounder.
+    pub fn tile(&self, target: &Quadrant, rounder: &mut PointsHash) -> Vec<Segment> {
         match self.tile_type {
             TileType::Hexagon => panic!("TODO: hexagonal tiles"),
-            TileType::Rectangle => self.rectangular_tile(target),
+            TileType::Rectangle => self.rectangular_tile(target, rounder),
         }
     }
 
-    /// Tile ourselves on target quadrant.
+    /// Tile ourselves on target quadrant adjusting new points using rounder.
     /// TODO: give an offset.
-    fn rectangular_tile(&self, target: &Quadrant) -> Vec<Segment> {
+    fn rectangular_tile(&self, target: &Quadrant, rounder: &mut PointsHash) -> Vec<Segment> {
         let (dimensions, tile_dimensions) = (target.dimensions(), self.quadrant.dimensions());
         let needed_tiles: Vec<usize> = dimensions.iter()
             .zip(tile_dimensions.iter())
@@ -64,7 +65,9 @@ impl Tile {
             for j in 0..needed_tiles[1] {
                 //TODO: hash
                 translation_vector.y = min_y + tile_dimensions[1] * (j as f64);
-                segments.extend(self.segments.iter().map(|s| s.translate(&translation_vector)));
+                segments.extend(self.segments
+                    .iter()
+                    .map(|s| s.translate(&translation_vector, rounder)));
             }
         }
         segments

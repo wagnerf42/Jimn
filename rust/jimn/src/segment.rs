@@ -5,6 +5,7 @@ use ordered_float::NotNaN;
 use point::Point;
 use quadrant::{Quadrant, Shape};
 use utils::precision::is_almost;
+use utils::coordinates_hash::PointsHash;
 
 /// Segment in plane
 #[derive(Debug)]
@@ -131,10 +132,11 @@ impl Segment {
     }
 
     /// Translate ourselves by given vector.
-    pub fn translate(&self, vector: &Point) -> Segment {
+    /// Adjust obtained points with rounder.
+    pub fn translate(&self, vector: &Point, rounder: &mut PointsHash) -> Segment {
         Segment {
-            start: self.start + vector,
-            end: self.end + vector,
+            start: rounder.hash_point(&(self.start + vector)),
+            end: rounder.hash_point(&(self.end + vector)),
         }
     }
 }
