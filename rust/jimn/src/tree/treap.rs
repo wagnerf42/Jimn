@@ -251,7 +251,7 @@ impl<T: Display> Node<T> {
 /// the current position (used in paths comparisons).
 pub struct Treap<T, U, V>
     where T: Display + Eq,
-          U: Ord,
+          U: std::fmt::Debug + Ord,
           V: KeyComputer<T, U>
 {
     root: Node<T>,

@@ -32,6 +32,17 @@ impl<'a, 'b, 'c> KeyComputer<usize, (NotNaN<f64>, NotNaN<f64>)> for KeyGenerator
         let x = if s.is_horizontal() {
             current_x
         } else {
+            // sweep goes from bottom to top and right to left
+            //
+            //     |    \    /   |       --- on this line xa > xb (no angle needed)
+            //  l1 |     \  /    | l2
+            //     |      \/     |         ____ now here, at start of l2 a < b and
+            //            /\                    at start of l1 a > b
+            //           /  \                   xa == xb so we use angles
+            //          /    \       ---- on this line xa < xb (no angle needed)
+            //         a      b
+            //
+            //         angle of a is 3pi/4 ; angle of b is pi/4
             let key = (*segment, current_y);
             let table = self.x_coordinates.borrow();
             let stored_x = table.get(&key);
@@ -43,9 +54,11 @@ impl<'a, 'b, 'c> KeyComputer<usize, (NotNaN<f64>, NotNaN<f64>)> for KeyGenerator
             }
         };
 
-        if x > current_x {
+        if current_x > x {
+            // we are not yet arrived on intersection
             (x, -angle)
         } else {
+            // we are past the intersection
             (x, angle)
         }
     }

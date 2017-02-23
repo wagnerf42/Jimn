@@ -23,7 +23,8 @@ fn main() {
     for point in &points {
         quadrant.add(point);
     }
-    let square_tile = rectangular_tile(3.0, 3.0);
+    let square_tile = rectangular_tile(0.8, 0.8);
+    // let square_tile = rectangular_tile(0.4, 0.4); // we crash here
     let tiled_triangle = square_tile.tile(&quadrant, &mut rounder);
     display!(triangle, tiled_triangle);
 
