@@ -6,6 +6,7 @@ use point::Point;
 use segment::Segment;
 use tree::treap::{Treap, KeyComputer, Node};
 use utils::ArrayMap;
+use utils::coordinates_hash::PointsHash;
 
 //for tycat
 use quadrant::{Quadrant, Shape};
@@ -65,7 +66,7 @@ impl<'a, 'b, 'c> KeyComputer<usize, (NotNaN<f64>, NotNaN<f64>)> for KeyGenerator
 }
 
 /// The `Cutter` structure holds all data needed for bentley ottmann's execution.
-struct Cutter<'a, 'b, 'c> {
+struct Cutter<'a, 'b, 'c, 'd> {
     //TODO: could we replace the hashset by a vector ?
     /// Results: we associate to each segment (identified by it's position in input vector)
     /// a set of intersections.
@@ -97,14 +98,18 @@ struct Cutter<'a, 'b, 'c> {
 
     /// We store the key generator for our own segments comparison purposes.
     key_generator: KeyGenerator<'a, 'b, 'c>,
+
+    /// Rounder for new points.
+    rounder: &'d mut PointsHash,
 }
 
-impl<'a, 'b, 'c> Cutter<'a, 'b, 'c> {
+impl<'a, 'b, 'c, 'd> Cutter<'a, 'b, 'c, 'd> {
     fn new(capacity: usize,
            current_point: &'a RefCell<Point>,
            x_coordinates: &'c RefCell<HashMap<(usize, NotNaN<f64>), NotNaN<f64>>>,
-           segments: &'b [Segment])
-           -> Cutter<'a, 'b, 'c> {
+           segments: &'b [Segment],
+           rounder: &'d mut PointsHash)
+           -> Cutter<'a, 'b, 'c, 'd> {
 
         let generator = KeyGenerator {
             current_point: current_point,
@@ -120,6 +125,7 @@ impl<'a, 'b, 'c> Cutter<'a, 'b, 'c> {
             events_data: HashMap::with_capacity(capacity),
             crossed_segments: Treap::new(generator.clone()),
             key_generator: generator,
+            rounder: rounder,
         };
 
         let mut x_coordinates = cutter.x_coordinates.borrow_mut();
@@ -154,7 +160,7 @@ impl<'a, 'b, 'c> Cutter<'a, 'b, 'c> {
         let possible_intersection = segments[0].intersection_with(segments[1]);
         //TODO: use if let
         if possible_intersection.is_some() {
-            let intersection = possible_intersection.unwrap();
+            let intersection = self.rounder.hash_point(&possible_intersection.unwrap());
             if intersection >= *self.key_generator.current_point.borrow() {
                 return; // too late, we are already aware of it !
             }
@@ -176,8 +182,7 @@ impl<'a, 'b, 'c> Cutter<'a, 'b, 'c> {
 
     /// End a set of segments.
     /// Checks for possible intersections to add in the system.
-    fn end_segments(&mut self, ended_segments: &mut HashSet<usize>) {
-        let mut segments: Vec<usize> = ended_segments.drain().collect();
+    fn end_segments(&mut self, segments: &mut Vec<usize>) {
         if segments.is_empty() {
             return;
         }
@@ -196,14 +201,13 @@ impl<'a, 'b, 'c> Cutter<'a, 'b, 'c> {
             }
         }
         for segment in segments {
-            self.crossed_segments.find_node(segment).unwrap().remove();
+            self.crossed_segments.find_node(*segment).unwrap().remove();
         }
     }
 
     /// Start a set of segments.
     /// Checks for possible intersections to add in the system.
-    fn start_segments(&mut self, started_segments: &mut HashSet<usize>) {
-        let mut segments: Vec<usize> = started_segments.drain().collect();
+    fn start_segments(&mut self, segments: &mut Vec<usize>) {
         if segments.is_empty() {
             return;
         }
@@ -211,7 +215,7 @@ impl<'a, 'b, 'c> Cutter<'a, 'b, 'c> {
             self.key_generator.compute_key(a).cmp(&self.key_generator.compute_key(b))
         });
 
-        for segment in &segments {
+        for segment in segments.iter() {
             self.crossed_segments.add(*segment);
         }
 
@@ -231,17 +235,24 @@ impl<'a, 'b, 'c> Cutter<'a, 'b, 'c> {
     fn run(&mut self) {
         while !self.events.is_empty() {
             let event_point = self.events.pop().unwrap();
-            let mut event_data = self.events_data.remove(&event_point).expect("no event data");
-            self.end_segments(&mut event_data[1]);
+            let mut starting_segments: Vec<usize>;
+            let mut ending_segments: Vec<usize>;
+            {
+                let changing_segments = &self.events_data[&event_point];
+                starting_segments = changing_segments[0].iter().cloned().collect();
+                ending_segments = changing_segments[1].iter().cloned().collect();
+            }
+            self.end_segments(&mut ending_segments);
             *self.current_point.borrow_mut() = event_point;
-            self.start_segments(&mut event_data[0]);
+            self.start_segments(&mut starting_segments);
+            self.events_data.remove(&event_point);
         }
     }
 }
 
 /// Computes all intersections amongst given segments
 /// and return vector of obtained elementary segments.
-pub fn bentley_ottmann(segments: &[Segment]) -> Vec<Segment> {
+pub fn bentley_ottmann(segments: &[Segment], rounder: &mut PointsHash) -> Vec<Segment> {
     // I need to declare current point outside of the main structure to avoid cyclic constructors
     // problems. (sigh)
     let current_point = RefCell::new(Point::new(0.0, 0.0));
@@ -251,7 +262,7 @@ pub fn bentley_ottmann(segments: &[Segment]) -> Vec<Segment> {
     // again, to avoid lifetimes problems I need to declare this outside of main struct.
     let x_coordinates = RefCell::new(HashMap::with_capacity(capacity));
 
-    let mut cutter = Cutter::new(capacity, &current_point, &x_coordinates, segments);
+    let mut cutter = Cutter::new(capacity, &current_point, &x_coordinates, segments, rounder);
     cutter.run();
 
     let points: Vec<&Point> =

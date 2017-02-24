@@ -229,11 +229,10 @@ impl<T: Display> Node<T> {
             "cyan"
         };
         writeln!(file,
-                 "n{}[style=filled,color={},label=\"{} / {}\"];",
+                 "n{}[style=filled,color={},label=\"{}\"];",
                  self.id(),
                  color,
-                 self.borrow().value,
-                 self.borrow().priority)
+                 self.borrow().value)
             .expect("failed writing dot");
 
         for child in &self.borrow().children {

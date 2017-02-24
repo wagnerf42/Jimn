@@ -10,3 +10,4 @@ general:
 
     - check if we can replace some is_some with if let
     - check where to use array map (point ?)
+    - can we replace hashmap's entries with [] ?
