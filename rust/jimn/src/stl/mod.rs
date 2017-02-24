@@ -45,16 +45,16 @@ struct CuttingEvent {
 impl Stl {
     /// Loads a new stl model from given file.
     pub fn new(filename: &str) -> Result<Stl, Error> {
-        let mut file = try!(File::open(filename));
+        let mut file = File::open(filename)?;
         //read header
-        try!(file.seek(SeekFrom::Start(80)));
-        let facets_number = try!(file.read_u32::<LittleEndian>());
+        file.seek(SeekFrom::Start(80))?;
+        let facets_number = file.read_u32::<LittleEndian>()?;
 
         // for each facet 4 vectors of 3 32bits floats + 2 unused bytes
         let size = (facets_number * (4 * 3 * 4 + 2)) as usize;
 
         let mut buffer: Vec<u8> = Vec::with_capacity(size);
-        let loaded = try!(file.take(size as u64).read_to_end(&mut buffer));
+        let loaded = file.take(size as u64).read_to_end(&mut buffer)?;
         //TODO: replace assert with error
         assert_eq!(loaded, size);
 

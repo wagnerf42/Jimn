@@ -2,7 +2,7 @@
 extern crate jimn;
 use jimn::quadrant::{Quadrant, Shape};
 use jimn::point::Point;
-use jimn::segment::Segment;
+use jimn::segment::{Segment, save_segments};
 use jimn::tycat::display;
 use jimn::tile::rectangular_tile;
 use jimn::bentley_ottmann::bentley_ottmann;
@@ -24,12 +24,13 @@ fn main() {
         quadrant.add(point);
     }
     //let square_tile = rectangular_tile(0.8, 0.8);
-    let square_tile = rectangular_tile(0.4, 0.4); // we crash here
+    let square_tile = rectangular_tile(0.8, 0.8); // we crash here
     let tiled_triangle = square_tile.tile(&quadrant, &mut rounder);
     display!(triangle, tiled_triangle);
 
     let mut all = Vec::new();
     all.extend(triangle);
     all.extend(tiled_triangle);
+    save_segments("triangle_0.8.bo", &all);
     bentley_ottmann(&all, &mut rounder);
 }

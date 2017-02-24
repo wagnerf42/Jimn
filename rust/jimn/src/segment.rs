@@ -1,7 +1,11 @@
 //! Segments on the plane.
 //!
 //! Provides a `Segment` structure for storing oriented 2d segments.
+use std::io;
+use std::fs::File;
+use byteorder::{WriteBytesExt, LittleEndian};
 use ordered_float::NotNaN;
+
 use point::Point;
 use quadrant::{Quadrant, Shape};
 use utils::precision::is_almost;
@@ -139,6 +143,14 @@ impl Segment {
             end: rounder.hash_point(&(self.end + vector)),
         }
     }
+    /// Save ourselves in given file as 4 64bits little endian floats
+    fn write_to_file(&self, file: &mut File) -> io::Result<()> {
+        file.write_f64::<LittleEndian>(self.start.x.into_inner())?;
+        file.write_f64::<LittleEndian>(self.start.y.into_inner())?;
+        file.write_f64::<LittleEndian>(self.end.x.into_inner())?;
+        file.write_f64::<LittleEndian>(self.end.y.into_inner())?;
+        Ok(())
+    }
 }
 
 impl Shape for Segment {
@@ -158,4 +170,13 @@ impl Shape for Segment {
                 self.end.x,
                 self.end.y)
     }
+}
+
+/// Save given segments by creating given file.
+pub fn save_segments(filename: &str, segments: &[Segment]) -> io::Result<()> {
+    let mut file = File::create(filename)?;
+    for segment in segments.iter() {
+        segment.write_to_file(&mut file)?;
+    }
+    Ok(())
 }
