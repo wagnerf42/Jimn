@@ -18,15 +18,9 @@ fn try_bentley_ottmann_on(filename: &str) {
 }
 
 fn main() {
+    try_bentley_ottmann_on("tests_bentley_ottmann/simple.bo");
+    try_bentley_ottmann_on("tests_bentley_ottmann/flat_simple.bo");
+    try_bentley_ottmann_on("tests_bentley_ottmann/simple_three.bo");
     try_bentley_ottmann_on("tests_bentley_ottmann/triangle_0.8.bo");
     try_bentley_ottmann_on("tests_bentley_ottmann/triangle_0.1.bo");
-    //    let segments = vec![Segment::new(Point::new(0.0, -1.0), Point::new(5.0, 0.0)),
-    //                        Segment::new(Point::new(4.0, -2.0), Point::new(1.0, 2.0))];
-    //
-    //    let segments = vec![Segment::new(Point::new(0.0, 0.0), Point::new(5.0, 0.0)),
-    //                        Segment::new(Point::new(4.0, -2.0), Point::new(1.0, 2.0))];
-    //
-    //    let segments = vec![Segment::new(Point::new(0.0, 0.0), Point::new(5.0, 0.0)),
-    //                        Segment::new(Point::new(4.0, -2.0), Point::new(1.0, 2.0)),
-    //                        Segment::new(Point::new(0.0, -2.0), Point::new(4.0, 3.0))];
 }
