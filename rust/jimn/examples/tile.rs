@@ -31,6 +31,6 @@ fn main() {
     let mut all = Vec::new();
     all.extend(triangle);
     all.extend(tiled_triangle);
-    save_segments("triangle_0.8.bo", &all);
+    save_segments("triangle_0.8.bo", &all).expect("failed writing");
     bentley_ottmann(&all, &mut rounder);
 }

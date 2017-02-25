@@ -3,7 +3,7 @@
 //! Provides a `Segment` structure for storing oriented 2d segments.
 use std::io;
 use std::fs::File;
-use byteorder::{WriteBytesExt, LittleEndian};
+use byteorder::{ReadBytesExt, WriteBytesExt, LittleEndian};
 use ordered_float::NotNaN;
 
 use point::Point;
@@ -15,9 +15,9 @@ use utils::coordinates_hash::PointsHash;
 #[derive(Debug)]
 pub struct Segment {
     /// start point
-    start: Point,
+    pub start: Point,
     /// end point
-    end: Point,
+    pub end: Point,
 }
 
 impl Segment {
@@ -179,4 +179,23 @@ pub fn save_segments(filename: &str, segments: &[Segment]) -> io::Result<()> {
         segment.write_to_file(&mut file)?;
     }
     Ok(())
+}
+
+/// Reads 4 little endian f64 from given file as a segment.
+fn read_segment(file: &mut File) -> io::Result<Segment> {
+    let x1 = file.read_f64::<LittleEndian>()?;
+    let y1 = file.read_f64::<LittleEndian>()?;
+    let x2 = file.read_f64::<LittleEndian>()?;
+    let y2 = file.read_f64::<LittleEndian>()?;
+    Ok(Segment::new(Point::new(x1, y1), Point::new(x2, y2)))
+}
+
+/// Reads a vector a segments from given segments file.
+pub fn load_segments(filename: &str) -> io::Result<Vec<Segment>> {
+    let mut file = File::open(filename)?;
+    let mut segments = Vec::new();
+    while let Ok(s) = read_segment(&mut file) {
+        segments.push(s);
+    }
+    Ok(segments)
 }
