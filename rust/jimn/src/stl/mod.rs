@@ -110,11 +110,11 @@ impl Stl {
 
     /// Cuts model into slices of given thickness.
     /// Returns vector of tuples (height, slice).
-    pub fn compute_slices(&self,
-                          thickness: NotNaN<f64>,
-                          hasher: &mut PointsHash)
-                          -> Vec<(NotNaN<f64>, Vec<Segment>)> {
-        let mut events = self.generate_cutting_events(thickness);
+    pub fn compute_slices<T: Into<NotNaN<f64>>>(&self,
+                                                thickness: T,
+                                                hasher: &mut PointsHash)
+                                                -> Vec<(NotNaN<f64>, Vec<Segment>)> {
+        let mut events = self.generate_cutting_events(thickness.into());
         events.sort_by_key(|a| (a.height, a.event_type));
         let mut facets: HashSet<usize> = HashSet::new();
         let mut slices = Vec::new();

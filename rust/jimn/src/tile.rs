@@ -68,6 +68,13 @@ pub fn rectangular_tile<T: Into<NotNaN<f64>>, U: Into<NotNaN<f64>>>(width: T, he
     }
 }
 
+/// Return a tile for brick like patterns of given dimensions.
+pub fn brick_tile<T: Into<NotNaN<f64>>, U: Into<NotNaN<f64>>>(width: T, height: U) -> Tile {
+    let mut tile = rectangular_tile(width, height);
+    tile.horizontal_offset = tile.horizontal_move / 2.0;
+    tile
+}
+
 /// Return a hexagonal tile (scaled) of given dimensions.
 pub fn hexagonal_tile<T: Into<NotNaN<f64>>, U: Into<NotNaN<f64>>>(width: T, height: U) -> Tile {
     let w = width.into();

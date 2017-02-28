@@ -12,7 +12,7 @@ use utils::precision::is_almost;
 use utils::coordinates_hash::PointsHash;
 
 /// Segment in plane
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Segment {
     /// start point
     pub start: Point,

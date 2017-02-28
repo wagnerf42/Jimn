@@ -37,9 +37,10 @@ use tycat::display;
 
 /// Computes the milling path for given slices thickness, milling radius and stl file.
 pub fn compute_milling_path(thickness: f64, milling_radius: f64, stl_file: String) {
+    //TODO: use asref or borrow
     let model = Stl::new(stl_file.as_str()).expect("unable to load stl file");
     let mut rounder = PointsHash::new(6);
-    let slices = model.compute_slices(NotNaN::new(thickness).unwrap(), &mut rounder);
+    let slices = model.compute_slices(thickness, &mut rounder);
     for slice in &slices {
         println!("height is {}", slice.0);
         display!(slice.1);
