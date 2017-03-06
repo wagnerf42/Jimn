@@ -197,7 +197,7 @@ impl<'a, 'b, 'c, 'd> Cutter<'a, 'b, 'c, 'd> {
             let big_node = self.crossed_segments.find_node(*segments.last().unwrap()).unwrap();
             let big_neighbour = big_node.nearest_node(1);
             if big_neighbour.is_some() {
-                self.try_intersecting(&small_node, &big_node);
+                self.try_intersecting(&small_neighbour.unwrap(), &big_neighbour.unwrap());
             }
         }
         for segment in segments {
