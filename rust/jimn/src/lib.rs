@@ -4,6 +4,7 @@
 //! You can find standard graphical objects xxx in sub-modules `jimn::xxx` like :
 //!
 //! * point
+//! * segment
 //!
 //! Jimn is intended to work with the terminology terminal emulator from
 //! enlightenment. Under terminology any object or list of objects can be
@@ -11,12 +12,14 @@
 //! Many graphical examples are available in the *examples* sub-directory.
 //! Compile them with cargo !
 
+#![feature(test)]
 #![deny(missing_docs)]
 //#![allow(dead_code, unused_imports, unused_variables)]
 
 extern crate byteorder;
 extern crate rand;
 extern crate ordered_float;
+extern crate test;
 pub mod utils;
 #[macro_use]
 pub mod tycat;
@@ -29,7 +32,6 @@ pub mod bentley_ottmann;
 pub mod polygon;
 pub mod tile;
 
-use ordered_float::NotNaN;
 use stl::Stl;
 use utils::coordinates_hash::PointsHash;
 use quadrant::{Quadrant, Shape};

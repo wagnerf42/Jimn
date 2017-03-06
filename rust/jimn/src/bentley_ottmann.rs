@@ -267,6 +267,41 @@ pub fn bentley_ottmann(segments: &[Segment], rounder: &mut PointsHash) -> Vec<Se
 
     let points: Vec<&Point> =
         cutter.intersections.values().flat_map(|points| points.iter()).collect();
-    display!(segments, points);
+    //display!(segments, points);
     Vec::new()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use test::Bencher;
+    use segment::load_segments;
+
+    //TODO
+    //#[test]
+    //fn it_works() {
+    //    assert_eq!(4, add_two(2));
+    //}
+    //
+    fn prepare_tests(filename: &str) -> (PointsHash, Vec<Segment>) {
+        let segments = load_segments(filename).expect("error loading segments file");
+        let mut rounder = PointsHash::new(6);
+        for segment in &segments {
+            rounder.hash_point(&segment.start);
+            rounder.hash_point(&segment.end);
+        }
+        (rounder, segments)
+    }
+
+    #[bench]
+    fn bench_fast(b: &mut Bencher) {
+        let (mut rounder, segments) = prepare_tests("tests_bentley_ottmann/triangle_h_0.5.bo");
+        b.iter(|| bentley_ottmann(&segments, &mut rounder));
+    }
+
+    #[bench]
+    fn bench_slow(b: &mut Bencher) {
+        let (mut rounder, segments) = prepare_tests("tests_bentley_ottmann/carnifex_h_0.5.bo");
+        b.iter(|| bentley_ottmann(&segments, &mut rounder));
+    }
 }
