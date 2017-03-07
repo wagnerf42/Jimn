@@ -74,6 +74,11 @@ impl<T: Display> Node<T> {
         })))
     }
 
+    /// Return if we are sentinel node.
+    pub fn is_root(&self) -> bool {
+        self.borrow().father.is_none()
+    }
+
     /// Returns father of given node.
     /// Do not call on sentinel node.
     fn father(&self) -> Node<T> {
@@ -219,6 +224,13 @@ impl<T: Display> Node<T> {
         self.borrow_mut().priority = other_priority;
     }
 
+    /// Create new child node at given direction with given value and rebalance Treap.
+    pub fn add_child_with_value(&mut self, direction: usize, value: T) -> Node<T> {
+        let new_node = Node::new(value);
+        self.set_child(direction, new_node.clone());
+        new_node.balance()
+    }
+
     /// Writes lines in dot (graphviz) file for displaying
     /// node and links to its children.
     fn write_dot(&self, file: &mut File) {
@@ -309,21 +321,24 @@ impl<T: Display + Default + Eq, U: Ord + std::fmt::Debug, V: KeyComputer<T, U>> 
         }
     }
 
-    /// Adds a node to treap with given value.
-    pub fn add(&self, value: T) -> Node<T> {
+    /// Returns the place where to insert given new value.
+    pub fn find_insertion_place(&self, key: &U) -> (Node<T>, usize) {
         let mut current_node = self.root.clone();
-
-        let key = self.key_generator.compute_key(&value);
         let mut direction = 1; // because sentinel has min key
         while let Some(next_node) = current_node.child(direction) {
             current_node = next_node;
             let node_key = self.key_generator.compute_key(&current_node.borrow().value);
-            assert!(node_key != key);
-            direction = (key > node_key) as usize;
+            assert!(node_key != *key);
+            direction = (*key > node_key) as usize;
         }
-        let new_node = Node::new(value);
-        current_node.set_child(direction as usize, new_node.clone());
-        new_node.balance()
+        (current_node, direction as usize)
+    }
+
+    /// Adds a node to treap with given value.
+    pub fn add(&self, value: T) -> Node<T> {
+        let key = self.key_generator.compute_key(&value);
+        let (mut current_node, direction) = self.find_insertion_place(&key);
+        current_node.add_child_with_value(direction, value)
     }
 
     /// Tycat display on terminal.

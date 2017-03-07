@@ -162,22 +162,22 @@ impl<'a, 'b, 'c, 'd> Cutter<'a, 'b, 'c, 'd> {
         let indices = nodes.map(|n| n.borrow().value);
         let segments = indices.map(|i| &self.key_generator.segments[*i]);
         let current_point = *self.key_generator.current_point.borrow();
-        println!("trying intersection");
-        let possible_intersection = segments[0]
-            .next_intersection_with(segments[1], &current_point, self.rounder);
-        if let Some(intersection) = possible_intersection {
+        let possible_intersection = segments[0].intersection_with(segments[1]);
+        if let Some(raw_intersection) = possible_intersection {
+            let intersection = self.rounder.hash_point(&raw_intersection);
+            if intersection > current_point {
+                return; // we already know about it
+            }
             for (index, segment) in indices.iter().zip(segments.iter()) {
                 if !segment.has_endpoint(&intersection) {
                     self.x_coordinates
                         .borrow_mut()
                         .insert((*index, intersection.y), intersection.x);
                     if intersection < current_point {
-                        println!("adding events cp:{:?} i:{:?}", current_point, intersection);
                         // it is possible to be equal in case of overlapping segments
                         self.add_event(intersection, *index, 0);
                         self.add_event(intersection, *index, 1);
                     }
-                    println!("adding someone");
                     self.intersections
                         .entry(*index)
                         .or_insert_with(HashSet::new)
@@ -223,7 +223,17 @@ impl<'a, 'b, 'c, 'd> Cutter<'a, 'b, 'c, 'd> {
         });
 
         for segment in segments.iter() {
-            self.crossed_segments.add(*segment);
+            let new_key = self.key_generator.compute_key(segment);
+            let (mut father, direction) = self.crossed_segments.find_insertion_place(&new_key);
+            father.add_child_with_value(direction, *segment);
+            // if we overlap with someone the only possibility is father's segment
+            if !father.is_root() {
+                let father_index = father.borrow().value;
+                let father_key = self.key_generator.compute_key(&father_index);
+                if new_key.0 == father_key.0 && new_key.1 == father_key.1 {
+                    self.handle_overlapping_segments(*segment, father_index);
+                }
+            }
         }
 
         let small_node = self.crossed_segments.find_node(*segments.first().unwrap()).unwrap();
@@ -235,6 +245,23 @@ impl<'a, 'b, 'c, 'd> Cutter<'a, 'b, 'c, 'd> {
         let big_neighbour = big_node.nearest_node(1);
         if big_neighbour.is_some() {
             self.try_intersecting(&big_node, &big_neighbour.unwrap());
+        }
+    }
+
+    fn handle_overlapping_segments(&mut self, index1: SegmentIndex, index2: SegmentIndex) {
+        let s1 = &self.key_generator.segments[index1];
+        let s2 = &self.key_generator.segments[index2];
+        if let Some(points) = s1.overlap_points(s2) {
+            for point in &points {
+                for &(segment, index) in &[(s1, index1), (s2, index2)] {
+                    if !segment.has_endpoint(point) {
+                        self.intersections
+                            .entry(index)
+                            .or_insert_with(HashSet::new)
+                            .insert(*point);
+                    }
+                }
+            }
         }
     }
 
@@ -274,7 +301,7 @@ pub fn bentley_ottmann(segments: &[Segment], rounder: &mut PointsHash) -> Vec<Se
 
     let points: Vec<&Point> =
         cutter.intersections.values().flat_map(|points| points.iter()).collect();
-    display!(segments, points);
+    //display!(segments, points);
     Vec::new()
 }
 

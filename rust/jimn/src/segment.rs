@@ -131,36 +131,17 @@ impl Segment {
         }
     }
 
-    ///We can have several intersections in case of overlapping segments.
-    ///In such a case only endpoints will count as intersections.
-    ///So when computing intersections we should not return several ones.
-    ///Instead we will just return next one with respect to current position.
-    pub fn next_intersection_with(&self,
-                                  other: &Segment,
-                                  limit: &Point,
-                                  rounder: &mut PointsHash)
-                                  -> Option<Point> {
-        if let Some(intersection) = self.intersection_with(other) {
-            let result = rounder.hash_point(&intersection);
-            if result <= *limit { Some(result) } else { None }
-        } else if self.contains(&other.start) || other.contains(&self.start) {
-            // we are overlaping, find inside points
-            let (max1, min1) = self.ordered_points();
-            let (max2, min2) = other.ordered_points();
-            let p1 = min(max1, max2);
-            let p2 = max(min1, min2);
-            // *---+-*-+--* : ok
-            if p1 <= *limit {
-                Some(p1) // he is already hashed
-            } else if p2 <= *limit {
-                Some(p2) // he is already hashed
-            } else {
-                None
-            }
-        } else {
-            // parallel but not aligned
-            None
-        }
+    /// If we overlap with given segment return inside points.
+    /// Pre-condition: we are aligned segments.
+    /// Might return one duplicated point
+    pub fn overlap_points(&self, other: &Segment) -> Option<[Point; 2]> {
+        //     p2     p1
+        // *---+------+--*
+        let (max1, min1) = self.ordered_points();
+        let (max2, min2) = other.ordered_points();
+        let p1 = min(max1, max2);
+        let p2 = max(min1, min2);
+        if p1 >= p2 { Some([p1, p2]) } else { None }
     }
 
     /// Do we have given point as EXACTLY one of our endpoints ?
