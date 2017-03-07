@@ -3,6 +3,7 @@
 //! Provides a `Segment` structure for storing oriented 2d segments.
 use std::io;
 use std::fs::File;
+use std::cmp::{min, max};
 use byteorder::{ReadBytesExt, WriteBytesExt, LittleEndian};
 use ordered_float::NotNaN;
 
@@ -127,6 +128,38 @@ impl Segment {
             } else {
                 None
             }
+        }
+    }
+
+    ///We can have several intersections in case of overlapping segments.
+    ///In such a case only endpoints will count as intersections.
+    ///So when computing intersections we should not return several ones.
+    ///Instead we will just return next one with respect to current position.
+    pub fn next_intersection_with(&self,
+                                  other: &Segment,
+                                  limit: &Point,
+                                  rounder: &mut PointsHash)
+                                  -> Option<Point> {
+        if let Some(intersection) = self.intersection_with(other) {
+            let result = rounder.hash_point(&intersection);
+            if result <= *limit { Some(result) } else { None }
+        } else if self.contains(&other.start) || other.contains(&self.start) {
+            // we are overlaping, find inside points
+            let (max1, min1) = self.ordered_points();
+            let (max2, min2) = other.ordered_points();
+            let p1 = min(max1, max2);
+            let p2 = max(min1, min2);
+            // *---+-*-+--* : ok
+            if p1 <= *limit {
+                Some(p1) // he is already hashed
+            } else if p2 <= *limit {
+                Some(p2) // he is already hashed
+            } else {
+                None
+            }
+        } else {
+            // parallel but not aligned
+            None
         }
     }
 

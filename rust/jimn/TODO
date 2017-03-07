@@ -1,10 +1,14 @@
 bentley ottmann:
 
-    - examples with intersections on endpoints
-    - examples with multiple segments on a single intersection
-    - hashing of found intersections
-    - random examples generator
     - treap memory cleaning
+    - we need to be resilient to overlapping segments
+        -> 0) write some examples + tests (partly done)
+        -> 1) change keys by appending segments's id at their ends (DONE)
+        -> 2) serialize insertions/removals by sorting (by angles) + looping
+        -> 3) next_intersection_with() instead of intersection_with() (DONE)
+
+    operation 2 is optional if we do not care about obtaining intersections on overlapping
+    segments
 
 general:
 
