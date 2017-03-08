@@ -8,7 +8,7 @@ use std::io::prelude::*;
 use std::fs::File;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::process::Command;
-use quadrant::Quadrant;
+use quadrant::{Quadrant, Shape};
 use ordered_float::NotNaN;
 
 static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
@@ -99,6 +99,17 @@ pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
     svg_file.write_all(b"</g></svg>")?;
     Command::new("tycat").arg(filename).status()?;
     Ok(())
+}
+
+/// Display given slice of `Shape` using one different color for each element.
+pub fn colored_display<T: Shape>(things: &[T]) -> io::Result<()> {
+    let mut quadrant = Quadrant::new(2);
+    let mut strings = Vec::new();
+    for thing in things {
+        quadrant.update(&thing.get_quadrant());
+        strings.push(thing.svg_string());
+    }
+    display(&quadrant, &strings)
 }
 
 #[macro_export]
