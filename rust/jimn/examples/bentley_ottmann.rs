@@ -2,6 +2,7 @@
 extern crate jimn;
 extern crate glob;
 use glob::glob;
+use jimn::point::Point;
 use jimn::segment::load_segments;
 use jimn::utils::coordinates_hash::PointsHash;
 use jimn::bentley_ottmann::bentley_ottmann;
@@ -17,7 +18,9 @@ fn try_bentley_ottmann_on(filename: &str) {
         rounder.hash_point(&segment.start);
         rounder.hash_point(&segment.end);
     }
-    bentley_ottmann(&segments, &mut rounder);
+    let intersections = bentley_ottmann(&segments, &mut rounder);
+    let points: Vec<&Point> = intersections.values().flat_map(|points| points.iter()).collect();
+    display!(segments, points);
 }
 
 fn main() {

@@ -5,6 +5,7 @@
 //!
 //! * point
 //! * segment
+//! * polygon
 //!
 //! Jimn is intended to work with the terminology terminal emulator from
 //! enlightenment. Under terminology any object or list of objects can be

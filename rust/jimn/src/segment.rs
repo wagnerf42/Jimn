@@ -4,6 +4,8 @@
 use std::io;
 use std::fs::File;
 use std::cmp::{min, max};
+use std::collections::HashSet;
+use std::iter::repeat;
 use byteorder::{ReadBytesExt, WriteBytesExt, LittleEndian};
 use ordered_float::NotNaN;
 
@@ -13,7 +15,7 @@ use utils::precision::is_almost;
 use utils::coordinates_hash::PointsHash;
 
 /// Segment in plane
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialOrd, PartialEq, Ord, Eq)]
 pub struct Segment {
     /// start point
     pub start: Point,
@@ -157,6 +159,47 @@ impl Segment {
             end: rounder.hash_point(&(self.end + vector)),
         }
     }
+
+    /// Cut into subsegments at given set of points.
+    /// pre-requisite: all given points are strictly inside us.
+    ///
+    /// # Example
+    /// ```
+    /// use std::collections::HashSet;
+    /// use jimn::point::Point;
+    /// use jimn::segment::Segment;
+    /// let p1 = Point::new(0.0, 0.0);
+    /// let p2 = Point::new(1.0, 1.0);
+    /// let p3 = Point::new(2.0, 2.0);
+    /// let p4 = Point::new(3.0, 3.0);
+    /// let s = Segment::new(p1.clone(), p4.clone());
+    /// let mut p = HashSet::new();
+    /// p.insert(p2.clone());
+    /// p.insert(p3.clone());
+    /// let segments = s.cut_into_elementary_segments(&p);
+    /// println!("{:?}", segments);
+    /// assert!(segments[0] == Segment::new(p1, p2.clone()));
+    /// assert!(segments[1] == Segment::new(p2, p3.clone()));
+    /// assert!(segments[2] == Segment::new(p3, p4));
+    /// ```
+    pub fn cut_into_elementary_segments(&self, points: &HashSet<Point>) -> Vec<Segment> {
+        let mut sorted_points: Vec<&Point> = points.iter().collect();
+        if self.start < self.end {
+            sorted_points.sort();
+        } else {
+            sorted_points.sort_by(|a, b| b.cmp(a));
+        }
+
+        let iterator = repeat(&self.start)
+            .take(1)
+            .chain(sorted_points.into_iter().chain(repeat(&self.end).take(1)));
+
+        iterator.clone()
+            .zip(iterator.cycle().skip(1))
+            .map(|(p1, p2)| Segment::new(*p1, *p2))
+            .collect()
+    }
+
     /// Save ourselves in given file as 4 64bits little endian floats
     fn write_to_file(&self, file: &mut File) -> io::Result<()> {
         file.write_f64::<LittleEndian>(self.start.x.into_inner())?;

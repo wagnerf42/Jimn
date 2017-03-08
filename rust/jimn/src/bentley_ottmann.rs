@@ -8,10 +8,6 @@ use tree::treap::{Treap, KeyComputer, Node};
 use utils::ArrayMap;
 use utils::coordinates_hash::PointsHash;
 
-//for tycat
-use quadrant::{Quadrant, Shape};
-use tycat::display;
-
 //some type aliases for more readability
 type Coordinate = NotNaN<f64>;
 type Angle = NotNaN<f64>;
@@ -285,8 +281,10 @@ impl<'a, 'b, 'c, 'd> Cutter<'a, 'b, 'c, 'd> {
 }
 
 /// Computes all intersections amongst given segments
-/// and return vector of obtained elementary segments.
-pub fn bentley_ottmann(segments: &[Segment], rounder: &mut PointsHash) -> Vec<Segment> {
+/// and return a hashmap associating to each segment's index the set of intersection points found.
+pub fn bentley_ottmann(segments: &[Segment],
+                       rounder: &mut PointsHash)
+                       -> HashMap<usize, HashSet<Point>> {
     // I need to declare current point outside of the main structure to avoid cyclic constructors
     // problems. (sigh)
     let current_point = RefCell::new(Point::new(0.0, 0.0));
@@ -298,11 +296,7 @@ pub fn bentley_ottmann(segments: &[Segment], rounder: &mut PointsHash) -> Vec<Se
 
     let mut cutter = Cutter::new(capacity, &current_point, &x_coordinates, segments, rounder);
     cutter.run();
-
-    let points: Vec<&Point> =
-        cutter.intersections.values().flat_map(|points| points.iter()).collect();
-    //display!(segments, points);
-    Vec::new()
+    cutter.intersections
 }
 
 #[cfg(test)]
