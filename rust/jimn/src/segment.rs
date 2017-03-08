@@ -181,6 +181,7 @@ impl Segment {
     /// assert!(segments[0] == Segment::new(p1, p2.clone()));
     /// assert!(segments[1] == Segment::new(p2, p3.clone()));
     /// assert!(segments[2] == Segment::new(p3, p4));
+    /// assert!(segments.len() == 3);
     /// ```
     pub fn cut_into_elementary_segments(&self, points: &HashSet<Point>) -> Vec<Segment> {
         let mut sorted_points: Vec<&Point> = points.iter().collect();
@@ -195,7 +196,7 @@ impl Segment {
             .chain(sorted_points.into_iter().chain(repeat(&self.end).take(1)));
 
         iterator.clone()
-            .zip(iterator.cycle().skip(1))
+            .zip(iterator.skip(1))
             .map(|(p1, p2)| Segment::new(*p1, *p2))
             .collect()
     }

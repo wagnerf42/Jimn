@@ -5,7 +5,7 @@ use glob::glob;
 use jimn::point::Point;
 use jimn::segment::load_segments;
 use jimn::utils::coordinates_hash::PointsHash;
-use jimn::bentley_ottmann::bentley_ottmann;
+use jimn::bentley_ottmann::{bentley_ottmann, cut_segments};
 use jimn::tycat::display;
 use jimn::quadrant::{Quadrant, Shape};
 
@@ -21,6 +21,8 @@ fn try_bentley_ottmann_on(filename: &str) {
     let intersections = bentley_ottmann(&segments, &mut rounder);
     let points: Vec<&Point> = intersections.values().flat_map(|points| points.iter()).collect();
     display!(segments, points);
+    let small_segments = cut_segments(&segments, &intersections);
+    display!(small_segments);
 }
 
 fn main() {

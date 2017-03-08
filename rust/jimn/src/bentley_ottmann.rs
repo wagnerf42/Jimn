@@ -299,6 +299,23 @@ pub fn bentley_ottmann(segments: &[Segment],
     cutter.intersections
 }
 
+/// Cut all segments with intersection points obtained from `bentley_ottmann`.
+pub fn cut_segments(segments: &[Segment],
+                    cut_points: &HashMap<SegmentIndex, HashSet<Point>>)
+                    -> Vec<Segment> {
+    segments.iter()
+        .enumerate()
+        .flat_map(|(i, segment)| {
+            let cuts = cut_points.get(&i);
+            if let Some(points) = cuts {
+                segment.cut_into_elementary_segments(points)
+            } else {
+                vec![segment.clone()]
+            }
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
