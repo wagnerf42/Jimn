@@ -1,10 +1,14 @@
 //! Polygons.
 //! Provides `Polygon` structure.
 
+
 use ordered_float::NotNaN;
 use quadrant::{Quadrant, Shape};
 use point::Point;
 use utils::precision::is_almost;
+
+pub use self::polygon_builder::build_polygons;
+mod polygon_builder;
 
 /// Oriented polygons.
 #[derive(Clone, Debug)]

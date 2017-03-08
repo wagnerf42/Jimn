@@ -15,7 +15,7 @@ use utils::precision::is_almost;
 use utils::coordinates_hash::PointsHash;
 
 /// Segment in plane
-#[derive(Debug, Clone, PartialOrd, PartialEq, Ord, Eq)]
+#[derive(Debug, Clone, PartialOrd, PartialEq, Ord, Eq, Hash)]
 pub struct Segment {
     /// start point
     pub start: Point,
@@ -29,6 +29,14 @@ impl Segment {
         Segment {
             start: start,
             end: end,
+        }
+    }
+
+    /// Returns reversed self.
+    pub fn reverse(&self) -> Segment {
+        Segment {
+            start: self.end.clone(),
+            end: self.start.clone(),
         }
     }
 

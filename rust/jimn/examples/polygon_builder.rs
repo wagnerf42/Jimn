@@ -1,0 +1,23 @@
+#[macro_use]
+extern crate jimn;
+use jimn::segment::load_segments;
+use jimn::utils::coordinates_hash::PointsHash;
+use jimn::bentley_ottmann::{bentley_ottmann, cut_segments};
+use jimn::tycat::display;
+use jimn::quadrant::{Quadrant, Shape};
+use jimn::polygon::build_polygons;
+
+fn main() {
+    let segments = load_segments("tests_bentley_ottmann/triangle_h_1.0.bo")
+        .expect("error loading segments file");
+    display!(segments);
+    let mut rounder = PointsHash::new(6);
+    for segment in &segments {
+        rounder.hash_point(&segment.start);
+        rounder.hash_point(&segment.end);
+    }
+    let intersections = bentley_ottmann(&segments, &mut rounder);
+    let mut small_segments = cut_segments(&segments, &intersections);
+    let polygons = build_polygons(&mut small_segments);
+    display!(polygons);
+}
