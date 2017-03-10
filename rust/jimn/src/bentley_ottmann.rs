@@ -1,4 +1,5 @@
 //! Bentley Ottmann intersection algorithm.
+//! TODO: document: no more that 2 overlapping segments at any place.
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet, BinaryHeap};
@@ -359,9 +360,6 @@ struct Classifier<'a> {
     /// Final result
     inclusion_tree: Tree<Option<Polygon>>,
 
-    /// Segments
-    segments: Vec<OwnedSegment>,
-
     /// All events with starting and ending segments.
     events: Vec<(Point, Vec<SegmentIndex>, Vec<SegmentIndex>)>,
 
@@ -370,55 +368,93 @@ struct Classifier<'a> {
 
     /// We store the key generator for our own segments comparison purposes.
     key_generator: Rc<RefCell<KeyGenerator<'a, OwnedSegment>>>,
+
+    /// Remember which polygon is already classified.
+    seen_polygons: HashSet<usize>,
 }
 
 impl<'a> Classifier<'a> {
-    fn new(polygons: &[Polygon]) -> Classifier {
+    /// Create all segments and events.
+    fn new(segments: &'a mut Vec<OwnedSegment>, polygons: &[Polygon]) -> Classifier<'a> {
 
-        let mut segments = Vec::new();
         for polygon in polygons {
             let owner = polygon.id();
             for segment in polygon.points
                 .iter()
                 .zip(polygon.points.iter().cycle().skip(1))
                 .map(|(&p1, &p2)| Segment::new(p1, p2)) {
-                segments.push(OwnedSegment {
-                    segment: segment,
-                    owner: owner,
-                })
+                if !segment.is_horizontal() {
+                    segments.push(OwnedSegment {
+                        segment: segment,
+                        owner: owner,
+                    })
+                }
+            }
+        }
+        let mut raw_events = HashMap::with_capacity(2 * segments.len());
+        for (index, segment) in segments.iter().enumerate() {
+            let (first_point, last_point) = segment.segment.ordered_points();
+            raw_events.entry(first_point)
+                .or_insert_with(|| (Vec::new(), Vec::new()))
+                .0
+                .push(index);
+            raw_events.entry(last_point)
+                .or_insert_with(|| (Vec::new(), Vec::new()))
+                .1
+                .push(index);
+        }
+
+        let mut events: Vec<_> = raw_events.into_iter()
+            .map(|(k, v)| (k, v.0, v.1))
+            .collect();
+        events.sort_by(|a, b| b.0.cmp(&a.0));
+
+        let generator = KeyGenerator::new(segments);
+        Classifier {
+            inclusion_tree: Tree::new(None), // no one for root
+            events: events,
+            crossed_segments: Treap::new(generator.clone()),
+            key_generator: generator,
+            seen_polygons: HashSet::new(),
+        }
+    }
+
+    /// Execute all events, building polygons tree.
+    fn run(&mut self) {
+        for event in &self.events {
+            // remove ending segments
+            for segment in &event.2 {
+                self.crossed_segments.find_node(*segment).unwrap().remove();
+            }
+            self.key_generator.borrow_mut().current_point = event.0;
+            //self.start_segments(&event.1);
+        }
+    }
+
+
+    /// Add given segments in treap, classify new polygons.
+    fn start_segments(&mut self, segments: &Vec<SegmentIndex>) {
+        let nodes: Vec<Node<_>> = segments.iter().map(|s| self.crossed_segments.add(*s)).collect();
+        for node in &nodes {
+            if let Some(larger_neighbour) = node.nearest_node(1) {
+                let owner = self.key_generator.borrow().segments[node.borrow().value].owner;
+                // we are either a brother of owner or its child
+                // count number of brother's appearance in larger nodes to figure it out
+            } else {
+                // we are son of root
+                // TODO: should we store polygons or what ? -> yes -> use index instead of id
+                // and store polygons in self
+                //self.inclusion_tree.root_mut().append()
             }
         }
         unimplemented!()
-
-        //        let mut raw_events = HashMap::with_capacity(2 * segments.len());
-        //        for (index, segment) in segments.iter().enumerate() {
-        //            let (first_point, last_point) = segment.ordered_points();
-        //            raw_events.entry(first_point)
-        //                .or_insert_with(|| (Vec::new(), Vec::new()))
-        //                .0
-        //                .push(index);
-        //            raw_events.entry(last_point)
-        //                .or_insert_with(|| (Vec::new(), Vec::new()))
-        //                .1
-        //                .push(index);
-        //        }
-        //        let mut events: Vec<_> = raw_events.into_iter()
-        //            .map(|(k, v)| (k, v.0, v.1))
-        //            .collect();
-        //        events.sort_by(|a, b| b.0.cmp(&a.0));
-        //
-        //        let generator = KeyGenerator::new(segments);
-        //        Classifier {
-        //            inclusion_tree: Tree::new(None), // no one for root
-        //            events: events,
-        //            crossed_segments: Treap::new(generator.clone()),
-        //            key_generator: generator,
-        //        }
     }
 }
 
 /// Return a tree saying which polygon is included into which one.
 /// TODO: document what happens in case of overlap or partial overlap at wrong place
 pub fn build_inclusion_tree(polygons: &[Polygon]) -> Tree<Polygon> {
+    let mut segments = Vec::new();
+    let classifier = Classifier::new(&mut segments, polygons);
     unimplemented!()
 }
