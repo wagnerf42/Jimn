@@ -23,6 +23,12 @@ pub struct Segment {
     pub end: Point,
 }
 
+impl AsRef<Segment> for Segment {
+    fn as_ref(&self) -> &Segment {
+        self
+    }
+}
+
 impl Segment {
     /// Returns a new Segment between the two given points.
     pub fn new(start: Point, end: Point) -> Segment {

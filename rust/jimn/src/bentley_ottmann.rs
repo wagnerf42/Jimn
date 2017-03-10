@@ -6,7 +6,7 @@ use ordered_float::NotNaN;
 use point::Point;
 use segment::Segment;
 use tree::treap::{Treap, KeyComputer, Node};
-use utils::ArrayMap;
+use utils::{ArrayMap, Identifiable};
 use utils::coordinates_hash::PointsHash;
 
 //some type aliases for more readability
@@ -17,31 +17,31 @@ type Key = (Coordinate, Angle, SegmentIndex);
 
 ///We need someone able to compute comparison keys for our segments.
 #[derive(Debug)]
-struct KeyGenerator<'a> {
+struct KeyGenerator<'a, T: 'a + AsRef<Segment>> {
     /// Where we currently are.
     current_point: Point,
     /// We need a reference to our segments in order to perform index <-> segment conversion.
-    segments: &'a [Segment],
+    segments: &'a [T],
     /// Computing keys requires to know sweping lines intersections.
     x_coordinates: HashMap<(SegmentIndex, Coordinate), Coordinate>,
 }
 
-impl<'a> KeyGenerator<'a> {
-    fn new(segments: &'a [Segment], capacity: usize) -> Rc<RefCell<KeyGenerator<'a>>> {
+impl<'a, T: AsRef<Segment>> KeyGenerator<'a, T> {
+    fn new(segments: &'a [T]) -> Rc<RefCell<KeyGenerator<'a, T>>> {
         Rc::new(RefCell::new(KeyGenerator {
             //initial current point does not matter
             current_point: Point::new(0.0, 0.0), //TODO: default
             segments: segments,
-            x_coordinates: HashMap::with_capacity(capacity),
+            x_coordinates: HashMap::with_capacity(3 * segments.len()),
         }))
     }
 }
 
 
-impl<'a> KeyComputer<SegmentIndex, Key> for KeyGenerator<'a> {
+impl<'a, T: AsRef<Segment>> KeyComputer<SegmentIndex, Key> for KeyGenerator<'a, T> {
     fn compute_key(&self, segment: &SegmentIndex) -> Key {
         let (current_x, current_y) = self.current_point.coordinates();
-        let s = &self.segments[*segment];
+        let s = self.segments[*segment].as_ref();
         let angle = s.sweeping_angle();
         let x = if s.is_horizontal() {
             current_x
@@ -92,13 +92,13 @@ struct Cutter<'a, 'b> {
     /// We store for each event point sets of segments ending and starting there.
     /// The use of set instead of vector allows us to not bother about intersections
     /// being detected twice.
-    events_data: HashMap<Point, [HashSet<usize>; 2]>,
+    events_data: HashMap<Point, [HashSet<SegmentIndex>; 2]>,
 
     /// We store currently crossed segments in a treap (again their positions in input vector).
-    crossed_segments: Treap<SegmentIndex, Key, KeyGenerator<'a>>,
+    crossed_segments: Treap<SegmentIndex, Key, KeyGenerator<'a, Segment>>,
 
     /// We store the key generator for our own segments comparison purposes.
-    key_generator: Rc<RefCell<KeyGenerator<'a>>>,
+    key_generator: Rc<RefCell<KeyGenerator<'a, Segment>>>,
 
     /// Rounder for new points.
     rounder: &'b mut PointsHash,
@@ -109,14 +109,12 @@ impl<'a, 'b> Cutter<'a, 'b> {
 
         //guess the capacity of all our events related hash tables.
         //we need to be above truth to avoid collisions but not too much above.
-        let capacity = segments.len();
-
-        let generator = KeyGenerator::new(segments, 3 * capacity);
+        let generator = KeyGenerator::new(segments);
 
         let mut cutter = Cutter {
             intersections: HashMap::new(),
             events: BinaryHeap::new(),
-            events_data: HashMap::with_capacity(capacity),
+            events_data: HashMap::with_capacity(segments.len()),
             crossed_segments: Treap::new(generator.clone()),
             key_generator: generator,
             rounder: rounder,
@@ -343,6 +341,81 @@ mod tests {
 // TODO: split in several files
 use ego_tree::Tree;
 use polygon::Polygon;
+
+/// we need to remember which segment belongs to which polygon
+struct OwnedSegment {
+    segment: Segment,
+    owner: usize,
+}
+
+impl AsRef<Segment> for OwnedSegment {
+    fn as_ref(&self) -> &Segment {
+        &self.segment
+    }
+}
+
+/// The `Classifier` structure holds all data needed for building inclusion tree.
+struct Classifier<'a> {
+    /// Final result
+    inclusion_tree: Tree<Option<Polygon>>,
+
+    /// Segments
+    segments: Vec<OwnedSegment>,
+
+    /// All events with starting and ending segments.
+    events: Vec<(Point, Vec<SegmentIndex>, Vec<SegmentIndex>)>,
+
+    /// We store currently crossed segments in a treap (again their positions in input vector).
+    crossed_segments: Treap<SegmentIndex, Key, KeyGenerator<'a, OwnedSegment>>,
+
+    /// We store the key generator for our own segments comparison purposes.
+    key_generator: Rc<RefCell<KeyGenerator<'a, OwnedSegment>>>,
+}
+
+impl<'a> Classifier<'a> {
+    fn new(polygons: &[Polygon]) -> Classifier {
+
+        let mut segments = Vec::new();
+        for polygon in polygons {
+            let owner = polygon.id();
+            for segment in polygon.points
+                .iter()
+                .zip(polygon.points.iter().cycle().skip(1))
+                .map(|(&p1, &p2)| Segment::new(p1, p2)) {
+                segments.push(OwnedSegment {
+                    segment: segment,
+                    owner: owner,
+                })
+            }
+        }
+        unimplemented!()
+
+        //        let mut raw_events = HashMap::with_capacity(2 * segments.len());
+        //        for (index, segment) in segments.iter().enumerate() {
+        //            let (first_point, last_point) = segment.ordered_points();
+        //            raw_events.entry(first_point)
+        //                .or_insert_with(|| (Vec::new(), Vec::new()))
+        //                .0
+        //                .push(index);
+        //            raw_events.entry(last_point)
+        //                .or_insert_with(|| (Vec::new(), Vec::new()))
+        //                .1
+        //                .push(index);
+        //        }
+        //        let mut events: Vec<_> = raw_events.into_iter()
+        //            .map(|(k, v)| (k, v.0, v.1))
+        //            .collect();
+        //        events.sort_by(|a, b| b.0.cmp(&a.0));
+        //
+        //        let generator = KeyGenerator::new(segments);
+        //        Classifier {
+        //            inclusion_tree: Tree::new(None), // no one for root
+        //            events: events,
+        //            crossed_segments: Treap::new(generator.clone()),
+        //            key_generator: generator,
+        //        }
+    }
+}
 
 /// Return a tree saying which polygon is included into which one.
 /// TODO: document what happens in case of overlap or partial overlap at wrong place

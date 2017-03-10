@@ -1,11 +1,13 @@
 //! Polygons.
 //! Provides `Polygon` structure.
 
-
+use std;
 use ordered_float::NotNaN;
 use quadrant::{Quadrant, Shape};
 use point::Point;
+use utils::Identifiable;
 use utils::precision::is_almost;
+use segment::Segment;
 
 pub use self::polygon_builder::build_polygons;
 mod polygon_builder;
@@ -16,6 +18,8 @@ pub struct Polygon {
     /// Vector of all points forming the edge of the polygon.
     pub points: Vec<Point>,
 }
+
+impl Identifiable for Polygon {}
 
 impl Polygon {
     /// Create polygon out of given points vector.
