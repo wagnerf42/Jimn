@@ -35,8 +35,8 @@ impl Segment {
     /// Returns reversed self.
     pub fn reverse(&self) -> Segment {
         Segment {
-            start: self.end.clone(),
-            end: self.start.clone(),
+            start: self.end,
+            end: self.start,
         }
     }
 

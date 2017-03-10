@@ -1,13 +1,11 @@
 #[macro_use]
 extern crate jimn;
 use jimn::quadrant::{Quadrant, Shape};
-use jimn::point::Point;
-use jimn::segment::{Segment, save_segments};
+use jimn::segment::save_segments;
 use jimn::tycat::display;
-use jimn::tile::{hexagonal_tile, rectangular_tile, brick_tile};
+use jimn::tile::hexagonal_tile;
 use jimn::bentley_ottmann::bentley_ottmann;
 use jimn::utils::coordinates_hash::PointsHash;
-use jimn::utils::ArrayMap;
 use jimn::stl::Stl;
 
 /// try a square tile on a triangle

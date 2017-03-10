@@ -1,4 +1,5 @@
 //! Bentley Ottmann intersection algorithm.
+use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet, BinaryHeap};
 use ordered_float::NotNaN;
@@ -15,20 +16,31 @@ type SegmentIndex = usize;
 type Key = (Coordinate, Angle, SegmentIndex);
 
 ///We need someone able to compute comparison keys for our segments.
-#[derive(Clone, Debug)]
-struct KeyGenerator<'a, 'b, 'c> {
+#[derive(Debug)]
+struct KeyGenerator<'a> {
     /// Where we currently are.
-    current_point: &'a RefCell<Point>,
+    current_point: Point,
     /// We need a reference to our segments in order to perform index <-> segment conversion.
-    segments: &'b [Segment],
+    segments: &'a [Segment],
     /// Computing keys requires to know sweping lines intersections.
-    x_coordinates: &'c RefCell<HashMap<(SegmentIndex, Coordinate), Coordinate>>,
+    x_coordinates: HashMap<(SegmentIndex, Coordinate), Coordinate>,
 }
 
-impl<'a, 'b, 'c> KeyComputer<SegmentIndex, Key> for KeyGenerator<'a, 'b, 'c> {
+impl<'a> KeyGenerator<'a> {
+    fn new(segments: &'a [Segment], capacity: usize) -> Rc<RefCell<KeyGenerator<'a>>> {
+        Rc::new(RefCell::new(KeyGenerator {
+            //initial current point does not matter
+            current_point: Point::new(0.0, 0.0), //TODO: default
+            segments: segments,
+            x_coordinates: HashMap::with_capacity(capacity),
+        }))
+    }
+}
+
+
+impl<'a> KeyComputer<SegmentIndex, Key> for KeyGenerator<'a> {
     fn compute_key(&self, segment: &SegmentIndex) -> Key {
-        let current_x = self.current_point.borrow().x;
-        let current_y = self.current_point.borrow().y;
+        let (current_x, current_y) = self.current_point.coordinates();
         let s = &self.segments[*segment];
         let angle = s.sweeping_angle();
         let x = if s.is_horizontal() {
@@ -46,8 +58,7 @@ impl<'a, 'b, 'c> KeyComputer<SegmentIndex, Key> for KeyGenerator<'a, 'b, 'c> {
             //
             //         angle of a is 3pi/4 ; angle of b is pi/4
             let key = (*segment, current_y);
-            let table = self.x_coordinates.borrow();
-            let stored_x = table.get(&key);
+            let stored_x = self.x_coordinates.get(&key);
             if let Some(&x) = stored_x {
                 x
             } else {
@@ -67,25 +78,14 @@ impl<'a, 'b, 'c> KeyComputer<SegmentIndex, Key> for KeyGenerator<'a, 'b, 'c> {
 }
 
 /// The `Cutter` structure holds all data needed for bentley ottmann's execution.
-struct Cutter<'a, 'b, 'c, 'd> {
+struct Cutter<'a, 'b> {
     //TODO: could we replace the hashset by a vector ?
     /// Results: we associate to each segment (identified by it's position in input vector)
     /// a set of intersections.
     intersections: HashMap<SegmentIndex, HashSet<Point>>,
 
-    /// Where we currently are.
-    current_point: &'a RefCell<Point>,
-
     /// Remaining events.
     events: BinaryHeap<Point>,
-
-    /// X coordinates for comparison key computations.
-    /// We store for each segment (identified by it's position in input vector) and y coordinate
-    /// the corresponding x coordinate when intersecting segment with horizontal line passing
-    /// through y.
-    /// Storing this information allows to avoid a lot of rounding errors and it is crucial
-    /// to the correctness of the algorithm.
-    x_coordinates: &'c RefCell<HashMap<(SegmentIndex, Coordinate), Coordinate>>,
 
     //TODO: switch to vectors
     //we would need to remember the pairs of segments already tested for intersections
@@ -95,47 +95,39 @@ struct Cutter<'a, 'b, 'c, 'd> {
     events_data: HashMap<Point, [HashSet<usize>; 2]>,
 
     /// We store currently crossed segments in a treap (again their positions in input vector).
-    crossed_segments: Treap<SegmentIndex, Key, KeyGenerator<'a, 'b, 'c>>,
+    crossed_segments: Treap<SegmentIndex, Key, KeyGenerator<'a>>,
 
     /// We store the key generator for our own segments comparison purposes.
-    key_generator: KeyGenerator<'a, 'b, 'c>,
+    key_generator: Rc<RefCell<KeyGenerator<'a>>>,
 
     /// Rounder for new points.
-    rounder: &'d mut PointsHash,
+    rounder: &'b mut PointsHash,
 }
 
-impl<'a, 'b, 'c, 'd> Cutter<'a, 'b, 'c, 'd> {
-    fn new(capacity: usize,
-           current_point: &'a RefCell<Point>,
-           x_coordinates: &'c RefCell<HashMap<(SegmentIndex, Coordinate), Coordinate>>,
-           segments: &'b [Segment],
-           rounder: &'d mut PointsHash)
-           -> Cutter<'a, 'b, 'c, 'd> {
+impl<'a, 'b> Cutter<'a, 'b> {
+    fn new(segments: &'a [Segment], rounder: &'b mut PointsHash) -> Cutter<'a, 'b> {
 
-        let generator = KeyGenerator {
-            current_point: current_point,
-            segments: segments,
-            x_coordinates: x_coordinates,
-        };
+        //guess the capacity of all our events related hash tables.
+        //we need to be above truth to avoid collisions but not too much above.
+        let capacity = segments.len();
+
+        let generator = KeyGenerator::new(segments, 3 * capacity);
 
         let mut cutter = Cutter {
             intersections: HashMap::new(),
-            current_point: current_point, // initial value does not matter
             events: BinaryHeap::new(),
-            x_coordinates: x_coordinates,
             events_data: HashMap::with_capacity(capacity),
             crossed_segments: Treap::new(generator.clone()),
             key_generator: generator,
             rounder: rounder,
         };
 
-        let mut x_coordinates = cutter.x_coordinates.borrow_mut();
         for (index, segment) in segments.iter().enumerate() {
             let (start, end) = segment.ordered_points();
             cutter.add_event(start, index, 0);
             cutter.add_event(end, index, 1);
-            (*x_coordinates).insert((index, start.y), start.x);
-            (*x_coordinates).insert((index, end.y), end.x);
+            cutter.key_generator.borrow_mut().x_coordinates.insert((index, start.y), start.x);
+            cutter.key_generator.borrow_mut().x_coordinates.insert((index, end.y), end.x);
         }
         cutter
     }
@@ -156,8 +148,8 @@ impl<'a, 'b, 'c, 'd> Cutter<'a, 'b, 'c, 'd> {
     fn try_intersecting(&mut self, node1: &Node<SegmentIndex>, node2: &Node<SegmentIndex>) {
         let nodes = [node1, node2];
         let indices = nodes.map(|n| n.borrow().value);
-        let segments = indices.map(|i| &self.key_generator.segments[*i]);
-        let current_point = *self.key_generator.current_point.borrow();
+        let segments = indices.map(|i| &self.key_generator.borrow().segments[*i]);
+        let current_point = self.key_generator.borrow().current_point;
         let possible_intersection = segments[0].intersection_with(segments[1]);
         if let Some(raw_intersection) = possible_intersection {
             let intersection = self.rounder.hash_point(&raw_intersection);
@@ -166,8 +158,9 @@ impl<'a, 'b, 'c, 'd> Cutter<'a, 'b, 'c, 'd> {
             }
             for (index, segment) in indices.iter().zip(segments.iter()) {
                 if !segment.has_endpoint(&intersection) {
-                    self.x_coordinates
+                    self.key_generator
                         .borrow_mut()
+                        .x_coordinates
                         .insert((*index, intersection.y), intersection.x);
                     if intersection < current_point {
                         // it is possible to be equal in case of overlapping segments
@@ -189,9 +182,10 @@ impl<'a, 'b, 'c, 'd> Cutter<'a, 'b, 'c, 'd> {
         if segments.is_empty() {
             return;
         }
-        segments.sort_by(|a, b| {
-            self.key_generator.compute_key(a).cmp(&self.key_generator.compute_key(b))
-        });
+        {
+            let generator = self.key_generator.borrow();
+            segments.sort_by(|a, b| generator.compute_key(a).cmp(&generator.compute_key(b)));
+        }
         let small_node = self.crossed_segments
             .find_node(*segments.first().unwrap())
             .expect("ending : no small node in crossed segments");
@@ -214,18 +208,19 @@ impl<'a, 'b, 'c, 'd> Cutter<'a, 'b, 'c, 'd> {
         if segments.is_empty() {
             return;
         }
-        segments.sort_by(|a, b| {
-            self.key_generator.compute_key(a).cmp(&self.key_generator.compute_key(b))
-        });
+        {
+            let generator = self.key_generator.borrow();
+            segments.sort_by(|a, b| generator.compute_key(a).cmp(&generator.compute_key(b)));
+        }
 
         for segment in segments.iter() {
-            let new_key = self.key_generator.compute_key(segment);
+            let new_key = self.key_generator.borrow().compute_key(segment);
             let (mut father, direction) = self.crossed_segments.find_insertion_place(&new_key);
             father.add_child_with_value(direction, *segment);
             // if we overlap with someone the only possibility is father's segment
             if !father.is_root() {
                 let father_index = father.borrow().value;
-                let father_key = self.key_generator.compute_key(&father_index);
+                let father_key = self.key_generator.borrow().compute_key(&father_index);
                 if new_key.0 == father_key.0 && new_key.1 == father_key.1 {
                     self.handle_overlapping_segments(*segment, father_index);
                 }
@@ -245,8 +240,9 @@ impl<'a, 'b, 'c, 'd> Cutter<'a, 'b, 'c, 'd> {
     }
 
     fn handle_overlapping_segments(&mut self, index1: SegmentIndex, index2: SegmentIndex) {
-        let s1 = &self.key_generator.segments[index1];
-        let s2 = &self.key_generator.segments[index2];
+        let generator = self.key_generator.borrow();
+        let s1 = &generator.segments[index1];
+        let s2 = &generator.segments[index2];
         if let Some(points) = s1.overlap_points(s2) {
             for point in &points {
                 for &(segment, index) in &[(s1, index1), (s2, index2)] {
@@ -273,7 +269,7 @@ impl<'a, 'b, 'c, 'd> Cutter<'a, 'b, 'c, 'd> {
                 ending_segments = changing_segments[1].iter().cloned().collect();
             }
             self.end_segments(&mut ending_segments);
-            *self.current_point.borrow_mut() = event_point;
+            self.key_generator.borrow_mut().current_point = event_point;
             self.start_segments(&mut starting_segments);
             self.events_data.remove(&event_point);
         }
@@ -285,16 +281,8 @@ impl<'a, 'b, 'c, 'd> Cutter<'a, 'b, 'c, 'd> {
 pub fn bentley_ottmann(segments: &[Segment],
                        rounder: &mut PointsHash)
                        -> HashMap<usize, HashSet<Point>> {
-    // I need to declare current point outside of the main structure to avoid cyclic constructors
-    // problems. (sigh)
-    let current_point = RefCell::new(Point::new(0.0, 0.0));
-    //guess the capacity of all our events related hash tables.
-    //we need to be above truth to avoid collisions but not too much above.
-    let capacity = 8 * segments.len();
-    // again, to avoid lifetimes problems I need to declare this outside of main struct.
-    let x_coordinates = RefCell::new(HashMap::with_capacity(capacity));
 
-    let mut cutter = Cutter::new(capacity, &current_point, &x_coordinates, segments, rounder);
+    let mut cutter = Cutter::new(segments, rounder);
     cutter.run();
     cutter.intersections
 }
@@ -349,4 +337,15 @@ mod tests {
         let (mut rounder, segments) = prepare_tests("tests_bentley_ottmann/carnifex_h_0.5.bo");
         b.iter(|| bentley_ottmann(&segments, &mut rounder));
     }
+}
+
+// inclusion tree builder
+// TODO: split in several files
+use ego_tree::Tree;
+use polygon::Polygon;
+
+/// Return a tree saying which polygon is included into which one.
+/// TODO: document what happens in case of overlap or partial overlap at wrong place
+pub fn build_inclusion_tree(polygons: &[Polygon]) -> Tree<Polygon> {
+    unimplemented!()
 }

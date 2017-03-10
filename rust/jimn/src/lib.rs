@@ -21,6 +21,8 @@ extern crate byteorder;
 extern crate rand;
 extern crate ordered_float;
 extern crate test;
+extern crate ego_tree;
+
 pub mod utils;
 #[macro_use]
 pub mod tycat;
@@ -39,7 +41,7 @@ use quadrant::{Quadrant, Shape};
 use tycat::display;
 
 /// Computes the milling path for given slices thickness, milling radius and stl file.
-pub fn compute_milling_path(thickness: f64, milling_radius: f64, stl_file: String) {
+pub fn compute_milling_path(thickness: f64, _milling_radius: f64, stl_file: String) {
     //TODO: use asref or borrow
     let model = Stl::new(stl_file.as_str()).expect("unable to load stl file");
     let mut rounder = PointsHash::new(6);

@@ -171,3 +171,13 @@ impl Shape for Polygon {
         format!("<polygon points=\"{}\"/>", points_string)
     }
 }
+
+/// Return a square polygon with top left corner at given (x,y) and side of l.
+pub fn square(x: f64, y: f64, l: f64) -> Polygon {
+    Polygon {
+        points: vec![Point::new(x, y),
+                     Point::new(x + l, y),
+                     Point::new(x + l, y + l),
+                     Point::new(x, y + l)],
+    }
+}

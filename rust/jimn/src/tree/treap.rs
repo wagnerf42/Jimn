@@ -266,13 +266,13 @@ pub struct Treap<T, U, V>
           V: KeyComputer<T, U>
 {
     root: Node<T>,
-    key_generator: V,
+    key_generator: Rc<RefCell<V>>,
     ghost: PhantomData<U>,
 }
 
 impl<T: Display + Default + Eq, U: Ord + std::fmt::Debug, V: KeyComputer<T, U>> Treap<T, U, V> {
     /// Creates a new Treap.
-    pub fn new(key_generator: V) -> Treap<T, U, V> {
+    pub fn new(key_generator: Rc<RefCell<V>>) -> Treap<T, U, V> {
         let tree = Treap {
             root: Node::new(Default::default()),
             key_generator: key_generator,
@@ -293,7 +293,9 @@ impl<T: Display + Default + Eq, U: Ord + std::fmt::Debug, V: KeyComputer<T, U>> 
     /// # Example
     /// ```
     /// use jimn::tree::treap::{IdentityKeyComputer, Treap};
-    /// let tree = Treap::new(IdentityKeyComputer());
+    /// use std::rc::Rc;
+    /// use std::cell::RefCell;
+    /// let tree = Treap::new(Rc::new(RefCell::new(IdentityKeyComputer())));
     /// tree.populate(1..10);
     /// let node5 = tree.find_node(5);
     /// assert!(node5.is_some());
@@ -305,9 +307,10 @@ impl<T: Display + Default + Eq, U: Ord + std::fmt::Debug, V: KeyComputer<T, U>> 
         let possible_start = self.root.child(1);
         if possible_start.is_some() {
             let mut current_node = possible_start.unwrap();
-            let target_key = self.key_generator.compute_key(&value);
+            let target_key = self.key_generator.borrow().compute_key(&value);
             while current_node.borrow().value != value {
-                let current_key = self.key_generator.compute_key(&current_node.borrow().value);
+                let current_key =
+                    self.key_generator.borrow().compute_key(&current_node.borrow().value);
                 let direction = (target_key > current_key) as usize;
                 if let Some(next_node) = current_node.child(direction) {
                     current_node = next_node;
@@ -327,7 +330,7 @@ impl<T: Display + Default + Eq, U: Ord + std::fmt::Debug, V: KeyComputer<T, U>> 
         let mut direction = 1; // because sentinel has min key
         while let Some(next_node) = current_node.child(direction) {
             current_node = next_node;
-            let node_key = self.key_generator.compute_key(&current_node.borrow().value);
+            let node_key = self.key_generator.borrow().compute_key(&current_node.borrow().value);
             assert!(node_key != *key);
             direction = (*key > node_key) as usize;
         }
@@ -336,7 +339,7 @@ impl<T: Display + Default + Eq, U: Ord + std::fmt::Debug, V: KeyComputer<T, U>> 
 
     /// Adds a node to treap with given value.
     pub fn add(&self, value: T) -> Node<T> {
-        let key = self.key_generator.compute_key(&value);
+        let key = self.key_generator.borrow().compute_key(&value);
         let (mut current_node, direction) = self.find_insertion_place(&key);
         current_node.add_child_with_value(direction, value)
     }
