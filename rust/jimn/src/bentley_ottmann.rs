@@ -340,8 +340,8 @@ mod tests {
 
 // inclusion tree builder
 // TODO: split in several files
-use ego_tree::Tree;
 use polygon::Polygon;
+use tree::{Tree, NodeIndex};
 
 type ClassifyEvent = (Point, Vec<SegmentIndex>, Vec<SegmentIndex>);
 type PolygonIndex = usize;
@@ -362,7 +362,7 @@ impl AsRef<Segment> for OwnedSegment {
 /// The `Classifier` structure holds all data needed for building inclusion tree.
 struct Classifier<'a> {
     /// Final result
-    inclusion_tree: Tree<Option<Polygon>>,
+    inclusion_tree: Tree<Polygon>,
 
     /// We store currently crossed segments in a treap (again their positions in input vector).
     crossed_segments: Treap<SegmentIndex, Key, KeyGenerator<'a, OwnedSegment>>,
@@ -376,6 +376,9 @@ struct Classifier<'a> {
 
     /// Store polygons temporarily before insertion in tree.
     polygons: HashMap<PolygonIndex, Polygon>,
+
+    /// quick access to polygons in tree (by polygonindex)
+    polygon_nodes: HashMap<PolygonIndex, NodeIndex>,
 }
 
 impl<'a> Classifier<'a> {
@@ -421,11 +424,12 @@ impl<'a> Classifier<'a> {
         let generator = KeyGenerator::new(segments);
         (events,
          Classifier {
-             inclusion_tree: Tree::new(None), // no one for root
+             inclusion_tree: Tree::new(), // no one for root
              crossed_segments: Treap::new(generator.clone()),
              key_generator: generator,
              alive_segments: HashMap::new(),
              polygons: stored_polygons,
+             polygon_nodes: HashMap::new(),
          })
     }
 
@@ -464,18 +468,47 @@ impl<'a> Classifier<'a> {
             let segment_index = node.borrow().value;
             let owner = self.key_generator.borrow().segments[segment_index].owner;
             if self.polygons.contains_key(&owner) {
-                if let Some(larger_neighbour) = node.nearest_node(1) {
-                    let neighbour_owner = self.key_generator.borrow().segments[node.borrow().value]
-                        .owner;
-                    // we are either a brother of owner or its child
-                    // count number of brother's larger segments
-                    unimplemented!()
-                } else {
-                    // we are son of root
-                    self.inclusion_tree.root_mut().append(self.polygons.remove(&owner));
-                }
+                self.classify_polygon(owner, segment_index, node);
             }
         }
+    }
+
+    /// Add given polygon at right place in polygons tree.
+    fn classify_polygon(&mut self,
+                        owner: PolygonIndex,
+                        segment_index: SegmentIndex,
+                        node: &Node<SegmentIndex>) {
+        let polygon = self.polygons.remove(&owner).unwrap();
+        let father_id; // where to add it
+        if let Some(larger_neighbour) = node.nearest_node(1) {
+            let neighbour_owner =
+                self.key_generator.borrow().segments[larger_neighbour.borrow().value].owner;
+            // we are either a brother of neighbour or its child
+            let key = self.key_generator.borrow().compute_key(&segment_index);
+            let neighbour_id = self.polygon_nodes[&neighbour_owner];
+            if self.inclusion_test(key, neighbour_owner) {
+                // we are his child
+                father_id = neighbour_id;
+            } else {
+                // we are his brother
+                father_id = self.inclusion_tree.father(neighbour_id);
+            }
+        } else {
+            // we are son of root
+            father_id = self.inclusion_tree.root();
+        }
+        let new_node_id = self.inclusion_tree.add_child(polygon, father_id);
+        self.polygon_nodes.insert(owner, new_node_id);
+    }
+
+
+    /// Is segment with given key included in given polygon ?
+    fn inclusion_test(&self, key: Key, polygon: PolygonIndex) -> bool {
+        let count = self.alive_segments[&polygon]
+            .iter()
+            .filter(|s| self.key_generator.borrow().compute_key(s) > key)
+            .count();
+        (count % 2) == 1
     }
 }
 
@@ -485,5 +518,5 @@ pub fn build_inclusion_tree(polygons: Vec<Polygon>) -> Tree<Polygon> {
     let mut segments = Vec::new();
     let (events, mut classifier) = Classifier::new(&mut segments, polygons);
     classifier.run(&events);
-    unimplemented!()
+    classifier.inclusion_tree
 }

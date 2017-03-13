@@ -18,6 +18,12 @@ pub struct Polygon {
 }
 
 impl Identifiable for Polygon {}
+/// Return an empty polygon as default
+impl Default for Polygon {
+    fn default() -> Self {
+        Polygon { points: Vec::new() }
+    }
+}
 
 impl Polygon {
     /// Create polygon out of given points vector.
@@ -168,9 +174,14 @@ impl Shape for Polygon {
     }
 
     fn svg_string(&self) -> String {
-        let strings: Vec<String> = self.points.iter().map(|p| format!("{},{}", p.x, p.y)).collect();
-        let points_string = strings.join(" ");
-        format!("<polygon points=\"{}\"/>", points_string)
+        if self.points.is_empty() {
+            String::new()
+        } else {
+            let strings: Vec<String> =
+                self.points.iter().map(|p| format!("{},{}", p.x, p.y)).collect();
+            let points_string = strings.join(" ");
+            format!("<polygon points=\"{}\"/>", points_string)
+        }
     }
 }
 

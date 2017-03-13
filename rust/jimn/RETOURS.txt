@@ -9,3 +9,6 @@ morceau de la struct
 - le borrow checker contraint les API (voir enlever un element quelconque d'un hashset)
 
 - pas moyen de creer par map les OwnedSegment (pb closure)
+
+- le borrow checker contraint les actions
+--> par exemple transformation vecteur en arbre, impossible d'avoir un vecteur partiellement faux

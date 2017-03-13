@@ -21,7 +21,6 @@ extern crate byteorder;
 extern crate rand;
 extern crate ordered_float;
 extern crate test;
-extern crate ego_tree;
 
 pub mod utils;
 #[macro_use]
