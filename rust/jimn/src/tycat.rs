@@ -13,43 +13,44 @@ use ordered_float::NotNaN;
 
 static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
 
-const SVG_COLORS: [&'static str; 37] = ["red",
-                                        "green",
-                                        "blue",
-                                        "purple",
-                                        "orange",
-                                        "saddlebrown",
-                                        "mediumseagreen",
-                                        "darkolivegreen",
-                                        "lightskyblue",
-                                        "dimgray",
-                                        "mediumpurple",
-                                        "midnightblue",
-                                        "olive",
-                                        "chartreuse",
-                                        "darkorchid",
-                                        "hotpink",
-                                        "darkred",
-                                        "peru",
-                                        "goldenrod",
-                                        "mediumslateblue",
-                                        "orangered",
-                                        "darkmagenta",
-                                        "darkgoldenrod",
-                                        "mediumslateblue",
-                                        "firebrick",
-                                        "palegreen",
-                                        "royalblue",
-                                        "tan",
-                                        "tomato",
-                                        "springgreen",
-                                        "pink",
-                                        "orchid",
-                                        "saddlebrown",
-                                        "moccasin",
-                                        "mistyrose",
-                                        "cornflowerblue",
-                                        "darkgrey"];
+/// Common colors
+pub const SVG_COLORS: [&'static str; 37] = ["red",
+                                            "green",
+                                            "blue",
+                                            "purple",
+                                            "orange",
+                                            "saddlebrown",
+                                            "mediumseagreen",
+                                            "darkolivegreen",
+                                            "lightskyblue",
+                                            "dimgray",
+                                            "mediumpurple",
+                                            "midnightblue",
+                                            "olive",
+                                            "chartreuse",
+                                            "darkorchid",
+                                            "hotpink",
+                                            "darkred",
+                                            "peru",
+                                            "goldenrod",
+                                            "mediumslateblue",
+                                            "orangered",
+                                            "darkmagenta",
+                                            "darkgoldenrod",
+                                            "mediumslateblue",
+                                            "firebrick",
+                                            "palegreen",
+                                            "royalblue",
+                                            "tan",
+                                            "tomato",
+                                            "springgreen",
+                                            "pink",
+                                            "orchid",
+                                            "saddlebrown",
+                                            "moccasin",
+                                            "mistyrose",
+                                            "cornflowerblue",
+                                            "darkgrey"];
 
 /// tycat given svg strings bounded by given quadrant.
 pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
@@ -101,8 +102,9 @@ pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
     Ok(())
 }
 
-/// Display given slice of `Shape` using one different color for each element.
-pub fn colored_display<T: Shape>(things: &[T]) -> io::Result<()> {
+/// Display given `Shape` iterable using one different color for each element.
+pub fn colored_display<'a, T: 'a + Shape, U: IntoIterator<Item = &'a T>>(things: U)
+                                                                         -> io::Result<()> {
     let mut quadrant = Quadrant::new(2);
     let mut strings = Vec::new();
     for thing in things {
