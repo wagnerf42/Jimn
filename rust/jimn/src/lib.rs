@@ -31,6 +31,7 @@ pub mod segment;
 pub mod stl;
 pub mod tree;
 pub mod bentley_ottmann;
+pub mod classifier;
 pub mod polygon;
 pub mod tile;
 

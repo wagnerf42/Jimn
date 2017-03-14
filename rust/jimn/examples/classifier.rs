@@ -1,7 +1,7 @@
 extern crate jimn;
 
 use jimn::polygon::square;
-use jimn::bentley_ottmann::build_inclusion_tree;
+use jimn::classifier::build_inclusion_tree;
 use jimn::tycat::colored_display;
 
 fn main() {

@@ -21,6 +21,12 @@ pub struct Point {
     pub x: NotNaN<f64>,
 }
 
+impl Default for Point {
+    fn default() -> Self {
+        Point::new(0.0, 0.0)
+    }
+}
+
 impl Point {
     /// Returns a new Point from given coordinates.
     pub fn new<T: Into<NotNaN<f64>>, U: Into<NotNaN<f64>>>(x: T, y: U) -> Point {
