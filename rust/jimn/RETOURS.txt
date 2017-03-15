@@ -12,3 +12,5 @@ morceau de la struct
 
 - le borrow checker contraint les actions
 --> par exemple transformation vecteur en arbre, impossible d'avoir un vecteur partiellement faux
+
++ genericisation du treap

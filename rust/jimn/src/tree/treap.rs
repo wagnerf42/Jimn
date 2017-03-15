@@ -39,7 +39,7 @@ impl<T: Clone + Ord> KeyComputer<T, T> for IdentityKeyComputer {
 
 
 /// Do not count how many nodes in subtrees.
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct EmptyCounter();
 
 impl Add for EmptyCounter {
@@ -63,7 +63,7 @@ impl Default for EmptyCounter {
 }
 
 /// Do count how many nodes in subtrees.
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Counter(usize);
 impl Add for Counter {
     type Output = Counter;
@@ -87,7 +87,7 @@ impl Default for Counter {
 
 
 /// Treap Node
-pub struct RawNode<T, U: Add<Output = U> + Sub<Output = U> + Eq + Default> {
+pub struct RawNode<T, U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default> {
     /// Real content of the Node.
     pub value: T,
     priority: u64,
@@ -97,24 +97,24 @@ pub struct RawNode<T, U: Add<Output = U> + Sub<Output = U> + Eq + Default> {
 }
 
 /// Treap node (tuple struct to implement methods)
-pub struct Node<T, U: Add<Output = U> + Sub<Output = U> + Eq + Default>(Rc<RefCell<RawNode<T, U>>>);
+pub struct Node<T, U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default>(Rc<RefCell<RawNode<T, U>>>);
 
-impl<T, U: Add<Output = U> + Sub<Output = U> + Eq + Default> Identifiable for RawNode<T, U> {}
+impl<T, U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default> Identifiable for RawNode<T, U> {}
 
-impl<T, U: Add<Output = U> + Sub<Output = U> + Eq + Default> Clone for Node<T, U> {
+impl<T, U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default> Clone for Node<T, U> {
     fn clone(&self) -> Node<T, U> {
         Node(self.0.clone())
     }
 }
 
-impl<T, U: Add<Output = U> + Sub<Output = U> + Eq + Default> Deref for Node<T, U> {
+impl<T, U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default> Deref for Node<T, U> {
     type Target = Rc<RefCell<RawNode<T, U>>>;
     fn deref(&self) -> &Rc<RefCell<RawNode<T, U>>> {
         &self.0
     }
 }
 
-impl<T: Display, U: Add<Output = U> + Sub<Output = U> + Eq + Default> Node<T, U> {
+impl<T: Display, U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default> Node<T, U> {
     /// Creates a new `Node` with given value.
     fn new(value: T) -> Node<T, U> {
         Node(Rc::new(RefCell::new(RawNode {
@@ -191,9 +191,22 @@ impl<T: Display, U: Add<Output = U> + Sub<Output = U> + Eq + Default> Node<T, U>
         let direction = father.direction_to(self);
         let grandfather = father.father();
         let grandfather_direction = grandfather.direction_to(&father);
-        // first, replace father for grandfather
+
+        // start by updating counters
+        self.borrow_mut().counter = father.borrow().counter;
+        let delta = if let Some(ref child) = self.child(direction) {
+            child.borrow().counter + Default::default()
+        } else {
+            Default::default()
+        };
+        let old_counter = father.borrow().counter;
+        father.borrow_mut().counter = old_counter - delta;
+
+
+        // now, replace father for grandfather
         grandfather.set_child(grandfather_direction, self.clone());
-        // now exchange roles with father
+
+        // finally exchange roles with father
         let reversed_direction = 1 - direction;
         father.set_child(direction, self.child(reversed_direction));
         self.set_child(reversed_direction, father);
@@ -236,12 +249,15 @@ impl<T: Display, U: Add<Output = U> + Sub<Output = U> + Eq + Default> Node<T, U>
         // first, easy cases : one or zero child
         if !self.child(1).is_some() {
             father.set_child(father.direction_to(self), self.child(0));
+            father.update_counters(Default::default(), false);
         } else if !self.child(0).is_some() {
             father.set_child(father.direction_to(self), self.child(1));
+            father.update_counters(Default::default(), false);
         } else {
             let extremum = self.child(1).unwrap().extreme_node(0);
             self.exchange_with(&extremum);
             self.remove();
+            return;
         }
         // for more security disconnect pointers
         self.borrow_mut().father = None;
@@ -280,10 +296,35 @@ impl<T: Display, U: Add<Output = U> + Sub<Output = U> + Eq + Default> Node<T, U>
         self.borrow_mut().priority = other_priority;
     }
 
+
+    /// Update counters by adding/removing given delta to/from all ancestors.
+    /// O(h) for CountingTreap
+    /// O(1) for Treap
+    fn update_counters(&self, delta: U, add: bool) {
+        let mut node = self.clone();
+        loop {
+            let old_counter = node.borrow().counter;
+            let new_counter = if add {
+                old_counter + delta
+            } else {
+                old_counter - delta
+            };
+            if old_counter == new_counter {
+                return;
+            }
+            node.borrow_mut().counter = new_counter;
+            if node.is_root() {
+                return;
+            }
+            node = node.father();
+        }
+    }
+
     /// Create new child node at given direction with given value and rebalance Treap.
     pub fn add_child_with_value(&mut self, direction: usize, value: T) -> Node<T, U> {
         let new_node = Node::new(value);
         self.set_child(direction, new_node.clone());
+        self.update_counters(Default::default(), true);
         new_node.balance()
     }
 
@@ -327,7 +368,7 @@ pub type CountingTreap<T, V, W> = RawTreap<T, Counter, V, W>;
 /// the current position (used in paths comparisons).
 pub struct RawTreap<T, U, V, W>
     where T: Display + Eq,
-          U: Add<Output = U> + Sub<Output = U> + Eq + Default,
+          U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default,
           V: std::fmt::Debug + Ord,
           W: KeyComputer<T, V>
 {
@@ -337,7 +378,7 @@ pub struct RawTreap<T, U, V, W>
 }
 
 impl<T: Display + Default + Eq,
-     U: Add<Output = U> + Sub<Output = U> + Eq + Default,
+     U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default,
      V: Ord + std::fmt::Debug,
      W: KeyComputer<T, V>> RawTreap<T, U, V, W> {
     /// Creates a new Treap.

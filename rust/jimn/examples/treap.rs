@@ -1,10 +1,10 @@
 extern crate jimn;
 use std::rc::Rc;
 use std::cell::RefCell;
-use jimn::tree::treap::{IdentityKeyComputer, Treap};
+use jimn::tree::treap::{IdentityKeyComputer, CountingTreap};
 
 fn main() {
-    let treap = Treap::new(Rc::new(RefCell::new(IdentityKeyComputer())));
+    let treap = CountingTreap::new(Rc::new(RefCell::new(IdentityKeyComputer())));
     treap.populate(1..10);
     treap.tycat();
     println!("adding 12");
