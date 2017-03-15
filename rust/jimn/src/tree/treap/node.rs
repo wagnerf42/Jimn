@@ -1,122 +1,49 @@
-//! Provides a `Treap` structure for sweeping line algorithms.
-use std::ops::{Add, Sub};
+//! Treap Node
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::ops::Deref;
 use std::fs::File;
-use std::process::Command;
-use std::io::prelude::*;
-use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
+use std::ops::Deref;
 use std::fmt::Display;
-use std::marker::PhantomData;
-use std::cmp::Ord;
-use std;
+use std::io::prelude::*;
 use rand;
-
+use super::Counting;
 use utils::Identifiable;
-
-/// sequential counter for tycat files
-static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
-
 
 //TODO: we have leaks. look at weak references.
 
-/// Objets inside a treap must be comparable by someone.
-/// We use a `KeyComputer` to return a comparison key for an object.
-pub trait KeyComputer<T, U: Ord> {
-    ///Returns a comparison key of type *U* for comparing objects of type *T*.
-    fn compute_key(&self, object: &T) -> U;
-}
-
-/// We give a default comparer for cases where comparison keys are directly the
-/// objects compared.
-pub struct IdentityKeyComputer();
-impl<T: Clone + Ord> KeyComputer<T, T> for IdentityKeyComputer {
-    fn compute_key(&self, object: &T) -> T {
-        object.clone()
-    }
-}
-
-
-/// Do not count how many nodes in subtrees.
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub struct EmptyCounter();
-
-impl Add for EmptyCounter {
-    type Output = EmptyCounter;
-    fn add(self, _other: EmptyCounter) -> EmptyCounter {
-        EmptyCounter()
-    }
-}
-
-impl Sub for EmptyCounter {
-    type Output = EmptyCounter;
-    fn sub(self, _other: EmptyCounter) -> EmptyCounter {
-        EmptyCounter()
-    }
-}
-
-impl Default for EmptyCounter {
-    fn default() -> Self {
-        EmptyCounter()
-    }
-}
-
-/// Do count how many nodes in subtrees.
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub struct Counter(usize);
-impl Add for Counter {
-    type Output = Counter;
-    fn add(self, other: Counter) -> Counter {
-        Counter(self.0 + other.0)
-    }
-}
-
-impl Sub for Counter {
-    type Output = Counter;
-    fn sub(self, other: Counter) -> Counter {
-        Counter(self.0 - other.0)
-    }
-}
-
-impl Default for Counter {
-    fn default() -> Self {
-        Counter(1)
-    }
-}
-
-
 /// Treap Node
-pub struct RawNode<T, U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default> {
+pub struct RawNode<T, U: Counting> {
     /// Real content of the Node.
     pub value: T,
-    priority: u64,
+    /// Priority in treap.
+    pub priority: u64,
     father: Option<Node<T, U>>,
     children: [Option<Node<T, U>>; 2],
-    counter: U,
+    /// Number of nodes in subtree (or not).
+    pub counter: U,
 }
 
 /// Treap node (tuple struct to implement methods)
-pub struct Node<T, U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default>(Rc<RefCell<RawNode<T, U>>>);
+pub struct Node<T, U: Counting>(Rc<RefCell<RawNode<T, U>>>);
 
-impl<T, U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default> Identifiable for RawNode<T, U> {}
+impl<T, U: Counting> Identifiable for RawNode<T, U> {}
 
-impl<T, U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default> Clone for Node<T, U> {
+impl<T, U: Counting> Clone for Node<T, U> {
     fn clone(&self) -> Node<T, U> {
         Node(self.0.clone())
     }
 }
 
-impl<T, U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default> Deref for Node<T, U> {
+impl<T, U: Counting> Deref for Node<T, U> {
     type Target = Rc<RefCell<RawNode<T, U>>>;
     fn deref(&self) -> &Rc<RefCell<RawNode<T, U>>> {
         &self.0
     }
 }
 
-impl<T: Display, U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default> Node<T, U> {
+impl<T, U: Counting> Node<T, U> {
     /// Creates a new `Node` with given value.
-    fn new(value: T) -> Node<T, U> {
+    pub fn new(value: T) -> Node<T, U> {
         Node(Rc::new(RefCell::new(RawNode {
                                       value: value,
                                       priority: rand::random::<u64>(),
@@ -133,7 +60,7 @@ impl<T: Display, U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default> Nod
 
     /// Returns father of given node.
     /// Do not call on sentinel node.
-    fn father(&self) -> Node<T, U> {
+    pub fn father(&self) -> Node<T, U> {
         self.borrow()
             .father
             .as_ref()
@@ -142,7 +69,7 @@ impl<T: Display, U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default> Nod
     }
 
     /// Returns an option on child in given direction.
-    fn child(&self, direction: usize) -> Option<Node<T, U>> {
+    pub fn child(&self, direction: usize) -> Option<Node<T, U>> {
         match self.borrow().children[direction].as_ref() {
             Some(node_ref) => Some(node_ref.clone()),
             _ => None,
@@ -327,10 +254,12 @@ impl<T: Display, U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default> Nod
         self.update_counters(Default::default(), true);
         new_node.balance()
     }
+}
 
+impl<T: Display, U: Counting> Node<T, U> {
     /// Writes lines in dot (graphviz) file for displaying
     /// node and links to its children.
-    fn write_dot(&self, file: &mut File) {
+    pub fn write_dot(&self, file: &mut File) {
         let has_father = self.borrow()
             .father
             .as_ref()
@@ -354,147 +283,5 @@ impl<T: Display, U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default> Nod
                     .expect("failed writing dot");
             }
         }
-    }
-}
-
-/// classic Treap
-pub type Treap<T, V, W> = RawTreap<T, EmptyCounter, V, W>;
-/// Treap where subtrees sizes are counted. This allows to count number of larger nodes
-/// in O(log(n))
-pub type CountingTreap<T, V, W> = RawTreap<T, Counter, V, W>;
-
-/// Treap BST structure.
-/// This structure is specialized for sweeping line algorithms and contains
-/// the current position (used in paths comparisons).
-pub struct RawTreap<T, U, V, W>
-    where T: Display + Eq,
-          U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default,
-          V: std::fmt::Debug + Ord,
-          W: KeyComputer<T, V>
-{
-    root: Node<T, U>,
-    key_generator: Rc<RefCell<W>>,
-    ghost: PhantomData<V>,
-}
-
-impl<T: Display + Default + Eq,
-     U: Copy + Add<Output = U> + Sub<Output = U> + Eq + Default,
-     V: Ord + std::fmt::Debug,
-     W: KeyComputer<T, V>> RawTreap<T, U, V, W> {
-    /// Creates a new Treap.
-    pub fn new(key_generator: Rc<RefCell<W>>) -> RawTreap<T, U, V, W> {
-        let tree = RawTreap {
-            root: Node::new(Default::default()),
-            key_generator: key_generator,
-            ghost: PhantomData,
-        };
-        tree.root.borrow_mut().priority = 0;
-        tree
-    }
-
-    /// Fills the tree with given content.
-    pub fn populate<X: IntoIterator<Item = T>>(&self, content: X) {
-        for value in content {
-            self.add(value);
-        }
-    }
-
-    /// Returns Node with given value or None.
-    /// # Example
-    /// ```
-    /// use jimn::tree::treap::{IdentityKeyComputer, Treap};
-    /// use std::rc::Rc;
-    /// use std::cell::RefCell;
-    /// let tree = Treap::new(Rc::new(RefCell::new(IdentityKeyComputer())));
-    /// tree.populate(1..10);
-    /// let node5 = tree.find_node(5);
-    /// assert!(node5.is_some());
-    /// let node = node5.unwrap();
-    /// assert_eq!(node.borrow().value, 5);
-    /// ```
-    pub fn find_node(&self, value: T) -> Option<Node<T, U>> {
-        //let mut current_node = self.root.clone();
-        let possible_start = self.root.child(1);
-        if possible_start.is_some() {
-            let mut current_node = possible_start.unwrap();
-            let target_key = self.key_generator.borrow().compute_key(&value);
-            while current_node.borrow().value != value {
-                let current_key =
-                    self.key_generator.borrow().compute_key(&current_node.borrow().value);
-                let direction = (target_key > current_key) as usize;
-                if let Some(next_node) = current_node.child(direction) {
-                    current_node = next_node;
-                } else {
-                    return None;
-                }
-            }
-            Some(current_node)
-        } else {
-            None
-        }
-    }
-
-    /// Returns the place where to insert given new value.
-    pub fn find_insertion_place(&self, key: &V) -> (Node<T, U>, usize) {
-        let mut current_node = self.root.clone();
-        let mut direction = 1; // because sentinel has min key
-        while let Some(next_node) = current_node.child(direction) {
-            current_node = next_node;
-            let node_key = self.key_generator.borrow().compute_key(&current_node.borrow().value);
-            //assert!(node_key != *key);
-            direction = (*key > node_key) as usize;
-        }
-        (current_node, direction as usize)
-    }
-
-    /// Adds a node to treap with given value.
-    pub fn add(&self, value: T) -> Node<T, U> {
-        let key = self.key_generator.borrow().compute_key(&value);
-        let (mut current_node, direction) = self.find_insertion_place(&key);
-        current_node.add_child_with_value(direction, value)
-    }
-
-    /// Tycat display on terminal.
-    pub fn tycat(&self) {
-        let file_number = FILE_COUNT.fetch_add(1, Ordering::SeqCst);
-        let dot_filename = format!("/tmp/test-{}.dot", file_number);
-        let png_filename = format!("/tmp/test-{}.png", file_number);
-        {
-            let mut file = File::create(&dot_filename).expect("cannot create dot file");
-            writeln!(file, "digraph g {{").expect("failed writing dot");
-            self.root.write_dot(&mut file);
-            writeln!(file, "}}").expect("failed writing dot");
-        }
-        Command::new("dot")
-            .arg("-Tpng")
-            .arg(&dot_filename)
-            .arg("-o")
-            .arg(&png_filename)
-            .status()
-            .expect("dot failed");
-        Command::new("tycat").arg(&png_filename).status().expect("tycat failed");
-    }
-}
-
-impl<T: Display + Default + Eq, V: Ord + std::fmt::Debug, W: KeyComputer<T, V>> CountingTreap<T,
-                                                                                              V,
-                                                                                              W> {
-    /// Return how many nodes are strictly larger than given key.
-    pub fn number_of_larger_nodes(&self, key: &V) -> usize {
-        let (mut node, _) = self.find_insertion_place(key);
-        let mut total = 0;
-        while !node.is_root() {
-            let node_key = self.key_generator.borrow().compute_key(&node.borrow().value);
-            if node_key >= *key {
-                if node_key > *key {
-                    total += 1;
-                }
-                if let Some(ref child) = node.child(1) {
-                    total += child.borrow().counter.0;
-                }
-            }
-            node = node.father();
-        }
-        total
     }
 }
