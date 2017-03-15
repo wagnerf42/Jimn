@@ -6,7 +6,7 @@ use std::collections::{HashMap, HashSet, BinaryHeap};
 use ordered_float::NotNaN;
 use point::Point;
 use segment::Segment;
-use tree::treap::{Treap, KeyComputer, Node};
+use tree::treap::{Treap, KeyComputer, Node, EmptyCounter};
 use utils::ArrayMap;
 use utils::coordinates_hash::PointsHash;
 
@@ -25,7 +25,7 @@ pub struct KeyGenerator<'a, T: 'a + AsRef<Segment>> {
     pub current_point: Point,
     /// We need a reference to our segments in order to perform index <-> segment conversion.
     pub segments: &'a [T],
-    /// Computing keys requires to know sweping lines intersections.
+    /// Computing keys requires to know sweeping lines intersections.
     pub x_coordinates: HashMap<(SegmentIndex, Coordinate), Coordinate>,
 }
 
@@ -33,11 +33,11 @@ impl<'a, T: AsRef<Segment>> KeyGenerator<'a, T> {
     /// Create a key generator from segments.
     pub fn new(segments: &'a [T]) -> Rc<RefCell<KeyGenerator<'a, T>>> {
         Rc::new(RefCell::new(KeyGenerator {
-            //initial current point does not matter
-            current_point: Default::default(),
-            segments: segments,
-            x_coordinates: HashMap::with_capacity(3 * segments.len()),
-        }))
+                                 //initial current point does not matter
+                                 current_point: Default::default(),
+                                 segments: segments,
+                                 x_coordinates: HashMap::with_capacity(3 * segments.len()),
+                             }))
     }
 }
 
@@ -128,8 +128,14 @@ impl<'a, 'b> Cutter<'a, 'b> {
             let (start, end) = segment.ordered_points();
             cutter.add_event(start, index, 0);
             cutter.add_event(end, index, 1);
-            cutter.key_generator.borrow_mut().x_coordinates.insert((index, start.y), start.x);
-            cutter.key_generator.borrow_mut().x_coordinates.insert((index, end.y), end.x);
+            cutter.key_generator
+                .borrow_mut()
+                .x_coordinates
+                .insert((index, start.y), start.x);
+            cutter.key_generator
+                .borrow_mut()
+                .x_coordinates
+                .insert((index, end.y), end.x);
         }
         cutter
     }
@@ -139,15 +145,17 @@ impl<'a, 'b> Cutter<'a, 'b> {
         let events = &mut self.events;
         // if there is no event data it's a new event
         self.events_data.entry(event_point).or_insert_with(|| {
-                events.push(event_point);
-                [HashSet::new(), HashSet::new()]
-            })
+                                                               events.push(event_point);
+                                                               [HashSet::new(), HashSet::new()]
+                                                           })
             [event_type]
-            .insert(segment);
+                .insert(segment);
     }
 
     /// Try intersecting segments in two given nodes.
-    fn try_intersecting(&mut self, node1: &Node<SegmentIndex>, node2: &Node<SegmentIndex>) {
+    fn try_intersecting(&mut self,
+                        node1: &Node<SegmentIndex, EmptyCounter>,
+                        node2: &Node<SegmentIndex, EmptyCounter>) {
         let nodes = [node1, node2];
         let indices = nodes.map(|n| n.borrow().value);
         let segments = indices.map(|i| &self.key_generator.borrow().segments[*i]);
@@ -200,7 +208,10 @@ impl<'a, 'b> Cutter<'a, 'b> {
             }
         }
         for segment in segments {
-            self.crossed_segments.find_node(*segment).unwrap().remove();
+            self.crossed_segments
+                .find_node(*segment)
+                .unwrap()
+                .remove();
         }
     }
 

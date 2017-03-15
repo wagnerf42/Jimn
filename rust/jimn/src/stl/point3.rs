@@ -30,7 +30,6 @@ impl Point3 {
     /// Intersects segment between *self* and *end* with horizontal plane
     /// at given height.
     /// Pre-condition: one point on each side of the height.
-    /// TODO: hash point
     #[inline]
     pub fn segment_intersection(&self,
                                 end: &Point3,

@@ -1,4 +1,5 @@
 //! Provides a `Treap` structure for sweeping line algorithms.
+use std::ops::{Add, Sub};
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::ops::Deref;
@@ -36,42 +37,93 @@ impl<T: Clone + Ord> KeyComputer<T, T> for IdentityKeyComputer {
     }
 }
 
+
+/// Do not count how many nodes in subtrees.
+#[derive(PartialEq, Eq)]
+pub struct EmptyCounter();
+
+impl Add for EmptyCounter {
+    type Output = EmptyCounter;
+    fn add(self, _other: EmptyCounter) -> EmptyCounter {
+        EmptyCounter()
+    }
+}
+
+impl Sub for EmptyCounter {
+    type Output = EmptyCounter;
+    fn sub(self, _other: EmptyCounter) -> EmptyCounter {
+        EmptyCounter()
+    }
+}
+
+impl Default for EmptyCounter {
+    fn default() -> Self {
+        EmptyCounter()
+    }
+}
+
+/// Do count how many nodes in subtrees.
+#[derive(PartialEq, Eq)]
+pub struct Counter(usize);
+impl Add for Counter {
+    type Output = Counter;
+    fn add(self, other: Counter) -> Counter {
+        Counter(self.0 + other.0)
+    }
+}
+
+impl Sub for Counter {
+    type Output = Counter;
+    fn sub(self, other: Counter) -> Counter {
+        Counter(self.0 - other.0)
+    }
+}
+
+impl Default for Counter {
+    fn default() -> Self {
+        Counter(1)
+    }
+}
+
+
 /// Treap Node
-pub struct RawNode<T: Display> {
+pub struct RawNode<T, U: Add<Output = U> + Sub<Output = U> + Eq + Default> {
     /// Real content of the Node.
     pub value: T,
     priority: u64,
-    father: Option<Node<T>>,
-    children: [Option<Node<T>>; 2],
+    father: Option<Node<T, U>>,
+    children: [Option<Node<T, U>>; 2],
+    counter: U,
 }
 
 /// Treap node (tuple struct to implement methods)
-pub struct Node<T: Display>(Rc<RefCell<RawNode<T>>>);
+pub struct Node<T, U: Add<Output = U> + Sub<Output = U> + Eq + Default>(Rc<RefCell<RawNode<T, U>>>);
 
-impl<T: Display> Identifiable for RawNode<T> {}
+impl<T, U: Add<Output = U> + Sub<Output = U> + Eq + Default> Identifiable for RawNode<T, U> {}
 
-impl<T: Display> Clone for Node<T> {
-    fn clone(&self) -> Node<T> {
+impl<T, U: Add<Output = U> + Sub<Output = U> + Eq + Default> Clone for Node<T, U> {
+    fn clone(&self) -> Node<T, U> {
         Node(self.0.clone())
     }
 }
 
-impl<T: Display> Deref for Node<T> {
-    type Target = Rc<RefCell<RawNode<T>>>;
-    fn deref(&self) -> &Rc<RefCell<RawNode<T>>> {
+impl<T, U: Add<Output = U> + Sub<Output = U> + Eq + Default> Deref for Node<T, U> {
+    type Target = Rc<RefCell<RawNode<T, U>>>;
+    fn deref(&self) -> &Rc<RefCell<RawNode<T, U>>> {
         &self.0
     }
 }
 
-impl<T: Display> Node<T> {
+impl<T: Display, U: Add<Output = U> + Sub<Output = U> + Eq + Default> Node<T, U> {
     /// Creates a new `Node` with given value.
-    fn new(value: T) -> Node<T> {
+    fn new(value: T) -> Node<T, U> {
         Node(Rc::new(RefCell::new(RawNode {
-            value: value,
-            priority: rand::random::<u64>(),
-            father: None,
-            children: [None, None],
-        })))
+                                      value: value,
+                                      priority: rand::random::<u64>(),
+                                      father: None,
+                                      children: [None, None],
+                                      counter: Default::default(),
+                                  })))
     }
 
     /// Return if we are sentinel node.
@@ -81,12 +133,16 @@ impl<T: Display> Node<T> {
 
     /// Returns father of given node.
     /// Do not call on sentinel node.
-    fn father(&self) -> Node<T> {
-        self.borrow().father.as_ref().unwrap().clone()
+    fn father(&self) -> Node<T, U> {
+        self.borrow()
+            .father
+            .as_ref()
+            .unwrap()
+            .clone()
     }
 
     /// Returns an option on child in given direction.
-    fn child(&self, direction: usize) -> Option<Node<T>> {
+    fn child(&self, direction: usize) -> Option<Node<T, U>> {
         match self.borrow().children[direction].as_ref() {
             Some(node_ref) => Some(node_ref.clone()),
             _ => None,
@@ -100,13 +156,13 @@ impl<T: Display> Node<T> {
 
     /// Returns direction of given child from self.
     /// Given child must be one of our direct children.
-    fn direction_to(&self, child: &Node<T>) -> usize {
+    fn direction_to(&self, child: &Node<T, U>) -> usize {
         (self.child(1).map_or(0, |c| c.id()) == child.id()) as usize
     }
 
     /// Link given child to us (and back).
     /// Accepts Node, None or option.
-    fn set_child<U: Into<Option<Node<T>>>>(&self, direction: usize, child: U) {
+    fn set_child<V: Into<Option<Node<T, U>>>>(&self, direction: usize, child: V) {
         let child_option = child.into();
         if child_option.is_some() {
             child_option.as_ref()
@@ -119,7 +175,7 @@ impl<T: Display> Node<T> {
 
     /// Rebalance the `Treap` starting from given node and going
     /// upward rotating while priorities are incorrect.
-    fn balance(&self) -> Node<T> {
+    fn balance(&self) -> Node<T, U> {
         let node = self.clone();
         let mut father = node.father();
         while node.borrow().priority < father.borrow().priority {
@@ -144,7 +200,7 @@ impl<T: Display> Node<T> {
     }
 
     /// Returns leftmost or rightmost node (can be self).
-    fn extreme_node(&self, direction: usize) -> Node<T> {
+    fn extreme_node(&self, direction: usize) -> Node<T, U> {
         let mut node = self.clone();
         while let Some(next_node) = node.child(direction) {
             node = next_node;
@@ -154,7 +210,7 @@ impl<T: Display> Node<T> {
 
     /// Returns node just bigger or just smaller
     /// (can be None, hence the option).
-    pub fn nearest_node(&self, direction: usize) -> Option<Node<T>> {
+    pub fn nearest_node(&self, direction: usize) -> Option<Node<T, U>> {
         let reversed_direction = 1 - direction;
         if let Some(child) = self.child(direction) {
             Some(child.extreme_node(reversed_direction))
@@ -196,7 +252,7 @@ impl<T: Display> Node<T> {
     /// More difficult than exchanging values but ensures
     /// values always stay in the node they started in.
     /// This method DOES NOT KEEP values ordering valid.
-    fn exchange_with(&self, other: &Node<T>) {
+    fn exchange_with(&self, other: &Node<T, U>) {
         let father = self.father();
         let other_father = other.father();
         let children = [self.child(0), self.child(1)];
@@ -225,7 +281,7 @@ impl<T: Display> Node<T> {
     }
 
     /// Create new child node at given direction with given value and rebalance Treap.
-    pub fn add_child_with_value(&mut self, direction: usize, value: T) -> Node<T> {
+    pub fn add_child_with_value(&mut self, direction: usize, value: T) -> Node<T, U> {
         let new_node = Node::new(value);
         self.set_child(direction, new_node.clone());
         new_node.balance()
@@ -234,7 +290,10 @@ impl<T: Display> Node<T> {
     /// Writes lines in dot (graphviz) file for displaying
     /// node and links to its children.
     fn write_dot(&self, file: &mut File) {
-        let has_father = self.borrow().father.as_ref().is_some();
+        let has_father = self.borrow()
+            .father
+            .as_ref()
+            .is_some();
         let color = if has_father {
             ["red", "green"][self.father().direction_to(self)]
         } else {
@@ -245,7 +304,7 @@ impl<T: Display> Node<T> {
                  self.id(),
                  color,
                  self.borrow().value)
-            .expect("failed writing dot");
+                .expect("failed writing dot");
 
         for child in &self.borrow().children {
             if let Some(ref child_node) = *child {
@@ -257,23 +316,33 @@ impl<T: Display> Node<T> {
     }
 }
 
+/// classic Treap
+pub type Treap<T, V, W> = RawTreap<T, EmptyCounter, V, W>;
+/// Treap where subtrees sizes are counted. This allows to count number of larger nodes
+/// in O(log(n))
+pub type CountingTreap<T, V, W> = RawTreap<T, Counter, V, W>;
+
 /// Treap BST structure.
 /// This structure is specialized for sweeping line algorithms and contains
 /// the current position (used in paths comparisons).
-pub struct Treap<T, U, V>
+pub struct RawTreap<T, U, V, W>
     where T: Display + Eq,
-          U: std::fmt::Debug + Ord,
-          V: KeyComputer<T, U>
+          U: Add<Output = U> + Sub<Output = U> + Eq + Default,
+          V: std::fmt::Debug + Ord,
+          W: KeyComputer<T, V>
 {
-    root: Node<T>,
-    key_generator: Rc<RefCell<V>>,
-    ghost: PhantomData<U>,
+    root: Node<T, U>,
+    key_generator: Rc<RefCell<W>>,
+    ghost: PhantomData<V>,
 }
 
-impl<T: Display + Default + Eq, U: Ord + std::fmt::Debug, V: KeyComputer<T, U>> Treap<T, U, V> {
+impl<T: Display + Default + Eq,
+     U: Add<Output = U> + Sub<Output = U> + Eq + Default,
+     V: Ord + std::fmt::Debug,
+     W: KeyComputer<T, V>> RawTreap<T, U, V, W> {
     /// Creates a new Treap.
-    pub fn new(key_generator: Rc<RefCell<V>>) -> Treap<T, U, V> {
-        let tree = Treap {
+    pub fn new(key_generator: Rc<RefCell<W>>) -> RawTreap<T, U, V, W> {
+        let tree = RawTreap {
             root: Node::new(Default::default()),
             key_generator: key_generator,
             ghost: PhantomData,
@@ -283,7 +352,7 @@ impl<T: Display + Default + Eq, U: Ord + std::fmt::Debug, V: KeyComputer<T, U>> 
     }
 
     /// Fills the tree with given content.
-    pub fn populate<W: IntoIterator<Item = T>>(&self, content: W) {
+    pub fn populate<X: IntoIterator<Item = T>>(&self, content: X) {
         for value in content {
             self.add(value);
         }
@@ -302,7 +371,7 @@ impl<T: Display + Default + Eq, U: Ord + std::fmt::Debug, V: KeyComputer<T, U>> 
     /// let node = node5.unwrap();
     /// assert_eq!(node.borrow().value, 5);
     /// ```
-    pub fn find_node(&self, value: T) -> Option<Node<T>> {
+    pub fn find_node(&self, value: T) -> Option<Node<T, U>> {
         //let mut current_node = self.root.clone();
         let possible_start = self.root.child(1);
         if possible_start.is_some() {
@@ -325,7 +394,7 @@ impl<T: Display + Default + Eq, U: Ord + std::fmt::Debug, V: KeyComputer<T, U>> 
     }
 
     /// Returns the place where to insert given new value.
-    pub fn find_insertion_place(&self, key: &U) -> (Node<T>, usize) {
+    pub fn find_insertion_place(&self, key: &V) -> (Node<T, U>, usize) {
         let mut current_node = self.root.clone();
         let mut direction = 1; // because sentinel has min key
         while let Some(next_node) = current_node.child(direction) {
@@ -338,7 +407,7 @@ impl<T: Display + Default + Eq, U: Ord + std::fmt::Debug, V: KeyComputer<T, U>> 
     }
 
     /// Adds a node to treap with given value.
-    pub fn add(&self, value: T) -> Node<T> {
+    pub fn add(&self, value: T) -> Node<T, U> {
         let key = self.key_generator.borrow().compute_key(&value);
         let (mut current_node, direction) = self.find_insertion_place(&key);
         current_node.add_child_with_value(direction, value)
@@ -362,9 +431,6 @@ impl<T: Display + Default + Eq, U: Ord + std::fmt::Debug, V: KeyComputer<T, U>> 
             .arg(&png_filename)
             .status()
             .expect("dot failed");
-        Command::new("tycat")
-            .arg(&png_filename)
-            .status()
-            .expect("tycat failed");
+        Command::new("tycat").arg(&png_filename).status().expect("tycat failed");
     }
 }

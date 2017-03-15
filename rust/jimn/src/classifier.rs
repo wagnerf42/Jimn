@@ -8,7 +8,7 @@ use point::Point;
 use segment::Segment;
 use polygon::Polygon;
 use tree::{Tree, NodeIndex};
-use tree::treap::{Treap, Node, KeyComputer};
+use tree::treap::{Treap, Node, KeyComputer, EmptyCounter};
 
 type ClassifyEvent = (Point, Vec<SegmentIndex>, Vec<SegmentIndex>);
 type PolygonIndex = usize;
@@ -57,14 +57,17 @@ impl<'a> Classifier<'a> {
         let mut stored_polygons: HashMap<PolygonIndex, Polygon> = HashMap::new();
         for (owner, polygon) in polygons.into_iter().enumerate() {
             for segment in polygon.points
-                .iter()
-                .zip(polygon.points.iter().cycle().skip(1))
-                .map(|(&p1, &p2)| Segment::new(p1, p2)) {
+                    .iter()
+                    .zip(polygon.points
+                             .iter()
+                             .cycle()
+                             .skip(1))
+                    .map(|(&p1, &p2)| Segment::new(p1, p2)) {
                 if !segment.is_horizontal() {
                     segments.push(OwnedSegment {
-                        segment: segment,
-                        owner: owner,
-                    })
+                                      segment: segment,
+                                      owner: owner,
+                                  })
                 }
             }
             stored_polygons.insert(owner, polygon);
@@ -83,9 +86,7 @@ impl<'a> Classifier<'a> {
                 .push(index);
         }
 
-        let mut events: Vec<_> = raw_events.into_iter()
-            .map(|(k, v)| (k, v.0, v.1))
-            .collect();
+        let mut events: Vec<_> = raw_events.into_iter().map(|(k, v)| (k, v.0, v.1)).collect();
         events.sort_by(|a, b| b.0.cmp(&a.0));
 
         let generator = KeyGenerator::new(segments);
@@ -113,9 +114,15 @@ impl<'a> Classifier<'a> {
     /// End given segments.
     fn end_segments(&mut self, segments: &[SegmentIndex]) {
         for segment in segments {
-            self.crossed_segments.find_node(*segment).unwrap().remove();
+            self.crossed_segments
+                .find_node(*segment)
+                .unwrap()
+                .remove();
             let owner = self.key_generator.borrow().segments[*segment].owner;
-            self.alive_segments.get_mut(&owner).unwrap().remove(segment);
+            self.alive_segments
+                .get_mut(&owner)
+                .unwrap()
+                .remove(segment);
         }
     }
 
@@ -127,7 +134,10 @@ impl<'a> Classifier<'a> {
         for segment in segments {
             nodes.push(self.crossed_segments.add(*segment));
             let owner = self.key_generator.borrow().segments[*segment].owner;
-            self.alive_segments.entry(owner).or_insert_with(HashSet::new).insert(*segment);
+            self.alive_segments
+                .entry(owner)
+                .or_insert_with(HashSet::new)
+                .insert(*segment);
         }
 
         // now, classify new polygons
@@ -144,7 +154,7 @@ impl<'a> Classifier<'a> {
     fn classify_polygon(&mut self,
                         owner: PolygonIndex,
                         segment_index: SegmentIndex,
-                        node: &Node<SegmentIndex>) {
+                        node: &Node<SegmentIndex, EmptyCounter>) {
         let polygon = self.polygons.remove(&owner).unwrap();
         let father_id; // where to add it
         if let Some(larger_neighbour) = node.nearest_node(1) {

@@ -3,6 +3,12 @@ name = "jimn"
 version = "0.1.0"
 authors = ["frederic wagner <frederic.wagner@imag.fr>"]
 
+[profile.bench]
+debug = true
+
+[profile.release]
+debug = true
+
 [[bin]]
 name = "main"
 doc = false
