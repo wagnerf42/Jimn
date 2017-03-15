@@ -441,7 +441,7 @@ impl<T: Display + Default + Eq,
         while let Some(next_node) = current_node.child(direction) {
             current_node = next_node;
             let node_key = self.key_generator.borrow().compute_key(&current_node.borrow().value);
-            assert!(node_key != *key);
+            //assert!(node_key != *key);
             direction = (*key > node_key) as usize;
         }
         (current_node, direction as usize)
@@ -473,5 +473,28 @@ impl<T: Display + Default + Eq,
             .status()
             .expect("dot failed");
         Command::new("tycat").arg(&png_filename).status().expect("tycat failed");
+    }
+}
+
+impl<T: Display + Default + Eq, V: Ord + std::fmt::Debug, W: KeyComputer<T, V>> CountingTreap<T,
+                                                                                              V,
+                                                                                              W> {
+    /// Return how many nodes are strictly larger than given key.
+    pub fn number_of_larger_nodes(&self, key: &V) -> usize {
+        let (mut node, _) = self.find_insertion_place(key);
+        let mut total = 0;
+        while !node.is_root() {
+            let node_key = self.key_generator.borrow().compute_key(&node.borrow().value);
+            if node_key >= *key {
+                if node_key > *key {
+                    total += 1;
+                }
+                if let Some(ref child) = node.child(1) {
+                    total += child.borrow().counter.0;
+                }
+            }
+            node = node.father();
+        }
+        total
     }
 }

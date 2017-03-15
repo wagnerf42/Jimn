@@ -14,4 +14,10 @@ fn main() {
     let node7 = treap.find_node(7).unwrap();
     node7.remove();
     treap.tycat();
+    println!("number of nodes larger than 5: {}",
+             treap.number_of_larger_nodes(&5));
+    println!("number of nodes larger than 3: {}",
+             treap.number_of_larger_nodes(&3));
+    println!("number of nodes larger than 7: {}",
+             treap.number_of_larger_nodes(&7));
 }
