@@ -42,11 +42,11 @@ impl<T: Default + Shape> Tree<T> {
     pub fn new() -> Self {
         let mut nodes = Vec::new();
         nodes.push(Node {
-            value: Default::default(),
-            index: 0,
-            father: None,
-            children: Vec::new(),
-        });
+                       value: Default::default(),
+                       index: 0,
+                       father: None,
+                       children: Vec::new(),
+                   });
         Tree { nodes: nodes }
     }
 
@@ -54,11 +54,11 @@ impl<T: Default + Shape> Tree<T> {
     pub fn add_child(&mut self, value: T, father: NodeIndex) -> NodeIndex {
         let next_index = self.nodes.len();
         self.nodes.push(Node {
-            value: value,
-            index: next_index,
-            father: Some(father),
-            children: Vec::new(),
-        });
+                            value: value,
+                            index: next_index,
+                            father: Some(father),
+                            children: Vec::new(),
+                        });
         let id = self.nodes.len() - 1;
         self.nodes[father].children.push(id);
         id
@@ -99,8 +99,7 @@ impl<T: Default + Shape> Tree<T> {
             .arg("-o")
             .arg(&png_filename)
             .status()?;
-        Command::new("tycat").arg(&png_filename)
-            .status()?;
+        Command::new("tycat").arg(&png_filename).status()?;
         Ok(())
     }
 

@@ -104,17 +104,13 @@ impl Quadrant {
     pub fn update(&mut self, other: &Quadrant) {
 
         for (min_coordinate, coordinate) in
-            self.min_coordinates
-                .iter_mut()
-                .zip(other.min_coordinates.iter()) {
+            self.min_coordinates.iter_mut().zip(other.min_coordinates.iter()) {
             if *min_coordinate > *coordinate {
                 *min_coordinate = *coordinate;
             }
         }
         for (max_coordinate, coordinate) in
-            self.max_coordinates
-                .iter_mut()
-                .zip(other.max_coordinates.iter()) {
+            self.max_coordinates.iter_mut().zip(other.max_coordinates.iter()) {
             if *max_coordinate < *coordinate {
                 *max_coordinate = *coordinate;
             }

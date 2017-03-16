@@ -82,7 +82,7 @@ impl<'a, T: AsRef<Segment>> KeyComputer<SegmentIndex, Key> for KeyGenerator<'a, 
 }
 
 /// The `Cutter` structure holds all data needed for bentley ottmann's execution.
-struct Cutter<'a, 'b> {
+struct Cutter<'a, 'b, T: 'a + AsRef<Segment>> {
     //TODO: could we replace the hashset by a vector ?
     /// Results: we associate to each segment (identified by it's position in input vector)
     /// a set of intersections.
@@ -99,17 +99,17 @@ struct Cutter<'a, 'b> {
     events_data: HashMap<Point, [HashSet<SegmentIndex>; 2]>,
 
     /// We store currently crossed segments in a treap (again their positions in input vector).
-    crossed_segments: Treap<SegmentIndex, Key, KeyGenerator<'a, Segment>>,
+    crossed_segments: Treap<SegmentIndex, Key, KeyGenerator<'a, T>>,
 
     /// We store the key generator for our own segments comparison purposes.
-    key_generator: Rc<RefCell<KeyGenerator<'a, Segment>>>,
+    key_generator: Rc<RefCell<KeyGenerator<'a, T>>>,
 
     /// Rounder for new points.
     rounder: &'b mut PointsHash,
 }
 
-impl<'a, 'b> Cutter<'a, 'b> {
-    fn new(segments: &'a [Segment], rounder: &'b mut PointsHash) -> Cutter<'a, 'b> {
+impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
+    fn new(segments: &'a [T], rounder: &'b mut PointsHash) -> Cutter<'a, 'b, T> {
 
         //guess the capacity of all our events related hash tables.
         //we need to be above truth to avoid collisions but not too much above.
@@ -125,7 +125,7 @@ impl<'a, 'b> Cutter<'a, 'b> {
         };
 
         for (index, segment) in segments.iter().enumerate() {
-            let (start, end) = segment.ordered_points();
+            let (start, end) = segment.as_ref().ordered_points();
             cutter.add_event(start, index, 0);
             cutter.add_event(end, index, 1);
             cutter.key_generator
@@ -160,14 +160,14 @@ impl<'a, 'b> Cutter<'a, 'b> {
         let indices = nodes.map(|n| n.borrow().value);
         let segments = indices.map(|i| &self.key_generator.borrow().segments[*i]);
         let current_point = self.key_generator.borrow().current_point;
-        let possible_intersection = segments[0].intersection_with(segments[1]);
+        let possible_intersection = segments[0].as_ref().intersection_with(segments[1].as_ref());
         if let Some(raw_intersection) = possible_intersection {
             let intersection = self.rounder.hash_point(&raw_intersection);
             if intersection > current_point {
                 return; // we already know about it
             }
             for (index, segment) in indices.iter().zip(segments.iter()) {
-                if !segment.has_endpoint(&intersection) {
+                if !segment.as_ref().has_endpoint(&intersection) {
                     self.key_generator
                         .borrow_mut()
                         .x_coordinates
@@ -256,10 +256,10 @@ impl<'a, 'b> Cutter<'a, 'b> {
         let generator = self.key_generator.borrow();
         let s1 = &generator.segments[index1];
         let s2 = &generator.segments[index2];
-        if let Some(points) = s1.overlap_points(s2) {
+        if let Some(points) = s1.as_ref().overlap_points(s2.as_ref()) {
             for point in &points {
                 for &(segment, index) in &[(s1, index1), (s2, index2)] {
-                    if !segment.has_endpoint(point) {
+                    if !segment.as_ref().has_endpoint(point) {
                         self.intersections
                             .entry(index)
                             .or_insert_with(HashSet::new)
@@ -291,25 +291,31 @@ impl<'a, 'b> Cutter<'a, 'b> {
 
 /// Computes all intersections amongst given segments
 /// and return a hashmap associating to each segment's index the set of intersection points found.
-pub fn bentley_ottmann(segments: &[Segment],
-                       rounder: &mut PointsHash)
-                       -> HashMap<usize, HashSet<Point>> {
+pub fn bentley_ottmann<T: AsRef<Segment>>(segments: &[T],
+                                          rounder: &mut PointsHash)
+                                          -> HashMap<usize, HashSet<Point>> {
 
     let mut cutter = Cutter::new(segments, rounder);
     cutter.run();
     cutter.intersections
 }
 
+/// A path is `Cuttable` if you can cut it into subpaths at given points.
+pub trait Cuttable {
+    /// Cut path at all given points.
+    fn cut(&self, points: &HashSet<Point>) -> Vec<Self> where Self: Sized;
+}
+
 /// Cut all segments with intersection points obtained from `bentley_ottmann`.
-pub fn cut_segments(segments: &[Segment],
-                    cut_points: &HashMap<SegmentIndex, HashSet<Point>>)
-                    -> Vec<Segment> {
+pub fn cut_segments<T: Cuttable + Clone>(segments: &[T],
+                                         cut_points: &HashMap<SegmentIndex, HashSet<Point>>)
+                                         -> Vec<T> {
     segments.iter()
         .enumerate()
         .flat_map(|(i, segment)| {
             let cuts = cut_points.get(&i);
             if let Some(points) = cuts {
-                segment.cut_into_elementary_segments(points)
+                segment.cut(points)
             } else {
                 vec![segment.clone()]
             }

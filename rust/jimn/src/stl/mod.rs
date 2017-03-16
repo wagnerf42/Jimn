@@ -66,8 +66,9 @@ impl Stl {
         };
         let mut facets_data = Cursor::new(buffer);
         for _ in 0..facets_number {
-            model.facets
-                .push(Facet::new(&mut facets_data, &mut model.dimensions, &mut model.heights));
+            model.facets.push(Facet::new(&mut facets_data,
+                                         &mut model.dimensions,
+                                         &mut model.heights));
         }
         Ok(model)
     }
@@ -78,8 +79,10 @@ impl Stl {
         let height = max_height - min_height;
         let slices_number = (height / thickness).ceil() as usize;
         let extra_height = (thickness * (slices_number as f64) - height) / 2.0;
-        let cut_heights = (0..slices_number)
-            .map(|z| min_height - extra_height + thickness / 2.0 + thickness * (z as f64));
+        let cut_heights = (0..slices_number).map(|z| {
+                                                     min_height - extra_height + thickness / 2.0 +
+                                                     thickness * (z as f64)
+                                                 });
         let mut events: Vec<CuttingEvent> = Vec::with_capacity(slices_number +
                                                                2 * self.facets.len());
         for (index, facet) in self.facets.iter().enumerate() {
@@ -100,10 +103,10 @@ impl Stl {
 
         for height in cut_heights {
             events.push(CuttingEvent {
-                height: self.heights.lookup_coordinate(height),
-                event_type: EventType::Cut,
-                facet: None,
-            });
+                            height: self.heights.lookup_coordinate(height),
+                            event_type: EventType::Cut,
+                            facet: None,
+                        });
         }
         events
     }

@@ -13,6 +13,7 @@ use point::Point;
 use quadrant::{Quadrant, Shape};
 use utils::precision::is_almost;
 use utils::coordinates_hash::PointsHash;
+use bentley_ottmann::Cuttable;
 
 /// Segment in plane
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Ord, Eq, Hash)]
@@ -174,6 +175,17 @@ impl Segment {
         }
     }
 
+    /// Save ourselves in given file as 4 64bits little endian floats
+    fn write_to_file(&self, file: &mut File) -> io::Result<()> {
+        file.write_f64::<LittleEndian>(self.start.x.into_inner())?;
+        file.write_f64::<LittleEndian>(self.start.y.into_inner())?;
+        file.write_f64::<LittleEndian>(self.end.x.into_inner())?;
+        file.write_f64::<LittleEndian>(self.end.y.into_inner())?;
+        Ok(())
+    }
+}
+
+impl Cuttable for Segment {
     /// Cut into subsegments at given set of points.
     /// pre-requisite: all given points are strictly inside us.
     ///
@@ -190,14 +202,14 @@ impl Segment {
     /// let mut p = HashSet::new();
     /// p.insert(p2.clone());
     /// p.insert(p3.clone());
-    /// let segments = s.cut_into_elementary_segments(&p);
+    /// let segments = s.cut(&p);
     /// println!("{:?}", segments);
     /// assert!(segments[0] == Segment::new(p1, p2.clone()));
     /// assert!(segments[1] == Segment::new(p2, p3.clone()));
     /// assert!(segments[2] == Segment::new(p3, p4));
     /// assert!(segments.len() == 3);
     /// ```
-    pub fn cut_into_elementary_segments(&self, points: &HashSet<Point>) -> Vec<Segment> {
+    fn cut(&self, points: &HashSet<Point>) -> Vec<Segment> {
         let mut sorted_points: Vec<&Point> = points.iter().collect();
         if self.start < self.end {
             sorted_points.sort();
@@ -208,20 +220,10 @@ impl Segment {
         let iterator =
             repeat(&self.start).take(1).chain(sorted_points.into_iter().chain(repeat(&self.end)
                                                                                   .take(1)));
-
         iterator.clone()
             .zip(iterator.skip(1))
             .map(|(p1, p2)| Segment::new(*p1, *p2))
             .collect()
-    }
-
-    /// Save ourselves in given file as 4 64bits little endian floats
-    fn write_to_file(&self, file: &mut File) -> io::Result<()> {
-        file.write_f64::<LittleEndian>(self.start.x.into_inner())?;
-        file.write_f64::<LittleEndian>(self.start.y.into_inner())?;
-        file.write_f64::<LittleEndian>(self.end.x.into_inner())?;
-        file.write_f64::<LittleEndian>(self.end.y.into_inner())?;
-        Ok(())
     }
 }
 

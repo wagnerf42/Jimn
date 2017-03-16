@@ -37,7 +37,10 @@ impl Polygon {
         //TODO: change ordered_float library to allow sum
         self.points
             .iter()
-            .zip(self.points.iter().cycle().skip(1))
+            .zip(self.points
+                     .iter()
+                     .cycle()
+                     .skip(1))
             .map(|(p1, p2)| p1.cross_product(p2))
             .fold(NotNaN::new(0.0).unwrap(), |s, x| s + x)
     }
@@ -141,23 +144,29 @@ impl Polygon {
         //when looping on 3 consecutive points
         let new_points: Vec<Point> = self.points
             .iter()
-            .zip(self.points.iter().cycle().skip(1))
-            .zip(self.points.iter().cycle().skip(2))
+            .zip(self.points
+                     .iter()
+                     .cycle()
+                     .skip(1))
+            .zip(self.points
+                     .iter()
+                     .cycle()
+                     .skip(2))
             .filter_map(|((p1, p2), p3)| if area(p1, p2, p3) < NotNaN::new(0.000001).unwrap() {
-                None
-            } else {
-                Some(*p2)
-            })
+                            None
+                        } else {
+                            Some(*p2)
+                        })
             .collect();
         //now remove aligned points
         let final_points: Vec<Point> = new_points.iter()
             .zip(new_points.iter().cycle().skip(1))
             .zip(new_points.iter().cycle().skip(2))
             .filter_map(|((p1, p2), p3)| if p1.is_aligned_with(p2, p3) {
-                None
-            } else {
-                Some(*p2)
-            })
+                            None
+                        } else {
+                            Some(*p2)
+                        })
             .collect();
         assert!(final_points.len() > 2);
         Polygon::new(final_points)
@@ -177,8 +186,10 @@ impl Shape for Polygon {
         if self.points.is_empty() {
             String::new()
         } else {
-            let strings: Vec<String> =
-                self.points.iter().map(|p| format!("{},{}", p.x, p.y)).collect();
+            let strings: Vec<String> = self.points
+                .iter()
+                .map(|p| format!("{},{}", p.x, p.y))
+                .collect();
             let points_string = strings.join(" ");
             format!("<polygon points=\"{}\"/>", points_string)
         }

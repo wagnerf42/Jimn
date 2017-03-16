@@ -50,7 +50,10 @@ impl Facet {
 
     /// Returns zmin and zmax.
     pub fn height_limits(&self) -> (NotNaN<f64>, NotNaN<f64>) {
-        let mut z_coordinates: Vec<NotNaN<f64>> = self.points.iter().map(|p| p.z).collect();
+        let mut z_coordinates: Vec<NotNaN<f64>> = self.points
+            .iter()
+            .map(|p| p.z)
+            .collect();
         z_coordinates.sort();
         (z_coordinates[0], z_coordinates[2])
     }
@@ -61,8 +64,8 @@ impl Facet {
         let mut intersections: Vec<Point> = [(0, 1), (0, 2), (1, 2)]
             .iter()
             .filter_map(|&(i, j)| {
-                self.points[i].segment_intersection(&self.points[j], height, hasher)
-            })
+                            self.points[i].segment_intersection(&self.points[j], height, hasher)
+                        })
             .collect();
 
         intersections.sort();
