@@ -132,16 +132,14 @@ impl<T: Display + Default + Eq, U: Counting, V: Ord, W: KeyComputer<T, V>> RawTr
 
 
 impl<T: Default + Eq, V: Ord, W: KeyComputer<T, V>> CountingTreap<T, V, W> {
-    /// Return how many nodes are strictly larger than given key.
+    /// Return how many nodes are larger or equal to given key.
     pub fn number_of_larger_nodes(&self, key: &V) -> usize {
         let (mut node, _) = self.find_insertion_place(key);
         let mut total = 0;
         while !node.is_root() {
             let node_key = self.key_generator.borrow().compute_key(&node.borrow().value);
             if node_key >= *key {
-                if node_key > *key {
-                    total += 1;
-                }
+                total += 1;
                 if let Some(ref child) = node.child(1) {
                     total += child.borrow().counter.0;
                 }

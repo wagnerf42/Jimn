@@ -15,7 +15,7 @@ use utils::precision::is_almost;
 use utils::coordinates_hash::PointsHash;
 
 /// Segment in plane
-#[derive(Debug, Clone, PartialOrd, PartialEq, Ord, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Ord, Eq, Hash)]
 pub struct Segment {
     /// start point
     pub start: Point,
@@ -205,9 +205,9 @@ impl Segment {
             sorted_points.sort_by(|a, b| b.cmp(a));
         }
 
-        let iterator = repeat(&self.start)
-            .take(1)
-            .chain(sorted_points.into_iter().chain(repeat(&self.end).take(1)));
+        let iterator =
+            repeat(&self.start).take(1).chain(sorted_points.into_iter().chain(repeat(&self.end)
+                                                                                  .take(1)));
 
         iterator.clone()
             .zip(iterator.skip(1))

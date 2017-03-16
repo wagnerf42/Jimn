@@ -21,7 +21,7 @@ pub fn build_polygons(segments: &mut Vec<Segment>) -> Vec<Polygon> {
 
     let mut polygons = Vec::new();
     while !remaining_segments.is_empty() {
-        let next_start_segment = (*remaining_segments.iter().next().unwrap()).clone();
+        let next_start_segment = (*remaining_segments.iter().next().unwrap());
         remaining_segments.remove(&next_start_segment);
         if let Some(polygon) = build_polygon(&next_start_segment,
                                              &points,

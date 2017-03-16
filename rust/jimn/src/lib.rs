@@ -32,6 +32,7 @@ pub mod stl;
 pub mod tree;
 pub mod bentley_ottmann;
 pub mod classifier;
+pub mod clip_classifier;
 pub mod polygon;
 pub mod tile;
 
