@@ -7,7 +7,7 @@ use std::marker::PhantomData;
 use std::fmt::Display;
 use std::fs::File;
 use std::io::prelude::*;
-use super::{Node, Counter, EmptyCounter, Counting, KeyComputer};
+use super::{Node, Counter, EmptyCounter, Counting, KeyComputer, UniqueKey};
 
 /// sequential counter for tycat files
 static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
@@ -93,7 +93,7 @@ impl<T: Default + Eq, U: Counting, V: Ord, W: KeyComputer<T, V>> RawTreap<T, U, 
         while let Some(next_node) = current_node.child(direction) {
             current_node = next_node;
             let node_key = self.key_generator.borrow().compute_key(&current_node.borrow().value);
-            //assert!(node_key != *key);
+            assert!(node_key != *key);
             direction = (*key > node_key) as usize;
         }
         (current_node, direction as usize)
@@ -147,5 +147,22 @@ impl<T: Default + Eq, V: Ord, W: KeyComputer<T, V>> CountingTreap<T, V, W> {
             node = node.father();
         }
         total
+    }
+}
+
+impl<T: Default + Eq, U: Counting, V: UniqueKey, W: KeyComputer<T, V>> RawTreap<T, U, V, W> {
+    /// Returns node with same real key (if any).
+    pub fn find_same_node(&self, key: &V) -> Option<Node<T, U>> {
+        let mut current_node = self.root.clone();
+        let mut direction = 1; // because sentinel has min key
+        while let Some(next_node) = current_node.child(direction) {
+            current_node = next_node;
+            let node_key = self.key_generator.borrow().compute_key(&current_node.borrow().value);
+            if node_key.is_same_as(key) {
+                return Some(current_node.clone());
+            }
+            direction = (*key > node_key) as usize;
+        }
+        None
     }
 }

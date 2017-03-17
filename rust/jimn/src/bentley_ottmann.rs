@@ -6,7 +6,7 @@ use std::collections::{HashMap, HashSet, BinaryHeap};
 use ordered_float::NotNaN;
 use point::Point;
 use segment::Segment;
-use tree::treap::{Treap, KeyComputer, Node, EmptyCounter};
+use tree::treap::{Treap, KeyComputer, Node, EmptyCounter, UniqueKey};
 use utils::ArrayMap;
 use utils::coordinates_hash::PointsHash;
 
@@ -15,8 +15,17 @@ type Coordinate = NotNaN<f64>;
 type Angle = NotNaN<f64>;
 /// A `SegmentIndex` allows identification of a segment in sweeping line algorihtms.
 pub type SegmentIndex = usize;
+
 /// A `Key` allows segments comparisons in sweeping line algorithms.
-pub type Key = (Coordinate, Angle, SegmentIndex);
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
+pub struct Key(Coordinate, Angle, SegmentIndex);
+impl UniqueKey for Key {
+    fn is_same_as(&self, other: &Self) -> bool {
+        (self.0, self.1) == (other.1, other.1)
+    }
+}
+
+
 
 ///We need someone able to compute comparison keys for our segments.
 #[derive(Debug)]
@@ -73,10 +82,10 @@ impl<'a, T: AsRef<Segment>> KeyComputer<SegmentIndex, Key> for KeyGenerator<'a, 
 
         if current_x > x {
             // we are not yet arrived on intersection
-            (x, -angle, *segment)
+            Key(x, -angle, *segment)
         } else {
             // we are past the intersection
-            (x, angle, *segment)
+            Key(x, angle, *segment)
         }
     }
 }
@@ -228,15 +237,12 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
 
         for segment in segments.iter() {
             let new_key = self.key_generator.borrow().compute_key(segment);
-            let (mut father, direction) = self.crossed_segments.find_insertion_place(&new_key);
-            father.add_child_with_value(direction, *segment);
-            // if we overlap with someone the only possibility is father's segment
-            if !father.is_root() {
-                let father_index = father.borrow().value;
-                let father_key = self.key_generator.borrow().compute_key(&father_index);
-                if new_key.0 == father_key.0 && new_key.1 == father_key.1 {
-                    self.handle_overlapping_segments(*segment, father_index);
-                }
+            let same_key_node = self.crossed_segments.find_same_node(&new_key);
+            self.crossed_segments.add(*segment);
+            if let Some(overlap_node) = same_key_node {
+                // handle overlaps
+                let overlap_index = overlap_node.borrow().value;
+                self.handle_overlapping_segments(*segment, overlap_index);
             }
         }
 

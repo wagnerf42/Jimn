@@ -7,80 +7,79 @@ use bentley_ottmann::{SegmentIndex, Key, KeyGenerator};
 use point::Point;
 use segment::Segment;
 use tree::treap::{CountingTreap, KeyComputer};
+use super::ClippingSegment;
 
 type ClassifyEvent = (Point, Vec<SegmentIndex>, Vec<SegmentIndex>);
-type CTreap<'a> = CountingTreap<SegmentIndex, Key, KeyGenerator<'a, Segment>>;
-type Generator<'a> = Rc<RefCell<KeyGenerator<'a, Segment>>>;
+type CTreap<'a> = CountingTreap<SegmentIndex, Key, KeyGenerator<'a, ClippingSegment>>;
+type Generator<'a> = Rc<RefCell<KeyGenerator<'a, ClippingSegment>>>;
 
 /// Takes a set of segments (the clip) forming a polygon and another set of segments (the clipped).
 /// Return all segments inside the clip.
 /// pre-condition: no intersection.
-pub fn clip_segments(clip: Vec<Segment>, mut segments: Vec<Segment>) -> Vec<Segment> {
-    let clip_index = segments.len(); // any index < clip_index is to be clipped
-    segments.extend(clip);
+pub fn classify_clip_segments(segments: &[ClippingSegment]) -> Vec<Segment> {
 
-    let generator = KeyGenerator::new(&segments);
+    let generator = KeyGenerator::new(segments);
     let mut crossed_clip_segments = CountingTreap::new(generator.clone());
-    let events = create_events(&segments);
-    run_events(&events, generator, &mut crossed_clip_segments, clip_index)
+    let events = create_events(segments);
+    run_events(&events, generator, &mut crossed_clip_segments)
 }
 
 fn run_events(events: &[ClassifyEvent],
               generator: Generator,
-              crossed_clip_segments: &mut CTreap,
-              clip_index: usize)
+              crossed_clip_segments: &mut CTreap)
               -> Vec<Segment> {
     let mut kept_segments = Vec::new();
     for event in events {
-        end_segments(&event.2, crossed_clip_segments, clip_index);
+        end_segments(&event.2, &generator, crossed_clip_segments);
         generator.borrow_mut().current_point = event.0;
         start_segments(&event.1,
                        &generator,
                        crossed_clip_segments,
-                       clip_index,
                        &mut kept_segments);
     }
     kept_segments
 }
 
-fn end_segments(ending: &[SegmentIndex], crossed_clip_segments: &mut CTreap, clip_index: usize) {
+// Remove all clipping segments.
+fn end_segments(ending: &[SegmentIndex],
+                generator: &Generator,
+                crossed_clip_segments: &mut CTreap) {
     for segment_index in ending {
-        if *segment_index >= clip_index {
-            // we have a clip segment
+        if generator.borrow().segments[*segment_index].clipping {
             crossed_clip_segments.find_node(*segment_index).unwrap().remove();
         }
     }
 }
 
+// Start all clipping segments, categorize all others.
 fn start_segments(starting: &[SegmentIndex],
                   generator: &Generator,
                   crossed_clip_segments: &mut CTreap,
-                  clip_index: usize,
                   kept_segments: &mut Vec<Segment>) {
     // we start by adding all clip segments
     for segment_index in starting {
-        if *segment_index >= clip_index {
+        if generator.borrow().segments[*segment_index].clipping {
             crossed_clip_segments.add(*segment_index);
+            // we keep the clipper in results
+            kept_segments.push(generator.borrow().segments[*segment_index].segment);
         }
     }
     // now figure out wether we keep or not non-clip segments
-    // TODO: attention a >= : verifier comment placer les clip par rapport aux normaux
     for segment_index in starting {
-        if *segment_index < clip_index {
+        if !generator.borrow().segments[*segment_index].clipping {
             let key = generator.borrow().compute_key(segment_index);
-            let larger_segments_number = crossed_clip_segments.number_of_larger_nodes(&key);
-            if larger_segments_number % 2 == 1 {
-                // we are inside the clip !
-                kept_segments.push(generator.borrow().segments[*segment_index]);
+            if crossed_clip_segments.find_same_node(&key).is_none() &&
+               crossed_clip_segments.number_of_larger_nodes(&key) % 2 == 1 {
+                kept_segments.push(generator.borrow().segments[*segment_index].segment);
             }
         }
     }
 }
 
-fn create_events(segments: &[Segment]) -> Vec<ClassifyEvent> {
+fn create_events(segments: &[ClippingSegment]) -> Vec<ClassifyEvent> {
     let mut raw_events = HashMap::with_capacity(2 * segments.len());
     for (index, segment) in segments.iter().enumerate() {
-        let (first_point, last_point) = segment.ordered_points();
+        let (first_point, last_point) = segment.as_ref().ordered_points();
         raw_events.entry(first_point)
             .or_insert_with(|| (Vec::new(), Vec::new()))
             .0

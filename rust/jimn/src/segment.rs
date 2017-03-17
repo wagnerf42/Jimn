@@ -194,6 +194,7 @@ impl Cuttable for Segment {
     /// use std::collections::HashSet;
     /// use jimn::point::Point;
     /// use jimn::segment::Segment;
+    /// use jimn::bentley_ottmann::Cuttable;
     /// let p1 = Point::new(0.0, 0.0);
     /// let p2 = Point::new(1.0, 1.0);
     /// let p3 = Point::new(2.0, 2.0);
