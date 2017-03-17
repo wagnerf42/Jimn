@@ -92,7 +92,7 @@ pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
            "<g stroke-width=\"{}\" opacity=\"0.7\">\n",
            stroke)?;
 
-    for (svg_string, color) in svg_strings.iter().zip(SVG_COLORS.iter()) {
+    for (svg_string, color) in svg_strings.iter().zip(SVG_COLORS.iter().cycle()) {
         write!(svg_file, "<g fill=\"{}\" stroke=\"{}\">\n", color, color)?;
         svg_file.write_all(svg_string.as_bytes())?;
         svg_file.write_all(b"\n</g>\n")?;

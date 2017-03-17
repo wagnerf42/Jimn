@@ -1,32 +1,36 @@
 #[macro_use]
 extern crate jimn;
+use jimn::polygon::{square, build_polygons};
+use jimn::segment::Segment;
 use jimn::quadrant::{Quadrant, Shape};
-use jimn::segment::save_segments;
-use jimn::tycat::display;
+use jimn::tycat::{display, colored_display};
 use jimn::tile::hexagonal_tile;
-use jimn::bentley_ottmann::bentley_ottmann;
 use jimn::utils::coordinates_hash::PointsHash;
-use jimn::stl::Stl;
+use jimn::clipper::clip;
 
 /// try a square tile on a triangle
 fn main() {
+    let polygon = square(0.0, 0.0, 3.0);
+    let quadrant = polygon.get_quadrant();
     let mut rounder = PointsHash::new(6);
-    let model = Stl::new("../../test_files/Carnifex.stl").expect("unable to load stl file");
-    let slices = model.compute_slices(1.0, &mut rounder);
-    let index = 22;
-
-    let mut quadrant = Quadrant::new(2);
-    for segment in &slices[index].1 {
-        quadrant.add(&segment.start);
-        quadrant.add(&segment.end);
+    for point in &polygon.points {
+        rounder.hash_point(point);
     }
-    let tile = hexagonal_tile(0.5, 0.5);
-    let tiled_slice = tile.tile(&quadrant, &mut rounder);
-    display!(slices[index].1, tiled_slice);
 
-    let mut all = Vec::new();
-    all.extend(tiled_slice);
-    all.extend(slices[index].1.iter().cloned());
-    save_segments("carnifex_h_0.5.bo", &all).expect("failed writing");
-    bentley_ottmann(&all, &mut rounder);
+    let tile = hexagonal_tile(0.2, 0.2);
+    let tiled = tile.tile(&quadrant, &mut rounder);
+    display!(polygon, tiled);
+    let segments = polygon.points
+        .iter()
+        .zip(polygon.points
+                 .iter()
+                 .cycle()
+                 .skip(1))
+        .map(|(&p1, &p2)| Segment::new(p1, p2))
+        .collect();
+    let mut clipped = clip(segments, tiled, &mut rounder);
+    display!(clipped);
+    let polygons = build_polygons(&mut clipped);
+    display!(polygons);
+    colored_display(&polygons);
 }
