@@ -36,16 +36,20 @@ pub struct KeyGenerator<'a, T: 'a + AsRef<Segment>> {
     pub segments: &'a [T],
     /// Computing keys requires to know sweeping lines intersections.
     pub x_coordinates: HashMap<(SegmentIndex, Coordinate), Coordinate>,
+    /// Cache angles for each segment
+    angles_cache: Vec<NotNaN<f64>>,
 }
 
 impl<'a, T: AsRef<Segment>> KeyGenerator<'a, T> {
     /// Create a key generator from segments.
     pub fn new(segments: &'a [T]) -> Rc<RefCell<KeyGenerator<'a, T>>> {
+        let angles_cache = segments.iter().map(|s| s.as_ref().sweeping_angle()).collect();
         Rc::new(RefCell::new(KeyGenerator {
                                  //initial current point does not matter
                                  current_point: Default::default(),
                                  segments: segments,
                                  x_coordinates: HashMap::with_capacity(3 * segments.len()),
+                                 angles_cache: angles_cache,
                              }))
     }
 }
@@ -55,7 +59,7 @@ impl<'a, T: AsRef<Segment>> KeyComputer<SegmentIndex, Key> for KeyGenerator<'a, 
     fn compute_key(&self, segment: &SegmentIndex) -> Key {
         let (current_x, current_y) = self.current_point.coordinates();
         let s = self.segments[*segment].as_ref();
-        let angle = s.sweeping_angle();
+        let angle = self.angles_cache[*segment];
         let x = if s.is_horizontal() {
             current_x
         } else {
