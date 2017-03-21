@@ -1,6 +1,6 @@
 //! Treap Node
 use std::cell::RefCell;
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 use std::fs::File;
 use std::ops::Deref;
 use std::fmt::Display;
@@ -9,15 +9,13 @@ use rand;
 use super::Counting;
 use utils::Identifiable;
 
-//TODO: we have leaks. look at weak references.
-
 /// Treap Node
 pub struct RawNode<T, U: Counting> {
     /// Real content of the Node.
     pub value: T,
     /// Priority in treap.
     pub priority: u64,
-    father: Option<Node<T, U>>,
+    father: Option<Weak<RefCell<RawNode<T, U>>>>,
     children: [Option<Node<T, U>>; 2],
     /// Number of nodes in subtree (or not).
     pub counter: U,
@@ -61,11 +59,12 @@ impl<T, U: Counting> Node<T, U> {
     /// Returns father of given node.
     /// Do not call on sentinel node.
     pub fn father(&self) -> Node<T, U> {
-        self.borrow()
-            .father
-            .as_ref()
-            .unwrap()
-            .clone()
+        Node(self.borrow()
+                 .father
+                 .as_ref()
+                 .unwrap()
+                 .upgrade()
+                 .unwrap())
     }
 
     /// Returns an option on child in given direction.
@@ -95,7 +94,7 @@ impl<T, U: Counting> Node<T, U> {
             child_option.as_ref()
                 .unwrap()
                 .borrow_mut()
-                .father = Some(self.clone());
+                .father = Some(Rc::downgrade(&self.0));
         }
         self.borrow_mut().children[direction] = child_option;
     }

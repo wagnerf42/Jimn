@@ -32,5 +32,5 @@ fn main() {
     display!(clipped);
     let polygons = build_polygons(&mut clipped);
     display!(polygons);
-    colored_display(&polygons);
+    colored_display(&polygons).expect("display failed");
 }
