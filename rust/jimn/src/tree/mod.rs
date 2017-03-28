@@ -1,6 +1,7 @@
 //! All trees structures and related functions.
 pub mod treap;
 
+use std::ops::Range;
 use std::fs::File;
 use std::io;
 use std::io::Write;
@@ -19,16 +20,20 @@ pub type NodeIndex = usize;
 /// node structure
 #[derive(Debug)]
 pub struct Node<T> {
-    value: T,
-    index: NodeIndex,
-    father: Option<NodeIndex>,
+    /// real content
+    pub value: T,
+    /// our index in the whole nodes vector
+    pub index: NodeIndex,
+    /// index of father node (none if we are root)
+    pub father: Option<NodeIndex>,
     children: Vec<NodeIndex>,
 }
 
 /// Basic tree structure
 #[derive(Debug)]
 pub struct Tree<T> {
-    nodes: Vec<Node<T>>,
+    /// Vector containing all nodes.
+    pub nodes: Vec<Node<T>>,
 }
 
 /// Depth first iterator on tree's values
