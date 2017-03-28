@@ -191,7 +191,7 @@ impl Shape for Polygon {
                 .map(|p| format!("{},{}", p.x, p.y))
                 .collect();
             let points_string = strings.join(" ");
-            format!("<polygon points=\"{}\"/>", points_string)
+            format!("<polygon points=\"{}\" opacity=\"0.5\"/>", points_string)
         }
     }
 }

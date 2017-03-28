@@ -6,6 +6,7 @@
 //! * point
 //! * segment
 //! * polygon
+//! * holed polygon
 //!
 //! Jimn is intended to work with the terminology terminal emulator from
 //! enlightenment. Under terminology any object or list of objects can be
@@ -34,6 +35,7 @@ pub mod bentley_ottmann;
 pub mod classifier;
 pub mod clipper;
 pub mod polygon;
+pub mod holed_polygon;
 pub mod tile;
 
 use stl::Stl;
