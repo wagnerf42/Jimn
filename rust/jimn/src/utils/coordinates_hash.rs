@@ -20,7 +20,7 @@ fn coordinate_key(coordinate: NotNaN<f64>, precision: usize) -> String {
 }
 
 fn displaced_coordinate_key(coordinate: NotNaN<f64>, precision: usize) -> String {
-    coordinate_key(coordinate + 5.0 * 10.0f64.powi(-((precision + 1) as i32)),
+    coordinate_key(coordinate + 5.0 * 10.0_f64.powi(-((precision + 1) as i32)),
                    precision)
 }
 

@@ -176,14 +176,14 @@ impl<T, U: Counting> Node<T, U> {
         if !self.child(1).is_some() {
             father.set_child(father.direction_to(self), self.child(0));
             father.update_counters(Default::default(), false);
-        } else if !self.child(0).is_some() {
-            father.set_child(father.direction_to(self), self.child(1));
-            father.update_counters(Default::default(), false);
-        } else {
+        } else if self.child(0).is_some() {
             let extremum = self.child(1).unwrap().extreme_node(0);
             self.exchange_with(&extremum);
             self.remove();
             return;
+        } else {
+            father.set_child(father.direction_to(self), self.child(1));
+            father.update_counters(Default::default(), false);
         }
         // for more security disconnect pointers
         self.borrow_mut().father = None;

@@ -1,7 +1,6 @@
 //! All trees structures and related functions.
 pub mod treap;
 
-use std::ops::Range;
 use std::fs::File;
 use std::io;
 use std::io::Write;
@@ -37,7 +36,7 @@ pub struct Tree<T> {
 }
 
 /// Depth first iterator on tree's values
-pub struct TreeIterator<'a, T: 'a> {
+pub struct DepthFirstIterator<'a, T: 'a> {
     tree: &'a Tree<T>,
     remaining_nodes: Vec<NodeIndex>,
 }
@@ -80,8 +79,8 @@ impl<T: Default + Shape> Tree<T> {
     }
 
     /// Return a depth-first iterator on all values.
-    pub fn walk(&self) -> TreeIterator<T> {
-        TreeIterator {
+    pub fn walk(&self) -> DepthFirstIterator<T> {
+        DepthFirstIterator {
             tree: self,
             remaining_nodes: vec![0],
         }
@@ -124,7 +123,7 @@ impl<T: Default + Shape> Tree<T> {
     }
 }
 
-impl<'a, T: 'a> Iterator for TreeIterator<'a, T> {
+impl<'a, T: 'a> Iterator for DepthFirstIterator<'a, T> {
     type Item = &'a Node<T>;
     fn next(&mut self) -> Option<&'a Node<T>> {
         if let Some(next_index) = self.remaining_nodes.pop() {

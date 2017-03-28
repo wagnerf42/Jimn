@@ -40,7 +40,7 @@ impl Point {
     pub fn is_aligned_with(&self, p2: &Point, p3: &Point) -> bool {
         let determinant = self.x * p2.y + self.y * p3.x + p2.x * p3.y -
                           (p2.y * p3.x + self.y * p2.x + self.x * p3.y);
-        determinant.abs() < 10.0f64.powi(-5) //TODO: why 5 ?
+        determinant.abs() < 10.0_f64.powi(-5) //TODO: why 5 ?
     }
 
     /// Returns distance between given points.

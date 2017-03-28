@@ -38,10 +38,7 @@ impl Cuttable for ClippingSegment {
 /// Clip *clipped* segments inside *clipper* polygon's segments.
 /// Return remaining intersected segments.
 /// pre-condition: all endpoints are already hashed in the rounder.
-pub fn clip(clipper: Vec<Segment>,
-            clipped: Vec<Segment>,
-            rounder: &mut PointsHash)
-            -> Vec<Segment> {
+pub fn clip(clipper: &[Segment], clipped: &[Segment], rounder: &mut PointsHash) -> Vec<Segment> {
     let segments: Vec<_> = clipper.iter()
         .map(|s| {
                  ClippingSegment {

@@ -20,7 +20,7 @@ fn main() {
     let tile = hexagonal_tile(0.2, 0.2);
     let tiled = tile.tile(&quadrant, &mut rounder);
     display!(polygon, tiled);
-    let segments = polygon.points
+    let segments: Vec<Segment> = polygon.points
         .iter()
         .zip(polygon.points
                  .iter()
@@ -28,7 +28,7 @@ fn main() {
                  .skip(1))
         .map(|(&p1, &p2)| Segment::new(p1, p2))
         .collect();
-    let mut clipped = clip(segments, tiled, &mut rounder);
+    let mut clipped = clip(&segments, &tiled, &mut rounder);
     display!(clipped);
     let polygons = build_polygons(&mut clipped);
     display!(polygons);

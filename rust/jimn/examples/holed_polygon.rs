@@ -18,7 +18,7 @@ fn main() {
                         square(2.0, 2.0, 5.0),
                         square(3.0, 3.0, 1.0),
                         square(7.5, 3.0, 2.0)];
-    colored_display(polygons.iter());
+    colored_display(polygons.iter()).expect("display failed");
     let holed_polygons = build_holed_polygons(polygons);
-    colored_display(holed_polygons.iter());
+    colored_display(holed_polygons.iter()).expect("display failed");
 }
