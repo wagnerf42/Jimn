@@ -1,7 +1,6 @@
 #[macro_use]
 extern crate jimn;
-extern crate glob;
-use glob::glob;
+use std::env::args;
 use jimn::point::Point;
 use jimn::segment::load_segments;
 use jimn::utils::coordinates_hash::PointsHash;
@@ -9,9 +8,9 @@ use jimn::bentley_ottmann::{bentley_ottmann, cut_segments};
 use jimn::tycat::display;
 use jimn::quadrant::{Quadrant, Shape};
 
-fn try_bentley_ottmann_on(filename: &str) {
-    println!("loading {}", filename);
-    let segments = load_segments(filename).expect("error loading segments file");
+fn try_bentley_ottmann_on<T: AsRef<str>>(filename: &T) {
+    println!("loading {}", filename.as_ref());
+    let segments = load_segments(filename.as_ref()).expect("error loading segments file");
     display!(segments);
     let mut rounder = PointsHash::new(6);
     for segment in &segments {
@@ -26,9 +25,7 @@ fn try_bentley_ottmann_on(filename: &str) {
 }
 
 fn main() {
-    for entry in glob("tests_bentley_ottmann/*bo").unwrap() {
-        if let Ok(path) = entry {
-            try_bentley_ottmann_on(path.to_str().unwrap());
-        }
+    for path in args().skip(1) {
+        try_bentley_ottmann_on(&path);
     }
 }

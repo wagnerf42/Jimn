@@ -17,11 +17,11 @@ type Angle = NotNaN<f64>;
 pub type SegmentIndex = usize;
 
 /// A `Key` allows segments comparisons in sweeping line algorithms.
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct Key(Coordinate, Angle, SegmentIndex);
 impl UniqueKey for Key {
     fn is_same_as(&self, other: &Self) -> bool {
-        (self.0, self.1) == (other.1, other.1)
+        (self.0, self.1) == (other.0, other.1)
     }
 }
 
@@ -339,12 +339,6 @@ mod tests {
     use test::Bencher;
     use segment::load_segments;
 
-    //TODO
-    //#[test]
-    //fn it_works() {
-    //    assert_eq!(4, add_two(2));
-    //}
-    //
     fn prepare_tests(filename: &str) -> (PointsHash, Vec<Segment>) {
         let segments = load_segments(filename).expect("error loading segments file");
         let mut rounder = PointsHash::new(6);
@@ -353,6 +347,30 @@ mod tests {
             rounder.hash_point(&segment.end);
         }
         (rounder, segments)
+    }
+
+    #[test]
+    fn simple_overlap_works() {
+        let (mut rounder, segments) = prepare_tests("tests_bentley_ottmann/overlap.bo");
+        let results = bentley_ottmann(&segments, &mut rounder);
+        let intersections_number: usize = results.values().map(|v| v.len()).sum();
+        assert!(intersections_number == 2);
+    }
+
+    #[test]
+    fn simple_case_works() {
+        let (mut rounder, segments) = prepare_tests("tests_bentley_ottmann/simple_three.bo");
+        let results = bentley_ottmann(&segments, &mut rounder);
+        let intersections_number: usize = results.values().map(|v| v.len()).sum();
+        assert!(intersections_number == 6);
+    }
+
+    #[test]
+    fn simple_hexagonal_works() {
+        let (mut rounder, segments) = prepare_tests("tests_bentley_ottmann/triangle_h_1.0.bo");
+        let results = bentley_ottmann(&segments, &mut rounder);
+        let intersections_number: usize = results.values().map(|v| v.len()).sum();
+        assert!(intersections_number == 30);
     }
 
     #[bench]
