@@ -54,23 +54,33 @@ impl<T: Default + Shape> Tree<T> {
         Tree { nodes: nodes }
     }
 
-    /// Add child with given value to given father.
-    pub fn add_child(&mut self, value: T, father: NodeIndex) -> NodeIndex {
-        let next_index = self.nodes.len();
-        self.nodes.push(Node {
-                            value: value,
-                            index: next_index,
-                            father: Some(father),
-                            children: Vec::new(),
-                        });
-        let id = self.nodes.len() - 1;
-        self.nodes[father].children.push(id);
-        id
+    /// Return index for next to be added node.
+    pub fn next_node_index(&self) -> NodeIndex {
+        self.nodes.len()
     }
 
-    /// Return father index of given node (index). Do not call on root node.
-    pub fn father(&self, id: NodeIndex) -> NodeIndex {
-        self.nodes[id].father.unwrap()
+    /// Add a fatherless node.
+    /// (to be re-connected later)
+    pub fn add_node(&mut self, value: T) -> NodeIndex {
+        let index = self.nodes.len();
+        self.nodes.push(Node {
+                            value: value,
+                            index: index,
+                            father: None,
+                            children: Vec::new(),
+                        });
+        index
+    }
+
+    /// Sets given child as given father's.
+    pub fn set_child(&mut self, father: NodeIndex, child: NodeIndex) {
+        self.nodes[child].father = Some(father);
+        self.nodes[father].children.push(child);
+    }
+
+    /// Return father index of given node (index).
+    pub fn father(&self, id: NodeIndex) -> Option<NodeIndex> {
+        self.nodes[id].father
     }
 
     /// Return index of root node.

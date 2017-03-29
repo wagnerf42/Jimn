@@ -7,7 +7,7 @@ use bentley_ottmann::{SegmentIndex, Key, KeyGenerator};
 use point::Point;
 use segment::Segment;
 use polygon::Polygon;
-use tree::{Tree, NodeIndex};
+use tree::Tree;
 use tree::treap::{Treap, Node, KeyComputer, EmptyCounter};
 
 type ClassifyEvent = (Point, Vec<SegmentIndex>, Vec<SegmentIndex>);
@@ -40,12 +40,6 @@ struct Classifier<'a> {
     /// Store alive segments, by polygons.
     /// Using this we can easily iterate on all segments from a given polygon.
     alive_segments: HashMap<PolygonIndex, HashSet<SegmentIndex>>,
-
-    /// Store polygons temporarily before insertion in tree.
-    polygons: HashMap<PolygonIndex, Polygon>,
-
-    /// quick access to polygons in tree (by polygonindex)
-    polygon_nodes: HashMap<PolygonIndex, NodeIndex>,
 }
 
 impl<'a> Classifier<'a> {
@@ -54,8 +48,11 @@ impl<'a> Classifier<'a> {
            polygons: Vec<Polygon>)
            -> (Vec<ClassifyEvent>, Classifier<'a>) {
 
-        let mut stored_polygons: HashMap<PolygonIndex, Polygon> = HashMap::new();
-        for (owner, polygon) in polygons.into_iter().enumerate() {
+        let mut inclusion_tree = Tree::new();
+        // immediately add all polygons as tree nodes
+        // this way we can use their position in tree as their id
+        for polygon in polygons {
+            let polygon_index = inclusion_tree.next_node_index();
             for segment in polygon.points
                     .iter()
                     .zip(polygon.points
@@ -66,11 +63,11 @@ impl<'a> Classifier<'a> {
                 if !segment.is_horizontal() {
                     segments.push(OwnedSegment {
                                       segment: segment,
-                                      owner: owner,
+                                      owner: polygon_index,
                                   })
                 }
             }
-            stored_polygons.insert(owner, polygon);
+            inclusion_tree.add_node(polygon);
         }
 
         let mut raw_events = HashMap::with_capacity(2 * segments.len());
@@ -92,12 +89,10 @@ impl<'a> Classifier<'a> {
         let generator = KeyGenerator::new(segments);
         (events,
          Classifier {
-             inclusion_tree: Tree::new(), // no one for root
+             inclusion_tree: inclusion_tree,
              crossed_segments: Treap::new(generator.clone()),
              key_generator: generator,
              alive_segments: HashMap::new(),
-             polygons: stored_polygons,
-             polygon_nodes: HashMap::new(),
          })
     }
 
@@ -144,7 +139,8 @@ impl<'a> Classifier<'a> {
         for node in &nodes {
             let segment_index = node.borrow().value;
             let owner = self.key_generator.borrow().segments[segment_index].owner;
-            if self.polygons.contains_key(&owner) {
+            if self.inclusion_tree.father(owner).is_none() {
+                // not classified yet
                 self.classify_polygon(owner, segment_index, node);
             }
         }
@@ -155,27 +151,24 @@ impl<'a> Classifier<'a> {
                         owner: PolygonIndex,
                         segment_index: SegmentIndex,
                         node: &Node<SegmentIndex, EmptyCounter>) {
-        let polygon = self.polygons.remove(&owner).unwrap();
-        let father_id; // where to add it
+        let father_id; // where to connect us ?
         if let Some(larger_neighbour) = node.nearest_node(1) {
             let neighbour_owner =
                 self.key_generator.borrow().segments[larger_neighbour.borrow().value].owner;
             // we are either a brother of neighbour or its child
             let key = self.key_generator.borrow().compute_key(&segment_index);
-            let neighbour_id = self.polygon_nodes[&neighbour_owner];
             if self.inclusion_test(key, neighbour_owner) {
                 // we are his child
-                father_id = neighbour_id;
+                father_id = neighbour_owner;
             } else {
                 // we are his brother
-                father_id = self.inclusion_tree.father(neighbour_id);
+                father_id = self.inclusion_tree.father(neighbour_owner).unwrap();
             }
         } else {
             // we are son of root
             father_id = self.inclusion_tree.root();
         }
-        let new_node_id = self.inclusion_tree.add_child(polygon, father_id);
-        self.polygon_nodes.insert(owner, new_node_id);
+        self.inclusion_tree.set_child(father_id, owner)
     }
 
 
