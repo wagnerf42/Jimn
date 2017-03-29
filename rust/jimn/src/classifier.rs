@@ -3,12 +3,19 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 
+use quadrant::Shape;
 use bentley_ottmann::{SegmentIndex, Key, KeyGenerator};
 use point::Point;
 use segment::Segment;
 use polygon::Polygon;
 use tree::Tree;
 use tree::treap::{Treap, Node, KeyComputer, EmptyCounter};
+
+/// We are enclosed in a polygon.
+pub trait HasEdge {
+    /// Return outer polygon;
+    fn edge(&self) -> &Polygon;
+}
 
 type ClassifyEvent = (Point, Vec<SegmentIndex>, Vec<SegmentIndex>);
 type PolygonIndex = usize;
@@ -27,9 +34,9 @@ impl AsRef<Segment> for OwnedSegment {
 
 
 /// The `Classifier` structure holds all data needed for building inclusion tree.
-struct Classifier<'a> {
+struct Classifier<'a, T: HasEdge> {
     /// Final result
-    inclusion_tree: Tree<Polygon>,
+    inclusion_tree: Tree<T>,
 
     /// We store currently crossed segments in a treap (again their positions in input vector).
     crossed_segments: Treap<SegmentIndex, Key, KeyGenerator<'a, OwnedSegment>>,
@@ -42,31 +49,26 @@ struct Classifier<'a> {
     alive_segments: HashMap<PolygonIndex, HashSet<SegmentIndex>>,
 }
 
-impl<'a> Classifier<'a> {
+impl<'a, T: HasEdge + Shape + Default> Classifier<'a, T> {
     /// Create all segments and events.
     fn new(segments: &'a mut Vec<OwnedSegment>,
-           polygons: Vec<Polygon>)
-           -> (Vec<ClassifyEvent>, Classifier<'a>) {
+           polygons: Vec<T>)
+           -> (Vec<ClassifyEvent>, Classifier<'a, T>) {
 
         let mut inclusion_tree = Tree::new();
         // immediately add all polygons as tree nodes
         // this way we can use their position in tree as their id
         for polygon in polygons {
             let polygon_index = inclusion_tree.next_node_index();
-            for segment in polygon.points
-                    .iter()
-                    .zip(polygon.points
-                             .iter()
-                             .cycle()
-                             .skip(1))
-                    .map(|(&p1, &p2)| Segment::new(p1, p2)) {
-                if !segment.is_horizontal() {
-                    segments.push(OwnedSegment {
-                                      segment: segment,
-                                      owner: polygon_index,
-                                  })
-                }
-            }
+            segments.extend(polygon.edge()
+                                .segments()
+                                .filter(|s| !s.is_horizontal())
+                                .map(|s| {
+                                         OwnedSegment {
+                                             segment: s,
+                                             owner: polygon_index,
+                                         }
+                                     }));
             inclusion_tree.add_node(polygon);
         }
 
@@ -184,7 +186,7 @@ impl<'a> Classifier<'a> {
 
 /// Return a tree saying which polygon is included into which one.
 /// TODO: document what happens in case of overlap or partial overlap at wrong place
-pub fn build_inclusion_tree(polygons: Vec<Polygon>) -> Tree<Polygon> {
+pub fn build_inclusion_tree<T: HasEdge + Shape + Default>(polygons: Vec<T>) -> Tree<T> {
     let mut segments = Vec::new();
     let (events, mut classifier) = Classifier::new(&mut segments, polygons);
     classifier.run(&events);

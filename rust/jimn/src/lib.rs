@@ -15,9 +15,8 @@
 //! Compile them with cargo !
 
 #![feature(test)]
+#![feature(conservative_impl_trait)] // allow easy returning of iterators
 #![deny(missing_docs)]
-#[cfg_attr(feature = "cargo-clippy", allow(let_and_return))] // disabled for false positive
-//#![allow(dead_code, unused_imports, unused_variables)]
 
 extern crate byteorder;
 extern crate rand;

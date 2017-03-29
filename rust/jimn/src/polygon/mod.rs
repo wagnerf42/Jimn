@@ -4,6 +4,8 @@
 use ordered_float::NotNaN;
 use quadrant::{Quadrant, Shape};
 use point::Point;
+use segment::Segment;
+use classifier::HasEdge;
 use utils::Identifiable;
 use utils::precision::is_almost;
 
@@ -25,10 +27,21 @@ impl Default for Polygon {
     }
 }
 
-impl Polygon {
+impl<'a> Polygon {
     /// Create polygon out of given points vector.
     pub fn new(points: Vec<Point>) -> Polygon {
         Polygon { points: points }
+    }
+
+    /// Return iterator on all our segments.
+    pub fn segments(&'a self) -> impl Iterator<Item = Segment> + 'a {
+        self.points
+            .iter()
+            .zip(self.points
+                     .iter()
+                     .cycle()
+                     .skip(1))
+            .map(|(&p1, &p2)| Segment::new(p1, p2))
     }
 
     /// Returns area taken by polygon.
@@ -170,6 +183,12 @@ impl Polygon {
             .collect();
         assert!(final_points.len() > 2);
         Polygon::new(final_points)
+    }
+}
+
+impl HasEdge for Polygon {
+    fn edge(&self) -> &Polygon {
+        self
     }
 }
 

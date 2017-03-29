@@ -1,6 +1,6 @@
 //! Holed Polygons.
 use std::collections::HashMap;
-use classifier::build_inclusion_tree;
+use classifier::{HasEdge, build_inclusion_tree};
 use polygon::Polygon;
 use quadrant::{Quadrant, Shape};
 
@@ -40,7 +40,14 @@ impl Shape for HoledPolygon {
     }
 }
 
+impl HasEdge for HoledPolygon {
+    fn edge(&self) -> &Polygon {
+        &self.polygon
+    }
+}
+
 /// Turn given Polygons into holed polygons.
+#[cfg_attr(feature = "cargo-clippy", allow(let_and_return))] // disabled for false positive
 pub fn build_holed_polygons(polygons: Vec<Polygon>) -> Vec<HoledPolygon> {
     let included_polygons = build_inclusion_tree(polygons);
     let mut heights: HashMap<usize, u32> = HashMap::new();
