@@ -25,7 +25,8 @@ pub struct Node<T> {
     pub index: NodeIndex,
     /// index of father node (none if we are root)
     pub father: Option<NodeIndex>,
-    children: Vec<NodeIndex>,
+    /// array of children indices
+    pub children: Vec<NodeIndex>,
 }
 
 /// Basic tree structure
@@ -88,7 +89,7 @@ impl<T: Default + Shape> Tree<T> {
         0
     }
 
-    /// Return a depth-first iterator on all values.
+    /// Return a depth-first iterator on all nodes.
     pub fn walk(&self) -> DepthFirstIterator<T> {
         DepthFirstIterator {
             tree: self,

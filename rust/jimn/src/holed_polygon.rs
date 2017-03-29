@@ -1,8 +1,9 @@
 //! Holed Polygons.
 use std::collections::HashMap;
-use classifier::{HasEdge, build_inclusion_tree};
+use classifier::{HasEdge, complete_inclusion_tree};
 use polygon::Polygon;
 use quadrant::{Quadrant, Shape};
+use tree::Tree;
 
 /// Polygon with some potential holes inside
 pub struct HoledPolygon {
@@ -49,7 +50,8 @@ impl HasEdge for HoledPolygon {
 /// Turn given Polygons into holed polygons.
 #[cfg_attr(feature = "cargo-clippy", allow(let_and_return))] // disabled for false positive
 pub fn build_holed_polygons(polygons: Vec<Polygon>) -> Vec<HoledPolygon> {
-    let included_polygons = build_inclusion_tree(polygons);
+    let mut included_polygons = Tree::new();
+    complete_inclusion_tree(&mut included_polygons, polygons);
     let mut heights: HashMap<usize, u32> = HashMap::new();
     let mut holed_polygons: HashMap<usize, HoledPolygon> = HashMap::new();
     heights.insert(0, 0); // root node is at level 0
@@ -62,7 +64,6 @@ pub fn build_holed_polygons(polygons: Vec<Polygon>) -> Vec<HoledPolygon> {
             holed_polygons.get_mut(&node.father.unwrap()).unwrap().add_hole(node.value);
         }
     }
-    //TODO: report this clippy false positive
     let result = holed_polygons.drain().map(|(_, v)| v).collect();
     result
 }

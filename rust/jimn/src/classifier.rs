@@ -34,9 +34,9 @@ impl AsRef<Segment> for OwnedSegment {
 
 
 /// The `Classifier` structure holds all data needed for building inclusion tree.
-struct Classifier<'a, T: HasEdge> {
+struct Classifier<'a, 'b, T: HasEdge + 'b> {
     /// Final result
-    inclusion_tree: Tree<T>,
+    inclusion_tree: &'b mut Tree<T>,
 
     /// We store currently crossed segments in a treap (again their positions in input vector).
     crossed_segments: Treap<SegmentIndex, Key, KeyGenerator<'a, OwnedSegment>>,
@@ -49,17 +49,32 @@ struct Classifier<'a, T: HasEdge> {
     alive_segments: HashMap<PolygonIndex, HashSet<SegmentIndex>>,
 }
 
-impl<'a, T: HasEdge + Shape + Default> Classifier<'a, T> {
+impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
     /// Create all segments and events.
-    fn new(segments: &'a mut Vec<OwnedSegment>,
+    fn new(tree: &'b mut Tree<T>,
+           segments: &'a mut Vec<OwnedSegment>,
            polygons: Vec<T>)
-           -> (Vec<ClassifyEvent>, Classifier<'a, T>) {
+           -> (Vec<ClassifyEvent>, Classifier<'a, 'b, T>) {
 
-        let mut inclusion_tree = Tree::new();
+        // we start by adding all segments from existing leaves
+        for node in tree.walk().filter(|n| n.children.is_empty()) {
+            let index = node.index;
+            segments.extend(node.value
+                                .edge()
+                                .segments()
+                                .filter(|s| !s.is_horizontal())
+                                .map(|s| {
+                                         OwnedSegment {
+                                             segment: s,
+                                             owner: index,
+                                         }
+                                     }));
+        }
+
         // immediately add all polygons as tree nodes
         // this way we can use their position in tree as their id
         for polygon in polygons {
-            let polygon_index = inclusion_tree.next_node_index();
+            let polygon_index = tree.next_node_index();
             segments.extend(polygon.edge()
                                 .segments()
                                 .filter(|s| !s.is_horizontal())
@@ -69,7 +84,7 @@ impl<'a, T: HasEdge + Shape + Default> Classifier<'a, T> {
                                              owner: polygon_index,
                                          }
                                      }));
-            inclusion_tree.add_node(polygon);
+            tree.add_node(polygon);
         }
 
         let mut raw_events = HashMap::with_capacity(2 * segments.len());
@@ -91,7 +106,7 @@ impl<'a, T: HasEdge + Shape + Default> Classifier<'a, T> {
         let generator = KeyGenerator::new(segments);
         (events,
          Classifier {
-             inclusion_tree: inclusion_tree,
+             inclusion_tree: tree,
              crossed_segments: Treap::new(generator.clone()),
              key_generator: generator,
              alive_segments: HashMap::new(),
@@ -184,11 +199,11 @@ impl<'a, T: HasEdge + Shape + Default> Classifier<'a, T> {
     }
 }
 
-/// Return a tree saying which polygon is included into which one.
-/// TODO: document what happens in case of overlap or partial overlap at wrong place
-pub fn build_inclusion_tree<T: HasEdge + Shape + Default>(polygons: Vec<T>) -> Tree<T> {
+/// Complement given tree by classifying given objects into it.
+/// New objects can only arrive below leaves or below new nodes.
+pub fn complete_inclusion_tree<T: HasEdge + Shape + Default>(tree: &mut Tree<T>,
+                                                             polygons: Vec<T>) {
     let mut segments = Vec::new();
-    let (events, mut classifier) = Classifier::new(&mut segments, polygons);
+    let (events, mut classifier) = Classifier::new(tree, &mut segments, polygons);
     classifier.run(&events);
-    classifier.inclusion_tree
 }
