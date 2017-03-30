@@ -28,9 +28,9 @@ fn main() {
                  .skip(1))
         .map(|(&p1, &p2)| Segment::new(p1, p2))
         .collect();
-    let mut clipped = clip(&segments, &tiled, &mut rounder);
+    let clipped = clip(&segments, &tiled, &mut rounder);
     display!(clipped);
-    let polygons = build_polygons(&mut clipped);
+    let polygons = build_polygons(&clipped);
     display!(polygons);
     colored_display(&polygons).expect("display failed");
 }

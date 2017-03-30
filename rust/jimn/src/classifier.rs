@@ -102,8 +102,16 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
 
         let mut events: Vec<_> = raw_events.into_iter().map(|(k, v)| (k, v.0, v.1)).collect();
         events.sort_by(|a, b| b.0.cmp(&a.0));
-
         let generator = KeyGenerator::new(segments);
+        // sort start events
+        for event in &mut events {
+            generator.borrow_mut().current_point = event.0;
+            event.1.sort_by(|a, b| {
+                                generator.borrow().compute_key(a).cmp(&generator.borrow()
+                                                                           .compute_key(b))
+                            });
+        }
+
         (events,
          Classifier {
              inclusion_tree: tree,
@@ -141,24 +149,18 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
 
     /// Add given segments in treap, classify new polygons.
     fn start_segments(&mut self, segments: &[SegmentIndex]) {
-        // add everyone
-        let mut nodes = Vec::with_capacity(segments.len());
+        // add everyone and classify new polygons on the fly
         for segment in segments {
-            nodes.push(self.crossed_segments.add(*segment));
+            let node = self.crossed_segments.add(*segment);
             let owner = self.key_generator.borrow().segments[*segment].owner;
             self.alive_segments
                 .entry(owner)
                 .or_insert_with(HashSet::new)
                 .insert(*segment);
-        }
-
-        // now, classify new polygons
-        for node in &nodes {
-            let segment_index = node.borrow().value;
-            let owner = self.key_generator.borrow().segments[segment_index].owner;
             if self.inclusion_tree.father(owner).is_none() {
                 // not classified yet
-                self.classify_polygon(owner, segment_index, node);
+                let segment_index = node.borrow().value;
+                self.classify_polygon(owner, segment_index, &node);
             }
         }
     }

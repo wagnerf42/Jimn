@@ -6,12 +6,11 @@ use ordered_float::NotNaN;
 
 /// Converts segment into oriented polygons (clockwise) by following edges.
 /// Flat polygons are discarded in the process.
-pub fn build_polygons(segments: &mut Vec<Segment>) -> Vec<Polygon> {
-    let reversed_segments: Vec<Segment> = segments.iter().map(|s| s.reverse()).collect();
-    segments.extend(reversed_segments);
+pub fn build_polygons(segments: &[Segment]) -> Vec<Polygon> {
+    let reversed_segments: Vec<_> = segments.iter().map(|s| s.reverse()).collect();
     let mut points = HashMap::new();
     let mut remaining_segments = HashSet::new();
-    for segment in segments.iter() {
+    for segment in segments.iter().chain(reversed_segments.iter()) {
         points.entry(segment.start).or_insert_with(Vec::new).push(segment.end);
         remaining_segments.insert(segment);
     }

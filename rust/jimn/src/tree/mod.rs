@@ -1,6 +1,7 @@
 //! All trees structures and related functions.
 pub mod treap;
 
+use std::collections::VecDeque;
 use std::fs::File;
 use std::io;
 use std::io::Write;
@@ -36,10 +37,16 @@ pub struct Tree<T> {
     pub nodes: Vec<Node<T>>,
 }
 
-/// Depth first iterator on tree's values
+/// Depth first iterator on tree's values.
 pub struct DepthFirstIterator<'a, T: 'a> {
     tree: &'a Tree<T>,
     remaining_nodes: Vec<NodeIndex>,
+}
+
+/// Breadth first iterator on tree's (node's level/values).
+pub struct BreadthFirstIterator<'a, T: 'a> {
+    tree: &'a Tree<T>,
+    remaining_nodes: VecDeque<NodeIndex>,
 }
 
 impl<T: Default + Shape> Tree<T> {
@@ -97,6 +104,28 @@ impl<T: Default + Shape> Tree<T> {
         }
     }
 
+    /// Move nodes so that any parent has a lower node index than any child.
+    pub fn topological_renumbering(&mut self) {
+        let length = self.nodes.len();
+        let mut positions: Vec<_> = (0..length).into_iter().collect(); //where is everyone
+        let final_order: Vec<_> = self.walk().map(|n| n.index).collect();
+        for (destination, next_node) in final_order.into_iter().enumerate() {
+            //next node goes into destination
+            //who should we swap with ?
+            let swapped_node = self.nodes[destination].index;
+            //where should we swap from ?
+            let origin = positions[next_node];
+            if origin != destination {
+                //swap
+                self.nodes.swap(origin, destination);
+                //update positions
+                positions.swap(next_node, swapped_node);
+                //let's not forget to update index
+                self.nodes[destination].index = destination;
+            }
+        }
+    }
+
     /// Graphical display on console of both the tree and its contents.
     pub fn tycat(&self) -> io::Result<()> {
         colored_display(self.walk().map(|n| &n.value))?;
@@ -138,6 +167,18 @@ impl<'a, T: 'a> Iterator for DepthFirstIterator<'a, T> {
     type Item = &'a Node<T>;
     fn next(&mut self) -> Option<&'a Node<T>> {
         if let Some(next_index) = self.remaining_nodes.pop() {
+            self.remaining_nodes.extend(&self.tree.nodes[next_index].children);
+            Some(&self.tree.nodes[next_index])
+        } else {
+            None
+        }
+    }
+}
+
+impl<'a, T: 'a> Iterator for BreadthFirstIterator<'a, T> {
+    type Item = &'a Node<T>;
+    fn next(&mut self) -> Option<&'a Node<T>> {
+        if let Some(next_index) = self.remaining_nodes.pop_front() {
             self.remaining_nodes.extend(&self.tree.nodes[next_index].children);
             Some(&self.tree.nodes[next_index])
         } else {

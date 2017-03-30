@@ -40,8 +40,7 @@ pub mod tile;
 
 use stl::Stl;
 use utils::coordinates_hash::PointsHash;
-use quadrant::{Quadrant, Shape};
-use tycat::display;
+use holed_polygon::build_holed_polygons_tree;
 
 /// Computes the milling path for given slices thickness, milling radius and stl file.
 pub fn compute_milling_path(thickness: f64, _milling_radius: f64, stl_file: &str) {
@@ -49,8 +48,8 @@ pub fn compute_milling_path(thickness: f64, _milling_radius: f64, stl_file: &str
     let model = Stl::new(stl_file).expect("unable to load stl file");
     let mut rounder = PointsHash::new(6);
     let slices = model.compute_slices(thickness, &mut rounder);
-    for slice in &slices {
-        println!("height is {}", slice.0);
-        display!(slice.1);
-    }
+    //TODO: we need to add a quadrant into the each slice
+    unimplemented!();
+    let holed_polygons = build_holed_polygons_tree(&slices);
+    holed_polygons.tycat().expect("failed displaying holed polygons tree");
 }
