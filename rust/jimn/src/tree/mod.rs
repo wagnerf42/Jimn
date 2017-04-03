@@ -120,9 +120,17 @@ impl<T: Default + Shape> Tree<T> {
                 self.nodes.swap(origin, destination);
                 //update positions
                 positions.swap(next_node, swapped_node);
-                //let's not forget to update index
-                self.nodes[destination].index = destination;
             }
+            //let's not forget to update index
+            self.nodes[destination].index = destination;
+        }
+        // now, renumber all the family
+        for node in &mut self.nodes {
+            node.children = node.children
+                .iter()
+                .map(|old_id| positions[*old_id])
+                .collect();
+            node.father = node.father.map(|old_id| positions[old_id]);
         }
     }
 
