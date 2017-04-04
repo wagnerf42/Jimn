@@ -151,7 +151,7 @@ impl Quadrant {
                           Point::new(self.min_coordinates[0], self.max_coordinates[1]),
                           Point::new(self.max_coordinates[0], self.max_coordinates[1]),
                           Point::new(self.max_coordinates[0], self.min_coordinates[1])];
-        let rpoints: Vec<_> = points.iter().map(|p| rounder.hash_point(&p)).collect();
+        let rpoints: Vec<_> = points.iter().map(|p| rounder.hash_point(p)).collect();
         rpoints.iter()
             .zip(rpoints.iter().cycle().skip(1))
             .map(|(p1, p2)| Segment::new(*p1, *p2))

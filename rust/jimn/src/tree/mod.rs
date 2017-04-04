@@ -49,6 +49,7 @@ pub struct BreadthFirstIterator<'a, T: 'a> {
     remaining_nodes: VecDeque<NodeIndex>,
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(len_without_is_empty))]
 impl<T: Default + Shape> Tree<T> {
     /// Create a new tree with a default root value.
     pub fn new() -> Self {
