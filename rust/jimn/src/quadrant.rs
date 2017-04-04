@@ -5,6 +5,8 @@
 //! Quadrants are also used for computing display dimensions.
 
 use ordered_float::NotNaN;
+use point::Point;
+use segment::Segment;
 
 /// The `Quadrant` structure stores bounds on each coordinate.
 /// In 2D this translates to rectangles.
@@ -135,9 +137,22 @@ impl Quadrant {
             .collect();
     }
 
-    /// Adds given point to ourselves.
+    /// Adds quadrant around given shape to ourselves.
     pub fn add<T: Shape>(&mut self, shape: &T) {
         let quadrant = shape.get_quadrant();
         self.update(&quadrant)
+    }
+
+    /// Return 2d segments bounding us.
+    /// Note this only considers the first 2 dimensions.
+    pub fn segments(&self) -> Vec<Segment> {
+        let points = vec![Point::new(self.min_coordinates[0], self.min_coordinates[1]),
+                          Point::new(self.min_coordinates[0], self.max_coordinates[1]),
+                          Point::new(self.max_coordinates[0], self.max_coordinates[1]),
+                          Point::new(self.max_coordinates[0], self.min_coordinates[1])];
+        points.iter()
+            .zip(points.iter().cycle().skip(1))
+            .map(|(p1, p2)| Segment::new(*p1, *p2))
+            .collect()
     }
 }

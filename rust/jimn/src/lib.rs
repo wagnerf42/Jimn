@@ -43,13 +43,16 @@ use utils::coordinates_hash::PointsHash;
 use holed_polygon::build_holed_polygons_tree;
 
 /// Computes the milling path for given slices thickness, milling radius and stl file.
-pub fn compute_milling_path(thickness: f64, _milling_radius: f64, stl_file: &str) {
+pub fn compute_milling_path(thickness: f64, milling_radius: f64, stl_file: &str) {
     //TODO: use asref or borrow
-    let model = Stl::new(stl_file).expect("unable to load stl file");
+    let mut model = Stl::new(stl_file).expect("unable to load stl file");
     let mut rounder = PointsHash::new(6);
-    let slices = model.compute_slices(thickness, &mut rounder);
-    //TODO: we need to add a quadrant into the each slice
-    unimplemented!();
+    let mut slices = model.compute_slices(thickness, &mut rounder);
+    // add the border around each slice
+    model.dimensions.inflate(milling_radius * 3.0); // 3 for now
+    for slice in &mut slices {
+        slice.1.extend(model.dimensions.segments());
+    }
     let holed_polygons = build_holed_polygons_tree(&slices);
     holed_polygons.tycat().expect("failed displaying holed polygons tree");
 }

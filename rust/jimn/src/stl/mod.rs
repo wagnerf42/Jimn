@@ -19,7 +19,7 @@ use utils::coordinates_hash::{CoordinatesHash, PointsHash};
 pub struct Stl {
     /// Vector containing all facets.
     pub facets: Vec<Facet>,
-    /// Box containing all 3D points.
+    /// `Quadrant` containing all 3D points.
     pub dimensions: Quadrant,
     /// hash of heights (needed to align nearby heights coordinate)
     heights: CoordinatesHash,

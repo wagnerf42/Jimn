@@ -14,7 +14,7 @@ use ordered_float::NotNaN;
 static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
 
 /// Common colors
-pub const SVG_COLORS: [&'static str; 37] = ["red",
+pub const SVG_COLORS: [&'static str; 35] = ["red",
                                             "green",
                                             "blue",
                                             "purple",
@@ -26,11 +26,9 @@ pub const SVG_COLORS: [&'static str; 37] = ["red",
                                             "dimgray",
                                             "mediumpurple",
                                             "midnightblue",
-                                            "olive",
                                             "chartreuse",
                                             "darkorchid",
                                             "hotpink",
-                                            "darkred",
                                             "peru",
                                             "goldenrod",
                                             "mediumslateblue",
@@ -108,7 +106,7 @@ pub fn colored_display<'a, T: 'a + Shape, U: IntoIterator<Item = &'a T>>(things:
     let mut quadrant = Quadrant::new(2);
     let mut strings = Vec::new();
     for thing in things {
-        quadrant.update(&thing.get_quadrant());
+        quadrant.add(&thing);
         strings.push(thing.svg_string());
     }
     display(&quadrant, &strings)
@@ -139,10 +137,7 @@ macro_rules! display {
         let mut quadrant = Quadrant::new(2);
         let mut svg_strings = Vec::new();
         $(
-            {
-                let small_quadrant = $x.get_quadrant();
-                quadrant.update(&small_quadrant);
-            }
+            quadrant.add(&$x);
             svg_strings.push($x.svg_string());
         )*
         display(&quadrant, &svg_strings).expect("tycat failed");
