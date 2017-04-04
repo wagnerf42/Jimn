@@ -37,6 +37,7 @@ pub mod clipper;
 pub mod polygon;
 pub mod holed_polygon;
 pub mod tile;
+pub mod overlap;
 
 use stl::Stl;
 use utils::coordinates_hash::PointsHash;
@@ -51,7 +52,7 @@ pub fn compute_milling_path(thickness: f64, milling_radius: f64, stl_file: &str)
     // add the border around each slice
     model.dimensions.inflate(milling_radius * 3.0); // 3 for now
     for slice in &mut slices {
-        slice.1.extend(model.dimensions.segments());
+        slice.1.extend(model.dimensions.segments(&mut rounder));
     }
     let holed_polygons = build_holed_polygons_tree(&slices);
     holed_polygons.tycat().expect("failed displaying holed polygons tree");

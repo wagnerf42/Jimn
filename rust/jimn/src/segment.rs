@@ -175,6 +175,11 @@ impl Segment {
         }
     }
 
+    /// Return unique key identifying line going through ourselves.
+    pub fn line_key(&self) -> (NotNaN<f64>, NotNaN<f64>) {
+        unimplemented!()
+    }
+
     /// Save ourselves in given file as 4 64bits little endian floats
     fn write_to_file(&self, file: &mut File) -> io::Result<()> {
         file.write_f64::<LittleEndian>(self.start.x.into_inner())?;

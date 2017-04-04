@@ -88,7 +88,14 @@ pub fn build_holed_polygons_tree(slices: &[(NotNaN<f64>, Vec<Segment>)]) -> Tree
         let segments = &slice.1;
         let polygons = build_polygons(segments);
         let holed_polygons = build_holed_polygons(polygons);
+        let old_size = holed_polygons_tree.len();
         complete_inclusion_tree(&mut holed_polygons_tree, holed_polygons);
+        // each newly added holed polygon must be set as a child of someone added before.
+        // it is however possible to have holed polygons included one into another.
+        // the classifier would therefore connect two new holed polygons together.
+        // we then need to move them up in the tree towards the first ancestor which is of the
+        // previous level.
+        holed_polygons_tree.rebranch_upward(old_size);
     }
     holed_polygons_tree
 }

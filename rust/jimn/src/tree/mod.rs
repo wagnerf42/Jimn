@@ -62,8 +62,8 @@ impl<T: Default + Shape> Tree<T> {
         Tree { nodes: nodes }
     }
 
-    /// Return index for next to be added node.
-    pub fn next_node_index(&self) -> NodeIndex {
+    /// Return number of nodes inside the tree.
+    pub fn len(&self) -> usize {
         self.nodes.len()
     }
 
@@ -101,6 +101,44 @@ impl<T: Default + Shape> Tree<T> {
         DepthFirstIterator {
             tree: self,
             remaining_nodes: vec![0],
+        }
+    }
+
+    /// Reconnect every node to its first ancestor with index < index_limit
+    /// pre-condition: limit is > 1.
+    pub fn rebranch_upward(&mut self, index_limit: NodeIndex) {
+        self.recursive_rebranch_upward(index_limit, 0, 0, 0);
+    }
+
+    /// Recursive code for rebranch upward need some extra arguments.
+    /// current_index : node currently considered for moving up ;
+    /// last_valid_ancestor : last ancestor respecting the constraint ;
+    /// child_number : index of current node in children vector of its father
+    fn recursive_rebranch_upward(&mut self,
+                                 index_limit: NodeIndex,
+                                 current_index: NodeIndex,
+                                 last_valid_ancestor: NodeIndex,
+                                 child_number: usize) {
+        if let Some(father) = self.nodes[current_index].father {
+            if father >= index_limit {
+                self.nodes[current_index].father = Some(last_valid_ancestor);
+                self.nodes[father].children.swap_remove(child_number);
+                self.nodes[last_valid_ancestor].children.push(current_index);
+            }
+        }
+        let children = self.nodes[current_index].children.clone();
+        // go from last to first child to avoid problems with the swap remove
+        // this way no next to handle child sees his child_number change before handling
+        for (new_child_number, child) in children.iter().enumerate().rev() {
+            let new_last_valid_ancestor = if current_index < index_limit {
+                current_index
+            } else {
+                last_valid_ancestor
+            };
+            self.recursive_rebranch_upward(index_limit,
+                                           *child,
+                                           new_last_valid_ancestor,
+                                           new_child_number);
         }
     }
 

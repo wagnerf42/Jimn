@@ -21,6 +21,7 @@ type ClassifyEvent = (Point, Vec<SegmentIndex>, Vec<SegmentIndex>);
 type PolygonIndex = usize;
 
 /// we need to remember which segment belongs to which polygon
+#[derive(Debug)]
 struct OwnedSegment {
     segment: Segment,
     owner: PolygonIndex,
@@ -51,12 +52,33 @@ struct Classifier<'a, 'b, T: HasEdge + 'b> {
 
 impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
     /// Create all segments and events.
+    /// TODO: rewrite in a cleaner way
     fn new(tree: &'b mut Tree<T>,
            segments: &'a mut Vec<OwnedSegment>,
            polygons: Vec<T>)
            -> (Vec<ClassifyEvent>, Classifier<'a, 'b, T>) {
 
-        // we start by adding all segments from existing leaves
+        // immediately add all polygons as tree nodes
+        // this way we can use their position in tree as their id
+        for polygon in polygons {
+            let polygon_index = tree.len();
+            segments.extend(polygon.edge()
+                                .segments()
+                                .filter(|s| !s.is_horizontal())
+                                .map(|s| {
+                                         OwnedSegment {
+                                             segment: s,
+                                             owner: polygon_index,
+                                         }
+                                     }));
+            tree.add_node(polygon);
+        }
+
+        // we continue by adding all segments from existing leaves
+        // NOTE that it is important to add these last.
+        // In this way if an old segment is overlapping a new one,
+        // the index of the old segment will be larger and therefore
+        // and will be > than the new one.
         for node in tree.walk().filter(|n| n.children.is_empty()) {
             let index = node.index;
             segments.extend(node.value
@@ -71,21 +93,6 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
                                      }));
         }
 
-        // immediately add all polygons as tree nodes
-        // this way we can use their position in tree as their id
-        for polygon in polygons {
-            let polygon_index = tree.next_node_index();
-            segments.extend(polygon.edge()
-                                .segments()
-                                .filter(|s| !s.is_horizontal())
-                                .map(|s| {
-                                         OwnedSegment {
-                                             segment: s,
-                                             owner: polygon_index,
-                                         }
-                                     }));
-            tree.add_node(polygon);
-        }
 
         let mut raw_events = HashMap::with_capacity(2 * segments.len());
         for (index, segment) in segments.iter().enumerate() {
@@ -106,9 +113,10 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
         // sort start events
         for event in &mut events {
             generator.borrow_mut().current_point = event.0;
+            //TODO: triple check this one
             event.1.sort_by(|a, b| {
-                                generator.borrow().compute_key(a).cmp(&generator.borrow()
-                                                                           .compute_key(b))
+                                generator.borrow().compute_key(b).cmp(&generator.borrow()
+                                                                           .compute_key(a))
                             });
         }
 
