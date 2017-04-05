@@ -177,7 +177,13 @@ impl Segment {
 
     /// Return unique key identifying line going through ourselves.
     pub fn line_key(&self) -> (NotNaN<f64>, NotNaN<f64>) {
-        unimplemented!()
+        if self.is_horizontal() {
+            (NotNaN::new(0.0).unwrap(), self.start.y)
+        } else {
+            let alpha = (NotNaN::new(0.0).unwrap() - self.start.y) / (self.end.y - self.start.y);
+            let x = self.start.x + alpha * (self.end.x - self.start.x);
+            (self.sweeping_angle(), x)
+        }
     }
 
     /// Save ourselves in given file as 4 64bits little endian floats

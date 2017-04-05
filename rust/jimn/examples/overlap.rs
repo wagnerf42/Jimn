@@ -12,5 +12,6 @@ fn main() {
                         Segment::new(Point::new(2.0, 1.0), Point::new(6.0, 3.0))];
     colored_display(segments.iter()).expect("cannot display input");
     let remaining_parts = remove_overlaps(&segments);
+    println!("remains: {:?}", remaining_parts);
     colored_display(remaining_parts.iter()).expect("cannot display output");
 }
