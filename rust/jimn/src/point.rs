@@ -52,17 +52,22 @@ impl Point {
     /// let distance = Point::new(0.0, 0.0).distance_to(&Point::new(3.0, 0.0));
     /// assert!(is_almost(distance, 3.0));
     /// ```
-    pub fn distance_to(self: &Point, other: &Point) -> f64 {
+    pub fn distance_to(self: &Point, other: &Point) -> NotNaN<f64> {
         let x_diff = self.x - other.x;
         let y_diff = self.y - other.y;
         let squared_distance = x_diff * x_diff + y_diff * y_diff;
-        squared_distance.sqrt()
+        NotNaN::new(squared_distance.sqrt()).unwrap()
     }
 
     /// Returns vector of our coordinates.
     /// Useful for mapping or arithmetic operations.
     pub fn to_vector(&self) -> Vec<NotNaN<f64>> {
         vec![self.x, self.y]
+    }
+
+    /// Look at ourselves as a vector and return a perpendicular one.
+    pub fn perpendicular_vector(&self) -> Point {
+        Point::new(-self.y, self.x)
     }
 
     /// Returns the angle needed for going towards other.

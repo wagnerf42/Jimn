@@ -38,6 +38,7 @@ pub mod polygon;
 pub mod holed_polygon;
 pub mod tile;
 pub mod overlap;
+pub mod arc;
 
 use stl::Stl;
 use utils::coordinates_hash::PointsHash;
