@@ -33,20 +33,24 @@ impl Arc {
     /// This can happen for example when endpoints have been rounded.
     fn adjust_center(&mut self) {
         self.center = *self.compute_centers()
-                           .iter()
-                           .min_by_key(|c| c.distance_to(&self.center))
-                           .unwrap();
+            .iter()
+            .min_by_key(|c| c.distance_to(&self.center))
+            .unwrap();
     }
 
     /// Return array of the two centers we could have.
-    fn compute_centers(&self) -> [Point; 2] {
+    fn compute_centers(&self) -> Vec<Point> {
         // we do some geometry to avoid too complex equations.
         // take start as origin
         let translated_end = self.end - self.start;
         // find bisector
         let middle = translated_end / 2.0;
         let bisector_point = middle + translated_end.perpendicular_vector();
-        unimplemented!()
+        let intersections = line_circle_intersections(&[middle, bisector_point],
+                                                      &Point::new(0.0, 0.0),
+                                                      self.radius);
+        assert!(intersections.len() == 2);
+        intersections.iter().map(|i| self.start + i).collect()
     }
 
     /// Return normalized angle of points with center.
@@ -84,4 +88,29 @@ impl Shape for Arc {
                                  self.end.y);
         center_string + &arc_string
     }
+}
+
+fn line_circle_intersections(segment: &[Point; 2],
+                             center: &Point,
+                             radius: NotNaN<f64>)
+                             -> Vec<Point> {
+    let d = segment[1] - segment[0];
+    let c = center - segment[0];
+    // segment points are at alpha * d
+    // distance(alpha * d, center) = r
+
+    // (xc-alpha*xd)**2 + (yc-alpha*yd)**2 - r**2 = 0
+
+    // xc**2 + alpha**2*xd**2 -2*alpha*xc*xd
+    // yc**2 + alpha**2*yd**2 -2*alpha*yc*yd
+    // - r**2 = 0
+    let a = d.x * d.x + d.y * d.y;
+    let b = (c.x * d.x + c.y * d.y) * (-2.0);
+    let c = c.x * c.x + c.y * c.y - radius * radius;
+    let solutions = solve_quadratic_equation(a, b, c);
+    solutions.into_iter().map(|s| segment[0] + d * s).collect()
+}
+
+fn solve_quadratic_equation(a: NotNaN<f64>, b: NotNaN<f64>, c: NotNaN<f64>) -> Vec<NotNaN<f64>> {
+    unimplemented!()
 }

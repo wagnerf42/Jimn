@@ -113,9 +113,18 @@ impl Shape for Point {
     }
 }
 
-//TODO: is there un-necessary cloning ?
-//see: https://doc.rust-lang.org/std/ops/index.html
-impl Add for Point {
+//TODO: factorize all that stuff
+impl<'a> Add<&'a Point> for Point {
+    type Output = Point;
+    fn add(self, other: &'a Point) -> Point {
+        Point {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
+impl<'a> Add<Point> for Point {
     type Output = Point;
     fn add(self, other: Point) -> Point {
         Point {
@@ -125,18 +134,27 @@ impl Add for Point {
     }
 }
 
-//TODO: factorize using borrow or asref ?
-impl<'a> Add<&'a Point> for Point {
+impl<'a> Sub<&'a Point> for Point {
     type Output = Point;
-    fn add(self, other: &Point) -> Point {
+    fn sub(self, other: &'a Point) -> Point {
         Point {
-            x: self.x + other.x,
-            y: self.y + other.y,
+            x: self.x - other.x,
+            y: self.y - other.y,
         }
     }
 }
 
-impl Sub for Point {
+impl<'a> Sub<Point> for Point {
+    type Output = Point;
+    fn sub(self, other: Point) -> Point {
+        Point {
+            x: self.x - other.x,
+            y: self.y - other.y,
+        }
+    }
+}
+
+impl<'a, 'b> Sub<Point> for &'a Point {
     type Output = Point;
     fn sub(self, other: Point) -> Point {
         Point {
