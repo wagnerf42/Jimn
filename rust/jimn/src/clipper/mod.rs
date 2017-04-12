@@ -39,19 +39,22 @@ impl Cuttable for ClippingSegment {
 /// Return remaining intersected segments.
 /// pre-condition: all endpoints are already hashed in the rounder.
 pub fn clip(clipper: &[Segment], clipped: &[Segment], rounder: &mut PointsHash) -> Vec<Segment> {
-    let segments: Vec<_> = clipper.iter()
+    let segments: Vec<_> = clipper
+        .iter()
         .map(|s| {
                  ClippingSegment {
                      segment: *s,
                      clipping: true,
                  }
              })
-        .chain(clipped.iter().map(|s| {
-                                      ClippingSegment {
-                                          segment: *s,
-                                          clipping: false,
-                                      }
-                                  }))
+        .chain(clipped
+                   .iter()
+                   .map(|s| {
+                            ClippingSegment {
+                                segment: *s,
+                                clipping: false,
+                            }
+                        }))
         .collect();
     let intersections = bentley_ottmann(&segments, rounder);
     let small_segments = cut_segments(&segments, &intersections);

@@ -2,6 +2,7 @@
 *~
 *.swp
 *.pyc
+*.bk
 
 # Ignore python files
 **/__pycache__/

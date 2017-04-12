@@ -66,9 +66,9 @@ impl Stl {
         };
         let mut facets_data = Cursor::new(buffer);
         for _ in 0..facets_number {
-            model.facets.push(Facet::new(&mut facets_data,
-                                         &mut model.dimensions,
-                                         &mut model.heights));
+            model
+                .facets
+                .push(Facet::new(&mut facets_data, &mut model.dimensions, &mut model.heights));
         }
         Ok(model)
     }
@@ -124,7 +124,8 @@ impl Stl {
         for event in &events {
             match event.event_type {
                 EventType::Cut => {
-                    let intersections: Vec<Segment> = facets.iter()
+                    let intersections: Vec<Segment> = facets
+                        .iter()
                         .filter_map(|i: &usize| self.facets[*i].intersect(event.height, hasher))
                         .collect();
                     slices.push((event.height, intersections));

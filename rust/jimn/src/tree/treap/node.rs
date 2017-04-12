@@ -91,10 +91,7 @@ impl<T, U: Counting> Node<T, U> {
     fn set_child<V: Into<Option<Node<T, U>>>>(&self, direction: usize, child: V) {
         let child_option = child.into();
         if child_option.is_some() {
-            child_option.as_ref()
-                .unwrap()
-                .borrow_mut()
-                .father = Some(Rc::downgrade(&self.0));
+            child_option.as_ref().unwrap().borrow_mut().father = Some(Rc::downgrade(&self.0));
         }
         self.borrow_mut().children[direction] = child_option;
     }
@@ -259,10 +256,7 @@ impl<T: Display, U: Counting> Node<T, U> {
     /// Writes lines in dot (graphviz) file for displaying
     /// node and links to its children.
     pub fn write_dot(&self, file: &mut File) {
-        let has_father = self.borrow()
-            .father
-            .as_ref()
-            .is_some();
+        let has_father = self.borrow().father.as_ref().is_some();
         let color = if has_father {
             ["red", "green"][self.father().direction_to(self)]
         } else {

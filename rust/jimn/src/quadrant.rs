@@ -107,13 +107,17 @@ impl Quadrant {
     pub fn update(&mut self, other: &Quadrant) {
 
         for (min_coordinate, coordinate) in
-            self.min_coordinates.iter_mut().zip(other.min_coordinates.iter()) {
+            self.min_coordinates
+                .iter_mut()
+                .zip(other.min_coordinates.iter()) {
             if *min_coordinate > *coordinate {
                 *min_coordinate = *coordinate;
             }
         }
         for (max_coordinate, coordinate) in
-            self.max_coordinates.iter_mut().zip(other.max_coordinates.iter()) {
+            self.max_coordinates
+                .iter_mut()
+                .zip(other.max_coordinates.iter()) {
             if *max_coordinate < *coordinate {
                 *max_coordinate = *coordinate;
             }
@@ -152,7 +156,8 @@ impl Quadrant {
                           Point::new(self.max_coordinates[0], self.max_coordinates[1]),
                           Point::new(self.max_coordinates[0], self.min_coordinates[1])];
         let rpoints: Vec<_> = points.iter().map(|p| rounder.hash_point(p)).collect();
-        rpoints.iter()
+        rpoints
+            .iter()
             .zip(rpoints.iter().cycle().skip(1))
             .map(|(p1, p2)| Segment::new(*p1, *p2))
             .collect()

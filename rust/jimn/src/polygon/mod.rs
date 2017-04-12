@@ -37,10 +37,7 @@ impl<'a> Polygon {
     pub fn segments(&'a self) -> impl Iterator<Item = Segment> + 'a {
         self.points
             .iter()
-            .zip(self.points
-                     .iter()
-                     .cycle()
-                     .skip(1))
+            .zip(self.points.iter().cycle().skip(1))
             .map(|(&p1, &p2)| Segment::new(p1, p2))
     }
 
@@ -50,10 +47,7 @@ impl<'a> Polygon {
         //TODO: change ordered_float library to allow sum
         self.points
             .iter()
-            .zip(self.points
-                     .iter()
-                     .cycle()
-                     .skip(1))
+            .zip(self.points.iter().cycle().skip(1))
             .map(|(p1, p2)| p1.cross_product(p2))
             .fold(NotNaN::new(0.0).unwrap(), |s, x| s + x)
     }
@@ -157,14 +151,8 @@ impl<'a> Polygon {
         //when looping on 3 consecutive points
         let new_points: Vec<Point> = self.points
             .iter()
-            .zip(self.points
-                     .iter()
-                     .cycle()
-                     .skip(1))
-            .zip(self.points
-                     .iter()
-                     .cycle()
-                     .skip(2))
+            .zip(self.points.iter().cycle().skip(1))
+            .zip(self.points.iter().cycle().skip(2))
             .filter_map(|((p1, p2), p3)| if area(p1, p2, p3) < NotNaN::new(0.000001).unwrap() {
                             None
                         } else {
@@ -172,7 +160,8 @@ impl<'a> Polygon {
                         })
             .collect();
         //now remove aligned points
-        let final_points: Vec<Point> = new_points.iter()
+        let final_points: Vec<Point> = new_points
+            .iter()
             .zip(new_points.iter().cycle().skip(1))
             .zip(new_points.iter().cycle().skip(2))
             .filter_map(|((p1, p2), p3)| if p1.is_aligned_with(p2, p3) {

@@ -33,9 +33,9 @@ impl Arc {
     /// This can happen for example when endpoints have been rounded.
     fn adjust_center(&mut self) {
         self.center = *self.compute_centers()
-            .iter()
-            .min_by_key(|c| c.distance_to(&self.center))
-            .unwrap();
+                           .iter()
+                           .min_by_key(|c| c.distance_to(&self.center))
+                           .unwrap();
     }
 
     /// Return array of the two centers we could have.
@@ -108,9 +108,24 @@ fn line_circle_intersections(segment: &[Point; 2],
     let b = (c.x * d.x + c.y * d.y) * (-2.0);
     let c = c.x * c.x + c.y * c.y - radius * radius;
     let solutions = solve_quadratic_equation(a, b, c);
-    solutions.into_iter().map(|s| segment[0] + d * s).collect()
+    solutions
+        .into_iter()
+        .map(|s| segment[0] + d * s)
+        .collect()
 }
 
 fn solve_quadratic_equation(a: NotNaN<f64>, b: NotNaN<f64>, c: NotNaN<f64>) -> Vec<NotNaN<f64>> {
-    unimplemented!()
+    let delta = b * b - a * c * 4.0;
+    if is_almost(delta.abs().sqrt(), 0.0) {
+        if is_almost(a, 0.0) {
+            Vec::new()
+        } else {
+            vec![-b / (a * 2.0)]
+        }
+    } else if delta < NotNaN::new(0.0).unwrap() {
+        Vec::new()
+    } else {
+        vec![(-b - delta.sqrt()) / (a * 2.0),
+             (-b + delta.sqrt()) / (a * 2.0)]
+    }
 }

@@ -15,7 +15,8 @@
 //! Compile them with cargo !
 
 #![feature(test)]
-#![feature(conservative_impl_trait)] // allow easy returning of iterators
+#![feature(conservative_impl_trait)]
+// allow easy returning of iterators
 #![deny(missing_docs)]
 
 extern crate byteorder;
@@ -28,7 +29,6 @@ pub mod utils;
 pub mod tycat;
 pub mod quadrant;
 pub mod point;
-pub mod segment;
 pub mod stl;
 pub mod tree;
 pub mod bentley_ottmann;
@@ -38,7 +38,11 @@ pub mod polygon;
 pub mod holed_polygon;
 pub mod tile;
 pub mod overlap;
-pub mod arc;
+pub mod segment;
+pub use segment::Segment;
+mod arc;
+pub use arc::Arc;
+pub mod elementary_path;
 
 use stl::Stl;
 use utils::coordinates_hash::PointsHash;
@@ -60,5 +64,7 @@ pub fn compute_milling_path(thickness: f64, milling_radius: f64, stl_file: &str)
         slice.1 = non_overlapping_segments;
     }
     let holed_polygons = build_holed_polygons_tree(&slices);
-    holed_polygons.tycat().expect("failed displaying holed polygons tree");
+    holed_polygons
+        .tycat()
+        .expect("failed displaying holed polygons tree");
 }

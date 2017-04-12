@@ -84,7 +84,10 @@ pub struct PointsHash {
 impl PointsHash {
     /// Creates a new `PointsHash` with given precision.
     pub fn new(precision: usize) -> PointsHash {
-        PointsHash { hashes: [CoordinatesHash::new(precision), CoordinatesHash::new(precision)] }
+        PointsHash {
+            hashes: [CoordinatesHash::new(precision),
+                     CoordinatesHash::new(precision)],
+        }
     }
 
     /// Tries to add a point to the hash, adjusting coordinates.

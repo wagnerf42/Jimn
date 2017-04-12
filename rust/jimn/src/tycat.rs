@@ -58,7 +58,8 @@ pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
     let mut svg_file = File::create(&filename)?;
 
     // write header
-    svg_file.write_all(b"<svg width=\"640\" height=\"480\" ")?;
+    svg_file
+        .write_all(b"<svg width=\"640\" height=\"480\" ")?;
     let (xmin, xmax) = quadrant.limits(0);
     let (ymin, ymax) = quadrant.limits(1);
     let width = xmax - xmin;
@@ -69,7 +70,8 @@ pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
            ymin,
            width,
            height)?;
-    svg_file.write_all(b"xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n")?;
+    svg_file
+        .write_all(b"xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n")?;
 
     // white background
     write!(svg_file, "<rect x=\"{}\" y=\"{}\" ", xmin, ymin)?;

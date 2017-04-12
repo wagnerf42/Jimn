@@ -62,7 +62,8 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
         // this way we can use their position in tree as their id
         for polygon in polygons {
             let polygon_index = tree.len();
-            segments.extend(polygon.edge()
+            segments.extend(polygon
+                                .edge()
                                 .segments()
                                 .filter(|s| !s.is_horizontal())
                                 .map(|s| {
@@ -97,27 +98,36 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
         let mut raw_events = HashMap::with_capacity(2 * segments.len());
         for (index, segment) in segments.iter().enumerate() {
             let (first_point, last_point) = segment.segment.ordered_points();
-            raw_events.entry(first_point)
+            raw_events
+                .entry(first_point)
                 .or_insert_with(|| (Vec::new(), Vec::new()))
                 .0
                 .push(index);
-            raw_events.entry(last_point)
+            raw_events
+                .entry(last_point)
                 .or_insert_with(|| (Vec::new(), Vec::new()))
                 .1
                 .push(index);
         }
 
-        let mut events: Vec<_> = raw_events.into_iter().map(|(k, v)| (k, v.0, v.1)).collect();
+        let mut events: Vec<_> = raw_events
+            .into_iter()
+            .map(|(k, v)| (k, v.0, v.1))
+            .collect();
         events.sort_by(|a, b| b.0.cmp(&a.0));
         let generator = KeyGenerator::new(segments);
         // sort start events
         for event in &mut events {
             generator.borrow_mut().current_point = event.0;
             //TODO: triple check this one
-            event.1.sort_by(|a, b| {
-                                generator.borrow().compute_key(b).cmp(&generator.borrow()
-                                                                           .compute_key(a))
-                            });
+            event
+                .1
+                .sort_by(|a, b| {
+                             generator
+                                 .borrow()
+                                 .compute_key(b)
+                                 .cmp(&generator.borrow().compute_key(a))
+                         });
         }
 
         (events,

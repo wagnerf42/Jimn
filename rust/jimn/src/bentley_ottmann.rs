@@ -43,7 +43,10 @@ pub struct KeyGenerator<'a, T: 'a + AsRef<Segment>> {
 impl<'a, T: AsRef<Segment>> KeyGenerator<'a, T> {
     /// Create a key generator from segments.
     pub fn new(segments: &'a [T]) -> Rc<RefCell<KeyGenerator<'a, T>>> {
-        let angles_cache = segments.iter().map(|s| s.as_ref().sweeping_angle()).collect();
+        let angles_cache = segments
+            .iter()
+            .map(|s| s.as_ref().sweeping_angle())
+            .collect();
         Rc::new(RefCell::new(KeyGenerator {
                                  //initial current point does not matter
                                  current_point: Default::default(),
@@ -141,11 +144,13 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
             let (start, end) = segment.as_ref().ordered_points();
             cutter.add_event(start, index, 0);
             cutter.add_event(end, index, 1);
-            cutter.key_generator
+            cutter
+                .key_generator
                 .borrow_mut()
                 .x_coordinates
                 .insert((index, start.y), start.x);
-            cutter.key_generator
+            cutter
+                .key_generator
                 .borrow_mut()
                 .x_coordinates
                 .insert((index, end.y), end.x);
@@ -157,10 +162,12 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
     fn add_event(&mut self, event_point: Point, segment: SegmentIndex, event_type: usize) {
         let events = &mut self.events;
         // if there is no event data it's a new event
-        self.events_data.entry(event_point).or_insert_with(|| {
-                                                               events.push(event_point);
-                                                               [HashSet::new(), HashSet::new()]
-                                                           })
+        self.events_data
+            .entry(event_point)
+            .or_insert_with(|| {
+                                events.push(event_point);
+                                [HashSet::new(), HashSet::new()]
+                            })
             [event_type]
                 .insert(segment);
     }
@@ -173,7 +180,9 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
         let indices = nodes.map(|n| n.borrow().value);
         let segments = indices.map(|i| &self.key_generator.borrow().segments[*i]);
         let current_point = self.key_generator.borrow().current_point;
-        let possible_intersection = segments[0].as_ref().intersection_with(segments[1].as_ref());
+        let possible_intersection = segments[0]
+            .as_ref()
+            .intersection_with(segments[1].as_ref());
         if let Some(raw_intersection) = possible_intersection {
             let intersection = self.rounder.hash_point(&raw_intersection);
             if intersection > current_point {
@@ -214,7 +223,9 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
             .expect("ending : no small node in crossed segments");
         let small_neighbour = small_node.nearest_node(0);
         if small_neighbour.is_some() {
-            let big_node = self.crossed_segments.find_node(*segments.last().unwrap()).unwrap();
+            let big_node = self.crossed_segments
+                .find_node(*segments.last().unwrap())
+                .unwrap();
             let big_neighbour = big_node.nearest_node(1);
             if big_neighbour.is_some() {
                 self.try_intersecting(&small_neighbour.unwrap(), &big_neighbour.unwrap());
@@ -250,12 +261,16 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
             }
         }
 
-        let small_node = self.crossed_segments.find_node(*segments.first().unwrap()).unwrap();
+        let small_node = self.crossed_segments
+            .find_node(*segments.first().unwrap())
+            .unwrap();
         let small_neighbour = small_node.nearest_node(0);
         if small_neighbour.is_some() {
             self.try_intersecting(&small_node, &small_neighbour.unwrap());
         }
-        let big_node = self.crossed_segments.find_node(*segments.last().unwrap()).unwrap();
+        let big_node = self.crossed_segments
+            .find_node(*segments.last().unwrap())
+            .unwrap();
         let big_neighbour = big_node.nearest_node(1);
         if big_neighbour.is_some() {
             self.try_intersecting(&big_node, &big_neighbour.unwrap());
@@ -320,16 +335,17 @@ pub trait Cuttable {
 pub fn cut_segments<T: Cuttable + Clone>(segments: &[T],
                                          cut_points: &HashMap<SegmentIndex, HashSet<Point>>)
                                          -> Vec<T> {
-    segments.iter()
+    segments
+        .iter()
         .enumerate()
         .flat_map(|(i, segment)| {
-            let cuts = cut_points.get(&i);
-            if let Some(points) = cuts {
-                segment.cut(points)
-            } else {
-                vec![segment.clone()]
-            }
-        })
+                      let cuts = cut_points.get(&i);
+                      if let Some(points) = cuts {
+                          segment.cut(points)
+                      } else {
+                          vec![segment.clone()]
+                      }
+                  })
         .collect()
 }
 

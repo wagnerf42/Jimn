@@ -229,10 +229,13 @@ impl Cuttable for Segment {
             sorted_points.sort_by(|a, b| b.cmp(a));
         }
 
-        let iterator =
-            repeat(&self.start).take(1).chain(sorted_points.into_iter().chain(repeat(&self.end)
-                                                                                  .take(1)));
-        iterator.clone()
+        let iterator = repeat(&self.start)
+            .take(1)
+            .chain(sorted_points
+                       .into_iter()
+                       .chain(repeat(&self.end).take(1)));
+        iterator
+            .clone()
             .zip(iterator.skip(1))
             .map(|(p1, p2)| Segment::new(*p1, *p2))
             .collect()

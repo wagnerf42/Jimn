@@ -1,7 +1,7 @@
 extern crate jimn;
 use std::f64::consts::PI;
 use jimn::point::Point;
-use jimn::arc::Arc;
+use jimn::Arc;
 use jimn::tycat::colored_display;
 
 fn main() {

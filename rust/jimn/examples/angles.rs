@@ -2,7 +2,7 @@
 extern crate jimn;
 extern crate ordered_float;
 use jimn::point::Point;
-use jimn::segment::Segment;
+use jimn::Segment;
 use jimn::quadrant::{Quadrant, Shape};
 use jimn::tycat::display;
 

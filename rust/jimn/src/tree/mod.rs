@@ -72,12 +72,13 @@ impl<T: Default + Shape> Tree<T> {
     /// (to be re-connected later)
     pub fn add_node(&mut self, value: T) -> NodeIndex {
         let index = self.nodes.len();
-        self.nodes.push(Node {
-                            value: value,
-                            index: index,
-                            father: None,
-                            children: Vec::new(),
-                        });
+        self.nodes
+            .push(Node {
+                      value: value,
+                      index: index,
+                      father: None,
+                      children: Vec::new(),
+                  });
         index
     }
 
@@ -124,7 +125,9 @@ impl<T: Default + Shape> Tree<T> {
             if father >= index_limit {
                 self.nodes[current_index].father = Some(last_valid_ancestor);
                 self.nodes[father].children.swap_remove(child_number);
-                self.nodes[last_valid_ancestor].children.push(current_index);
+                self.nodes[last_valid_ancestor]
+                    .children
+                    .push(current_index);
             }
         }
         let children = self.nodes[current_index].children.clone();
@@ -185,7 +188,8 @@ impl<T: Default + Shape> Tree<T> {
             self.write_dot(&mut file)?;
             writeln!(file, "}}")?;
         }
-        Command::new("dot").arg("-Tpng")
+        Command::new("dot")
+            .arg("-Tpng")
             .arg(&dot_filename)
             .arg("-o")
             .arg(&png_filename)
@@ -214,7 +218,8 @@ impl<'a, T: 'a> Iterator for DepthFirstIterator<'a, T> {
     type Item = &'a Node<T>;
     fn next(&mut self) -> Option<&'a Node<T>> {
         if let Some(next_index) = self.remaining_nodes.pop() {
-            self.remaining_nodes.extend(&self.tree.nodes[next_index].children);
+            self.remaining_nodes
+                .extend(&self.tree.nodes[next_index].children);
             Some(&self.tree.nodes[next_index])
         } else {
             None
@@ -226,7 +231,8 @@ impl<'a, T: 'a> Iterator for BreadthFirstIterator<'a, T> {
     type Item = &'a Node<T>;
     fn next(&mut self) -> Option<&'a Node<T>> {
         if let Some(next_index) = self.remaining_nodes.pop_front() {
-            self.remaining_nodes.extend(&self.tree.nodes[next_index].children);
+            self.remaining_nodes
+                .extend(&self.tree.nodes[next_index].children);
             Some(&self.tree.nodes[next_index])
         } else {
             None

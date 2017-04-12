@@ -34,10 +34,7 @@ impl Shape for HoledPolygon {
     }
 
     fn svg_string(&self) -> String {
-        let mut strings: Vec<String> = self.holes
-            .iter()
-            .map(|h| h.svg_string())
-            .collect();
+        let mut strings: Vec<String> = self.holes.iter().map(|h| h.svg_string()).collect();
         strings.push(self.polygon.svg_string());
         strings.join("\n")
     }
@@ -73,7 +70,10 @@ pub fn build_holed_polygons(polygons: Vec<Polygon>) -> Vec<HoledPolygon> {
         if height % 2 == 1 {
             holed_polygons.insert(node.index, HoledPolygon::new(node.value, Vec::new()));
         } else {
-            holed_polygons.get_mut(&node.father.unwrap()).unwrap().add_hole(node.value);
+            holed_polygons
+                .get_mut(&node.father.unwrap())
+                .unwrap()
+                .add_hole(node.value);
         }
     }
     let result: Vec<HoledPolygon> = holed_polygons.drain().map(|(_, v)| v).collect();

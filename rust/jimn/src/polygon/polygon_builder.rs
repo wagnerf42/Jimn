@@ -11,7 +11,10 @@ pub fn build_polygons(segments: &[Segment]) -> Vec<Polygon> {
     let mut points = HashMap::new();
     let mut remaining_segments = HashSet::new();
     for segment in segments.iter().chain(reversed_segments.iter()) {
-        points.entry(segment.start).or_insert_with(Vec::new).push(segment.end);
+        points
+            .entry(segment.start)
+            .or_insert_with(Vec::new)
+            .push(segment.end);
         remaining_segments.insert(segment);
     }
     for (point, neighbours) in &mut points {
@@ -61,7 +64,8 @@ fn build_polygon(start_segment: &Segment,
 
 fn find_next_point(neighbours: &[Point], current_point: &Point, previous_point: &Point) -> Point {
     let incoming_angle = current_point.angle_with(previous_point);
-    let index = neighbours.binary_search_by_key(&incoming_angle, |p| current_point.angle_with(p))
+    let index = neighbours
+        .binary_search_by_key(&incoming_angle, |p| current_point.angle_with(p))
         .unwrap();
     neighbours[(index + 1) % neighbours.len()]
 }
