@@ -1,0 +1,48 @@
+//! offsetting related functions
+use {Arc, ElementaryPath};
+use polygon::Polygon;
+use holed_polygon::HoledPolygon;
+use ordered_float::NotNaN;
+use quadrant::{Quadrant, Shape};
+use tycat::display;
+
+
+/// Add to given vector all paths obtained when taking inner parallel segments in a polygon
+/// (displaced by radius) and looping around endpoints.
+/// TODO: add rounder in the mix
+pub fn inner_paths<T: Into<NotNaN<f64>>>(polygon: &Polygon,
+                                         radius: T,
+                                         paths: &mut Vec<ElementaryPath>) {
+    let radius = radius.into();
+    let mut segments = polygon.segments();
+    let first_segment = segments.next().unwrap();
+    let first_inner_segment = ElementaryPath::parallel_segment(&first_segment, radius, true);
+    let start_point = *first_inner_segment.start();
+    let start_center = first_segment.start;
+    let mut previous_point = *first_inner_segment.end();
+    paths.push(first_inner_segment);
+    for segment in segments {
+        let inner_segment = ElementaryPath::parallel_segment(&segment, radius, true);
+        paths.push(ElementaryPath::Arc(Arc::new(previous_point,
+                                                *inner_segment.start(),
+                                                segment.start,
+                                                radius)));
+        previous_point = *inner_segment.end();
+        paths.push(inner_segment);
+    }
+    //add last arc
+    let last_point = *paths.last().unwrap().end();
+    paths.push(ElementaryPath::Arc(Arc::new(last_point, start_point, start_center, radius)));
+}
+
+/// Offset given `HoledPolygon` at given distance.
+/// Return a vector of `HoledPocket`.
+pub fn offset_holed_polygon<T: Into<NotNaN<f64>>>(holed_polygon: &HoledPolygon, radius: T) {
+    let mut raw_paths = Vec::new();
+    let radius = radius.into();
+    for polygon in holed_polygon.polygons() {
+        inner_paths(polygon, radius, &mut raw_paths);
+    }
+    display!(holed_polygon, raw_paths);
+    unimplemented!()
+}

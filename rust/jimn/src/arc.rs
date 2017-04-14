@@ -7,8 +7,10 @@ use utils::precision::is_almost;
 
 /// Oriented arc segment.
 pub struct Arc {
-    start: Point,
-    end: Point,
+    /// Starting point
+    pub start: Point,
+    /// Ending point
+    pub end: Point,
     center: Point,
     radius: NotNaN<f64>,
 }

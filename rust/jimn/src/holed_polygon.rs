@@ -1,6 +1,7 @@
 //! Holed Polygons.
 use ordered_float::NotNaN;
 use std::collections::HashMap;
+use std::iter::repeat;
 use classifier::{HasEdge, complete_inclusion_tree};
 use segment::Segment;
 use polygon::{Polygon, build_polygons};
@@ -25,6 +26,11 @@ impl HoledPolygon {
     /// Add given hole to ours.
     pub fn add_hole(&mut self, hole: Polygon) {
         self.holes.push(hole);
+    }
+
+    /// Iterate on all polygons we contain.
+    pub fn polygons<'a>(&'a self) -> impl Iterator<Item = &'a Polygon> + 'a {
+        repeat(&self.polygon).take(1).chain(self.holes.iter())
     }
 }
 

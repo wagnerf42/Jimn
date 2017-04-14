@@ -29,6 +29,7 @@ pub mod utils;
 pub mod tycat;
 pub mod quadrant;
 pub mod point;
+pub use point::Point;
 pub mod stl;
 pub mod tree;
 pub mod bentley_ottmann;
@@ -43,6 +44,10 @@ pub use segment::Segment;
 mod arc;
 pub use arc::Arc;
 pub mod elementary_path;
+pub use elementary_path::ElementaryPath;
+pub mod pocket;
+pub use pocket::Pocket;
+pub mod offsetter;
 
 use stl::Stl;
 use utils::coordinates_hash::PointsHash;

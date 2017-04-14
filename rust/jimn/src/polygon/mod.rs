@@ -4,7 +4,7 @@
 use ordered_float::NotNaN;
 use quadrant::{Quadrant, Shape};
 use point::Point;
-use segment::Segment;
+use Segment;
 use classifier::HasEdge;
 use utils::Identifiable;
 use utils::precision::is_almost;
