@@ -45,7 +45,7 @@ fn end_segments(ending: &[SegmentIndex],
                 generator: &Generator,
                 crossed_clip_segments: &mut CTreap) {
     for segment_index in ending {
-        if generator.borrow().segments[*segment_index].clipping {
+        if generator.borrow().paths[*segment_index].clipping {
             crossed_clip_segments
                 .find_node(*segment_index)
                 .unwrap()
@@ -61,19 +61,19 @@ fn start_segments(starting: &[SegmentIndex],
                   kept_segments: &mut Vec<Segment>) {
     // we start by adding all clip segments
     for segment_index in starting {
-        if generator.borrow().segments[*segment_index].clipping {
+        if generator.borrow().paths[*segment_index].clipping {
             crossed_clip_segments.add(*segment_index);
             // we keep the clipper in results
-            kept_segments.push(generator.borrow().segments[*segment_index].segment);
+            kept_segments.push(generator.borrow().paths[*segment_index].segment);
         }
     }
     // now figure out wether we keep or not non-clip segments
     for segment_index in starting {
-        if !generator.borrow().segments[*segment_index].clipping {
+        if !generator.borrow().paths[*segment_index].clipping {
             let key = generator.borrow().compute_key(segment_index);
             if crossed_clip_segments.find_same_node(&key).is_none() &&
                crossed_clip_segments.number_of_larger_nodes(&key) % 2 == 1 {
-                kept_segments.push(generator.borrow().segments[*segment_index].segment);
+                kept_segments.push(generator.borrow().paths[*segment_index].segment);
             }
         }
     }

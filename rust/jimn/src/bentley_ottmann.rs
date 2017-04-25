@@ -4,8 +4,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet, BinaryHeap};
 use ordered_float::NotNaN;
-use point::Point;
-use segment::Segment;
+use {Point, Segment, ElementaryPath};
 use tree::treap::{Treap, KeyComputer, Node, EmptyCounter, UniqueKey};
 use utils::ArrayMap;
 use utils::coordinates_hash::PointsHash;
@@ -25,43 +24,40 @@ impl UniqueKey for Key {
     }
 }
 
-
-
 ///We need someone able to compute comparison keys for our segments.
 #[derive(Debug)]
 pub struct KeyGenerator<'a, T: 'a + AsRef<Segment>> {
     /// Where we currently are.
     pub current_point: Point,
-    /// We need a reference to our segments in order to perform index <-> segment conversion.
-    pub segments: &'a [T],
+    /// We need a reference to our paths in order to perform index <-> path conversion.
+    pub paths: &'a [T],
     /// Computing keys requires to know sweeping lines intersections.
     pub x_coordinates: HashMap<(SegmentIndex, Coordinate), Coordinate>,
-    /// Cache angles for each segment
+    /// Cache angles for each path
     angles_cache: Vec<NotNaN<f64>>,
 }
 
 impl<'a, T: AsRef<Segment>> KeyGenerator<'a, T> {
     /// Create a key generator from segments.
-    pub fn new(segments: &'a [T]) -> Rc<RefCell<KeyGenerator<'a, T>>> {
-        let angles_cache = segments
+    pub fn new(paths: &'a [T]) -> Rc<RefCell<KeyGenerator<'a, T>>> {
+        let angles_cache = paths
             .iter()
-            .map(|s| s.as_ref().sweeping_angle())
+            .map(|p| p.as_ref().sweeping_angle())
             .collect();
         Rc::new(RefCell::new(KeyGenerator {
                                  //initial current point does not matter
                                  current_point: Default::default(),
-                                 segments: segments,
-                                 x_coordinates: HashMap::with_capacity(3 * segments.len()),
+                                 paths: paths,
+                                 x_coordinates: HashMap::with_capacity(3 * paths.len()),
                                  angles_cache: angles_cache,
                              }))
     }
 }
 
-
 impl<'a, T: AsRef<Segment>> KeyComputer<SegmentIndex, Key> for KeyGenerator<'a, T> {
     fn compute_key(&self, segment: &SegmentIndex) -> Key {
         let (current_x, current_y) = self.current_point.coordinates();
-        let s = self.segments[*segment].as_ref();
+        let s = self.paths[*segment].as_ref();
         let angle = self.angles_cache[*segment];
         let x = if s.is_horizontal() {
             current_x
@@ -125,23 +121,23 @@ struct Cutter<'a, 'b, T: 'a + AsRef<Segment>> {
 }
 
 impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
-    fn new(segments: &'a [T], rounder: &'b mut PointsHash) -> Cutter<'a, 'b, T> {
+    fn new(paths: &'a [T], rounder: &'b mut PointsHash) -> Cutter<'a, 'b, T> {
 
         //guess the capacity of all our events related hash tables.
         //we need to be above truth to avoid collisions but not too much above.
-        let generator = KeyGenerator::new(segments);
+        let generator = KeyGenerator::new(paths);
 
         let mut cutter = Cutter {
             intersections: HashMap::new(),
             events: BinaryHeap::new(),
-            events_data: HashMap::with_capacity(segments.len()),
+            events_data: HashMap::with_capacity(paths.len()),
             crossed_segments: Treap::new(generator.clone()),
             key_generator: generator,
             rounder: rounder,
         };
 
-        for (index, segment) in segments.iter().enumerate() {
-            let (start, end) = segment.as_ref().ordered_points();
+        for (index, path) in paths.iter().enumerate() {
+            let (start, end) = path.as_ref().ordered_points();
             cutter.add_event(start, index, 0);
             cutter.add_event(end, index, 1);
             cutter
@@ -159,7 +155,7 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
     }
 
     /// Add event at given point starting or ending given segment.
-    fn add_event(&mut self, event_point: Point, segment: SegmentIndex, event_type: usize) {
+    fn add_event(&mut self, event_point: Point, path: SegmentIndex, event_type: usize) {
         let events = &mut self.events;
         // if there is no event data it's a new event
         self.events_data
@@ -169,7 +165,7 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
                                 [HashSet::new(), HashSet::new()]
                             })
             [event_type]
-                .insert(segment);
+                .insert(path);
     }
 
     /// Try intersecting segments in two given nodes.
@@ -178,7 +174,7 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
                         node2: &Node<SegmentIndex, EmptyCounter>) {
         let nodes = [node1, node2];
         let indices = nodes.map(|n| n.borrow().value);
-        let segments = indices.map(|i| &self.key_generator.borrow().segments[*i]);
+        let segments = indices.map(|i| &self.key_generator.borrow().paths[*i]);
         let current_point = self.key_generator.borrow().current_point;
         let possible_intersection = segments[0]
             .as_ref()
@@ -279,8 +275,8 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
 
     fn handle_overlapping_segments(&mut self, index1: SegmentIndex, index2: SegmentIndex) {
         let generator = self.key_generator.borrow();
-        let s1 = &generator.segments[index1];
-        let s2 = &generator.segments[index2];
+        let s1 = &generator.paths[index1];
+        let s2 = &generator.paths[index2];
         if let Some(points) = s1.as_ref().overlap_points(s2.as_ref()) {
             for point in &points {
                 for &(segment, index) in &[(s1, index1), (s2, index2)] {

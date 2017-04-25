@@ -156,7 +156,7 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
                 .find_node(*segment)
                 .unwrap()
                 .remove();
-            let owner = self.key_generator.borrow().segments[*segment].owner;
+            let owner = self.key_generator.borrow().paths[*segment].owner;
             self.alive_segments
                 .get_mut(&owner)
                 .unwrap()
@@ -170,7 +170,7 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
         // add everyone and classify new polygons on the fly
         for segment in segments {
             let node = self.crossed_segments.add(*segment);
-            let owner = self.key_generator.borrow().segments[*segment].owner;
+            let owner = self.key_generator.borrow().paths[*segment].owner;
             self.alive_segments
                 .entry(owner)
                 .or_insert_with(HashSet::new)
@@ -191,7 +191,7 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
         let father_id; // where to connect us ?
         if let Some(larger_neighbour) = node.nearest_node(1) {
             let neighbour_owner =
-                self.key_generator.borrow().segments[larger_neighbour.borrow().value].owner;
+                self.key_generator.borrow().paths[larger_neighbour.borrow().value].owner;
             // we are either a brother of neighbour or its child
             let key = self.key_generator.borrow().compute_key(&segment_index);
             if self.inclusion_test(key, neighbour_owner) {

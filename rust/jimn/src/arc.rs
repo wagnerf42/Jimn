@@ -1,9 +1,10 @@
 //! provides the `Arc` class.
 use ordered_float::NotNaN;
 use std::f64::consts::PI;
-use point::Point;
+use {Point, Segment};
 use quadrant::{Shape, Quadrant};
 use utils::precision::is_almost;
+use utils::coordinates_hash::PointsHash;
 
 /// Oriented arc segment.
 pub struct Arc {
@@ -59,6 +60,48 @@ impl Arc {
     pub fn angle(&self) -> NotNaN<f64> {
         (self.center.angle_with(&self.start) - self.center.angle_with(&self.end) + 2.0 * PI) %
         (2.0 * PI)
+    }
+
+    /// Do we contain given point ?
+    pub fn contains(&self, point: &Point) -> bool {
+        if self.start.is_almost(point) || self.end.is_almost(point) {
+            true
+        } else if is_almost(self.center.distance_to(point), self.radius) {
+            self.contains_circle_point(point)
+        } else {
+            false
+        }
+    }
+
+    /// Do we contain given point on circle but not as endpoint ?
+    pub fn strictly_contains(&self, point: &Point) -> bool {
+        if self.start.is_almost(point) || self.end.is_almost(point) {
+            false
+        } else {
+            self.contains_circle_point(point)
+        }
+    }
+
+    /// Do we contain given point which is on our circle ?
+    pub fn contains_circle_point(&self, point: &Point) -> bool {
+        let s = Segment::new(self.start, self.end);
+        let s2 = Segment::new(self.center, *point);
+        s.intersection_with(&s2).is_some()
+    }
+
+    /// Split given `Arc` in possible two so that for any given y, each arc
+    /// only has one point.
+    /// Does not return anything if arc requires no splitting.
+    pub fn split_for_unique_y(&self, rounder: &mut PointsHash) -> Option<(Arc, Arc)> {
+        for direction in [1.0f64, -1.0f64].into_iter() {
+            let extremum = self.center + Point::new(0.0, self.radius * *direction);
+            if self.strictly_contains(&extremum) {
+                let rounded_extremum = rounder.hash_point(&extremum);
+                return Some((Arc::new(self.start, rounded_extremum, self.center, self.radius),
+                             Arc::new(rounded_extremum, self.end, self.center, self.radius)));
+            }
+        }
+        None
     }
 }
 
