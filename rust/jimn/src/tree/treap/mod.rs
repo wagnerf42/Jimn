@@ -30,3 +30,28 @@ impl<T: Clone + Ord> KeyComputer<T, T> for IdentityKeyComputer {
         object.clone()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::rc::Rc;
+    use std::cell::RefCell;
+
+    #[test]
+    fn test_duplicated_keys() {
+        let treap = CountingTreap::new(Rc::new(RefCell::new(IdentityKeyComputer())));
+        for i in 1..10 {
+            treap.add(i);
+            treap.add(i);
+        }
+        treap.tycat();
+        //assert!(treap.number_of_larger_nodes(&5) == 10);
+        for i in 1..10 {
+            //TODO: find key instead
+            println!("removing {}", i);
+            treap.find_node(i).unwrap().remove();
+            treap.tycat();
+        }
+        treap.tycat();
+    }
+}

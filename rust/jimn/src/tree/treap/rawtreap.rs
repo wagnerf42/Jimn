@@ -71,9 +71,8 @@ impl<T: Default + Eq, U: Counting, V: Ord, W: KeyComputer<T, V>> RawTreap<T, U, 
             let mut current_node = possible_start.unwrap();
             let target_key = self.key_generator.borrow().compute_key(&value);
             while current_node.borrow().value != value {
-                let current_key = self.key_generator
-                    .borrow()
-                    .compute_key(&current_node.borrow().value);
+                let current_key =
+                    self.key_generator.borrow().compute_key(&current_node.borrow().value);
                 let direction = (target_key > current_key) as usize;
                 if let Some(next_node) = current_node.child(direction) {
                     current_node = next_node;
@@ -93,10 +92,7 @@ impl<T: Default + Eq, U: Counting, V: Ord, W: KeyComputer<T, V>> RawTreap<T, U, 
         let mut direction = 1; // because sentinel has min key
         while let Some(next_node) = current_node.child(direction) {
             current_node = next_node;
-            let node_key = self.key_generator
-                .borrow()
-                .compute_key(&current_node.borrow().value);
-            assert!(node_key != *key);
+            let node_key = self.key_generator.borrow().compute_key(&current_node.borrow().value);
             direction = (*key > node_key) as usize;
         }
         (current_node, direction as usize)
@@ -129,10 +125,7 @@ impl<T: Display + Default + Eq, U: Counting, V: Ord, W: KeyComputer<T, V>> RawTr
             .arg(&png_filename)
             .status()
             .expect("dot failed");
-        Command::new("tycat")
-            .arg(&png_filename)
-            .status()
-            .expect("tycat failed");
+        Command::new("tycat").arg(&png_filename).status().expect("tycat failed");
     }
 }
 
@@ -143,9 +136,7 @@ impl<T: Default + Eq, V: Ord, W: KeyComputer<T, V>> CountingTreap<T, V, W> {
         let (mut node, _) = self.find_insertion_place(key);
         let mut total = 0;
         while !node.is_root() {
-            let node_key = self.key_generator
-                .borrow()
-                .compute_key(&node.borrow().value);
+            let node_key = self.key_generator.borrow().compute_key(&node.borrow().value);
             if node_key >= *key {
                 total += 1;
                 if let Some(ref child) = node.child(1) {
@@ -165,9 +156,7 @@ impl<T: Default + Eq, U: Counting, V: UniqueKey, W: KeyComputer<T, V>> RawTreap<
         let mut direction = 1; // because sentinel has min key
         while let Some(next_node) = current_node.child(direction) {
             current_node = next_node;
-            let node_key = self.key_generator
-                .borrow()
-                .compute_key(&current_node.borrow().value);
+            let node_key = self.key_generator.borrow().compute_key(&current_node.borrow().value);
             if node_key.is_same_as(key) {
                 return Some(current_node.clone());
             }
