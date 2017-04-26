@@ -139,7 +139,7 @@ impl<T, U: Counting> Node<T, U> {
     }
 
     /// Returns leftmost or rightmost node (can be self).
-    fn extreme_node(&self, direction: usize) -> Node<T, U> {
+    pub fn extreme_node(&self, direction: usize) -> Node<T, U> {
         let mut node = self.clone();
         while let Some(next_node) = node.child(direction) {
             node = next_node;

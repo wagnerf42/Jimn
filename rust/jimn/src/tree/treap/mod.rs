@@ -1,5 +1,6 @@
 //! Provides `Treap` and `CountingTreap` structures for sweeping line algorithms.
 use std::cmp::Ord;
+use rand;
 
 mod counters;
 mod node;
@@ -37,6 +38,14 @@ mod tests {
     use std::rc::Rc;
     use std::cell::RefCell;
 
+    fn test_counting(treap: &CountingTreap<u32, u32, IdentityKeyComputer>) {
+        for i in 1..10 {
+            //TODO: do a depth first iterator
+            unimplemented!()
+        }
+        treap.tycat();
+    }
+
     #[test]
     fn test_duplicated_keys() {
         let treap = CountingTreap::new(Rc::new(RefCell::new(IdentityKeyComputer())));
@@ -44,14 +53,12 @@ mod tests {
             treap.add(i);
             treap.add(i);
         }
-        treap.tycat();
-        //assert!(treap.number_of_larger_nodes(&5) == 10);
-        for i in 1..10 {
-            //TODO: find key instead
-            println!("removing {}", i);
-            treap.find_node(i).unwrap().remove();
-            treap.tycat();
+        while !treap.empty() {
+            let target_value = rand::random::<u32>() % 10;
+            if let Some(node) = treap.find_node(target_value) {
+                node.remove();
+                test_counting(&treap);
+            }
         }
-        treap.tycat();
     }
 }

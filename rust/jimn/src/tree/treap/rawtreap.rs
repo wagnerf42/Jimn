@@ -44,6 +44,11 @@ impl<T: Default + Eq, U: Counting, V: Ord, W: KeyComputer<T, V>> RawTreap<T, U, 
         tree
     }
 
+    /// Do we contain any non-root node ?
+    pub fn empty(&self) -> bool {
+        self.root.child(1).is_none()
+    }
+
     /// Fills the tree with given content.
     pub fn populate<X: IntoIterator<Item = T>>(&self, content: X) {
         for value in content {
@@ -134,7 +139,15 @@ impl<T: Default + Eq, V: Ord, W: KeyComputer<T, V>> CountingTreap<T, V, W> {
     /// Return how many nodes are larger or equal to given key.
     pub fn number_of_larger_nodes(&self, key: &V) -> usize {
         let (mut node, _) = self.find_insertion_place(key);
-        let mut total = 0;
+        // key might be present a second time in our left subtree
+        // check if it is there.
+        let mut total = if let Some(ref child) = node.child(0) {
+            let extreme_node = child.extreme_node(1);
+            let extreme_key = self.key_generator.borrow().compute_key(&extreme_node.borrow().value);
+            if extreme_key == *key { 1 } else { 0 }
+        } else {
+            0
+        };
         while !node.is_root() {
             let node_key = self.key_generator.borrow().compute_key(&node.borrow().value);
             if node_key >= *key {
