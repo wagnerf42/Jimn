@@ -49,6 +49,17 @@ impl<T: Default + Eq, U: Counting, V: Ord, W: KeyComputer<T, V>> RawTreap<T, U, 
         self.root.child(1).is_none()
     }
 
+    /// Iterate on all non-root nodes (not in order).
+    pub fn nodes(&self) -> DepthFirstIterator<T, U> {
+        DepthFirstIterator {
+            remaining_nodes: if let Some(start) = self.root.child(1) {
+                vec![start]
+            } else {
+                Vec::new()
+            },
+        }
+    }
+
     /// Fills the tree with given content.
     pub fn populate<X: IntoIterator<Item = T>>(&self, content: X) {
         for value in content {
@@ -176,5 +187,22 @@ impl<T: Default + Eq, U: Counting, V: UniqueKey, W: KeyComputer<T, V>> RawTreap<
             direction = (*key > node_key) as usize;
         }
         None
+    }
+}
+
+/// Depth first iterator on all Nodes.
+pub struct DepthFirstIterator<T, U: Counting> {
+    remaining_nodes: Vec<Node<T, U>>,
+}
+
+impl<T, U: Counting> Iterator for DepthFirstIterator<T, U> {
+    type Item = Node<T, U>;
+    fn next(&mut self) -> Option<Node<T, U>> {
+        if let Some(next_node) = self.remaining_nodes.pop() {
+            self.remaining_nodes.extend((0..2).into_iter().filter_map(|d| next_node.child(d)));
+            Some(next_node)
+        } else {
+            None
+        }
     }
 }

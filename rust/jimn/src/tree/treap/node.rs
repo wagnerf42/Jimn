@@ -16,6 +16,7 @@ pub struct RawNode<T, U: Counting> {
     /// Priority in treap.
     pub priority: u64,
     father: Option<Weak<RefCell<RawNode<T, U>>>>,
+    /// Possible children node.
     children: [Option<Node<T, U>>; 2],
     /// Number of nodes in subtree (or not).
     pub counter: U,
