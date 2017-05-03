@@ -52,7 +52,7 @@ impl Arc {
         let intersections = line_circle_intersections(&[middle, bisector_point],
                                                       &Point::new(0.0, 0.0),
                                                       self.radius);
-        assert!(intersections.len() == 2);
+        assert_eq!(intersections.len(), 2);
         intersections.iter().map(|i| self.start + i).collect()
     }
 
@@ -93,7 +93,7 @@ impl Arc {
     /// only has one point.
     /// Does not return anything if arc requires no splitting.
     pub fn split_for_unique_y(&self, rounder: &mut PointsHash) -> Option<(Arc, Arc)> {
-        for direction in [1.0f64, -1.0f64].into_iter() {
+        for direction in &[1.0f64, -1.0f64] {
             let extremum = self.center + Point::new(0.0, self.radius * *direction);
             if self.strictly_contains(&extremum) {
                 let rounded_extremum = rounder.hash_point(&extremum);
@@ -153,10 +153,7 @@ fn line_circle_intersections(segment: &[Point; 2],
     let b = (c.x * d.x + c.y * d.y) * (-2.0);
     let c = c.x * c.x + c.y * c.y - radius * radius;
     let solutions = solve_quadratic_equation(a, b, c);
-    solutions
-        .into_iter()
-        .map(|s| segment[0] + d * s)
-        .collect()
+    solutions.into_iter().map(|s| segment[0] + d * s).collect()
 }
 
 fn solve_quadratic_equation(a: NotNaN<f64>, b: NotNaN<f64>, c: NotNaN<f64>) -> Vec<NotNaN<f64>> {
@@ -170,7 +167,6 @@ fn solve_quadratic_equation(a: NotNaN<f64>, b: NotNaN<f64>, c: NotNaN<f64>) -> V
     } else if delta < NotNaN::new(0.0).unwrap() {
         Vec::new()
     } else {
-        vec![(-b - delta.sqrt()) / (a * 2.0),
-             (-b + delta.sqrt()) / (a * 2.0)]
+        vec![(-b - delta.sqrt()) / (a * 2.0), (-b + delta.sqrt()) / (a * 2.0)]
     }
 }

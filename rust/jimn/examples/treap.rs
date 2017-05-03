@@ -20,4 +20,6 @@ fn main() {
              treap.number_of_larger_nodes(&3));
     println!("number of nodes larger than 7: {}",
              treap.number_of_larger_nodes(&7));
+    let values: Vec<_> = treap.ordered_nodes(Some(3), Some(8)).map(|n| n.borrow().value).collect();
+    println!("ordered values: {:?}", values);
 }

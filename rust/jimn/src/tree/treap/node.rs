@@ -148,8 +148,9 @@ impl<T, U: Counting> Node<T, U> {
         node
     }
 
-    /// Returns node just bigger or just smaller
+    /// Returns node strictly just bigger or strictly just smaller
     /// (can be None, hence the option).
+    /// pre-condition: no duplicated keys in tree.
     pub fn nearest_node(&self, direction: usize) -> Option<Node<T, U>> {
         let reversed_direction = 1 - direction;
         if let Some(child) = self.child(direction) {

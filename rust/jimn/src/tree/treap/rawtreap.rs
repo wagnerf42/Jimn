@@ -60,6 +60,23 @@ impl<T: Default + Eq, U: Counting, V: Ord, W: KeyComputer<T, V>> RawTreap<T, U, 
         }
     }
 
+    /// Iterator on all nodes with keys strictly between given limits (in order).
+    pub fn ordered_nodes(&self,
+                         min_key: Option<V>,
+                         max_key: Option<V>)
+                         -> OrderedIterator<T, U, V, W> {
+        OrderedIterator {
+            min_key,
+            max_key,
+            treap: self,
+            remaining_nodes: if let Some(start) = self.root.child(1) {
+                vec![(start, false)]
+            } else {
+                Vec::new()
+            },
+        }
+    }
+
     /// Fills the tree with given content.
     pub fn populate<X: IntoIterator<Item = T>>(&self, content: X) {
         for value in content {
@@ -119,6 +136,29 @@ impl<T: Default + Eq, U: Counting, V: Ord, W: KeyComputer<T, V>> RawTreap<T, U, 
         let key = self.key_generator.borrow().compute_key(&value);
         let (mut current_node, direction) = self.find_insertion_place(&key);
         current_node.add_child_with_value(direction, value)
+    }
+}
+
+impl<'a, T: 'a + Default + Eq, U: 'a + Counting, V: 'a + Ord + Clone, W: 'a + KeyComputer<T, V>>
+    RawTreap<T, U, V, W> {
+    /// Iterate on all nodes slightly bigger or smaller than given key.
+    pub fn nearest_nodes(&'a self,
+                         key: V,
+                         direction: usize)
+                         -> impl Iterator<Item = Node<T, U>> + 'a {
+        let (min_key, max_key) = if direction == 0 {
+            (None, Some(key))
+        } else {
+            (Some(key), None)
+        };
+        let larger_key = self.ordered_nodes(min_key.clone(), max_key.clone()).next()
+            .map(|n| self.key_generator.borrow().compute_key(&n.borrow().value));
+        self.ordered_nodes(min_key, max_key).take(2)
+            .filter(move |n| {
+                if let Some(ref key) = larger_key {
+                    self.key_generator.borrow().compute_key(&n.borrow().value) == *key
+                } else {false}
+            })
     }
 }
 
@@ -195,12 +235,57 @@ pub struct DepthFirstIterator<T, U: Counting> {
     remaining_nodes: Vec<Node<T, U>>,
 }
 
+/// Ordered iterator on all Nodes.
+pub struct OrderedIterator<'a,
+                           T: 'a + Default + Eq,
+                           U: 'a + Counting,
+                           V: 'a + Ord,
+                           W: 'a + KeyComputer<T, V>>
+{
+    min_key: Option<V>,
+    max_key: Option<V>,
+    treap: &'a RawTreap<T, U, V, W>,
+    remaining_nodes: Vec<(Node<T, U>, bool)>,
+}
+
 impl<T, U: Counting> Iterator for DepthFirstIterator<T, U> {
     type Item = Node<T, U>;
     fn next(&mut self) -> Option<Node<T, U>> {
         if let Some(next_node) = self.remaining_nodes.pop() {
             self.remaining_nodes.extend((0..2).into_iter().filter_map(|d| next_node.child(d)));
             Some(next_node)
+        } else {
+            None
+        }
+    }
+}
+
+impl<'a, T: 'a + Default + Eq, U: 'a + Counting, V: 'a + Ord, W: 'a + KeyComputer<T, V>> Iterator for OrderedIterator<'a, T, U, V, W> {
+    type Item = Node<T, U>;
+    fn next(&mut self) -> Option<Node<T, U>> {
+        if let Some((next_node, seen)) = self.remaining_nodes.pop() {
+            let key = self.treap.key_generator.borrow().compute_key(&next_node.borrow().value);
+            if seen {
+                if let Some(child) = next_node.child(1) {
+                    if self.max_key.is_none() || *self.max_key.as_ref().unwrap() > key {
+                        self.remaining_nodes.push((child, false));
+                    }
+                }
+                if (self.min_key.is_none() || *self.min_key.as_ref().unwrap() < key)
+                    && (self.max_key.is_none() || *self.max_key.as_ref().unwrap() > key) {
+                    Some(next_node)
+                } else {
+                    self.next()
+                }
+            } else {
+                self.remaining_nodes.push((next_node.clone(), true));
+                if let Some(child) = next_node.child(0) {
+                    if self.min_key.is_none() || *self.min_key.as_ref().unwrap() < key {
+                        self.remaining_nodes.push((child, false));
+                    }
+                }
+                self.next()
+            }
         } else {
             None
         }
