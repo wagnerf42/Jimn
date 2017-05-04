@@ -62,12 +62,13 @@ impl<T: Default + Eq, U: Counting, V: Ord, W: KeyComputer<T, V>> RawTreap<T, U, 
 
     /// Iterator on all nodes with keys strictly between given limits (in order).
     pub fn ordered_nodes(&self,
+                         direction: usize,
                          min_key: Option<V>,
                          max_key: Option<V>)
                          -> OrderedIterator<T, U, V, W> {
         OrderedIterator {
-            min_key,
-            max_key,
+            direction,
+            limits: [min_key, max_key],
             treap: self,
             remaining_nodes: if let Some(start) = self.root.child(1) {
                 vec![(start, false)]
@@ -104,8 +105,9 @@ impl<T: Default + Eq, U: Counting, V: Ord, W: KeyComputer<T, V>> RawTreap<T, U, 
             let mut current_node = possible_start.unwrap();
             let target_key = self.key_generator.borrow().compute_key(&value);
             while current_node.borrow().value != value {
-                let current_key =
-                    self.key_generator.borrow().compute_key(&current_node.borrow().value);
+                let current_key = self.key_generator
+                    .borrow()
+                    .compute_key(&current_node.borrow().value);
                 let direction = (target_key > current_key) as usize;
                 if let Some(next_node) = current_node.child(direction) {
                     current_node = next_node;
@@ -125,8 +127,9 @@ impl<T: Default + Eq, U: Counting, V: Ord, W: KeyComputer<T, V>> RawTreap<T, U, 
         if possible_start.is_some() {
             let mut current_node = possible_start.unwrap();
             loop {
-                let current_key =
-                    self.key_generator.borrow().compute_key(&current_node.borrow().value);
+                let current_key = self.key_generator
+                    .borrow()
+                    .compute_key(&current_node.borrow().value);
                 if current_key == *target_key {
                     return Some(current_node);
                 }
@@ -154,7 +157,9 @@ impl<T: Default + Eq, U: Counting, V: Ord, W: KeyComputer<T, V>> RawTreap<T, U, 
         let mut direction = 1; // because sentinel has min key
         while let Some(next_node) = current_node.child(direction) {
             current_node = next_node;
-            let node_key = self.key_generator.borrow().compute_key(&current_node.borrow().value);
+            let node_key = self.key_generator
+                .borrow()
+                .compute_key(&current_node.borrow().value);
             direction = (*key > node_key) as usize;
         }
         (current_node, direction as usize)
@@ -175,18 +180,25 @@ impl<'a, T: 'a + Default + Eq, U: 'a + Counting, V: 'a + Ord + Clone, W: 'a + Ke
                          key: V,
                          direction: usize)
                          -> impl Iterator<Item = Node<T, U>> + 'a {
-        let (min_key, max_key) = if direction == 0 {
-            (None, Some(key))
+        let nodes = if direction == 0 {
+            self.ordered_nodes(0, None, Some(key))
         } else {
-            (Some(key), None)
+            self.ordered_nodes(1, Some(key), None)
         };
-        let larger_key = self.ordered_nodes(min_key.clone(), max_key.clone()).next()
-            .map(|n| self.key_generator.borrow().compute_key(&n.borrow().value));
-        self.ordered_nodes(min_key, max_key).take(2)
+
+        let mut first_key = None;
+        let generator = self.key_generator.clone();
+        nodes
+            .take(2)
             .filter(move |n| {
-                if let Some(ref key) = larger_key {
-                    self.key_generator.borrow().compute_key(&n.borrow().value) == *key
-                } else {false}
+                let key = generator.borrow().compute_key(&n.borrow().value);
+                let keep = if let Some(ref first) = first_key {
+                    *first == key
+                } else {
+                    first_key = Some(key);
+                    true
+                };
+                keep
             })
     }
 }
@@ -200,7 +212,8 @@ impl<'a,
                                key: &V,
                                direction: usize)
                                -> impl Iterator<Item = T> + 'a {
-        self.nearest_nodes(key.clone(), direction).map(|n| n.borrow().value.clone())
+        self.nearest_nodes(key.clone(), direction)
+            .map(|n| n.borrow().value.clone())
     }
 }
 
@@ -223,7 +236,10 @@ impl<T: Display + Default + Eq, U: Counting, V: Ord, W: KeyComputer<T, V>> RawTr
             .arg(&png_filename)
             .status()
             .expect("dot failed");
-        Command::new("tycat").arg(&png_filename).status().expect("tycat failed");
+        Command::new("tycat")
+            .arg(&png_filename)
+            .status()
+            .expect("tycat failed");
     }
 }
 
@@ -236,13 +252,17 @@ impl<T: Default + Eq, V: Ord, W: KeyComputer<T, V>> CountingTreap<T, V, W> {
         // check if it is there.
         let mut total = if let Some(ref child) = node.child(0) {
             let extreme_node = child.extreme_node(1);
-            let extreme_key = self.key_generator.borrow().compute_key(&extreme_node.borrow().value);
+            let extreme_key = self.key_generator
+                .borrow()
+                .compute_key(&extreme_node.borrow().value);
             if extreme_key == *key { 1 } else { 0 }
         } else {
             0
         };
         while !node.is_root() {
-            let node_key = self.key_generator.borrow().compute_key(&node.borrow().value);
+            let node_key = self.key_generator
+                .borrow()
+                .compute_key(&node.borrow().value);
             if node_key >= *key {
                 total += 1;
                 if let Some(ref child) = node.child(1) {
@@ -267,8 +287,8 @@ pub struct OrderedIterator<'a,
                            V: 'a + Ord,
                            W: 'a + KeyComputer<T, V>>
 {
-    min_key: Option<V>,
-    max_key: Option<V>,
+    direction: usize,
+    limits: [Option<V>; 2],
     treap: &'a RawTreap<T, U, V, W>,
     remaining_nodes: Vec<(Node<T, U>, bool)>,
 }
@@ -277,7 +297,8 @@ impl<T, U: Counting> Iterator for DepthFirstIterator<T, U> {
     type Item = Node<T, U>;
     fn next(&mut self) -> Option<Node<T, U>> {
         if let Some(next_node) = self.remaining_nodes.pop() {
-            self.remaining_nodes.extend((0..2).into_iter().filter_map(|d| next_node.child(d)));
+            self.remaining_nodes
+                .extend((0..2).into_iter().filter_map(|d| next_node.child(d)));
             Some(next_node)
         } else {
             None
@@ -285,27 +306,51 @@ impl<T, U: Counting> Iterator for DepthFirstIterator<T, U> {
     }
 }
 
-impl<'a, T: 'a + Default + Eq, U: 'a + Counting, V: 'a + Ord, W: 'a + KeyComputer<T, V>> Iterator for OrderedIterator<'a, T, U, V, W> {
+impl<'a, T: 'a + Default + Eq, U: 'a + Counting, V: 'a + Ord, W: 'a + KeyComputer<T, V>>
+    OrderedIterator<'a, T, U, V, W> {
+    /// Is given key ok for our lower/upper limit on keys ?
+    fn fits_limit(&self, direction: usize, key: &V) -> bool {
+        if let Some(ref limit) = self.limits[direction] {
+            if direction == 0 {
+                *limit < *key
+            } else {
+                *limit > *key
+            }
+        } else {
+            true
+        }
+    }
+}
+
+impl<'a,
+     T: 'a + Default + Eq,
+     U: 'a + Counting,
+     V: 'a + Ord,
+     W: 'a + KeyComputer<T, V>> Iterator
+    for
+    OrderedIterator<'a, T, U, V, W> {
     type Item = Node<T, U>;
     fn next(&mut self) -> Option<Node<T, U>> {
         if let Some((next_node, seen)) = self.remaining_nodes.pop() {
-            let key = self.treap.key_generator.borrow().compute_key(&next_node.borrow().value);
+            let key = self.treap
+                .key_generator
+                .borrow()
+                .compute_key(&next_node.borrow().value);
             if seen {
-                if let Some(child) = next_node.child(1) {
-                    if self.max_key.is_none() || *self.max_key.as_ref().unwrap() > key {
+                if let Some(child) = next_node.child(self.direction) {
+                    if self.fits_limit(self.direction, &key) {
                         self.remaining_nodes.push((child, false));
                     }
                 }
-                if (self.min_key.is_none() || *self.min_key.as_ref().unwrap() < key)
-                    && (self.max_key.is_none() || *self.max_key.as_ref().unwrap() > key) {
+                if self.fits_limit(0, &key) && self.fits_limit(1, &key) {
                     Some(next_node)
                 } else {
                     self.next()
                 }
             } else {
                 self.remaining_nodes.push((next_node.clone(), true));
-                if let Some(child) = next_node.child(0) {
-                    if self.min_key.is_none() || *self.min_key.as_ref().unwrap() < key {
+                if let Some(child) = next_node.child(1 - self.direction) {
+                    if self.fits_limit(1 - self.direction, &key) {
                         self.remaining_nodes.push((child, false));
                     }
                 }
