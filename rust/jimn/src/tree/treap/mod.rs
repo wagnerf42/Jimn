@@ -8,13 +8,6 @@ pub use self::counters::{Counter, EmptyCounter, Counting};
 pub use self::node::Node;
 pub use self::rawtreap::{Treap, CountingTreap};
 
-/// Keys are always unique : typically, keys are suffixed by unique identifier.
-/// For some operations we still need to work on the *real* keys without the added suffix.
-pub trait UniqueKey: Ord {
-    /// Return if two given keys are in fact identical.
-    fn is_same_as(&self, other: &Self) -> bool;
-}
-
 /// Objets inside a treap must be comparable by someone.
 /// We use a `KeyComputer` to return a comparison key for an object.
 pub trait KeyComputer<T, U: Ord> {

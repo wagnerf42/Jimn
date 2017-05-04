@@ -7,7 +7,7 @@ use std::marker::PhantomData;
 use std::fmt::Display;
 use std::fs::File;
 use std::io::prelude::*;
-use super::{Node, Counter, EmptyCounter, Counting, KeyComputer, UniqueKey};
+use super::{Node, Counter, EmptyCounter, Counting, KeyComputer};
 
 /// sequential counter for tycat files
 static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
@@ -119,6 +119,35 @@ impl<T: Default + Eq, U: Counting, V: Ord, W: KeyComputer<T, V>> RawTreap<T, U, 
         }
     }
 
+    /// Return node with given key if any (first one encountered).
+    pub fn find_key(&self, target_key: &V) -> Option<Node<T, U>> {
+        let possible_start = self.root.child(1);
+        if possible_start.is_some() {
+            let mut current_node = possible_start.unwrap();
+            loop {
+                let current_key =
+                    self.key_generator.borrow().compute_key(&current_node.borrow().value);
+                if current_key == *target_key {
+                    return Some(current_node);
+                }
+                let direction = (*target_key > current_key) as usize;
+                if let Some(next_node) = current_node.child(direction) {
+                    current_node = next_node;
+                } else {
+                    return None;
+                }
+            }
+        }
+        None
+    }
+
+    /// Remove first node encountered with given key.
+    /// pre-condition: given key is in tree.
+    pub fn remove(&mut self, key: &V) {
+        let node = self.find_key(key);
+        node.unwrap().remove();
+    }
+
     /// Returns the place where to insert given new value.
     pub fn find_insertion_place(&self, key: &V) -> (Node<T, U>, usize) {
         let mut current_node = self.root.clone();
@@ -159,6 +188,19 @@ impl<'a, T: 'a + Default + Eq, U: 'a + Counting, V: 'a + Ord + Clone, W: 'a + Ke
                     self.key_generator.borrow().compute_key(&n.borrow().value) == *key
                 } else {false}
             })
+    }
+}
+
+impl<'a,
+     T: 'a + Default + Eq + Clone,
+     U: 'a + Counting,
+     V: 'a + Ord + Clone,
+     W: 'a + KeyComputer<T, V>> RawTreap<T, U, V, W> {
+    pub fn neighbouring_values(&'a self,
+                               key: &V,
+                               direction: usize)
+                               -> impl Iterator<Item = T> + 'a {
+        self.nearest_nodes(key.clone(), direction).map(|n| n.borrow().value.clone())
     }
 }
 
@@ -210,23 +252,6 @@ impl<T: Default + Eq, V: Ord, W: KeyComputer<T, V>> CountingTreap<T, V, W> {
             node = node.father();
         }
         total
-    }
-}
-
-impl<T: Default + Eq, U: Counting, V: UniqueKey, W: KeyComputer<T, V>> RawTreap<T, U, V, W> {
-    /// Returns node with same real key (if any).
-    pub fn find_same_node(&self, key: &V) -> Option<Node<T, U>> {
-        let mut current_node = self.root.clone();
-        let mut direction = 1; // because sentinel has min key
-        while let Some(next_node) = current_node.child(direction) {
-            current_node = next_node;
-            let node_key = self.key_generator.borrow().compute_key(&current_node.borrow().value);
-            if node_key.is_same_as(key) {
-                return Some(current_node.clone());
-            }
-            direction = (*key > node_key) as usize;
-        }
-        None
     }
 }
 
