@@ -1,7 +1,7 @@
 //! Holed Polygons.
 use ordered_float::NotNaN;
 use std::collections::HashMap;
-use std::iter::repeat;
+use std::iter::once;
 use classifier::{HasEdge, complete_inclusion_tree};
 use segment::Segment;
 use polygon::{Polygon, build_polygons};
@@ -27,7 +27,7 @@ impl HoledPolygon {
 
     /// Iterate on all polygons we contain.
     pub fn polygons<'a>(&'a self) -> impl Iterator<Item = &'a Polygon> + 'a {
-        repeat(&self.polygon).take(1).chain(self.holes.iter())
+        once(&self.polygon).chain(self.holes.iter())
     }
 }
 
@@ -37,10 +37,7 @@ impl Shape for HoledPolygon {
     }
 
     fn svg_string(&self) -> String {
-        let mut strings: Vec<String> = self.holes
-            .iter()
-            .map(|h| h.svg_string())
-            .collect();
+        let mut strings: Vec<String> = self.holes.iter().map(|h| h.svg_string()).collect();
         strings.push(self.polygon.svg_string());
         strings.join("\n")
     }
@@ -76,7 +73,10 @@ pub fn build_holed_polygons(polygons: Vec<Polygon>) -> Vec<HoledPolygon> {
         if height % 2 == 1 {
             holed_polygons.insert(node.index, HoledPolygon::new(node.value, Vec::new()));
         } else {
-            holed_polygons.get_mut(&node.father.unwrap()).unwrap().add_hole(node.value);
+            holed_polygons
+                .get_mut(&node.father.unwrap())
+                .unwrap()
+                .add_hole(node.value);
         }
     }
     let result: Vec<HoledPolygon> = holed_polygons.drain().map(|(_, v)| v).collect();

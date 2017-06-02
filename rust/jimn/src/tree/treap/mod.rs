@@ -30,6 +30,7 @@ mod tests {
     use super::*;
     use std::rc::Rc;
     use std::cell::RefCell;
+    use test::Bencher;
     // we create in tests two nodes for each integer between 1 and TEST_LIMIT
     const TEST_LIMIT: u32 = 10;
 
@@ -45,12 +46,14 @@ mod tests {
     fn test_nearest(treap: &CountingTreap<u32, u32, IdentityKeyComputer>) {
         for i in 1..TEST_LIMIT {
             // manually count
-            let slightly_larger_key = treap.nodes()
+            let slightly_larger_key = treap
+                .nodes()
                 .map(|n| n.borrow().value)
                 .filter(|v| *v > i)
                 .min();
             let number_of_appearances = if slightly_larger_key.is_some() {
-                treap.nodes()
+                treap
+                    .nodes()
                     .map(|n| n.borrow().value)
                     .filter(|v| *v == slightly_larger_key.unwrap())
                     .count()
@@ -80,4 +83,21 @@ mod tests {
             }
         }
     }
+
+    #[bench]
+    fn treap_1000_integers_insertions(b: &mut Bencher) {
+        b.iter(|| {
+                   let mut treap = Treap::new(Rc::new(RefCell::new(IdentityKeyComputer())));
+                   treap.populate(1..1000);
+               });
+    }
+
+    #[bench]
+    fn ctreap_1000_integers_insertions(b: &mut Bencher) {
+        b.iter(|| {
+                   let mut treap = CountingTreap::new(Rc::new(RefCell::new(IdentityKeyComputer())));
+                   treap.populate(1..1000);
+               });
+    }
+
 }

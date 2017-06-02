@@ -5,7 +5,7 @@ use std::io;
 use std::fs::File;
 use std::cmp::{min, max};
 use std::collections::HashSet;
-use std::iter::repeat;
+use std::iter::once;
 use byteorder::{ReadBytesExt, WriteBytesExt, LittleEndian};
 use ordered_float::NotNaN;
 
@@ -229,11 +229,7 @@ impl Cuttable for Segment {
             sorted_points.sort_by(|a, b| b.cmp(a));
         }
 
-        let iterator = repeat(&self.start)
-            .take(1)
-            .chain(sorted_points
-                       .into_iter()
-                       .chain(repeat(&self.end).take(1)));
+        let iterator = once(&self.start).chain(sorted_points.into_iter().chain(once(&self.end)));
         iterator
             .clone()
             .zip(iterator.skip(1))

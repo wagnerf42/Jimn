@@ -153,9 +153,7 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
     fn end_segments(&mut self, segments: &[SegmentIndex]) {
         for segment in segments {
             self.crossed_segments
-                .find_node(*segment)
-                .unwrap()
-                .remove();
+                .remove(&self.key_generator.borrow().compute_key(segment));
             let owner = self.key_generator.borrow().paths[*segment].owner;
             self.alive_segments
                 .get_mut(&owner)

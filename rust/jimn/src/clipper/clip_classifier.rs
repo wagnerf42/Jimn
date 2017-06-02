@@ -46,7 +46,7 @@ fn end_segments(ending: &[SegmentIndex],
                 crossed_clip_segments: &mut CTreap) {
     for segment_index in ending {
         if generator.borrow().paths[*segment_index].clipping {
-            crossed_clip_segments.find_node(*segment_index).unwrap().remove();
+            crossed_clip_segments.remove(&generator.borrow().compute_key(segment_index));
         }
     }
 }
@@ -81,17 +81,22 @@ fn create_events(segments: &[ClippingSegment]) -> Vec<ClassifyEvent> {
     let mut raw_events = HashMap::with_capacity(2 * segments.len());
     for (index, segment) in segments.iter().enumerate() {
         let (first_point, last_point) = segment.as_ref().ordered_points();
-        raw_events.entry(first_point)
+        raw_events
+            .entry(first_point)
             .or_insert_with(|| (Vec::new(), Vec::new()))
             .0
             .push(index);
-        raw_events.entry(last_point)
+        raw_events
+            .entry(last_point)
             .or_insert_with(|| (Vec::new(), Vec::new()))
             .1
             .push(index);
     }
 
-    let mut events: Vec<_> = raw_events.into_iter().map(|(k, v)| (k, v.0, v.1)).collect();
+    let mut events: Vec<_> = raw_events
+        .into_iter()
+        .map(|(k, v)| (k, v.0, v.1))
+        .collect();
     events.sort_by(|a, b| b.0.cmp(&a.0));
     events
 }
