@@ -1,6 +1,6 @@
 extern crate dyntreap;
 extern crate rand;
-use dyntreap::{Treap, CTreap};
+use dyntreap::{Treap, CTreap, INCREASING};
 use rand::{Rng, StdRng};
 
 
@@ -17,6 +17,15 @@ fn main() {
     ctreap.tycat();
     let mut rng = StdRng::new().unwrap();
     let mut v: Vec<_> = (1..10).into_iter().collect();
+
+    println!("between 3 (excluded) and 7 (excluded)");
+    for x in ctreap
+            .ordered_nodes(INCREASING)
+            .lower_bound(3)
+            .upper_bound(7) {
+        println!("{}", x.value);
+    }
+
     rng.shuffle(&mut v);
     for x in &v {
         println!("removing {}", x);

@@ -1,5 +1,6 @@
 //! Small treap library with some dynamic keys.
 //! lots of ideas taken from treap-rs (and some code)
+#![feature(conservative_impl_trait)]
 extern crate rand;
 use rand::Rng;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
@@ -15,18 +16,21 @@ use counters::{Counting, Counter, EmptyCounter};
 mod node;
 use node::Node;
 
+pub const DECREASING: usize = 0;
+pub const INCREASING: usize = 1;
 
-pub struct RawTreap<'a, K, V, C, Rng = rand::XorShiftRng>
+pub struct RawTreap<'a, K, V, C, R>
     where C: Counting,
-          K: Ord
+          K: Ord,
+          R: Rng
 {
     root: Option<Box<Node<V, C>>>,
-    rng: Rng,
+    rng: R,
     keys_generator: Box<'a + Fn(&V) -> K>,
 }
 
-pub type Treap<'a, K, V> = RawTreap<'a, K, V, EmptyCounter>;
-pub type CTreap<'a, K, V> = RawTreap<'a, K, V, Counter>;
+pub type Treap<'a, K, V> = RawTreap<'a, K, V, EmptyCounter, rand::XorShiftRng>;
+pub type CTreap<'a, K, V> = RawTreap<'a, K, V, Counter, rand::XorShiftRng>;
 
 impl<'a, V, C> RawTreap<'a, V, V, C, rand::XorShiftRng>
     where C: Counting,
@@ -41,9 +45,10 @@ impl<'a, V, C> RawTreap<'a, V, V, C, rand::XorShiftRng>
     }
 }
 
-impl<'a, K, V, C> RawTreap<'a, K, V, C, rand::XorShiftRng>
+impl<'a, K, V, C, R> RawTreap<'a, K, V, C, R>
     where C: Counting,
-          K: Ord
+          K: Ord,
+          R: Rng
 {
     /// Create a new treap with given key generator.
     pub fn new_with_key_generator<G: 'a + Fn(&V) -> K>
@@ -54,6 +59,26 @@ impl<'a, K, V, C> RawTreap<'a, K, V, C, rand::XorShiftRng>
             rng: rand::weak_rng(),
             keys_generator: Box::new(generator),
         }
+    }
+
+    pub fn ordered_nodes(&self, direction: usize) -> OrderedIterator<K, V, C, R> {
+        let remaining_nodes;
+        if let Some(ref root) = self.root {
+            remaining_nodes = vec![(root, false)];
+        } else {
+            remaining_nodes = Vec::new();
+        }
+        OrderedIterator {
+            direction,
+            limits: [None, None],
+            treap: self,
+            remaining_nodes,
+        }
+    }
+
+    //fn ordered_values(&self, direction: usize) -> impl Iterator<Item = &V> {
+    pub fn ordered_values(&'a self, direction: usize) -> impl 'a + Iterator<Item = &'a V> {
+        self.ordered_nodes(direction).map(|n| &n.value)
     }
 
     pub fn is_empty(&self) -> bool {
@@ -195,6 +220,73 @@ impl<'a, K, V, C> RawTreap<'a, K, V, C, rand::XorShiftRng>
                 .arg(&png_filename)
                 .status()
                 .expect("tycat failed");
+        }
+    }
+}
+
+// Iterator function
+pub struct OrderedIterator<'a, K: 'a + Ord, V: 'a, C: 'a + Counting, R: 'a + Rng> {
+    direction: usize,
+    limits: [Option<K>; 2],
+    treap: &'a RawTreap<'a, K, V, C, R>,
+    remaining_nodes: Vec<(&'a Box<Node<V, C>>, bool)>,
+}
+
+
+
+impl<'a, K: 'a + Ord, V: 'a, C: 'a + Counting, R: 'a + Rng> OrderedIterator<'a, K, V, C, R> {
+    /// Is given key ok for our lower/upper limit on keys ?
+    fn fits_limit(&self, direction: usize, key: &K) -> bool {
+        if let Some(ref limit) = self.limits[direction] {
+            if direction == 0 {
+                *limit < *key
+            } else {
+                *limit > *key
+            }
+        } else {
+            true
+        }
+    }
+
+    pub fn upper_bound(mut self, upper_bound: K) -> Self {
+        self.limits[1] = Some(upper_bound);
+        self
+    }
+
+    pub fn lower_bound(mut self, lower_bound: K) -> Self {
+        self.limits[0] = Some(lower_bound);
+        self
+    }
+}
+
+impl<'a, K: 'a + Ord, V: 'a, C: 'a + Counting, R: 'a + Rng> Iterator
+    for OrderedIterator<'a, K, V, C, R> {
+    type Item = &'a Node<V, C>;
+    fn next(&mut self) -> Option<&'a Node<V, C>> {
+        if let Some((next_node, seen)) = self.remaining_nodes.pop() {
+            let key = (self.treap.keys_generator)(&next_node.value);
+            if seen {
+                if let Some(ref child) = next_node.children[self.direction] {
+                    if self.fits_limit(self.direction, &key) {
+                        self.remaining_nodes.push((child, false));
+                    }
+                }
+                if self.fits_limit(0, &key) && self.fits_limit(1, &key) {
+                    Some(next_node)
+                } else {
+                    self.next()
+                }
+            } else {
+                self.remaining_nodes.push((next_node, true));
+                if let Some(ref child) = next_node.children[1 - self.direction] {
+                    if self.fits_limit(1 - self.direction, &key) {
+                        self.remaining_nodes.push((child, false));
+                    }
+                }
+                self.next()
+            }
+        } else {
+            None
         }
     }
 }
