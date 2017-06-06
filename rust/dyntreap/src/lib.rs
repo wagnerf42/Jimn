@@ -2,176 +2,19 @@
 //! lots of ideas taken from treap-rs (and some code)
 extern crate rand;
 use rand::Rng;
-use std::mem;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::process::Command;
 use std::fmt::Display;
 use std::fs::File;
 use std::io::Write;
 use std::iter::once;
+use std::mem;
 
-static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
+mod counters;
+use counters::{Counting, Counter, EmptyCounter};
+mod node;
+use node::Node;
 
-
-// Some subtrees-size counting genericity for treaps.
-// Two variants : do or don't count.
-
-use std::ops::{Add, Sub};
-
-/// Do not count how many nodes in subtrees.
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub struct EmptyCounter();
-
-impl Display for EmptyCounter {
-    fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        Ok(())
-    }
-}
-
-impl Add for EmptyCounter {
-    type Output = EmptyCounter;
-    fn add(self, _other: EmptyCounter) -> EmptyCounter {
-        EmptyCounter()
-    }
-}
-
-impl Sub for EmptyCounter {
-    type Output = EmptyCounter;
-    fn sub(self, _other: EmptyCounter) -> EmptyCounter {
-        EmptyCounter()
-    }
-}
-
-impl Default for EmptyCounter {
-    fn default() -> Self {
-        EmptyCounter()
-    }
-}
-
-/// Do count how many nodes in subtrees.
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub struct Counter(pub usize);
-
-impl Display for Counter {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "/{}", self.0)
-    }
-}
-
-impl Add for Counter {
-    type Output = Counter;
-    fn add(self, other: Counter) -> Counter {
-        Counter(self.0 + other.0)
-    }
-}
-
-impl Sub for Counter {
-    type Output = Counter;
-    fn sub(self, other: Counter) -> Counter {
-        Counter(self.0 - other.0)
-    }
-}
-
-impl Default for Counter {
-    fn default() -> Self {
-        Counter(1)
-    }
-}
-
-/// Treaps hold counters. We provide several flavors to allow choosing counting
-/// subtrees sizes (with overhead) or not counting them (no overhead).
-/// A counter must implement all following traits.
-pub trait Counting
-    : Add<Output = Self> + Sub<Output = Self> + Eq + Default + Copy {
-}
-impl Counting for Counter {}
-impl Counting for EmptyCounter {}
-
-/// `Identifiable` allows equivalent to python's `id`
-
-struct Node<V, C: Counting> {
-    value: V,
-    priority: u64,
-    counter: C,
-    children: [Option<Box<Node<V, C>>>; 2],
-}
-
-pub trait Identifiable {
-    /// Returns address of object which serves as unique identifier.
-    fn id(&self) -> usize {
-        self as *const _ as *const () as usize
-    }
-}
-
-impl<V, C: Counting> Identifiable for Node<V, C> {}
-
-impl<V, C: Counting> Node<V, C> {
-    fn new(value: V, priority: u64) -> Node<V, C> {
-        Node {
-            value,
-            priority,
-            counter: Default::default(),
-            children: [None, None],
-        }
-    }
-
-    /// Rotate subtree. Children in given direction takes our place.
-    fn rotate(&mut self, direction: usize) {
-        // cut subtree away from old root
-        let subtree = mem::replace(&mut self.children[direction], None);
-        if let Some(mut new_root) = subtree {
-            // exchange place with old root
-            mem::swap(self, &mut new_root);
-            // also exchange variable names
-            let (mut old_root, new_root) = (new_root, self);
-            new_root.counter = old_root.counter;
-
-            // displace new root's subtree
-            mem::swap(&mut new_root.children[1 - direction],
-                      &mut old_root.children[direction]);
-
-            // update old root counter
-            let mut counter = Default::default();
-            for potential_child in &old_root.children {
-                if let Some(ref child) = *potential_child {
-                    counter = counter + child.counter;
-                }
-            }
-            old_root.counter = counter;
-
-            // old root should be our child now
-            mem::replace(&mut new_root.children[1 - direction], Some(old_root));
-
-        } else {
-            panic!("rebalancing on empty child");
-        }
-    }
-}
-
-const ARROWS_COLORS: [&str; 2] = ["red", "blue"];
-
-impl<V: Display, C: Counting + Display> Node<V, C> {
-    fn write_dot(&self, file: &mut File) {
-        writeln!(file,
-                 "n{}[label=\"{}{}\"];",
-                 self.id(),
-                 self.value,
-                 self.counter)
-            .expect("failed writing dot");
-
-        for (index, child) in self.children.iter().enumerate() {
-            if let Some(ref child_node) = *child {
-                child_node.write_dot(file);
-                writeln!(file,
-                         "n{} -> n{}[color=\"{}\"];",
-                         self.id(),
-                         child_node.id(),
-                         ARROWS_COLORS[index])
-                    .expect("failed writing dot");
-            }
-        }
-    }
-}
 
 pub struct RawTreap<'a, K, V, C, Rng = rand::XorShiftRng>
     where C: Counting,
@@ -298,6 +141,32 @@ fn rotate_down<V, C: Counting>(removed_node: &mut Option<Box<Node<V, C>>>) -> V 
 }
 
 
+
+fn insert_in_subtree<'a, K: Ord, V, C: Counting>(keys_generator: &Box<'a + Fn(&V) -> K>,
+                                                 old_node: &mut Option<Box<Node<V, C>>>,
+                                                 key: K,
+                                                 new_node: Node<V, C>) {
+    match *old_node {
+        None => {
+            mem::replace(old_node, Some(Box::new(new_node)));
+        }
+        Some(ref mut old) => {
+            old.counter = old.counter + Default::default();
+            let old_key = keys_generator(&old.value);
+            let direction = (old_key < key) as usize;
+            insert_in_subtree(keys_generator, &mut old.children[direction], key, new_node);
+            if old.priority < old.children[direction].as_ref().unwrap().priority {
+                old.rotate(direction);
+            }
+        }
+    }
+}
+
+
+// display functions for terminology
+
+static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
+
 impl<'a, K, V, C> RawTreap<'a, K, V, C, rand::XorShiftRng>
     where C: Counting + Display,
           K: Ord,
@@ -326,44 +195,6 @@ impl<'a, K, V, C> RawTreap<'a, K, V, C, rand::XorShiftRng>
                 .arg(&png_filename)
                 .status()
                 .expect("tycat failed");
-        }
-    }
-}
-
-
-fn insert_in_subtree<'a, K: Ord, V, C: Counting>(keys_generator: &Box<'a + Fn(&V) -> K>,
-                                                 old_node: &mut Option<Box<Node<V, C>>>,
-                                                 key: K,
-                                                 new_node: Node<V, C>) {
-    match *old_node {
-        None => {
-            mem::replace(old_node, Some(Box::new(new_node)));
-        }
-        Some(ref mut old) => {
-            old.counter = old.counter + Default::default();
-            let old_key = keys_generator(&old.value);
-            let direction = (old_key < key) as usize;
-            insert_in_subtree(keys_generator, &mut old.children[direction], key, new_node);
-            if old.priority < old.children[direction].as_ref().unwrap().priority {
-                old.rotate(direction);
-            }
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn it_works() {
-        let mut treap = Treap::new();
-        assert!(treap.is_empty());
-        for x in 1..10 {
-            treap.insert(x);
-        }
-        assert!(treap.get(&10).is_none());
-        for x in 1..10 {
-            assert!(treap.get(&x).is_some());
         }
     }
 }
