@@ -15,6 +15,8 @@ mod counters;
 use counters::{Counting, Counter, EmptyCounter};
 mod node;
 use node::Node;
+pub mod iterators;
+use iterators::{KeyRange, OrderedIterator};
 
 pub const DECREASING: usize = 0;
 pub const INCREASING: usize = 1;
@@ -24,7 +26,7 @@ pub struct RawTreap<'a, K, V, C, R>
           K: Ord,
           R: Rng
 {
-    root: Option<Box<Node<V, C>>>,
+    pub root: Option<Box<Node<V, C>>>,
     rng: R,
     keys_generator: Box<'a + Fn(&V) -> K>,
 }
@@ -70,7 +72,7 @@ impl<'a, K, V, C, R> RawTreap<'a, K, V, C, R>
         }
         OrderedIterator {
             direction,
-            limits: [None, None],
+            limits: KeyRange { range: [None, None] },
             treap: self,
             remaining_nodes,
         }
@@ -220,73 +222,6 @@ impl<'a, K, V, C> RawTreap<'a, K, V, C, rand::XorShiftRng>
                 .arg(&png_filename)
                 .status()
                 .expect("tycat failed");
-        }
-    }
-}
-
-// Iterator function
-pub struct OrderedIterator<'a, K: 'a + Ord, V: 'a, C: 'a + Counting, R: 'a + Rng> {
-    direction: usize,
-    limits: [Option<K>; 2],
-    treap: &'a RawTreap<'a, K, V, C, R>,
-    remaining_nodes: Vec<(&'a Box<Node<V, C>>, bool)>,
-}
-
-
-
-impl<'a, K: 'a + Ord, V: 'a, C: 'a + Counting, R: 'a + Rng> OrderedIterator<'a, K, V, C, R> {
-    /// Is given key ok for our lower/upper limit on keys ?
-    fn fits_limit(&self, direction: usize, key: &K) -> bool {
-        if let Some(ref limit) = self.limits[direction] {
-            if direction == 0 {
-                *limit < *key
-            } else {
-                *limit > *key
-            }
-        } else {
-            true
-        }
-    }
-
-    pub fn upper_bound(mut self, upper_bound: K) -> Self {
-        self.limits[1] = Some(upper_bound);
-        self
-    }
-
-    pub fn lower_bound(mut self, lower_bound: K) -> Self {
-        self.limits[0] = Some(lower_bound);
-        self
-    }
-}
-
-impl<'a, K: 'a + Ord, V: 'a, C: 'a + Counting, R: 'a + Rng> Iterator
-    for OrderedIterator<'a, K, V, C, R> {
-    type Item = &'a Node<V, C>;
-    fn next(&mut self) -> Option<&'a Node<V, C>> {
-        if let Some((next_node, seen)) = self.remaining_nodes.pop() {
-            let key = (self.treap.keys_generator)(&next_node.value);
-            if seen {
-                if let Some(ref child) = next_node.children[self.direction] {
-                    if self.fits_limit(self.direction, &key) {
-                        self.remaining_nodes.push((child, false));
-                    }
-                }
-                if self.fits_limit(0, &key) && self.fits_limit(1, &key) {
-                    Some(next_node)
-                } else {
-                    self.next()
-                }
-            } else {
-                self.remaining_nodes.push((next_node, true));
-                if let Some(ref child) = next_node.children[1 - self.direction] {
-                    if self.fits_limit(1 - self.direction, &key) {
-                        self.remaining_nodes.push((child, false));
-                    }
-                }
-                self.next()
-            }
-        } else {
-            None
         }
     }
 }
