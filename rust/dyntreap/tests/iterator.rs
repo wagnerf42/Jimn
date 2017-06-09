@@ -7,17 +7,13 @@ fn iterator() {
     for x in 1..1000 {
         treap.insert(x);
     }
-    for x in 1..1000 {
-        treap.insert(x);
-    }
     let mut elements = treap
         .ordered_nodes(INCREASING)
-        .lower_bound(399)
+        .lower_bound(400)
         .upper_bound(600);
-    //    for x in 400..600 {
-    //        let next_node = elements.next();
-    //        assert_eq!(x, next_node.unwrap().value);
-    //        let next_node = elements.next();
-    //        assert_eq!(x, next_node.unwrap().value);
-    //    }
+    for x in 400..601 {
+        let node = elements.next();
+        assert!(node.is_some());
+        assert_eq!(node.unwrap().value, x)
+    }
 }

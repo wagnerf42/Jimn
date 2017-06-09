@@ -16,7 +16,7 @@ use counters::{Counting, Counter, EmptyCounter};
 mod node;
 use node::Node;
 pub mod iterators;
-use iterators::{KeyRange, OrderedIterator};
+use iterators::{KeyRange, OrderedIterator, ExactIterator};
 
 pub const DECREASING: usize = 0;
 pub const INCREASING: usize = 1;
@@ -63,26 +63,6 @@ impl<'a, K, V, C, R> RawTreap<'a, K, V, C, R>
         }
     }
 
-    pub fn ordered_nodes(&self, direction: usize) -> OrderedIterator<K, V, C, R> {
-        let remaining_nodes;
-        if let Some(ref root) = self.root {
-            remaining_nodes = vec![(root, false)];
-        } else {
-            remaining_nodes = Vec::new();
-        }
-        OrderedIterator {
-            direction,
-            limits: KeyRange { range: [None, None] },
-            treap: self,
-            remaining_nodes,
-        }
-    }
-
-    //fn ordered_values(&self, direction: usize) -> impl Iterator<Item = &V> {
-    pub fn ordered_values(&'a self, direction: usize) -> impl 'a + Iterator<Item = &'a V> {
-        self.ordered_nodes(direction).map(|n| &n.value)
-    }
-
     pub fn is_empty(&self) -> bool {
         self.root.is_none()
     }
@@ -119,6 +99,41 @@ impl<'a, K, V, C, R> RawTreap<'a, K, V, C, R>
         // from writing : possible_node = &mut current_node.children[direction]
         // :-(
         recursive_removal(&self.keys_generator, &mut self.root, removed_key)
+    }
+}
+
+impl<'a, K: 'a + Ord, V: 'a, R: 'a + Rng> RawTreap<'a, K, V, EmptyCounter, R> {
+    pub fn ordered_nodes(&self, direction: usize) -> OrderedIterator<K, V, EmptyCounter, R> {
+        let remaining_nodes;
+        if let Some(ref root) = self.root {
+            remaining_nodes = vec![(root, false)];
+        } else {
+            remaining_nodes = Vec::new();
+        }
+        OrderedIterator {
+            direction,
+            limits: KeyRange { range: [None, None] },
+            treap: self,
+            remaining_nodes,
+        }
+    }
+}
+
+
+impl<'a, K: 'a + Ord + Copy, V: 'a, R: 'a + Rng> RawTreap<'a, K, V, Counter, R> {
+    pub fn ordered_nodes(&self, direction: usize) -> ExactIterator<K, V, R> {
+        let remaining_nodes;
+        if let Some(ref root) = self.root {
+            remaining_nodes = vec![(root, false, KeyRange { range: [None, None] })];
+        } else {
+            remaining_nodes = Vec::new();
+        }
+        ExactIterator {
+            direction,
+            limits: KeyRange { range: [None, None] },
+            treap: self,
+            remaining_nodes,
+        }
     }
 }
 

@@ -3,22 +3,33 @@ use rand::random;
 
 extern crate dyntreap;
 use dyntreap::CTreap;
-use dyntreap::iterators::KeyRange;
 
 #[test]
 fn count() {
-    let mut t = CTreap::new();
-    for x in 0..100 {
-        t.insert(x);
-    }
-    t.tycat();
     for _ in 0..1000 {
-        let mut bounds = vec![Some(random::<usize>() % 100), Some(random::<usize>() % 100)];
+        let elements: Vec<_> = (0..100).into_iter().map(|_| random::<i32>() % 10).collect();
+        let mut t = CTreap::new();
+        for x in &elements {
+            t.insert(*x);
+        }
+        let mut bounds = vec![Some(random::<i32>() % 10), Some(random::<i32>() % 10)];
         bounds.sort();
-        let bounds = KeyRange { range: [bounds[0], bounds[1]] };
-        assert_eq!(t.count(t.root.as_ref().unwrap(),
-                           &bounds,
-                           KeyRange { range: [None, None] }),
-                   bounds.range[1].as_ref().unwrap() - bounds.range[0].as_ref().unwrap() + 1);
+        let lower_bound = bounds[0].unwrap();
+        let upper_bound = bounds[1].unwrap();
+
+        let iterator_count = t.ordered_nodes(1)
+            .lower_bound(lower_bound)
+            .upper_bound(upper_bound)
+            .len();
+        let reversed_iterator_count = t.ordered_nodes(0)
+            .lower_bound(lower_bound)
+            .upper_bound(upper_bound)
+            .len();
+        let manual_count = elements
+            .iter()
+            .filter(|&e| *e >= lower_bound && *e <= upper_bound)
+            .count();
+        assert_eq!(iterator_count, manual_count);
+        assert_eq!(reversed_iterator_count, manual_count);
     }
 }
