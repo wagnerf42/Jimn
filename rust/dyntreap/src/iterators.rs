@@ -17,17 +17,17 @@ impl<K: Copy + Ord> Clone for KeyRange<K> {
 
 
 impl<K: Ord> KeyRange<K> {
-    /// is given key compatible with our limit in given direction ?
+    /// is given key strictly (not equal) compatible with our limit in given direction ?
     fn fits_limit(&self, direction: usize, key: &K) -> bool {
-        let constraints = [Greater, Less];
+        let constraints = [Less, Greater];
         if let Some(ref limit) = self.range[direction] {
-            limit.cmp(key) != constraints[direction]
+            limit.cmp(key) == constraints[direction]
         } else {
             true
         }
     }
 
-    /// Is other included in self ?
+    /// Is other strictly included in self ?
     fn contains_range(&self, other: &Self) -> bool {
         other
             .range
@@ -37,7 +37,7 @@ impl<K: Ord> KeyRange<K> {
             .fold(true, |b1, b2| b1 && b2)
     }
 
-    /// Are the two ranges fully disjoint ?
+    /// Are the two ranges fully disjoint (strictly) ?
     fn is_disjoint_with(&self, other: &Self) -> bool {
         self.range
             .iter()
@@ -50,7 +50,7 @@ impl<K: Ord> KeyRange<K> {
             .fold(false, |b1, b2| b1 || b2)
     }
 
-    /// Is given key compatible with our limit in given direction ?
+    /// Is given key strictly compatible with our limit in given direction ?
     /// If there is no key, we need to have no limit.
     fn fits_unbounded_limit(&self, direction: usize, key: &Option<K>) -> bool {
         if let Some(ref real_key) = *key {
@@ -60,11 +60,11 @@ impl<K: Ord> KeyRange<K> {
         }
     }
 
-    /// Do we contain given key ?
+    /// Do we strictly contain given key ?
     fn contains(&self, key: &K) -> bool {
-        for (limit, constraint) in self.range.iter().zip([Greater, Less].iter()) {
+        for (limit, constraint) in self.range.iter().zip([Less, Greater].iter()) {
             if let Some(ref real_limit) = *limit {
-                if real_limit.cmp(key) == *constraint {
+                if real_limit.cmp(key) != *constraint {
                     return false;
                 }
             }
@@ -192,7 +192,7 @@ impl<'a, K: 'a + Ord + Copy, V: 'a, R: 'a + Rng> ExactSizeIterator for ExactIter
         // for each node, if boolean (already seen) is 0, count the whole subtree
         // if boolean is 1 count node + right subtree
         let mut count = 0;
-        for &(ref node, already_seen, range) in &self.remaining_nodes {
+        for &(node, already_seen, range) in &self.remaining_nodes {
             if already_seen {
                 // count subtree in direction
                 let key = (self.treap.keys_generator)(&node.value);
@@ -216,11 +216,11 @@ impl<'a, K: 'a + Ord + Copy, V: 'a, R: 'a + Rng> ExactSizeIterator for ExactIter
 impl<'a, K: 'a + Ord + Copy, V: 'a, R: 'a + Rng> RawTreap<'a, K, V, Counter, R> {
     /// Return the number of nodes between given bounds in subtree at given node.
     /// Current range limits possible values in given subtree.
-    pub fn count(&self,
-                 root: &Node<V, Counter>,
-                 bounds: &KeyRange<K>,
-                 current_range: KeyRange<K>)
-                 -> usize {
+    pub(crate) fn count(&self,
+                        root: &Node<V, Counter>,
+                        bounds: &KeyRange<K>,
+                        current_range: KeyRange<K>)
+                        -> usize {
         if bounds.contains_range(&current_range) {
             // subtree is fully included in given limits
             root.counter.0 as usize
@@ -258,8 +258,8 @@ mod tests {
         assert!(!r.fits_limit(1, &8));
         assert!(r.fits_limit(1, &1));
         assert!(!r.fits_limit(0, &1));
-        assert!(r.fits_limit(0, &3));
-        assert!(r.fits_limit(1, &5));
+        assert!(!r.fits_limit(0, &3));
+        assert!(!r.fits_limit(1, &5));
         let r = KeyRange { range: [Some(3), None] };
         assert!(r.fits_limit(1, &100));
     }
@@ -270,7 +270,7 @@ mod tests {
         let r2 = KeyRange { range: [Some(5), Some(6)] };
         assert!(r.contains_range(&r2));
         let r2 = KeyRange { range: [Some(3), Some(7)] };
-        assert!(r.contains_range(&r2));
+        assert!(!r.contains_range(&r2));
         let r2 = KeyRange { range: [Some(1), Some(6)] };
         assert!(!r.contains_range(&r2));
         let r2 = KeyRange { range: [Some(5), Some(8)] };
@@ -292,7 +292,7 @@ mod tests {
         let r2 = KeyRange { range: [None, Some(2)] };
         assert!(r.is_disjoint_with(&r2));
         let r2 = KeyRange { range: [Some(8), Some(12)] };
-        assert!(!r.is_disjoint_with(&r2));
+        assert!(r.is_disjoint_with(&r2));
         let r = KeyRange { range: [None, Some(8)] };
         let r2 = KeyRange { range: [Some(9), Some(12)] };
         assert!(r.is_disjoint_with(&r2));

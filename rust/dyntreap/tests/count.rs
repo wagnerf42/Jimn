@@ -27,7 +27,7 @@ fn count() {
             .len();
         let manual_count = elements
             .iter()
-            .filter(|&e| *e >= lower_bound && *e <= upper_bound)
+            .filter(|&e| *e > lower_bound && *e < upper_bound)
             .count();
         assert_eq!(iterator_count, manual_count);
         assert_eq!(reversed_iterator_count, manual_count);

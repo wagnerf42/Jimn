@@ -11,7 +11,7 @@ fn iterator() {
         .ordered_nodes(INCREASING)
         .lower_bound(400)
         .upper_bound(600);
-    for x in 400..601 {
+    for x in 401..600 {
         let node = elements.next();
         assert!(node.is_some());
         assert_eq!(node.unwrap().value, x)

@@ -102,7 +102,8 @@ impl<'a, K, V, C, R> RawTreap<'a, K, V, C, R>
     }
 }
 
-impl<'a, K: 'a + Ord, V: 'a, R: 'a + Rng> RawTreap<'a, K, V, EmptyCounter, R> {
+//TODO: change back to keys we do not need to copy but taking refs in limits
+impl<'a, K: 'a + Copy + Ord, V: 'a, R: 'a + Rng> RawTreap<'a, K, V, EmptyCounter, R> {
     pub fn ordered_nodes(&self, direction: usize) -> OrderedIterator<K, V, EmptyCounter, R> {
         let remaining_nodes;
         if let Some(ref root) = self.root {
@@ -116,6 +117,31 @@ impl<'a, K: 'a + Ord, V: 'a, R: 'a + Rng> RawTreap<'a, K, V, EmptyCounter, R> {
             treap: self,
             remaining_nodes,
         }
+    }
+
+    /// Iterator through all neighbouring values in given direction for which keys are
+    /// just slightly above / below given key.
+    pub fn neighbouring_values(&'a self,
+                               direction: usize,
+                               key: &K)
+                               -> impl Iterator<Item = &'a V> + 'a {
+        let mut first_key = None;
+        let iterator = match direction {
+            INCREASING => self.ordered_nodes(direction).lower_bound(*key),
+            DECREASING => self.ordered_nodes(direction).upper_bound(*key),
+            _ => panic!("invalid direction"),
+        };
+        iterator
+            .take_while(move |n| {
+                let node_key = (self.keys_generator)(&n.value);
+                if let Some(key) = first_key {
+                    node_key == key
+                } else {
+                    first_key = Some(node_key);
+                    true
+                }
+            })
+            .map(|n| &n.value)
     }
 }
 
@@ -181,7 +207,6 @@ fn rotate_down<V, C: Counting>(removed_node: &mut Option<Box<Node<V, C>>>) -> V 
         removed_node.take().map(|n| n.value).unwrap()
     }
 }
-
 
 
 fn insert_in_subtree<'a, K: Ord, V, C: Counting>(keys_generator: &Box<'a + Fn(&V) -> K>,
