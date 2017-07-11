@@ -1,8 +1,9 @@
 extern crate rand;
 use rand::random;
+use std::collections::Bound::*;
 
 extern crate dyntreap;
-use dyntreap::CTreap;
+use dyntreap::{CTreap, KeyRange};
 
 #[test]
 fn count() {
@@ -12,24 +13,16 @@ fn count() {
         for x in &elements {
             t.insert(*x);
         }
-        let mut bounds = vec![Some(random::<i32>() % 10), Some(random::<i32>() % 10)];
+        let mut bounds = vec![random::<i32>() % 10, random::<i32>() % 10];
         bounds.sort();
-        let lower_bound = bounds[0].unwrap();
-        let upper_bound = bounds[1].unwrap();
+        let lower_bound = Included(bounds[0]);
+        let upper_bound = Included(bounds[1]);
 
-        let iterator_count = t.ordered_nodes(1)
-            .lower_bound(lower_bound)
-            .upper_bound(upper_bound)
-            .len();
-        let reversed_iterator_count = t.ordered_nodes(0)
-            .lower_bound(lower_bound)
-            .upper_bound(upper_bound)
-            .len();
+        let iterator_count = t.ordered_nodes(KeyRange([lower_bound, upper_bound])).len();
         let manual_count = elements
             .iter()
-            .filter(|&e| *e > lower_bound && *e < upper_bound)
+            .filter(|&e| *e >= bounds[0] && *e <= bounds[1])
             .count();
         assert_eq!(iterator_count, manual_count);
-        assert_eq!(reversed_iterator_count, manual_count);
     }
 }

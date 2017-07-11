@@ -4,6 +4,7 @@ use std::io::Write;
 use std::fmt::Display;
 use std::mem;
 
+#[derive(Debug)]
 pub struct Node<V, C: Counting> {
     pub value: V,
     pub priority: u64,
@@ -43,8 +44,10 @@ impl<V, C: Counting> Node<V, C> {
             new_root.counter = old_root.counter;
 
             // displace new root's subtree
-            mem::swap(&mut new_root.children[1 - direction],
-                      &mut old_root.children[direction]);
+            mem::swap(
+                &mut new_root.children[1 - direction],
+                &mut old_root.children[direction],
+            );
 
             // update old root counter
             let mut counter = Default::default();
@@ -68,22 +71,24 @@ const ARROWS_COLORS: [&str; 2] = ["red", "blue"];
 
 impl<V: Display, C: Counting + Display> Node<V, C> {
     pub fn write_dot(&self, file: &mut File) {
-        writeln!(file,
-                 "n{}[label=\"{}{}\"];",
-                 self.id(),
-                 self.value,
-                 self.counter)
-            .expect("failed writing dot");
+        writeln!(
+            file,
+            "n{}[label=\"{}{}\"];",
+            self.id(),
+            self.value,
+            self.counter
+        ).expect("failed writing dot");
 
         for (index, child) in self.children.iter().enumerate() {
             if let Some(ref child_node) = *child {
                 child_node.write_dot(file);
-                writeln!(file,
-                         "n{} -> n{}[color=\"{}\"];",
-                         self.id(),
-                         child_node.id(),
-                         ARROWS_COLORS[index])
-                    .expect("failed writing dot");
+                writeln!(
+                    file,
+                    "n{} -> n{}[color=\"{}\"];",
+                    self.id(),
+                    child_node.id(),
+                    ARROWS_COLORS[index]
+                ).expect("failed writing dot");
             }
         }
     }

@@ -1,6 +1,7 @@
 //! Small treap library with some dynamic keys.
 //! lots of ideas taken from treap-rs (and some code)
 #![feature(conservative_impl_trait)]
+
 extern crate rand;
 use rand::Rng;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
@@ -11,20 +12,24 @@ use std::io::Write;
 use std::iter::once;
 use std::mem;
 
+use std::collections::Bound::*;
+
 mod counters;
 use counters::{Counting, Counter, EmptyCounter};
 mod node;
 use node::Node;
 pub mod iterators;
-use iterators::{KeyRange, OrderedIterator, ExactIterator};
+use iterators::{OrderedIterator, ExactIterator};
+pub use iterators::KeyRange;
 
 pub const DECREASING: usize = 0;
 pub const INCREASING: usize = 1;
 
 pub struct RawTreap<'a, K, V, C, R>
-    where C: Counting,
-          K: Ord,
-          R: Rng
+where
+    C: Counting,
+    K: Ord,
+    R: Rng,
 {
     pub root: Option<Box<Node<V, C>>>,
     rng: R,
@@ -35,8 +40,9 @@ pub type Treap<'a, K, V> = RawTreap<'a, K, V, EmptyCounter, rand::XorShiftRng>;
 pub type CTreap<'a, K, V> = RawTreap<'a, K, V, Counter, rand::XorShiftRng>;
 
 impl<'a, V, C> RawTreap<'a, V, V, C, rand::XorShiftRng>
-    where C: Counting,
-          V: Ord + Copy
+where
+    C: Counting,
+    V: Ord + Copy,
 {
     pub fn new() -> RawTreap<'a, V, V, C, rand::XorShiftRng> {
         RawTreap {
@@ -48,14 +54,15 @@ impl<'a, V, C> RawTreap<'a, V, V, C, rand::XorShiftRng>
 }
 
 impl<'a, K, V, C, R> RawTreap<'a, K, V, C, R>
-    where C: Counting,
-          K: Ord,
-          R: Rng
+where
+    C: Counting,
+    K: Ord,
+    R: Rng,
 {
     /// Create a new treap with given key generator.
-    pub fn new_with_key_generator<G: 'a + Fn(&V) -> K>
-        (generator: G)
-         -> RawTreap<'a, K, V, C, rand::XorShiftRng> {
+    pub fn new_with_key_generator<G: 'a + Fn(&V) -> K>(
+        generator: G,
+    ) -> RawTreap<'a, K, V, C, rand::XorShiftRng> {
         RawTreap {
             root: None,
             rng: rand::weak_rng(),
@@ -71,10 +78,12 @@ impl<'a, K, V, C, R> RawTreap<'a, K, V, C, R>
     pub fn insert(&mut self, value: V) {
         let priority = self.rng.next_u64();
         let key = (self.keys_generator)(&value);
-        insert_in_subtree(&self.keys_generator,
-                          &mut self.root,
-                          key,
-                          Node::new(value, priority));
+        insert_in_subtree(
+            &self.keys_generator,
+            &mut self.root,
+            key,
+            Node::new(value, priority),
+        );
     }
 
     /// Return first value with given key.
@@ -102,79 +111,63 @@ impl<'a, K, V, C, R> RawTreap<'a, K, V, C, R>
     }
 }
 
-//TODO: change back to keys we do not need to copy but taking refs in limits
 impl<'a, K: 'a + Copy + Ord, V: 'a, R: 'a + Rng> RawTreap<'a, K, V, EmptyCounter, R> {
-    pub fn ordered_nodes(&self, direction: usize) -> OrderedIterator<K, V, EmptyCounter, R> {
-        let remaining_nodes;
+    pub fn ordered_nodes(&'a self, range: KeyRange<K>) -> OrderedIterator<K, V, EmptyCounter, R> {
+        let remaining_nodes: Vec<(&Node<V, EmptyCounter>, bool)>;
         if let Some(ref root) = self.root {
             remaining_nodes = vec![(root, false)];
         } else {
             remaining_nodes = Vec::new();
         }
         OrderedIterator {
-            direction,
-            limits: KeyRange { range: [None, None] },
+            limits: range,
             treap: self,
             remaining_nodes,
         }
     }
-
     /// Iterator through all neighbouring values in given direction for which keys are
-    /// just slightly above / below given key.
-    pub fn neighbouring_values(&'a self,
-                               direction: usize,
-                               key: &K)
-                               -> impl Iterator<Item = &'a V> + 'a {
-        let mut first_key = None;
-        let iterator = match direction {
-            INCREASING => self.ordered_nodes(direction).lower_bound(*key),
-            DECREASING => self.ordered_nodes(direction).upper_bound(*key),
-            _ => panic!("invalid direction"),
-        };
-        iterator
-            .take_while(move |n| {
-                let node_key = (self.keys_generator)(&n.value);
-                if let Some(key) = first_key {
-                    node_key == key
-                } else {
-                    first_key = Some(node_key);
-                    true
-                }
-            })
-            .map(|n| &n.value)
+    /// in given range.
+    pub fn ordered_values(&'a self, range: KeyRange<K>) -> impl Iterator<Item = &'a V> + 'a {
+        self.ordered_nodes(range).map(|n| &n.value)
     }
 }
 
 
 impl<'a, K: 'a + Ord + Copy, V: 'a, R: 'a + Rng> RawTreap<'a, K, V, Counter, R> {
-    pub fn ordered_nodes(&self, direction: usize) -> ExactIterator<K, V, R> {
-        let remaining_nodes;
+    pub fn ordered_nodes(&self, range: KeyRange<K>) -> ExactIterator<K, V, R> {
+        let remaining_nodes: Vec<(&Node<V, Counter>, bool, KeyRange<K>)>;
         if let Some(ref root) = self.root {
-            remaining_nodes = vec![(root, false, KeyRange { range: [None, None] })];
+            remaining_nodes = vec![(root, false, KeyRange([Unbounded, Unbounded]))];
         } else {
             remaining_nodes = Vec::new();
         }
         ExactIterator {
-            direction,
-            limits: KeyRange { range: [None, None] },
+            limits: range,
             treap: self,
             remaining_nodes,
         }
     }
+    /// Iterator through all neighbouring values in given direction for which keys are
+    /// in given range.
+    pub fn ordered_values(&'a self, range: KeyRange<K>) -> impl Iterator<Item = &'a V> + 'a {
+        self.ordered_nodes(range).map(|n| &n.value)
+    }
 }
 
-fn recursive_removal<'a, K: Ord, V, C: Counting>(generator: &Box<'a + Fn(&V) -> K>,
-                                                 possible_node: &mut Option<Box<Node<V, C>>>,
-                                                 removed_key: &K)
-                                                 -> V {
+fn recursive_removal<'a, K: Ord, V, C: Counting>(
+    generator: &Box<'a + Fn(&V) -> K>,
+    possible_node: &mut Option<Box<Node<V, C>>>,
+    removed_key: &K,
+) -> V {
     if let Some(ref mut current_node) = *possible_node {
         let current_key = (generator)(&current_node.value);
         if current_key != *removed_key {
             current_node.counter = current_node.counter - Default::default();
-            return recursive_removal(generator,
-                                     &mut current_node.children[(current_key < *removed_key) as
-                                                                usize],
-                                     removed_key);
+            return recursive_removal(
+                generator,
+                &mut current_node.children[(current_key < *removed_key) as usize],
+                removed_key,
+            );
         }
     } else {
         panic!("trying to remove a key we do not contain");
@@ -192,8 +185,11 @@ fn rotate_down<V, C: Counting>(removed_node: &mut Option<Box<Node<V, C>>>) -> V 
         .iter()
         .enumerate()
         .map(|(direction, node)| {
-                 (node.as_ref().map(|n| n.priority).unwrap_or(std::u64::MIN), Some(direction))
-             })
+            (
+                node.as_ref().map(|n| n.priority).unwrap_or(std::u64::MIN),
+                Some(direction),
+            )
+        })
         .chain(once((std::u64::MIN, None)))
         .max_by_key(|&(p, _)| p)
         .unwrap()
@@ -209,10 +205,12 @@ fn rotate_down<V, C: Counting>(removed_node: &mut Option<Box<Node<V, C>>>) -> V 
 }
 
 
-fn insert_in_subtree<'a, K: Ord, V, C: Counting>(keys_generator: &Box<'a + Fn(&V) -> K>,
-                                                 old_node: &mut Option<Box<Node<V, C>>>,
-                                                 key: K,
-                                                 new_node: Node<V, C>) {
+fn insert_in_subtree<'a, K: Ord, V, C: Counting>(
+    keys_generator: &Box<'a + Fn(&V) -> K>,
+    old_node: &mut Option<Box<Node<V, C>>>,
+    key: K,
+    new_node: Node<V, C>,
+) {
     match *old_node {
         None => {
             mem::replace(old_node, Some(Box::new(new_node)));
@@ -235,9 +233,10 @@ fn insert_in_subtree<'a, K: Ord, V, C: Counting>(keys_generator: &Box<'a + Fn(&V
 static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
 
 impl<'a, K, V, C> RawTreap<'a, K, V, C, rand::XorShiftRng>
-    where C: Counting + Display,
-          K: Ord,
-          V: Display
+where
+    C: Counting + Display,
+    K: Ord,
+    V: Display,
 {
     /// Tycat display on terminal.
     pub fn tycat(&self) {

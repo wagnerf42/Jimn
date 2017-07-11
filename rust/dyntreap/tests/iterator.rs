@@ -1,5 +1,6 @@
 extern crate dyntreap;
-use dyntreap::{Treap, INCREASING};
+use std::collections::Bound::*;
+use dyntreap::{KeyRange, Treap};
 
 #[test]
 fn iterator() {
@@ -7,13 +8,10 @@ fn iterator() {
     for x in 1..1000 {
         treap.insert(x);
     }
-    let mut elements = treap
-        .ordered_nodes(INCREASING)
-        .lower_bound(400)
-        .upper_bound(600);
-    for x in 401..600 {
-        let node = elements.next();
-        assert!(node.is_some());
-        assert_eq!(node.unwrap().value, x)
+    for (v1, v2) in treap
+        .ordered_values(KeyRange([Excluded(400), Excluded(600)]))
+        .zip((401..600).into_iter())
+    {
+        assert_eq!(*v1, v2);
     }
 }

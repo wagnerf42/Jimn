@@ -6,7 +6,7 @@ use std::ops::{Add, Sub};
 use std;
 
 /// Do not count how many nodes in subtrees.
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct EmptyCounter();
 
 impl Display for EmptyCounter {
@@ -36,7 +36,7 @@ impl Default for EmptyCounter {
 }
 
 /// Do count how many nodes in subtrees.
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Counter(pub usize);
 
 impl Display for Counter {
@@ -69,7 +69,8 @@ impl Default for Counter {
 /// subtrees sizes (with overhead) or not counting them (no overhead).
 /// A counter must implement all following traits.
 pub trait Counting
-    : Add<Output = Self> + Sub<Output = Self> + Eq + Default + Copy {
+    : Add<Output = Self> + Sub<Output = Self> + Eq + Default + Copy + std::fmt::Debug
+    {
 }
 impl Counting for Counter {}
 impl Counting for EmptyCounter {}
