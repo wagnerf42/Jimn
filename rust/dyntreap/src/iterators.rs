@@ -1,52 +1,57 @@
+//! define a mighty in-order double-ended exactsize iterator
+use std::iter::once;
 use rand::Rng;
 use super::{Counting, Counter, RawTreap, Node};
+use std::collections::Bound;
 use std::collections::Bound::*;
+use std::collections::VecDeque;
 use super::{DECREASING, INCREASING};
 use super::ranges::KeyRange;
 
-// Iterator through nodes, in key order
-pub struct OrderedIterator<'a, K: 'a + Ord, V: 'a, C: 'a + Counting, R: 'a + Rng> {
-    pub limits: KeyRange<K>,
-    pub treap: &'a RawTreap<'a, K, V, C, R>,
-    pub remaining_nodes: Vec<(&'a Node<V, C>, bool)>,
+
+/// We will need to store what's left to explore of the tree.
+pub enum Remaining<'a, V: 'a, C: 'a + Counting> {
+    Subtree(&'a Node<V, C>),
+    Node(&'a Node<V, C>),
 }
 
-// ExactSizeIterator through nodes, in key order.
-// we do not factorize with OrderedIterator because it incurs some overhead.
-// TODO: we could in fact factorize with the empty tuple trick.
-pub struct ExactIterator<'a, K: 'a + Ord + Copy, V: 'a, R: 'a + Rng> {
+
+// Double Ended Iterator through nodes, in key order
+pub struct DoubleIterator<'a, K: 'a + Ord, V: 'a, C: 'a + Counting, R: 'a + Rng> {
     pub limits: KeyRange<K>,
-    pub treap: &'a RawTreap<'a, K, V, Counter, R>,
-    pub remaining_nodes: Vec<(&'a Node<V, Counter>, bool, KeyRange<K>)>,
+    pub treap: &'a RawTreap<'a, K, V, C, R>,
+    pub remaining: VecDeque<Remaining<'a, V, C>>,
 }
 
 impl<'a, K: 'a + Ord, V: 'a, C: 'a + Counting, R: 'a + Rng> Iterator
-    for OrderedIterator<'a, K, V, C, R> {
+    for DoubleIterator<'a, K, V, C, R> {
     type Item = &'a Node<V, C>;
     fn next(&mut self) -> Option<&'a Node<V, C>> {
-        if let Some((next_node, seen)) = self.remaining_nodes.pop() {
-            let key = (self.treap.keys_generator)(&next_node.value);
-            if seen {
-                if let Some(ref child) = next_node.children[INCREASING] {
-                    // if we are already too big, no need to go towards larger child
-                    if self.limits.fits_limit(INCREASING, &key) {
-                        self.remaining_nodes.push((child, false));
+        if let Some(next_thing) = self.remaining.pop_front() {
+            match next_thing {
+                Remaining::Node(n) => {
+                    let key = (self.treap.keys_generator)(&n.value);
+                    if self.limits.contains(&key) {
+                        Some(n)
+                    } else {
+                        self.next()
                     }
                 }
-                if self.limits.contains(&key) {
-                    Some(next_node)
-                } else {
+                Remaining::Subtree(n) => {
+                    let key = (self.treap.keys_generator)(&n.value);
+                    if let Some(ref child) = n.children[INCREASING] {
+                        if self.limits.fits_limit(INCREASING, &key) {
+                            self.remaining.push_front(Remaining::Subtree(child));
+                        }
+                    }
+                    self.remaining.push_front(Remaining::Node(n));
+                    if let Some(ref child) = n.children[DECREASING] {
+                        if self.limits.fits_limit(DECREASING, &key) {
+                            self.remaining.push_front(Remaining::Subtree(child));
+                        }
+                    }
                     self.next()
                 }
-            } else {
-                self.remaining_nodes.push((next_node, true));
-                if let Some(ref child) = next_node.children[DECREASING] {
-                    // if we are already too small, no need to go towards smaller child
-                    if self.limits.fits_limit(DECREASING, &key) {
-                        self.remaining_nodes.push((child, false));
-                    }
-                }
-                self.next()
             }
         } else {
             None
@@ -54,34 +59,34 @@ impl<'a, K: 'a + Ord, V: 'a, C: 'a + Counting, R: 'a + Rng> Iterator
     }
 }
 
-impl<'a, K: 'a + Ord + Copy, V: 'a, R: 'a + Rng> Iterator for ExactIterator<'a, K, V, R> {
-    type Item = &'a Node<V, Counter>;
-    fn next(&mut self) -> Option<&'a Node<V, Counter>> {
-        if let Some((node, seen, range)) = self.remaining_nodes.pop() {
-            let key = (self.treap.keys_generator)(&node.value);
-            if seen {
-                if let Some(ref child) = node.children[INCREASING] {
-                    if self.limits.fits_limit(INCREASING, &key) {
-                        let mut child_range = range;
-                        child_range.0[0] = Included(key);
-                        self.remaining_nodes.push((child, false, child_range));
+impl<'a, K: 'a + Ord, V: 'a, C: 'a + Counting, R: 'a + Rng> DoubleEndedIterator
+    for DoubleIterator<'a, K, V, C, R> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if let Some(next_thing) = self.remaining.pop_back() {
+            match next_thing {
+                Remaining::Node(n) => {
+                    let key = (self.treap.keys_generator)(&n.value);
+                    if self.limits.contains(&key) {
+                        Some(n)
+                    } else {
+                        self.next_back()
                     }
                 }
-                if self.limits.contains(&key) {
-                    Some(node)
-                } else {
-                    self.next()
-                }
-            } else {
-                self.remaining_nodes.push((node, true, range.clone()));
-                if let Some(ref child) = node.children[DECREASING] {
-                    if self.limits.fits_limit(DECREASING, &key) {
-                        let mut child_range = range;
-                        child_range.0[1] = Included(key);
-                        self.remaining_nodes.push((child, false, child_range));
+                Remaining::Subtree(n) => {
+                    let key = (self.treap.keys_generator)(&n.value);
+                    if let Some(ref child) = n.children[DECREASING] {
+                        if self.limits.fits_limit(DECREASING, &key) {
+                            self.remaining.push_back(Remaining::Subtree(child));
+                        }
                     }
+                    self.remaining.push_back(Remaining::Node(n));
+                    if let Some(ref child) = n.children[INCREASING] {
+                        if self.limits.fits_limit(INCREASING, &key) {
+                            self.remaining.push_back(Remaining::Subtree(child));
+                        }
+                    }
+                    self.next_back()
                 }
-                self.next()
             }
         } else {
             None
@@ -89,43 +94,67 @@ impl<'a, K: 'a + Ord + Copy, V: 'a, R: 'a + Rng> Iterator for ExactIterator<'a, 
     }
 }
 
-
-impl<'a, K: 'a + Ord + Copy, V: 'a, R: 'a + Rng> ExactSizeIterator for ExactIterator<'a, K, V, R> {
+impl<'a, K: 'a + Ord + Copy, V: 'a, R: 'a + Rng> ExactSizeIterator
+    for DoubleIterator<'a, K, V, Counter, R> {
     fn len(&self) -> usize {
-        // loop on the whole stack
-        // for each node, if boolean (already seen) is 0, count the whole subtree
-        // if boolean is 1 count node + right subtree
-        let mut count = 0;
-        for &(node, already_seen, ref range) in &self.remaining_nodes {
-            if already_seen {
-                // count subtree in direction
-                let key = (self.treap.keys_generator)(&node.value);
+        let mut size = 0;
+        let mut subtree_range = KeyRange([Unbounded, Unbounded]);
+        let mut untreated_subtree = None;
 
-                if self.limits.contains(&key) {
-                    count += 1;
+        //we loop on all remaining subtrees counting things inside them.
+        //the trick is to avoid counting un-necessary stuff.
+        //since node keys split subtrees keys into ranges we use it to avoid counting
+        //everything.
+
+        //we need to convert nodes to bounds iterate on a mixed flow of bounds and subtrees.
+        enum TreeOrBound<'a, K: 'a, V: 'a, C: 'a + Counting> {
+            Tree(&'a Node<V, C>),
+            Bound(Bound<K>),
+        }
+
+        let mut nodes_count = 0;
+        for tob in self.remaining
+            .iter()
+            .map(|remain| match *remain {
+                Remaining::Subtree(t) => TreeOrBound::Tree(t),
+                Remaining::Node(n) => {
+                    let key = (self.treap.keys_generator)(&n.value);
+                    if self.limits.contains(&key) {
+                        nodes_count += 1;
+                    }
+                    TreeOrBound::Bound(Included(key))
                 }
-                if let Some(ref child) = node.children[INCREASING] {
-                    let mut child_range = range.clone();
-                    child_range.0[0] = Included(key);
-                    count += self.treap.count(child, &self.limits, &child_range);
+            })
+            .chain(once(TreeOrBound::Bound(Unbounded)))
+        {
+            match tob {
+                TreeOrBound::Tree(n) => {
+                    assert!(untreated_subtree.is_none());
+                    untreated_subtree = Some(n);
                 }
-            } else {
-                // count full subtree
-                count += self.treap.count(node, &self.limits, range);
+                TreeOrBound::Bound(b) => {
+                    subtree_range.0[0] = subtree_range.0[1];
+                    subtree_range.0[1] = b;
+                    if let Some(subtree) = untreated_subtree {
+                        size += self.treap.count(subtree, &self.limits, &subtree_range);
+                    }
+                    untreated_subtree = None;
+                }
             }
         }
-        count
+        size + nodes_count
     }
 }
 
 impl<'a, K: 'a + Ord + Copy, V: 'a, R: 'a + Rng> RawTreap<'a, K, V, Counter, R> {
     /// Return the number of nodes between given bounds in subtree at given node.
     /// Current range limits possible values in given subtree.
-    pub(crate) fn count(&self,
-                        root: &Node<V, Counter>,
-                        bounds: &KeyRange<K>,
-                        current_range: &KeyRange<K>)
-                        -> usize {
+    pub(crate) fn count(
+        &self,
+        root: &Node<V, Counter>,
+        bounds: &KeyRange<K>,
+        current_range: &KeyRange<K>,
+    ) -> usize {
         if bounds.contains_range(current_range) {
             // subtree is fully included in given limits
             root.counter.0 as usize

@@ -36,8 +36,7 @@ impl<K: Ord> KeyRange<K> {
             Included(ref low) => {
                 match other.0[0] {
                     Unbounded => false,
-                    Included(ref other_low) |
-                    Excluded(ref other_low) => other_low.ge(low),
+                    Included(ref other_low) | Excluded(ref other_low) => other_low.ge(low),
                 }
             }
             Excluded(ref low) => {
@@ -49,23 +48,22 @@ impl<K: Ord> KeyRange<K> {
             }
         };
         low_ok &&
-        match self.0[1] {
-            Unbounded => true,
-            Included(ref high) => {
-                match other.0[1] {
-                    Unbounded => false,
-                    Included(ref other_high) |
-                    Excluded(ref other_high) => other_high.le(high),
+            match self.0[1] {
+                Unbounded => true,
+                Included(ref high) => {
+                    match other.0[1] {
+                        Unbounded => false,
+                        Included(ref other_high) | Excluded(ref other_high) => other_high.le(high),
+                    }
+                }
+                Excluded(ref high) => {
+                    match other.0[1] {
+                        Unbounded => false,
+                        Included(ref other_high) => other_high.lt(high),
+                        Excluded(ref other_high) => other_high.le(high),
+                    }
                 }
             }
-            Excluded(ref high) => {
-                match other.0[1] {
-                    Unbounded => false,
-                    Included(ref other_high) => other_high.lt(high),
-                    Excluded(ref other_high) => other_high.le(high),
-                }
-            }
-        }
     }
     /// Are the two ranges fully disjoint (strictly) ?
     pub fn is_disjoint_with(&self, other: &Self) -> bool {
@@ -81,29 +79,27 @@ impl<K: Ord> KeyRange<K> {
             Excluded(ref low) => {
                 match other.0[1] {
                     Unbounded => false,
-                    Included(ref other_high) |
-                    Excluded(ref other_high) => other_high.le(low),
+                    Included(ref other_high) | Excluded(ref other_high) => other_high.le(low),
                 }
             }
         };
         ok_low ||
-        match self.0[1] {
-            Unbounded => false,
-            Included(ref high) => {
-                match other.0[0] {
-                    Unbounded => false,
-                    Included(ref other_low) => other_low.gt(high),
-                    Excluded(ref other_low) => other_low.ge(high),
+            match self.0[1] {
+                Unbounded => false,
+                Included(ref high) => {
+                    match other.0[0] {
+                        Unbounded => false,
+                        Included(ref other_low) => other_low.gt(high),
+                        Excluded(ref other_low) => other_low.ge(high),
+                    }
+                }
+                Excluded(ref high) => {
+                    match other.0[0] {
+                        Unbounded => false,
+                        Included(ref other_low) | Excluded(ref other_low) => other_low.ge(high),
+                    }
                 }
             }
-            Excluded(ref high) => {
-                match other.0[0] {
-                    Unbounded => false,
-                    Included(ref other_low) |
-                    Excluded(ref other_low) => other_low.ge(high),
-                }
-            }
-        }
     }
 
     /// Do we contain given key ?
@@ -124,15 +120,17 @@ impl<K: Copy> Clone for KeyRange<K> {
 impl<K: Copy> KeyRange<K> {
     /// Create a `KeyRange` out of given RangeArgument.
     pub fn new_from(range: &RangeArgument<K>) -> Self {
-        KeyRange([match range.start() {
-                      Unbounded => Unbounded,
-                      Included(k) => Included(*k),
-                      Excluded(k) => Excluded(*k),
-                  },
-                  match range.end() {
-                      Unbounded => Unbounded,
-                      Included(k) => Included(*k),
-                      Excluded(k) => Excluded(*k),
-                  }])
+        KeyRange([
+            match range.start() {
+                Unbounded => Unbounded,
+                Included(k) => Included(*k),
+                Excluded(k) => Excluded(*k),
+            },
+            match range.end() {
+                Unbounded => Unbounded,
+                Included(k) => Included(*k),
+                Excluded(k) => Excluded(*k),
+            },
+        ])
     }
 }

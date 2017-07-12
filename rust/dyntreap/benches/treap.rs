@@ -12,13 +12,13 @@ use test::Bencher;
 fn inserting_1000_integers(b: &mut Bencher) {
     let mut rng = StdRng::new().unwrap();
     b.iter(|| {
-               let mut v: Vec<_> = (1..1000).into_iter().collect();
-               rng.shuffle(&mut v);
-               let mut treap = Treap::new();
-               for x in &v {
-                   treap.insert(x);
-               }
-           });
+        let mut v: Vec<_> = (1..1000).into_iter().collect();
+        rng.shuffle(&mut v);
+        let mut treap = Treap::new();
+        for x in &v {
+            treap.insert(x);
+        }
+    });
 }
 
 #[bench]

@@ -14,6 +14,7 @@ use std::iter::once;
 use std::mem;
 use std::iter::FromIterator;
 
+use std::collections::VecDeque;
 use std::collections::Bound::*;
 use std::collections::range::RangeArgument;
 
@@ -22,7 +23,7 @@ use counters::{Counting, Counter, EmptyCounter};
 mod node;
 use node::Node;
 pub mod iterators;
-use iterators::{OrderedIterator, ExactIterator};
+use iterators::{DoubleIterator, Remaining};
 pub(crate) mod ranges;
 use ranges::KeyRange;
 
@@ -114,55 +115,36 @@ where
         recursive_removal(&self.keys_generator, &mut self.root, removed_key)
     }
 }
-impl<'a, K: Ord+Copy, C: Counting> FromIterator<K> for RawTreap<'a, K, K, C, rand::XorShiftRng> {
-        fn from_iter<I: IntoIterator<Item=K>>(iter: I) -> Self {
-            let mut treap: RawTreap<_,_,_,_> = RawTreap::new();
-            for element in iter {
-                treap.insert(element);
-            }
-            treap
+impl<'a, K: Ord + Copy, C: Counting> FromIterator<K> for RawTreap<'a, K, K, C, rand::XorShiftRng> {
+    fn from_iter<I: IntoIterator<Item = K>>(iter: I) -> Self {
+        let mut treap: RawTreap<_, _, _, _> = RawTreap::new();
+        for element in iter {
+            treap.insert(element);
         }
-}
-
-impl<'a, K: 'a + Copy + Ord, V: 'a, R: 'a + Rng> RawTreap<'a, K, V, EmptyCounter, R> {
-    pub fn ordered_nodes<S: RangeArgument<K>>(&'a self, range: S) -> OrderedIterator<K, V, EmptyCounter, R> {
-        let remaining_nodes: Vec<(&Node<V, EmptyCounter>, bool)>;
-        if let Some(ref root) = self.root {
-            remaining_nodes = vec![(root, false)];
-        } else {
-            remaining_nodes = Vec::new();
-        }
-        OrderedIterator {
-            limits: KeyRange::new_from(&range),
-            treap: self,
-            remaining_nodes,
-        }
-    }
-    /// Iterator through all neighbouring values in given direction for which keys are
-    /// in given range.
-    pub fn ordered_values<S: RangeArgument<K>>(&'a self, range: S) -> impl Iterator<Item = &'a V> + 'a {
-        self.ordered_nodes(range).map(|n| &n.value)
+        treap
     }
 }
 
-
-impl<'a, K: 'a + Ord + Copy, V: 'a, R: 'a + Rng> RawTreap<'a, K, V, Counter, R> {
-    pub fn ordered_nodes<S: RangeArgument<K>>(&self, range: S) -> ExactIterator<K, V, R> {
-        let remaining_nodes: Vec<(&Node<V, Counter>, bool, KeyRange<K>)>;
+impl<'a, K: 'a + Copy + Ord, V: 'a, C: 'a + Counting, R: 'a + Rng> RawTreap<'a, K, V, C, R> {
+    /// Return iterator on all nodes, in order.
+    pub fn ordered_nodes<S: RangeArgument<K>>(&'a self, range: S) -> DoubleIterator<K, V, C, R> {
+        let mut remaining = VecDeque::new();
         if let Some(ref root) = self.root {
-            remaining_nodes = vec![(root, false, KeyRange([Unbounded, Unbounded]))];
-        } else {
-            remaining_nodes = Vec::new();
+            remaining.push_back(Remaining::Subtree(root));
         }
-        ExactIterator {
+        DoubleIterator {
             limits: KeyRange::new_from(&range),
             treap: self,
-            remaining_nodes,
+            remaining,
         }
     }
+
     /// Iterator through all neighbouring values in given direction for which keys are
     /// in given range.
-    pub fn ordered_values<S: RangeArgument<K>>(&'a self, range: S) -> impl Iterator<Item = &'a V> + 'a {
+    pub fn ordered_values<S: RangeArgument<K>>(
+        &'a self,
+        range: S,
+    ) -> impl Iterator<Item = &'a V> + 'a {
         self.ordered_nodes(range).map(|n| &n.value)
     }
 }

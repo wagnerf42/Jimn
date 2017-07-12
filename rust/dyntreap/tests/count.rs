@@ -8,11 +8,8 @@ use dyntreap::CTreap;
 #[test]
 fn count() {
     for _ in 0..1000 {
-        let elements: Vec<_> = (0..100)
-            .into_iter()
-            .map(|_| random::<i32>() % 10)
-            .collect();
-        let t: CTreap<_,_> = elements.iter().cloned().collect();
+        let elements: Vec<_> = (0..100).into_iter().map(|_| random::<i32>() % 10).collect();
+        let t: CTreap<_, _> = elements.iter().cloned().collect();
         let mut bounds = vec![random::<i32>() % 10, random::<i32>() % 10];
         bounds.sort();
         let lower_bound = Included(bounds[0]);
