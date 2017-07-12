@@ -1,7 +1,7 @@
 extern crate dyntreap;
 extern crate rand;
 use std::collections::Bound::*;
-use dyntreap::{Treap, CTreap, KeyRange};
+use dyntreap::{Treap, CTreap};
 use rand::{Rng, StdRng};
 
 
@@ -20,7 +20,7 @@ fn main() {
     let mut v: Vec<_> = (1..10).into_iter().collect();
 
     println!("between 3 (excluded) and 7 (excluded)");
-    for x in ctreap.ordered_values(KeyRange([Excluded(3), Excluded(7)])) {
+    for x in ctreap.ordered_values((Excluded(3), Excluded(7))) {
         println!("{}", x);
     }
     println!("done");

@@ -1,6 +1,6 @@
 extern crate dyntreap;
 use std::collections::Bound::*;
-use dyntreap::{KeyRange, Treap};
+use dyntreap::Treap;
 
 #[test]
 fn iterator() {
@@ -9,9 +9,8 @@ fn iterator() {
         treap.insert(x);
     }
     for (v1, v2) in treap
-        .ordered_values(KeyRange([Excluded(400), Excluded(600)]))
-        .zip((401..600).into_iter())
-    {
+            .ordered_values((Excluded(400), Excluded(600)))
+            .zip((401..600).into_iter()) {
         assert_eq!(*v1, v2);
     }
 }
