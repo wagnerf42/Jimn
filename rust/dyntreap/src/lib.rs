@@ -12,6 +12,7 @@ use std::fs::File;
 use std::io::Write;
 use std::iter::once;
 use std::mem;
+use std::iter::FromIterator;
 
 use std::collections::Bound::*;
 use std::collections::range::RangeArgument;
@@ -112,6 +113,15 @@ where
         // :-(
         recursive_removal(&self.keys_generator, &mut self.root, removed_key)
     }
+}
+impl<'a, K: Ord+Copy, C: Counting> FromIterator<K> for RawTreap<'a, K, K, C, rand::XorShiftRng> {
+        fn from_iter<I: IntoIterator<Item=K>>(iter: I) -> Self {
+            let mut treap: RawTreap<_,_,_,_> = RawTreap::new();
+            for element in iter {
+                treap.insert(element);
+            }
+            treap
+        }
 }
 
 impl<'a, K: 'a + Copy + Ord, V: 'a, R: 'a + Rng> RawTreap<'a, K, V, EmptyCounter, R> {

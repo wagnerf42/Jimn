@@ -6,15 +6,10 @@ use rand::{Rng, StdRng};
 
 
 fn main() {
-    let mut treap = Treap::new();
-    for x in 1..20 {
-        treap.insert(x);
-    }
+    let treap:Treap<_, _> = (1..20).into_iter().collect();
     treap.tycat();
-    let mut ctreap = CTreap::new();
-    for x in 1..10 {
-        ctreap.insert(x);
-    }
+
+    let mut ctreap: CTreap<_, _> = (1..10).into_iter().collect();
     ctreap.tycat();
     let mut rng = StdRng::new().unwrap();
     let mut v: Vec<_> = (1..10).into_iter().collect();
@@ -23,7 +18,6 @@ fn main() {
     for x in ctreap.ordered_values((Excluded(3), Excluded(7))) {
         println!("{}", x);
     }
-    println!("done");
 
     rng.shuffle(&mut v);
     for x in &v {

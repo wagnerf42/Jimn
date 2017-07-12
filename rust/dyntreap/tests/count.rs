@@ -12,10 +12,7 @@ fn count() {
             .into_iter()
             .map(|_| random::<i32>() % 10)
             .collect();
-        let mut t = CTreap::new();
-        for x in &elements {
-            t.insert(*x);
-        }
+        let t: CTreap<_,_> = elements.iter().cloned().collect();
         let mut bounds = vec![random::<i32>() % 10, random::<i32>() % 10];
         bounds.sort();
         let lower_bound = Included(bounds[0]);

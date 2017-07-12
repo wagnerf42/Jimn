@@ -3,11 +3,7 @@ use dyntreap::Treap;
 
 #[test]
 fn insertion() {
-    let mut treap = Treap::new();
-    assert!(treap.is_empty());
-    for x in 1..10 {
-        treap.insert(x);
-    }
+    let treap:Treap<_,_> = (1..10).into_iter().collect();
     assert!(treap.get(&10).is_none());
     for x in 1..10 {
         let r = treap.get(&x);
