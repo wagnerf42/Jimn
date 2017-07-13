@@ -1,5 +1,5 @@
 extern crate rand;
-use rand::random;
+use rand::{random, Rng};
 use std::collections::Bound::*;
 
 extern crate dyntreap;
@@ -21,5 +21,15 @@ fn count() {
             .filter(|&e| *e >= bounds[0] && *e <= bounds[1])
             .count();
         assert_eq!(iterator_count, manual_count);
+    }
+}
+
+#[test]
+fn dynamic_count() {
+    let mut elements: Vec<_> = (0..100).into_iter().map(|i| i % 10).collect();
+    rand::thread_rng().shuffle(&mut elements);
+    let mut ctreap: CTreap<_, _> = elements.iter().cloned().collect();
+    for count in (0..10).into_iter().rev() {
+        unimplemented!("remove every digit and check count is count");
     }
 }

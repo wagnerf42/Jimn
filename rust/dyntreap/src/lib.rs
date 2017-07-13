@@ -107,8 +107,11 @@ where
     /// pre-condition : we contain the key.
     pub fn remove(&mut self, removed_key: &K) -> V {
         // we need to contain the key in order to update counters while going down.
+
+        //let's first find the node to remove
         let mut possible_node = &mut self.root;
         loop {
+            unimplemented!("forgot to decrease counter");
             let key = (self.keys_generator)(&possible_node.as_ref().unwrap().value);
             if key.eq(removed_key) {
                 break;
@@ -116,7 +119,34 @@ where
             possible_node =
                 &mut { possible_node }.as_mut().unwrap().children[(key < *removed_key) as usize];
         }
-        rotate_down(possible_node)
+
+        //now rotate it downwards until it becomes a leaf
+        loop {
+            let towards = possible_node
+                .as_ref()
+                .unwrap()
+                .children
+                .iter()
+                .enumerate()
+                .map(|(direction, node)| {
+                    (
+                        node.as_ref().map(|n| n.priority).unwrap_or(std::u64::MIN),
+                        Some(direction),
+                    )
+                })
+                .chain(once((std::u64::MIN, None)))
+                .max_by_key(|&(p, _)| p)
+                .unwrap()
+                .1;
+            if let Some(direction) = towards {
+                let node = { possible_node }.as_mut().unwrap();
+                node.rotate(direction);
+                node.counter = node.counter - Default::default();
+                possible_node = &mut node.children[1 - direction];
+            } else {
+                return possible_node.take().map(|n| n.value).unwrap();
+            }
+        }
     }
 }
 
@@ -174,36 +204,6 @@ impl<'a, K: 'a + Copy + Ord, V: 'a, C: 'a + Counting, R: 'a + Rng> RawTreap<'a, 
         }
     }
 }
-
-/// Rotate node down until we can finally remove it.
-fn rotate_down<V, C: Counting>(removed_node: &mut Option<Box<Node<V, C>>>) -> V {
-    // compute where we go: Some(direction) or None if we stop here
-    let towards = removed_node
-        .as_ref()
-        .unwrap()
-        .children
-        .iter()
-        .enumerate()
-        .map(|(direction, node)| {
-            (
-                node.as_ref().map(|n| n.priority).unwrap_or(std::u64::MIN),
-                Some(direction),
-            )
-        })
-        .chain(once((std::u64::MIN, None)))
-        .max_by_key(|&(p, _)| p)
-        .unwrap()
-        .1;
-    if let Some(direction) = towards {
-        let node = removed_node.as_mut().unwrap();
-        node.rotate(direction);
-        node.counter = node.counter - Default::default();
-        rotate_down(&mut node.children[1 - direction])
-    } else {
-        removed_node.take().map(|n| n.value).unwrap()
-    }
-}
-
 
 fn insert_in_subtree<'a, K: Ord, V, C: Counting>(
     keys_generator: &Box<'a + Fn(&V) -> K>,
