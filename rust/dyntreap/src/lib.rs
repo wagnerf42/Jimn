@@ -107,7 +107,16 @@ where
     /// pre-condition : we contain the key.
     pub fn remove(&mut self, removed_key: &K) -> V {
         // we need to contain the key in order to update counters while going down.
-        recursive_removal(&self.keys_generator, &mut self.root, removed_key)
+        let mut possible_node = &mut self.root;
+        loop {
+            let key = (self.keys_generator)(&possible_node.as_ref().unwrap().value);
+            if key.eq(removed_key) {
+                break;
+            }
+            possible_node =
+                &mut { possible_node }.as_mut().unwrap().children[(key < *removed_key) as usize];
+        }
+        rotate_down(possible_node)
     }
 }
 
@@ -166,31 +175,10 @@ impl<'a, K: 'a + Copy + Ord, V: 'a, C: 'a + Counting, R: 'a + Rng> RawTreap<'a, 
     }
 }
 
-fn recursive_removal<'a, K: Ord, V, C: Counting>(
-    generator: &Box<'a + Fn(&V) -> K>,
-    possible_node: &mut Option<Box<Node<V, C>>>,
-    removed_key: &K,
-) -> V {
-    if let Some(ref mut current_node) = *possible_node {
-        let current_key = (generator)(&current_node.value);
-        if current_key != *removed_key {
-            current_node.counter = current_node.counter - Default::default();
-            return recursive_removal(
-                generator,
-                &mut current_node.children[(current_key < *removed_key) as usize],
-                removed_key,
-            );
-        }
-    } else {
-        panic!("trying to remove a key we do not contain");
-    }
-    rotate_down(possible_node)
-}
-
 /// Rotate node down until we can finally remove it.
 fn rotate_down<V, C: Counting>(removed_node: &mut Option<Box<Node<V, C>>>) -> V {
-    // compute where we go: left/right or stop into Option<usize>
-    let status = removed_node
+    // compute where we go: Some(direction) or None if we stop here
+    let towards = removed_node
         .as_ref()
         .unwrap()
         .children
@@ -206,7 +194,7 @@ fn rotate_down<V, C: Counting>(removed_node: &mut Option<Box<Node<V, C>>>) -> V 
         .max_by_key(|&(p, _)| p)
         .unwrap()
         .1;
-    if let Some(direction) = status {
+    if let Some(direction) = towards {
         let node = removed_node.as_mut().unwrap();
         node.rotate(direction);
         node.counter = node.counter - Default::default();
