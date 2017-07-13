@@ -10,9 +10,8 @@ use std::process::Command;
 use std::fmt::Display;
 use std::fs::File;
 use std::io::Write;
-use std::iter::once;
 use std::mem;
-use std::iter::FromIterator;
+use std::iter::{once, empty, FromIterator};
 
 use std::collections::VecDeque;
 use std::collections::Bound::*;
@@ -108,13 +107,10 @@ where
     /// pre-condition : we contain the key.
     pub fn remove(&mut self, removed_key: &K) -> V {
         // we need to contain the key in order to update counters while going down.
-
-        // i tried to do it iteratively but the borrow checker prevents me
-        // from writing : possible_node = &mut current_node.children[direction]
-        // :-(
         recursive_removal(&self.keys_generator, &mut self.root, removed_key)
     }
 }
+
 impl<'a, K: Ord + Copy, C: Counting> FromIterator<K> for RawTreap<'a, K, K, C, rand::XorShiftRng> {
     fn from_iter<I: IntoIterator<Item = K>>(iter: I) -> Self {
         let mut treap: RawTreap<_, _, _, _> = RawTreap::new();
@@ -139,13 +135,34 @@ impl<'a, K: 'a + Copy + Ord, V: 'a, C: 'a + Counting, R: 'a + Rng> RawTreap<'a, 
         }
     }
 
-    /// Iterator through all neighbouring values in given direction for which keys are
-    /// in given range.
+    /// Iterator through all values with keys in given range.
     pub fn ordered_values<S: RangeArgument<K>>(
         &'a self,
         range: S,
-    ) -> impl Iterator<Item = &'a V> + 'a {
+    ) -> impl DoubleEndedIterator<Item = &'a V> + 'a {
         self.ordered_nodes(range).map(|n| &n.value)
+    }
+
+    /// Iterate on all values with keys just less or just more
+    /// (according to given direction) than given key.
+    pub fn neighbouring_values(
+        &'a self,
+        key: K,
+        direction: usize,
+    ) -> Box<Iterator<Item = &V> + 'a> {
+        let possible_neighbour = if direction == DECREASING {
+            self.ordered_values((Unbounded, Excluded(key))).rev().next()
+        } else {
+            self.ordered_values((Excluded(key), Unbounded)).next()
+        };
+        if let Some(neighbour) = possible_neighbour {
+            let neighbour_key = (self.keys_generator)(neighbour);
+            Box::new(self.ordered_values(
+                (Included(neighbour_key), Included(neighbour_key)),
+            ))
+        } else {
+            Box::new(empty::<&V>())
+        }
     }
 }
 
