@@ -111,10 +111,14 @@ where
         //let's first find the node to remove
         let mut possible_node = &mut self.root;
         loop {
-            unimplemented!("forgot to decrease counter");
-            let key = (self.keys_generator)(&possible_node.as_ref().unwrap().value);
-            if key.eq(removed_key) {
-                break;
+            let key;
+            {
+                let current_node = possible_node.as_mut().unwrap();
+                key = (self.keys_generator)(&current_node.value);
+                if key.eq(removed_key) {
+                    break;
+                }
+                current_node.counter = current_node.counter - Default::default();
             }
             possible_node =
                 &mut { possible_node }.as_mut().unwrap().children[(key < *removed_key) as usize];

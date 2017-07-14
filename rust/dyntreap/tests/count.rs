@@ -30,6 +30,14 @@ fn dynamic_count() {
     rand::thread_rng().shuffle(&mut elements);
     let mut ctreap: CTreap<_, _> = elements.iter().cloned().collect();
     for count in (0..10).into_iter().rev() {
-        unimplemented!("remove every digit and check count is count");
+        for digit in 0..10 {
+            ctreap.remove(&digit);
+            assert_eq!(
+                count,
+                ctreap
+                    .ordered_nodes((Included(digit), Included(digit)))
+                    .len()
+            );
+        }
     }
 }
