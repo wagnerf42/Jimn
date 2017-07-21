@@ -36,17 +36,21 @@ impl Shape for ElementaryPath {
 impl ElementaryPath {
     /// Create an `ElementaryPath` segment parallel to given one.
     /// at given distance and we can be on right or left side.
-    pub fn parallel_segment(segment: &Segment,
-                            distance: NotNaN<f64>,
-                            right_side: bool,
-                            rounder: &mut PointsHash)
-                            -> ElementaryPath {
+    pub fn parallel_segment(
+        segment: &Segment,
+        distance: NotNaN<f64>,
+        right_side: bool,
+        rounder: &mut PointsHash,
+    ) -> ElementaryPath {
         let direction = if right_side { 1.0 } else { -1.0 };
         let angle = segment.start.angle_with(&segment.end) + FRAC_PI_2 * direction;
         let displacement = Point::new(distance * (angle).cos(), distance * (angle).sin());
         let start = segment.start + displacement;
         let end = segment.end + displacement;
-        ElementaryPath::Segment(Segment::new(rounder.hash_point(&start), rounder.hash_point(&end)))
+        ElementaryPath::Segment(Segment::new(
+            rounder.hash_point(&start),
+            rounder.hash_point(&end),
+        ))
     }
 
     /// Return ref on starting point.

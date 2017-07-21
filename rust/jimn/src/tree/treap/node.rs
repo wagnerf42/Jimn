@@ -60,12 +60,7 @@ impl<T, U: Counting> Node<T, U> {
     /// Returns father of given node.
     /// Do not call on sentinel node.
     pub fn father(&self) -> Node<T, U> {
-        Node(self.borrow()
-                 .father
-                 .as_ref()
-                 .unwrap()
-                 .upgrade()
-                 .unwrap())
+        Node(self.borrow().father.as_ref().unwrap().upgrade().unwrap())
     }
 
     /// Returns an option on child in given direction.
@@ -273,7 +268,7 @@ impl<T: Display, U: Counting> Node<T, U> {
                  self.id(),
                  color,
                  self.borrow().value)
-                .expect("failed writing dot");
+            .expect("failed writing dot");
 
         for child in &self.borrow().children {
             if let Some(ref child_node) = *child {

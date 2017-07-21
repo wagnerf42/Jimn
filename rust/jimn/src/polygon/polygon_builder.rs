@@ -33,10 +33,11 @@ pub fn build_polygons(segments: &[Segment]) -> Vec<Polygon> {
 }
 
 /// Builds polygon obtained when following segment. Might return None if obtained polygon is flat.
-fn build_polygon(start_segment: &Segment,
-                 points: &HashMap<Point, Vec<Point>>,
-                 remaining_segments: &mut HashSet<&Segment>)
-                 -> Option<Polygon> {
+fn build_polygon(
+    start_segment: &Segment,
+    points: &HashMap<Point, Vec<Point>>,
+    remaining_segments: &mut HashSet<&Segment>,
+) -> Option<Polygon> {
     let starting_point = start_segment.start;
     let mut previous_point = starting_point;
     let mut current_point = start_segment.end;

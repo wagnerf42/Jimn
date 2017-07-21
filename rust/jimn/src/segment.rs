@@ -22,6 +22,8 @@ pub struct Segment {
     pub start: Point,
     /// end point
     pub end: Point,
+    /// sweeping angle,
+    pub angle: NotNaN<f64>,
 }
 
 impl AsRef<Segment> for Segment {
@@ -33,9 +35,18 @@ impl AsRef<Segment> for Segment {
 impl Segment {
     /// Returns a new Segment between the two given points.
     pub fn new(start: Point, end: Point) -> Segment {
-        Segment {
-            start: start,
-            end: end,
+        if start < end {
+            Segment {
+                start: start,
+                end: end,
+                angle: end.angle_with(&start),
+            }
+        } else {
+            Segment {
+                start: start,
+                end: end,
+                angle: start.angle_with(&end),
+            }
         }
     }
 
@@ -44,6 +55,7 @@ impl Segment {
         Segment {
             start: self.end,
             end: self.start,
+            angle: self.angle,
         }
     }
 
@@ -73,8 +85,10 @@ impl Segment {
     pub fn contains(&self, point: &Point) -> bool {
         assert!(!self.start.is_almost(point));
         assert!(!self.end.is_almost(point));
-        is_almost(self.start.distance_to(point) + self.end.distance_to(point),
-                  self.start.distance_to(&self.end))
+        is_almost(
+            self.start.distance_to(point) + self.end.distance_to(point),
+            self.start.distance_to(&self.end),
+        )
     }
 
     /// Intersect with horizontal line at given y.
@@ -90,7 +104,11 @@ impl Segment {
         } else {
             let x = self.start.x + alpha * (self.end.x - self.start.x);
             let point = Point::new(x, y);
-            if self.contains(&point) { Some(x) } else { None }
+            if self.contains(&point) {
+                Some(x)
+            } else {
+                None
+            }
         }
     }
 
@@ -132,15 +150,16 @@ impl Segment {
             None // almost parallel lines
         } else {
             let alpha = (x_diff2 * (other.start.y - self.start.y) +
-                         y_diff2 * (self.start.x - other.start.x)) /
-                        denominator;
+                             y_diff2 * (self.start.x - other.start.x)) /
+                denominator;
             let beta = (x_diff * (other.start.y - self.start.y) +
-                        y_diff * (self.start.x - other.start.x)) /
-                       denominator;
+                            y_diff * (self.start.x - other.start.x)) /
+                denominator;
             let zero = NotNaN::new(0.0).unwrap();
             let one = NotNaN::new(1.0).unwrap();
             if (is_almost(0.0, alpha) || is_almost(1.0, alpha) || (zero < alpha && alpha < one)) &&
-               (is_almost(0.0, beta) || is_almost(1.0, beta) || (zero < beta && beta < one)) {
+                (is_almost(0.0, beta) || is_almost(1.0, beta) || (zero < beta && beta < one))
+            {
                 Some(self.start + direction * alpha)
             } else {
                 None
@@ -158,7 +177,11 @@ impl Segment {
         let (max2, min2) = other.ordered_points();
         let p1 = min(max1, max2);
         let p2 = max(min1, min2);
-        if p1 >= p2 { Some([p1, p2]) } else { None }
+        if p1 >= p2 {
+            Some([p1, p2])
+        } else {
+            None
+        }
     }
 
     /// Do we have given point as EXACTLY one of our endpoints ?
@@ -172,6 +195,7 @@ impl Segment {
         Segment {
             start: rounder.hash_point(&(self.start + vector)),
             end: rounder.hash_point(&(self.end + vector)),
+            angle: self.angle,
         }
     }
 
@@ -182,7 +206,7 @@ impl Segment {
         } else {
             let alpha = (NotNaN::new(0.0).unwrap() - self.start.y) / (self.end.y - self.start.y);
             let x = self.start.x + alpha * (self.end.x - self.start.x);
-            (self.sweeping_angle(), x)
+            (self.angle, x)
         }
     }
 
@@ -249,11 +273,13 @@ impl Shape for Segment {
 
     /// Returns svg string for tycat.
     fn svg_string(&self) -> String {
-        format!("<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>",
-                self.start.x,
-                self.start.y,
-                self.end.x,
-                self.end.y)
+        format!(
+            "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>",
+            self.start.x,
+            self.start.y,
+            self.end.x,
+            self.end.y
+        )
     }
 }
 

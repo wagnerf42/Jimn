@@ -2,15 +2,15 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::collections::Bound::*;
 
 use bentley_ottmann::{SegmentIndex, Key, KeyGenerator};
 use point::Point;
 use segment::Segment;
-use tree::treap::{CountingTreap, KeyComputer};
+use dyntreap::{CTreap, INCREASING};
 use super::ClippingSegment;
 
 type ClassifyEvent = (Point, Vec<SegmentIndex>, Vec<SegmentIndex>);
-type CTreap<'a> = CountingTreap<SegmentIndex, Key, KeyGenerator<'a, ClippingSegment>>;
 type Generator<'a> = Rc<RefCell<KeyGenerator<'a, ClippingSegment>>>;
 
 /// Takes a set of segments (the clip) forming a polygon and another set of segments (the clipped).
@@ -19,31 +19,38 @@ type Generator<'a> = Rc<RefCell<KeyGenerator<'a, ClippingSegment>>>;
 pub fn classify_clip_segments(segments: &[ClippingSegment]) -> Vec<Segment> {
 
     let generator = KeyGenerator::new(segments);
-    let mut crossed_clip_segments = CountingTreap::new(generator.clone());
+    let closure_generator = generator.clone();
+    let mut crossed_clip_segments =
+        CTreap::new_with_key_generator(move |index| closure_generator.borrow().compute_key(index));
     let events = create_events(segments);
     run_events(&events, generator, &mut crossed_clip_segments)
 }
 
-fn run_events(events: &[ClassifyEvent],
-              generator: Generator,
-              crossed_clip_segments: &mut CTreap)
-              -> Vec<Segment> {
+fn run_events(
+    events: &[ClassifyEvent],
+    generator: Generator,
+    crossed_clip_segments: &mut CTreap<Key, SegmentIndex>,
+) -> Vec<Segment> {
     let mut kept_segments = Vec::new();
     for event in events {
         end_segments(&event.2, &generator, crossed_clip_segments);
         generator.borrow_mut().current_point = event.0;
-        start_segments(&event.1,
-                       &generator,
-                       crossed_clip_segments,
-                       &mut kept_segments);
+        start_segments(
+            &event.1,
+            &generator,
+            crossed_clip_segments,
+            &mut kept_segments,
+        );
     }
     kept_segments
 }
 
 // Remove all clipping segments.
-fn end_segments(ending: &[SegmentIndex],
-                generator: &Generator,
-                crossed_clip_segments: &mut CTreap) {
+fn end_segments(
+    ending: &[SegmentIndex],
+    generator: &Generator,
+    crossed_clip_segments: &mut CTreap<Key, SegmentIndex>,
+) {
     for segment_index in ending {
         if generator.borrow().paths[*segment_index].clipping {
             crossed_clip_segments.remove(&generator.borrow().compute_key(segment_index));
@@ -52,14 +59,16 @@ fn end_segments(ending: &[SegmentIndex],
 }
 
 // Start all clipping segments, categorize all others.
-fn start_segments(starting: &[SegmentIndex],
-                  generator: &Generator,
-                  crossed_clip_segments: &mut CTreap,
-                  kept_segments: &mut Vec<Segment>) {
+fn start_segments(
+    starting: &[SegmentIndex],
+    generator: &Generator,
+    crossed_clip_segments: &mut CTreap<Key, SegmentIndex>,
+    kept_segments: &mut Vec<Segment>,
+) {
     // we start by adding all clip segments
     for segment_index in starting {
         if generator.borrow().paths[*segment_index].clipping {
-            crossed_clip_segments.add(*segment_index);
+            crossed_clip_segments.insert(*segment_index);
             // we keep the clipper in results
             kept_segments.push(generator.borrow().paths[*segment_index].segment);
         }
@@ -69,8 +78,12 @@ fn start_segments(starting: &[SegmentIndex],
         if !generator.borrow().paths[*segment_index].clipping {
             let key = generator.borrow().compute_key(segment_index);
             //TODO: why find_key ?
-            if crossed_clip_segments.find_key(&key).is_none() &&
-               crossed_clip_segments.number_of_larger_nodes(&key) % 2 == 1 {
+            unimplemented!("does it work with overlapping segments");
+            if crossed_clip_segments.get(&key).is_none() &&
+                crossed_clip_segments
+                    .ordered_nodes((Excluded(key), Unbounded))
+                    .count() % 2 == 1
+            {
                 kept_segments.push(generator.borrow().paths[*segment_index].segment);
             }
         }
@@ -93,10 +106,7 @@ fn create_events(segments: &[ClippingSegment]) -> Vec<ClassifyEvent> {
             .push(index);
     }
 
-    let mut events: Vec<_> = raw_events
-        .into_iter()
-        .map(|(k, v)| (k, v.0, v.1))
-        .collect();
+    let mut events: Vec<_> = raw_events.into_iter().map(|(k, v)| (k, v.0, v.1)).collect();
     events.sort_by(|a, b| b.0.cmp(&a.0));
     events
 }

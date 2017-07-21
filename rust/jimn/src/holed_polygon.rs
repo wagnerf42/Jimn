@@ -82,7 +82,6 @@ pub fn build_holed_polygons(polygons: Vec<Polygon>) -> Vec<HoledPolygon> {
     let result: Vec<HoledPolygon> = holed_polygons.drain().map(|(_, v)| v).collect();
     result
 }
-
 /// Turns slices of 3d model into holed polygon tree.
 pub fn build_holed_polygons_tree(slices: &[(NotNaN<f64>, Vec<Segment>)]) -> Tree<HoledPolygon> {
     let mut holed_polygons_tree = Tree::new();

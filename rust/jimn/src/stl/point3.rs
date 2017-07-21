@@ -31,11 +31,12 @@ impl Point3 {
     /// at given height.
     /// Pre-condition: one point on each side of the height.
     #[inline]
-    pub fn segment_intersection(&self,
-                                end: &Point3,
-                                height: NotNaN<f64>,
-                                hasher: &mut PointsHash)
-                                -> Option<Point> {
+    pub fn segment_intersection(
+        &self,
+        end: &Point3,
+        height: NotNaN<f64>,
+        hasher: &mut PointsHash,
+    ) -> Option<Point> {
         let lower_z = min(self.z, end.z);
         let higher_z = max(self.z, end.z);
         if height < lower_z || height > higher_z {

@@ -10,10 +10,12 @@ use utils::coordinates_hash::PointsHash;
 
 /// Add to given vector all paths obtained when taking inner parallel segments in a polygon
 /// (displaced by radius) and looping around endpoints.
-pub fn inner_paths<T: Into<NotNaN<f64>>>(polygon: &Polygon,
-                                         radius: T,
-                                         paths: &mut Vec<ElementaryPath>,
-                                         rounder: &mut PointsHash) {
+pub fn inner_paths<T: Into<NotNaN<f64>>>(
+    polygon: &Polygon,
+    radius: T,
+    paths: &mut Vec<ElementaryPath>,
+    rounder: &mut PointsHash,
+) {
     let radius = radius.into();
     let mut segments = polygon.segments();
     let first_segment = segments.next().unwrap();
@@ -25,10 +27,12 @@ pub fn inner_paths<T: Into<NotNaN<f64>>>(polygon: &Polygon,
     paths.push(first_inner_segment);
     for segment in segments {
         let inner_segment = ElementaryPath::parallel_segment(&segment, radius, true, rounder);
-        let arc = Arc::new(previous_point,
-                           *inner_segment.start(),
-                           segment.start,
-                           radius);
+        let arc = Arc::new(
+            previous_point,
+            *inner_segment.start(),
+            segment.start,
+            radius,
+        );
         let sub_arcs = arc.split_for_unique_y(rounder);
         if let Some((a1, a2)) = sub_arcs {
             paths.push(ElementaryPath::Arc(a1));
@@ -42,14 +46,18 @@ pub fn inner_paths<T: Into<NotNaN<f64>>>(polygon: &Polygon,
     }
     //add last arc
     let last_point = *paths.last().unwrap().end();
-    paths.push(ElementaryPath::Arc(Arc::new(last_point, start_point, start_center, radius)));
+    paths.push(ElementaryPath::Arc(
+        Arc::new(last_point, start_point, start_center, radius),
+    ));
 }
 
 /// Offset given `HoledPolygon` at given distance.
 /// Return a vector of `HoledPocket`.
-pub fn offset_holed_polygon<T: Into<NotNaN<f64>>>(holed_polygon: &HoledPolygon,
-                                                  radius: T,
-                                                  rounder: &mut PointsHash) {
+pub fn offset_holed_polygon<T: Into<NotNaN<f64>>>(
+    holed_polygon: &HoledPolygon,
+    radius: T,
+    rounder: &mut PointsHash,
+) {
     let mut raw_paths = Vec::new();
     let radius = radius.into();
     for polygon in holed_polygon.polygons() {

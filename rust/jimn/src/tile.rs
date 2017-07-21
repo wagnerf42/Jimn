@@ -37,20 +37,24 @@ impl Tile {
     }
 
     /// Tile one line with ourselves, starting from given coordinates.
-    fn tile_line(&self,
-                 rounder: &mut PointsHash,
-                 current_x: NotNaN<f64>,
-                 current_y: NotNaN<f64>,
-                 right_x: NotNaN<f64>,
-                 result: &mut Vec<Segment>) {
+    fn tile_line(
+        &self,
+        rounder: &mut PointsHash,
+        current_x: NotNaN<f64>,
+        current_y: NotNaN<f64>,
+        right_x: NotNaN<f64>,
+        result: &mut Vec<Segment>,
+    ) {
         let width = right_x + self.horizontal_move - current_x;
         let steps = (width / self.horizontal_move).ceil() as usize;
         for step in 0..steps {
             let x = current_x + self.horizontal_move * (step as f64);
             let translation = Point::new(x, current_y);
-            result.extend(self.segments
-                              .iter()
-                              .map(|s| s.translate(&translation, rounder)));
+            result.extend(
+                self.segments
+                    .iter()
+                    .map(|s| s.translate(&translation, rounder)),
+            );
         }
     }
 }
@@ -90,9 +94,11 @@ pub fn hexagonal_tile<T: Into<NotNaN<f64>>, U: Into<NotNaN<f64>>>(width: T, heig
     let p3 = Point::new(-x - w / 2.0, -y);
     let p4 = Point::new(-w, 0.0);
     Tile {
-        segments: vec![Segment::new(p1, p2),
-                       Segment::new(p2, p3),
-                       Segment::new(p3, p4)],
+        segments: vec![
+            Segment::new(p1, p2),
+            Segment::new(p2, p3),
+            Segment::new(p3, p4),
+        ],
         horizontal_move: w + x * 2.0,
         vertical_move: y,
         horizontal_offset: w / 2.0 + x,

@@ -12,8 +12,10 @@ pub fn remove_overlaps(segments: &[Segment]) -> Vec<Segment> {
     let mut events = HashMap::new();
     for segment in segments {
         let key = segment.line_key();
-        let adjusted_key = (key_hashes[0].hash_coordinate(key.0),
-                            key_hashes[1].hash_coordinate(key.1));
+        let adjusted_key = (
+            key_hashes[0].hash_coordinate(key.0),
+            key_hashes[1].hash_coordinate(key.1),
+        );
         let line_entry = events.entry(adjusted_key).or_insert_with(HashMap::new);
         {
             let start_entry = line_entry.entry(segment.start).or_insert(0);
@@ -23,7 +25,6 @@ pub fn remove_overlaps(segments: &[Segment]) -> Vec<Segment> {
         *end_entry -= 1;
     }
     let mut results = Vec::new();
-    /// Now follow points on each line to get what we want.
     for line_events in events.values() {
         play_line_events(line_events, &mut results);
     }

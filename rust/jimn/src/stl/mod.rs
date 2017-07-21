@@ -66,9 +66,11 @@ impl Stl {
         };
         let mut facets_data = Cursor::new(buffer);
         for _ in 0..facets_number {
-            model
-                .facets
-                .push(Facet::new(&mut facets_data, &mut model.dimensions, &mut model.heights));
+            model.facets.push(Facet::new(
+                &mut facets_data,
+                &mut model.dimensions,
+                &mut model.heights,
+            ));
         }
         Ok(model)
     }
@@ -80,11 +82,10 @@ impl Stl {
         let slices_number = (height / thickness).ceil() as usize;
         let extra_height = (thickness * (slices_number as f64) - height) / 2.0;
         let cut_heights = (0..slices_number).map(|z| {
-                                                     min_height - extra_height + thickness / 2.0 +
-                                                     thickness * (z as f64)
-                                                 });
-        let mut events: Vec<CuttingEvent> = Vec::with_capacity(slices_number +
-                                                               2 * self.facets.len());
+            min_height - extra_height + thickness / 2.0 + thickness * (z as f64)
+        });
+        let mut events: Vec<CuttingEvent> =
+            Vec::with_capacity(slices_number + 2 * self.facets.len());
         for (index, facet) in self.facets.iter().enumerate() {
             let (zmin, zmax) = facet.height_limits();
             let start_event = CuttingEvent {
@@ -103,20 +104,21 @@ impl Stl {
 
         for height in cut_heights {
             events.push(CuttingEvent {
-                            height: self.heights.lookup_coordinate(height),
-                            event_type: EventType::Cut,
-                            facet: None,
-                        });
+                height: self.heights.lookup_coordinate(height),
+                event_type: EventType::Cut,
+                facet: None,
+            });
         }
         events
     }
 
     /// Cuts model into slices of given thickness.
     /// Returns vector of tuples (height, slice).
-    pub fn compute_slices<T: Into<NotNaN<f64>>>(&self,
-                                                thickness: T,
-                                                hasher: &mut PointsHash)
-                                                -> Vec<(NotNaN<f64>, Vec<Segment>)> {
+    pub fn compute_slices<T: Into<NotNaN<f64>>>(
+        &self,
+        thickness: T,
+        hasher: &mut PointsHash,
+    ) -> Vec<(NotNaN<f64>, Vec<Segment>)> {
         let mut events = self.generate_cutting_events(thickness.into());
         events.sort_by_key(|a| (a.height, a.event_type));
         let mut facets: HashSet<usize> = HashSet::new();

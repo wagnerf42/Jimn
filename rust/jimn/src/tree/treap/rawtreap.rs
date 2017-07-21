@@ -153,18 +153,16 @@ impl<'a, T: 'a + Default + Eq, U: 'a + Counting, V: 'a + Ord + Clone, W: 'a + Ke
 
         let mut first_key = None;
         let generator = self.key_generator.clone();
-        nodes
-            .take(2)
-            .filter(move |n| {
-                let key = generator.borrow().compute_key(&n.borrow().value);
-                let keep = if let Some(ref first) = first_key {
-                    *first == key
-                } else {
-                    first_key = Some(key);
-                    true
-                };
-                keep
-            })
+        nodes.take(2).filter(move |n| {
+            let key = generator.borrow().compute_key(&n.borrow().value);
+            let keep = if let Some(ref first) = first_key {
+                *first == key
+            } else {
+                first_key = Some(key);
+                true
+            };
+            keep
+        })
     }
 }
 
@@ -246,12 +244,7 @@ pub struct DepthFirstIterator<T, U: Counting> {
 }
 
 /// Ordered iterator on all Nodes.
-pub struct OrderedIterator<'a,
-                           T: 'a + Default + Eq,
-                           U: 'a + Counting,
-                           V: 'a + Ord,
-                           W: 'a + KeyComputer<T, V>>
-{
+pub struct OrderedIterator<'a, T: 'a + Default + Eq, U: 'a + Counting, V: 'a + Ord, W: 'a + KeyComputer<T, V>> {
     direction: usize,
     limits: [Option<V>; 2],
     treap: &'a RawTreap<T, U, V, W>,

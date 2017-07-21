@@ -142,8 +142,8 @@ impl<'a> Polygon {
     pub fn simplify(&self) -> Polygon {
         //triangle area
         fn area(p1: &Point, p2: &Point, p3: &Point) -> NotNaN<f64> {
-            let a = (p1.cross_product(p2) + p2.cross_product(p3) + p3.cross_product(p1)).abs() /
-                    2.0;
+            let a =
+                (p1.cross_product(p2) + p2.cross_product(p3) + p3.cross_product(p1)).abs() / 2.0;
             NotNaN::new(a).unwrap()
         }
 
@@ -153,11 +153,13 @@ impl<'a> Polygon {
             .iter()
             .zip(self.points.iter().cycle().skip(1))
             .zip(self.points.iter().cycle().skip(2))
-            .filter_map(|((p1, p2), p3)| if area(p1, p2, p3) < NotNaN::new(0.000001).unwrap() {
-                            None
-                        } else {
-                            Some(*p2)
-                        })
+            .filter_map(|((p1, p2), p3)| {
+                if area(p1, p2, p3) < NotNaN::new(0.000001).unwrap() {
+                    None
+                } else {
+                    Some(*p2)
+                }
+            })
             .collect();
         //now remove aligned points
         let final_points: Vec<Point> = new_points
@@ -165,10 +167,10 @@ impl<'a> Polygon {
             .zip(new_points.iter().cycle().skip(1))
             .zip(new_points.iter().cycle().skip(2))
             .filter_map(|((p1, p2), p3)| if p1.is_aligned_with(p2, p3) {
-                            None
-                        } else {
-                            Some(*p2)
-                        })
+                None
+            } else {
+                Some(*p2)
+            })
             .collect();
         assert!(final_points.len() > 2);
         Polygon::new(final_points)
@@ -207,9 +209,11 @@ impl Shape for Polygon {
 /// Return a square polygon with top left corner at given (x,y) and side of l.
 pub fn square(x: f64, y: f64, l: f64) -> Polygon {
     Polygon {
-        points: vec![Point::new(x, y),
-                     Point::new(x + l, y),
-                     Point::new(x + l, y + l),
-                     Point::new(x, y + l)],
+        points: vec![
+            Point::new(x, y),
+            Point::new(x + l, y),
+            Point::new(x + l, y + l),
+            Point::new(x, y + l),
+        ],
     }
 }

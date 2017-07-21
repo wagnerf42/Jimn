@@ -23,6 +23,8 @@ extern crate byteorder;
 extern crate rand;
 extern crate ordered_float;
 extern crate test;
+extern crate dyntreap;
+extern crate itertools;
 
 pub mod utils;
 #[macro_use]
@@ -33,6 +35,7 @@ pub use point::Point;
 pub mod stl;
 pub mod tree;
 pub mod bentley_ottmann;
+pub mod bentley_ottmann2;
 pub mod classifier;
 pub mod clipper;
 pub mod polygon;
@@ -49,10 +52,12 @@ pub use elementary_path::ElementaryPath;
 pub mod pocket;
 pub use pocket::Pocket;
 pub mod offsetter;
+pub(crate) mod comparison;
+
 
 use stl::Stl;
 use utils::coordinates_hash::PointsHash;
-use holed_polygon::build_holed_polygons_tree;
+//use holed_polygon::build_holed_polygons_tree;
 use overlap::remove_overlaps;
 
 /// Computes the milling path for given slices thickness, milling radius and stl file.
@@ -69,8 +74,8 @@ pub fn compute_milling_path(thickness: f64, milling_radius: f64, stl_file: &str)
         non_overlapping_segments.extend(model.dimensions.segments(&mut rounder));
         slice.1 = non_overlapping_segments;
     }
-    let holed_polygons = build_holed_polygons_tree(&slices);
-    holed_polygons
-        .tycat()
-        .expect("failed displaying holed polygons tree");
+    //    let holed_polygons = build_holed_polygons_tree(&slices);
+    //    holed_polygons
+    //        .tycat()
+    //        .expect("failed displaying holed polygons tree");
 }

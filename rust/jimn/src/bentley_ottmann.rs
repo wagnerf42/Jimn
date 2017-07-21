@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use std::collections::{HashMap, HashSet, BinaryHeap};
 use ordered_float::NotNaN;
 use {Point, Segment};
-use tree::treap::{Treap, KeyComputer};
+use dyntreap::Treap;
 use utils::ArrayMap;
 use utils::coordinates_hash::PointsHash;
 
@@ -35,22 +35,20 @@ pub struct KeyGenerator<'a, T: 'a + AsRef<Segment>> {
 impl<'a, T: AsRef<Segment>> KeyGenerator<'a, T> {
     /// Create a key generator from segments.
     pub fn new(paths: &'a [T]) -> Rc<RefCell<KeyGenerator<'a, T>>> {
-        let angles_cache = paths
-            .iter()
-            .map(|p| p.as_ref().sweeping_angle())
-            .collect();
+        let angles_cache = paths.iter().map(|p| p.as_ref().sweeping_angle()).collect();
         Rc::new(RefCell::new(KeyGenerator {
-                                 //initial current point does not matter
-                                 current_point: Default::default(),
-                                 paths: paths,
-                                 x_coordinates: HashMap::with_capacity(3 * paths.len()),
-                                 angles_cache: angles_cache,
-                             }))
+            //initial current point does not matter
+            current_point: Default::default(),
+            paths: paths,
+            x_coordinates: HashMap::with_capacity(3 * paths.len()),
+            angles_cache: angles_cache,
+        }))
     }
 }
 
-impl<'a, T: AsRef<Segment>> KeyComputer<SegmentIndex, Key> for KeyGenerator<'a, T> {
-    fn compute_key(&self, segment: &SegmentIndex) -> Key {
+impl<'a, T: AsRef<Segment>> KeyGenerator<'a, T> {
+    /// Return comparison key for given segment at current position.
+    pub fn compute_key(&self, segment: &SegmentIndex) -> Key {
         let (current_x, current_y) = self.current_point.coordinates();
         let s = self.paths[*segment].as_ref();
         let angle = self.angles_cache[*segment];
@@ -112,15 +110,19 @@ struct Cutter<'a, 'b, T: 'a + AsRef<Segment>> {
     rounder: &'b mut PointsHash,
 }
 
+
 impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
-    fn new(paths: &'a [T],
-           rounder: &'b mut PointsHash)
-           -> (Cutter<'a, 'b, T>, Treap<SegmentIndex, Key, KeyGenerator<'a, T>>) {
+    fn new(
+        paths: &'a [T],
+        rounder: &'b mut PointsHash,
+    ) -> (Cutter<'a, 'b, T>, Treap<'a, Key, SegmentIndex>) {
 
         //guess the capacity of all our events related hash tables.
         //we need to be above truth to avoid collisions but not too much above.
         let generator = KeyGenerator::new(paths);
-        let crossed_segments = Treap::new(generator.clone());
+        let closure_generator = generator.clone();
+        let get_key = move |index: &SegmentIndex| closure_generator.borrow().compute_key(index);
+        let crossed_segments = Treap::new_with_key_generator(get_key);
 
         let mut cutter = Cutter {
             intersections: HashMap::new(),
@@ -152,23 +154,19 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
     fn add_event(&mut self, event_point: Point, path: SegmentIndex, event_type: usize) {
         let events = &mut self.events;
         // if there is no event data it's a new event
-        self.events_data
-            .entry(event_point)
-            .or_insert_with(|| {
-                                events.push(event_point);
-                                [HashSet::new(), HashSet::new()]
-                            })
+        self.events_data.entry(event_point).or_insert_with(|| {
+            events.push(event_point);
+            [HashSet::new(), HashSet::new()]
+        })
             [event_type]
-                .insert(path);
+            .insert(path);
     }
 
     /// Try intersecting given segments.
     fn try_intersecting(&mut self, indices: [SegmentIndex; 2]) {
         let segments = indices.map(|i| &self.key_generator.borrow().paths[*i]);
         let current_point = self.key_generator.borrow().current_point;
-        let possible_intersection = segments[0]
-            .as_ref()
-            .intersection_with(segments[1].as_ref());
+        let possible_intersection = segments[0].as_ref().intersection_with(segments[1].as_ref());
         if let Some(raw_intersection) = possible_intersection {
             let intersection = self.rounder.hash_point(&raw_intersection);
             if intersection > current_point {
@@ -196,9 +194,11 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
 
     /// End a set of segments.
     /// Checks for possible intersections to add in the system.
-    fn end_segments(&mut self,
-                    segments: &mut Vec<SegmentIndex>,
-                    crossed_segments: &mut Treap<SegmentIndex, Key, KeyGenerator<'a, T>>) {
+    fn end_segments(
+        &mut self,
+        segments: &mut Vec<SegmentIndex>,
+        crossed_segments: &mut Treap<Key, SegmentIndex>,
+    ) {
         if segments.is_empty() {
             return;
         }
@@ -213,18 +213,20 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
         }
         let small_key = &sorted_segments.first().unwrap().0;
         let big_key = &sorted_segments.last().unwrap().0;
-        for small in crossed_segments.neighbouring_values(small_key, 0) {
-            for big in crossed_segments.neighbouring_values(big_key, 1) {
-                self.try_intersecting([small, big]);
+        for small in crossed_segments.neighbouring_values(*small_key, 0) {
+            for big in crossed_segments.neighbouring_values(*big_key, 1) {
+                self.try_intersecting([*small, *big]);
             }
         }
     }
 
     /// Start a set of segments.
     /// Checks for possible intersections to add in the system.
-    fn start_segments(&mut self,
-                      segments: &mut Vec<SegmentIndex>,
-                      crossed_segments: &mut Treap<SegmentIndex, Key, KeyGenerator<'a, T>>) {
+    fn start_segments(
+        &mut self,
+        segments: &mut Vec<SegmentIndex>,
+        crossed_segments: &mut Treap<Key, SegmentIndex>,
+    ) {
         if segments.is_empty() {
             return;
         }
@@ -237,29 +239,27 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
         sorted_segments.sort();
 
         for &(ref new_key, segment) in &sorted_segments {
-            let same_key_node = crossed_segments.find_key(new_key);
+            {
+                let same_key_node = crossed_segments.get(new_key);
 
-            if let Some(overlap_node) = same_key_node {
-                // handle overlaps
-                let overlap_index = overlap_node.borrow().value;
-                self.handle_overlapping_segments(*segment, overlap_index);
+                if let Some(overlap_index) = same_key_node {
+                    // handle overlaps
+                    self.handle_overlapping_segments(*segment, *overlap_index);
+                }
             }
-            crossed_segments.add(*segment);
+            crossed_segments.insert(*segment);
         }
 
         let small_key = &sorted_segments.first().unwrap().0;
         for &(_, added_small) in sorted_segments.iter().take_while(|t| t.0 == *small_key) {
-            for existing_small in crossed_segments.neighbouring_values(small_key, 0) {
-                self.try_intersecting([*added_small, existing_small]);
+            for existing_small in crossed_segments.neighbouring_values(*small_key, 0) {
+                self.try_intersecting([*added_small, *existing_small]);
             }
         }
         let big_key = &sorted_segments.last().unwrap().0;
-        for &(_, added_big) in sorted_segments
-                .iter()
-                .rev()
-                .take_while(|t| t.0 == *big_key) {
-            for existing_big in crossed_segments.neighbouring_values(big_key, 1) {
-                self.try_intersecting([*added_big, existing_big]);
+        for &(_, added_big) in sorted_segments.iter().rev().take_while(|t| t.0 == *big_key) {
+            for existing_big in crossed_segments.neighbouring_values(*big_key, 1) {
+                self.try_intersecting([*added_big, *existing_big]);
             }
         }
     }
@@ -283,7 +283,7 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
     }
 
     /// Main algorithm's loop.
-    fn run(&mut self, crossed_segments: &mut Treap<SegmentIndex, Key, KeyGenerator<'a, T>>) {
+    fn run(&mut self, crossed_segments: &mut Treap<Key, SegmentIndex>) {
         while !self.events.is_empty() {
             let event_point = self.events.pop().unwrap();
             let mut starting_segments: Vec<SegmentIndex>;
@@ -303,9 +303,10 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
 
 /// Computes all intersections amongst given segments
 /// and return a hashmap associating to each segment's index the set of intersection points found.
-pub fn bentley_ottmann<T: AsRef<Segment>>(segments: &[T],
-                                          rounder: &mut PointsHash)
-                                          -> HashMap<usize, HashSet<Point>> {
+pub fn bentley_ottmann<T: AsRef<Segment>>(
+    segments: &[T],
+    rounder: &mut PointsHash,
+) -> HashMap<usize, HashSet<Point>> {
 
     let (mut cutter, mut crossed_segments) = Cutter::new(segments, rounder);
     cutter.run(&mut crossed_segments);
@@ -315,24 +316,27 @@ pub fn bentley_ottmann<T: AsRef<Segment>>(segments: &[T],
 /// A path is `Cuttable` if you can cut it into subpaths at given points.
 pub trait Cuttable {
     /// Cut path at all given points.
-    fn cut(&self, points: &HashSet<Point>) -> Vec<Self> where Self: Sized;
+    fn cut(&self, points: &HashSet<Point>) -> Vec<Self>
+    where
+        Self: Sized;
 }
 
 /// Cut all segments with intersection points obtained from `bentley_ottmann`.
-pub fn cut_segments<T: Cuttable + Clone>(segments: &[T],
-                                         cut_points: &HashMap<SegmentIndex, HashSet<Point>>)
-                                         -> Vec<T> {
+pub fn cut_segments<T: Cuttable + Clone>(
+    segments: &[T],
+    cut_points: &HashMap<SegmentIndex, HashSet<Point>>,
+) -> Vec<T> {
     segments
         .iter()
         .enumerate()
         .flat_map(|(i, segment)| {
-                      let cuts = cut_points.get(&i);
-                      if let Some(points) = cuts {
-                          segment.cut(points)
-                      } else {
-                          vec![segment.clone()]
-                      }
-                  })
+            let cuts = cut_points.get(&i);
+            if let Some(points) = cuts {
+                segment.cut(points)
+            } else {
+                vec![segment.clone()]
+            }
+        })
         .collect()
 }
 

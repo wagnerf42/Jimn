@@ -1,6 +1,4 @@
 //! All trees structures and related functions.
-pub mod treap;
-
 use std::collections::VecDeque;
 use std::fs::File;
 use std::io;
@@ -55,11 +53,11 @@ impl<T: Default + Shape> Tree<T> {
     pub fn new() -> Self {
         let mut nodes = Vec::new();
         nodes.push(Node {
-                       value: Default::default(),
-                       index: 0,
-                       father: None,
-                       children: Vec::new(),
-                   });
+            value: Default::default(),
+            index: 0,
+            father: None,
+            children: Vec::new(),
+        });
         Tree { nodes: nodes }
     }
 
@@ -72,13 +70,12 @@ impl<T: Default + Shape> Tree<T> {
     /// (to be re-connected later)
     pub fn add_node(&mut self, value: T) -> NodeIndex {
         let index = self.nodes.len();
-        self.nodes
-            .push(Node {
-                      value: value,
-                      index: index,
-                      father: None,
-                      children: Vec::new(),
-                  });
+        self.nodes.push(Node {
+            value: value,
+            index: index,
+            father: None,
+            children: Vec::new(),
+        });
         index
     }
 
@@ -116,18 +113,18 @@ impl<T: Default + Shape> Tree<T> {
     /// current_index : node currently considered for moving up ;
     /// last_valid_ancestor : last ancestor respecting the constraint ;
     /// child_number : index of current node in children vector of its father
-    fn recursive_rebranch_upward(&mut self,
-                                 index_limit: NodeIndex,
-                                 current_index: NodeIndex,
-                                 last_valid_ancestor: NodeIndex,
-                                 child_number: usize) {
+    fn recursive_rebranch_upward(
+        &mut self,
+        index_limit: NodeIndex,
+        current_index: NodeIndex,
+        last_valid_ancestor: NodeIndex,
+        child_number: usize,
+    ) {
         if let Some(father) = self.nodes[current_index].father {
             if father >= index_limit {
                 self.nodes[current_index].father = Some(last_valid_ancestor);
                 self.nodes[father].children.swap_remove(child_number);
-                self.nodes[last_valid_ancestor]
-                    .children
-                    .push(current_index);
+                self.nodes[last_valid_ancestor].children.push(current_index);
             }
         }
         let children = self.nodes[current_index].children.clone();
@@ -139,10 +136,12 @@ impl<T: Default + Shape> Tree<T> {
             } else {
                 last_valid_ancestor
             };
-            self.recursive_rebranch_upward(index_limit,
-                                           *child,
-                                           new_last_valid_ancestor,
-                                           new_child_number);
+            self.recursive_rebranch_upward(
+                index_limit,
+                *child,
+                new_last_valid_ancestor,
+                new_child_number,
+            );
         }
     }
 
@@ -202,10 +201,12 @@ impl<T: Default + Shape> Tree<T> {
     /// Nodes_written is used to compute a node color matching the colors used in displaying shapes.
     fn write_dot(&self, file: &mut File) -> io::Result<()> {
         for (index, node) in self.walk().enumerate() {
-            writeln!(file,
-                     "n{} [color={}, style=filled];",
-                     node.index,
-                     SVG_COLORS[index % SVG_COLORS.len()])?;
+            writeln!(
+                file,
+                "n{} [color={}, style=filled];",
+                node.index,
+                SVG_COLORS[index % SVG_COLORS.len()]
+            )?;
             if let Some(father) = node.father {
                 writeln!(file, "n{} -> n{}", father, node.index)?;
             }

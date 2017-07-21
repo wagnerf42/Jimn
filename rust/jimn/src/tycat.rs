@@ -14,41 +14,43 @@ use ordered_float::NotNaN;
 static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
 
 /// Common colors
-pub const SVG_COLORS: [&'static str; 35] = ["red",
-                                            "green",
-                                            "blue",
-                                            "purple",
-                                            "orange",
-                                            "saddlebrown",
-                                            "mediumseagreen",
-                                            "darkolivegreen",
-                                            "lightskyblue",
-                                            "dimgray",
-                                            "mediumpurple",
-                                            "midnightblue",
-                                            "chartreuse",
-                                            "darkorchid",
-                                            "hotpink",
-                                            "peru",
-                                            "goldenrod",
-                                            "mediumslateblue",
-                                            "orangered",
-                                            "darkmagenta",
-                                            "darkgoldenrod",
-                                            "mediumslateblue",
-                                            "firebrick",
-                                            "palegreen",
-                                            "royalblue",
-                                            "tan",
-                                            "tomato",
-                                            "springgreen",
-                                            "pink",
-                                            "orchid",
-                                            "saddlebrown",
-                                            "moccasin",
-                                            "mistyrose",
-                                            "cornflowerblue",
-                                            "darkgrey"];
+pub const SVG_COLORS: [&'static str; 35] = [
+    "red",
+    "green",
+    "blue",
+    "purple",
+    "orange",
+    "saddlebrown",
+    "mediumseagreen",
+    "darkolivegreen",
+    "lightskyblue",
+    "dimgray",
+    "mediumpurple",
+    "midnightblue",
+    "chartreuse",
+    "darkorchid",
+    "hotpink",
+    "peru",
+    "goldenrod",
+    "mediumslateblue",
+    "orangered",
+    "darkmagenta",
+    "darkgoldenrod",
+    "mediumslateblue",
+    "firebrick",
+    "palegreen",
+    "royalblue",
+    "tan",
+    "tomato",
+    "springgreen",
+    "pink",
+    "orchid",
+    "saddlebrown",
+    "moccasin",
+    "mistyrose",
+    "cornflowerblue",
+    "darkgrey",
+];
 
 /// tycat given svg strings bounded by given quadrant.
 pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
@@ -58,39 +60,46 @@ pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
     let mut svg_file = File::create(&filename)?;
 
     // write header
-    svg_file
-        .write_all(b"<svg width=\"640\" height=\"480\" ")?;
+    svg_file.write_all(b"<svg width=\"640\" height=\"480\" ")?;
     let (xmin, xmax) = quadrant.limits(0);
     let (ymin, ymax) = quadrant.limits(1);
     let width = xmax - xmin;
     let height = ymax - ymin;
-    write!(svg_file,
-           "viewBox=\"{} {} {} {}\" ",
-           xmin,
-           ymin,
-           width,
-           height)?;
+    write!(
+        svg_file,
+        "viewBox=\"{} {} {} {}\" ",
+        xmin,
+        ymin,
+        width,
+        height
+    )?;
     svg_file
         .write_all(b"xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n")?;
 
     // white background
     write!(svg_file, "<rect x=\"{}\" y=\"{}\" ", xmin, ymin)?;
-    write!(svg_file,
-           "width=\"{}\" height=\"{}\" fill=\"white\"/>\n",
-           width,
-           height)?;
+    write!(
+        svg_file,
+        "width=\"{}\" height=\"{}\" fill=\"white\"/>\n",
+        width,
+        height
+    )?;
 
     // circle definition and stroke size
     let xscale = NotNaN::new(640.0).unwrap() / width;
     let yscale = NotNaN::new(480.0).unwrap() / height;
     let scale = min(xscale, yscale);
     let stroke = 3.0 / scale.into_inner();
-    write!(svg_file,
-           "<defs><symbol id=\"c\"><circle r=\"{}\"/></symbol></defs>\n",
-           2.0 * stroke)?;
-    write!(svg_file,
-           "<g stroke-width=\"{}\" opacity=\"0.7\">\n",
-           stroke)?;
+    write!(
+        svg_file,
+        "<defs><symbol id=\"c\"><circle r=\"{}\"/></symbol></defs>\n",
+        2.0 * stroke
+    )?;
+    write!(
+        svg_file,
+        "<g stroke-width=\"{}\" opacity=\"0.7\">\n",
+        stroke
+    )?;
 
     for (svg_string, color) in svg_strings.iter().zip(SVG_COLORS.iter().cycle()) {
         write!(svg_file, "<g fill=\"{}\" stroke=\"{}\">\n", color, color)?;
@@ -103,8 +112,9 @@ pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
 }
 
 /// Display given `Shape` iterable using one different color for each element.
-pub fn colored_display<'a, T: 'a + Shape, U: IntoIterator<Item = &'a T>>(things: U)
-                                                                         -> io::Result<()> {
+pub fn colored_display<'a, T: 'a + Shape, U: IntoIterator<Item = &'a T>>(
+    things: U,
+) -> io::Result<()> {
     let mut quadrant = Quadrant::new(2);
     let mut strings = Vec::new();
     for thing in things {

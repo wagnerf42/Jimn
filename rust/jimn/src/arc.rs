@@ -26,7 +26,8 @@ impl Arc {
             radius: radius.into(),
         };
         if !(is_almost(arc.center.distance_to(&arc.start), arc.radius) &&
-             is_almost(arc.center.distance_to(&arc.end), arc.radius)) {
+                 is_almost(arc.center.distance_to(&arc.end), arc.radius))
+        {
             arc.adjust_center();
         }
         arc
@@ -36,9 +37,9 @@ impl Arc {
     /// This can happen for example when endpoints have been rounded.
     fn adjust_center(&mut self) {
         self.center = *self.compute_centers()
-                           .iter()
-                           .min_by_key(|c| c.distance_to(&self.center))
-                           .unwrap();
+            .iter()
+            .min_by_key(|c| c.distance_to(&self.center))
+            .unwrap();
     }
 
     /// Return array of the two centers we could have.
@@ -49,9 +50,11 @@ impl Arc {
         // find bisector
         let middle = translated_end / 2.0;
         let bisector_point = middle + translated_end.perpendicular_vector();
-        let intersections = line_circle_intersections(&[middle, bisector_point],
-                                                      &Point::new(0.0, 0.0),
-                                                      self.radius);
+        let intersections = line_circle_intersections(
+            &[middle, bisector_point],
+            &Point::new(0.0, 0.0),
+            self.radius,
+        );
         assert_eq!(intersections.len(), 2);
         intersections.iter().map(|i| self.start + i).collect()
     }
@@ -59,7 +62,7 @@ impl Arc {
     /// Return normalized angle of points with center.
     pub fn angle(&self) -> NotNaN<f64> {
         (self.center.angle_with(&self.start) - self.center.angle_with(&self.end) + 2.0 * PI) %
-        (2.0 * PI)
+            (2.0 * PI)
     }
 
     /// Do we contain given point ?
@@ -97,8 +100,10 @@ impl Arc {
             let extremum = self.center + Point::new(0.0, self.radius * *direction);
             if self.strictly_contains(&extremum) {
                 let rounded_extremum = rounder.hash_point(&extremum);
-                return Some((Arc::new(self.start, rounded_extremum, self.center, self.radius),
-                             Arc::new(rounded_extremum, self.end, self.center, self.radius)));
+                return Some((
+                    Arc::new(self.start, rounded_extremum, self.center, self.radius),
+                    Arc::new(rounded_extremum, self.end, self.center, self.radius),
+                ));
             }
         }
         None
@@ -123,22 +128,25 @@ impl Shape for Arc {
         } else {
             0
         };
-        let arc_string = format!("<path d=\"M{},{} A{},{} 0 0,{} {},{}\" fill=\"none\"/>",
-                                 self.start.x,
-                                 self.start.y,
-                                 self.radius,
-                                 self.radius,
-                                 sweep_flag,
-                                 self.end.x,
-                                 self.end.y);
+        let arc_string = format!(
+            "<path d=\"M{},{} A{},{} 0 0,{} {},{}\" fill=\"none\"/>",
+            self.start.x,
+            self.start.y,
+            self.radius,
+            self.radius,
+            sweep_flag,
+            self.end.x,
+            self.end.y
+        );
         center_string + &arc_string
     }
 }
 
-fn line_circle_intersections(segment: &[Point; 2],
-                             center: &Point,
-                             radius: NotNaN<f64>)
-                             -> Vec<Point> {
+fn line_circle_intersections(
+    segment: &[Point; 2],
+    center: &Point,
+    radius: NotNaN<f64>,
+) -> Vec<Point> {
     let d = segment[1] - segment[0];
     let c = center - segment[0];
     // segment points are at alpha * d
@@ -167,6 +175,9 @@ fn solve_quadratic_equation(a: NotNaN<f64>, b: NotNaN<f64>, c: NotNaN<f64>) -> V
     } else if delta < NotNaN::new(0.0).unwrap() {
         Vec::new()
     } else {
-        vec![(-b - delta.sqrt()) / (a * 2.0), (-b + delta.sqrt()) / (a * 2.0)]
+        vec![
+            (-b - delta.sqrt()) / (a * 2.0),
+            (-b + delta.sqrt()) / (a * 2.0),
+        ]
     }
 }

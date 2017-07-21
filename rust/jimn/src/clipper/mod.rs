@@ -26,11 +26,11 @@ impl Cuttable for ClippingSegment {
             .cut(points)
             .iter()
             .map(|s| {
-                     ClippingSegment {
-                         segment: *s,
-                         clipping: self.clipping,
-                     }
-                 })
+                ClippingSegment {
+                    segment: *s,
+                    clipping: self.clipping,
+                }
+            })
             .collect()
     }
 }
@@ -42,19 +42,17 @@ pub fn clip(clipper: &[Segment], clipped: &[Segment], rounder: &mut PointsHash) 
     let segments: Vec<_> = clipper
         .iter()
         .map(|s| {
-                 ClippingSegment {
-                     segment: *s,
-                     clipping: true,
-                 }
-             })
-        .chain(clipped
-                   .iter()
-                   .map(|s| {
-                            ClippingSegment {
-                                segment: *s,
-                                clipping: false,
-                            }
-                        }))
+            ClippingSegment {
+                segment: *s,
+                clipping: true,
+            }
+        })
+        .chain(clipped.iter().map(|s| {
+            ClippingSegment {
+                segment: *s,
+                clipping: false,
+            }
+        }))
         .collect();
     let intersections = bentley_ottmann(&segments, rounder);
     let small_segments = cut_segments(&segments, &intersections);

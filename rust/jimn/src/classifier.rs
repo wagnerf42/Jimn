@@ -2,14 +2,15 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
+use std::collections::Bound::*;
 
 use quadrant::Shape;
 use bentley_ottmann::{SegmentIndex, Key, KeyGenerator};
 use point::Point;
 use segment::Segment;
 use polygon::Polygon;
+use dyntreap::{Treap, INCREASING};
 use tree::Tree;
-use tree::treap::{Treap, Node, KeyComputer, EmptyCounter};
 
 /// We are enclosed in a polygon.
 pub trait HasEdge {
@@ -40,7 +41,7 @@ struct Classifier<'a, 'b, T: HasEdge + 'b> {
     inclusion_tree: &'b mut Tree<T>,
 
     /// We store currently crossed segments in a treap (again their positions in input vector).
-    crossed_segments: Treap<SegmentIndex, Key, KeyGenerator<'a, OwnedSegment>>,
+    crossed_segments: Treap<'a, Key, SegmentIndex>,
 
     /// We store the key generator for our own segments comparison purposes.
     key_generator: Rc<RefCell<KeyGenerator<'a, OwnedSegment>>>,
@@ -53,25 +54,28 @@ struct Classifier<'a, 'b, T: HasEdge + 'b> {
 impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
     /// Create all segments and events.
     /// TODO: rewrite in a cleaner way
-    fn new(tree: &'b mut Tree<T>,
-           segments: &'a mut Vec<OwnedSegment>,
-           polygons: Vec<T>)
-           -> (Vec<ClassifyEvent>, Classifier<'a, 'b, T>) {
+    fn new(
+        tree: &'b mut Tree<T>,
+        segments: &'a mut Vec<OwnedSegment>,
+        polygons: Vec<T>,
+    ) -> (Vec<ClassifyEvent>, Classifier<'a, 'b, T>) {
 
         // immediately add all polygons as tree nodes
         // this way we can use their position in tree as their id
         for polygon in polygons {
             let polygon_index = tree.len();
-            segments.extend(polygon
-                                .edge()
-                                .segments()
-                                .filter(|s| !s.is_horizontal())
-                                .map(|s| {
-                                         OwnedSegment {
-                                             segment: s,
-                                             owner: polygon_index,
-                                         }
-                                     }));
+            segments.extend(
+                polygon
+                    .edge()
+                    .segments()
+                    .filter(|s| !s.is_horizontal())
+                    .map(|s| {
+                        OwnedSegment {
+                            segment: s,
+                            owner: polygon_index,
+                        }
+                    }),
+            );
             tree.add_node(polygon);
         }
 
@@ -82,16 +86,18 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
         // and will be > than the new one.
         for node in tree.walk().filter(|n| n.children.is_empty()) {
             let index = node.index;
-            segments.extend(node.value
-                                .edge()
-                                .segments()
-                                .filter(|s| !s.is_horizontal())
-                                .map(|s| {
-                                         OwnedSegment {
-                                             segment: s,
-                                             owner: index,
-                                         }
-                                     }));
+            segments.extend(
+                node.value
+                    .edge()
+                    .segments()
+                    .filter(|s| !s.is_horizontal())
+                    .map(|s| {
+                        OwnedSegment {
+                            segment: s,
+                            owner: index,
+                        }
+                    }),
+            );
         }
 
 
@@ -110,33 +116,32 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
                 .push(index);
         }
 
-        let mut events: Vec<_> = raw_events
-            .into_iter()
-            .map(|(k, v)| (k, v.0, v.1))
-            .collect();
+        let mut events: Vec<_> = raw_events.into_iter().map(|(k, v)| (k, v.0, v.1)).collect();
         events.sort_by(|a, b| b.0.cmp(&a.0));
         let generator = KeyGenerator::new(segments);
         // sort start events
         for event in &mut events {
             generator.borrow_mut().current_point = event.0;
             //TODO: triple check this one
-            event
-                .1
-                .sort_by(|a, b| {
-                             generator
-                                 .borrow()
-                                 .compute_key(b)
-                                 .cmp(&generator.borrow().compute_key(a))
-                         });
+            event.1.sort_by(|a, b| {
+                generator
+                    .borrow()
+                    .compute_key(b)
+                    .cmp(&generator.borrow().compute_key(a))
+            });
         }
 
-        (events,
-         Classifier {
-             inclusion_tree: tree,
-             crossed_segments: Treap::new(generator.clone()),
-             key_generator: generator,
-             alive_segments: HashMap::new(),
-         })
+        let closure_generator = generator.clone();
+        let get_key = move |index: &SegmentIndex| closure_generator.borrow().compute_key(index);
+        (
+            events,
+            Classifier {
+                inclusion_tree: tree,
+                crossed_segments: Treap::new_with_key_generator(get_key),
+                key_generator: generator,
+                alive_segments: HashMap::new(),
+            },
+        )
     }
 
     /// Execute all events, building polygons tree.
@@ -155,10 +160,7 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
             self.crossed_segments
                 .remove(&self.key_generator.borrow().compute_key(segment));
             let owner = self.key_generator.borrow().paths[*segment].owner;
-            self.alive_segments
-                .get_mut(&owner)
-                .unwrap()
-                .remove(segment);
+            self.alive_segments.get_mut(&owner).unwrap().remove(segment);
         }
     }
 
@@ -167,7 +169,7 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
     fn start_segments(&mut self, segments: &[SegmentIndex]) {
         // add everyone and classify new polygons on the fly
         for segment in segments {
-            let node = self.crossed_segments.add(*segment);
+            self.crossed_segments.insert(*segment);
             let owner = self.key_generator.borrow().paths[*segment].owner;
             self.alive_segments
                 .entry(owner)
@@ -175,23 +177,23 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
                 .insert(*segment);
             if self.inclusion_tree.father(owner).is_none() {
                 // not classified yet
-                let segment_index = node.borrow().value;
-                self.classify_polygon(owner, segment_index, &node);
+                self.classify_polygon(owner, segment);
             }
         }
     }
 
     /// Add given polygon at right place in polygons tree.
-    fn classify_polygon(&mut self,
-                        owner: PolygonIndex,
-                        segment_index: SegmentIndex,
-                        node: &Node<SegmentIndex, EmptyCounter>) {
+    fn classify_polygon(&mut self, owner: PolygonIndex, segment_index: &SegmentIndex) {
         let father_id; // where to connect us ?
-        if let Some(larger_neighbour) = node.nearest_node(1) {
-            let neighbour_owner =
-                self.key_generator.borrow().paths[larger_neighbour.borrow().value].owner;
+        let limit = self.key_generator.borrow().compute_key(segment_index);
+        unimplemented!("does it work with overlapping segments ?");
+        let nearest_node = self.crossed_segments
+            .ordered_nodes((Excluded(limit), Unbounded))
+            .next();
+        if let Some(larger_neighbour) = nearest_node {
+            let neighbour_owner = self.key_generator.borrow().paths[larger_neighbour.value].owner;
             // we are either a brother of neighbour or its child
-            let key = self.key_generator.borrow().compute_key(&segment_index);
+            let key = self.key_generator.borrow().compute_key(segment_index);
             if self.inclusion_test(key, neighbour_owner) {
                 // we are his child
                 father_id = neighbour_owner;
@@ -219,8 +221,7 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
 
 /// Complement given tree by classifying given objects into it.
 /// New objects can only arrive below leaves or below new nodes.
-pub fn complete_inclusion_tree<T: HasEdge + Shape + Default>(tree: &mut Tree<T>,
-                                                             polygons: Vec<T>) {
+pub fn complete_inclusion_tree<T: HasEdge + Shape + Default>(tree: &mut Tree<T>, polygons: Vec<T>) {
     let mut segments = Vec::new();
     let (events, mut classifier) = Classifier::new(tree, &mut segments, polygons);
     classifier.run(&events);

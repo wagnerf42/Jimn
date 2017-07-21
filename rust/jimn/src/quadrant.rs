@@ -106,18 +106,18 @@ impl Quadrant {
     ///         ## <-other        ###
     pub fn update(&mut self, other: &Quadrant) {
 
-        for (min_coordinate, coordinate) in
-            self.min_coordinates
-                .iter_mut()
-                .zip(other.min_coordinates.iter()) {
+        for (min_coordinate, coordinate) in self.min_coordinates
+            .iter_mut()
+            .zip(other.min_coordinates.iter())
+        {
             if *min_coordinate > *coordinate {
                 *min_coordinate = *coordinate;
             }
         }
-        for (max_coordinate, coordinate) in
-            self.max_coordinates
-                .iter_mut()
-                .zip(other.max_coordinates.iter()) {
+        for (max_coordinate, coordinate) in self.max_coordinates
+            .iter_mut()
+            .zip(other.max_coordinates.iter())
+        {
             if *max_coordinate < *coordinate {
                 *max_coordinate = *coordinate;
             }
@@ -126,20 +126,17 @@ impl Quadrant {
 
     /// Returns min and max value for given dimension.
     pub fn limits(&self, dimension_index: usize) -> (NotNaN<f64>, NotNaN<f64>) {
-        (self.min_coordinates[dimension_index], self.max_coordinates[dimension_index])
+        (
+            self.min_coordinates[dimension_index],
+            self.max_coordinates[dimension_index],
+        )
     }
 
     /// Adds border of given size around self.
     pub fn inflate<T: Into<NotNaN<f64>>>(&mut self, border_size: T) {
         let border = border_size.into();
-        self.min_coordinates = self.min_coordinates
-            .iter()
-            .map(|&c| c - border)
-            .collect();
-        self.max_coordinates = self.max_coordinates
-            .iter()
-            .map(|&c| c + border)
-            .collect();
+        self.min_coordinates = self.min_coordinates.iter().map(|&c| c - border).collect();
+        self.max_coordinates = self.max_coordinates.iter().map(|&c| c + border).collect();
     }
 
     /// Adds quadrant around given shape to ourselves.
@@ -151,10 +148,12 @@ impl Quadrant {
     /// Return 2d segments bounding us.
     /// Note this only considers the first 2 dimensions.
     pub fn segments(&self, rounder: &mut PointsHash) -> Vec<Segment> {
-        let points = vec![Point::new(self.min_coordinates[0], self.min_coordinates[1]),
-                          Point::new(self.min_coordinates[0], self.max_coordinates[1]),
-                          Point::new(self.max_coordinates[0], self.max_coordinates[1]),
-                          Point::new(self.max_coordinates[0], self.min_coordinates[1])];
+        let points = vec![
+            Point::new(self.min_coordinates[0], self.min_coordinates[1]),
+            Point::new(self.min_coordinates[0], self.max_coordinates[1]),
+            Point::new(self.max_coordinates[0], self.max_coordinates[1]),
+            Point::new(self.max_coordinates[0], self.min_coordinates[1]),
+        ];
         let rpoints: Vec<_> = points.iter().map(|p| rounder.hash_point(p)).collect();
         rpoints
             .iter()
