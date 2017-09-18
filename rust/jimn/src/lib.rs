@@ -52,7 +52,6 @@ pub use elementary_path::ElementaryPath;
 pub mod pocket;
 pub use pocket::Pocket;
 pub mod offsetter;
-pub(crate) mod comparison;
 
 
 use stl::Stl;
