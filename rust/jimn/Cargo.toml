@@ -17,6 +17,6 @@ doc = false
 rand = "0.3"
 byteorder = "0.5.3"
 argparse = "0.2.1"
-ordered-float = "0.4.0"
+ordered-float = "0.5.0"
 dyntreap = {path="../dyntreap"}
 itertools = "*"

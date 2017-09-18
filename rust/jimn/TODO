@@ -1,5 +1,7 @@
 bentley ottmann:
 
+    - lots of 'move' in closures in Arc. do they inccur overhead ? are they really needed ?
+
     - treap memory cleaning
     - we need to be resilient to overlapping segments
         -> write some examples + tests (partly done)

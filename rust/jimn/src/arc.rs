@@ -51,13 +51,12 @@ impl Arc {
         // find bisector
         let middle = translated_end / 2.0;
         let bisector_point = middle + translated_end.perpendicular_vector();
-        let intersections = line_circle_intersections(
-            &[middle, bisector_point],
-            &Point::new(0.0, 0.0),
-            self.radius,
-        );
-        assert_eq!(intersections.len(), 2);
-        intersections.iter().map(|i| self.start + i).collect()
+        let line = [middle, bisector_point];
+        let origin = Point::new(0.0, 0.0);
+        let intersections = line_circle_intersections(&line, &origin, self.radius);
+        let centers: Vec<_> = intersections.map(|i| self.start + i).collect();
+        assert_eq!(centers.len(), 2);
+        centers
     }
 
     /// Return normalized angle of points with center.
@@ -109,6 +108,25 @@ impl Arc {
         }
         None
     }
+
+    /// Iterate on all points obtained when intersecting with given Arc.
+    pub fn intersections_with_arc<'a>(
+        &'a self,
+        other: &'a Self,
+    ) -> impl Iterator<Item = Point> + 'a {
+        circles_intersections(&self.center, &other.center, self.radius, other.radius).filter(
+            move |p| self.contains_circle_point(p) && other.contains_circle_point(p),
+        )
+    }
+
+    /// Iterate on all points obtained when intersecting with given Segment.
+    pub fn intersections_with_segment<'a>(
+        &'a self,
+        other: &'a Segment,
+    ) -> impl Iterator<Item = Point> + 'a {
+        unimplemented!();
+        empty()
+    }
 }
 
 impl Shape for Arc {
@@ -143,11 +161,11 @@ impl Shape for Arc {
     }
 }
 
-fn line_circle_intersections(
-    segment: &[Point; 2],
-    center: &Point,
+fn line_circle_intersections<'a>(
+    segment: &'a [Point; 2],
+    center: &'a Point,
     radius: NotNaN<f64>,
-) -> Vec<Point> {
+) -> impl Iterator<Item = Point> + 'a {
     let d = segment[1] - segment[0];
     let c = center - segment[0];
     // segment points are at alpha * d
@@ -162,7 +180,7 @@ fn line_circle_intersections(
     let b = (c.x * d.x + c.y * d.y) * (-2.0);
     let c = c.x * c.x + c.y * c.y - radius * radius;
     let solutions = solve_quadratic_equation(a, b, c);
-    solutions.into_iter().map(|s| segment[0] + d * s).collect()
+    solutions.into_iter().map(move |s| segment[0] + d * s)
 }
 
 fn solve_quadratic_equation(a: NotNaN<f64>, b: NotNaN<f64>, c: NotNaN<f64>) -> Vec<NotNaN<f64>> {
@@ -183,12 +201,15 @@ fn solve_quadratic_equation(a: NotNaN<f64>, b: NotNaN<f64>, c: NotNaN<f64>) -> V
     }
 }
 
-fn _circles_intersections(
+
+fn circles_intersections(
     c1: &Point,
     c2: &Point,
     r1: NotNaN<f64>,
     r2: NotNaN<f64>,
 ) -> Box<Iterator<Item = Point>> {
+    // TODO: should we unbox everything
+    // I just solved all equations to end up with this.
     let d = c1.distance_to(c2);
     if is_almost(d, 0.0) {
         Box::new(empty()) // common center
@@ -210,15 +231,19 @@ fn _circles_intersections(
             Box::new(empty()) // too far away
         } else {
             let h = NotNaN::new((r1 * r1 - l * l).sqrt()).unwrap();
-            Box::new(
-                once(Point::new(
-                    l / d * (x2 - x1) + h / d * (y2 - y1) + x1,
-                    l / d * (y2 - y1) - h / d * (x2 - x1) + y1,
-                )).chain(once(Point::new(
-                    l / d * (x2 - x1) - h / d * (y2 - y1) + x1,
-                    l / d * (y2 - y1) + h / d * (x2 - x1) + y1,
-                ))),
-            )
+            let p1 = Point::new(
+                l / d * (x2 - x1) + h / d * (y2 - y1) + x1,
+                l / d * (y2 - y1) - h / d * (x2 - x1) + y1,
+            );
+            let p2 = Point::new(
+                l / d * (x2 - x1) - h / d * (y2 - y1) + x1,
+                l / d * (y2 - y1) + h / d * (x2 - x1) + y1,
+            );
+            if p1.is_almost(&p2) {
+                Box::new(once(p1))
+            } else {
+                Box::new(once(p1).chain(once(p2)))
+            }
         }
     }
 }

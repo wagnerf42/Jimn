@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::iter::{empty, once};
 use ordered_float::NotNaN;
-use {Point, Segment};
+use {ElementaryPath, Point, Segment};
 use dyntreap::Treap;
 use utils::ArrayMap;
 use utils::coordinates_hash::PointsHash;
@@ -34,13 +34,14 @@ pub struct Key(Coordinate, Angle);
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Copy, Clone)]
 pub struct ComplexKey(Coordinate, Angle, Angle);
 
-trait BentleyOttmannPath<BentleyOttmannKey: Ord + Eq> {
+trait BentleyOttmannPath {
+    type BentleyOttmannKey: Ord + Eq;
     fn compute_key(
         &self,
         current_point: &Point,
         stored_x: Option<&Coordinate>,
-    ) -> BentleyOttmannKey;
-    fn intersections_with(&self, other: &Self) -> Box<Iterator<Item = Point>>;
+    ) -> Self::BentleyOttmannKey;
+    fn intersections_with<'a>(&'a self, other: &'a Self) -> Box<Iterator<Item = Point> + 'a>;
 }
 
 fn compute_segment_key(
@@ -80,31 +81,55 @@ fn compute_segment_key(
     }
 }
 
-impl BentleyOttmannPath<Key> for Segment {
+fn segments_intersections(s1: &Segment, s2: &Segment) -> Box<Iterator<Item = Point>> {
+    if let Some(point) = s1.intersection_with(s2) {
+        Box::new(once(point))
+    } else {
+        Box::new(empty())
+    }
+}
+
+impl BentleyOttmannPath for Segment {
+    type BentleyOttmannKey = Key;
     fn compute_key(&self, current_point: &Point, stored_x: Option<&Coordinate>) -> Key {
         compute_segment_key(self, current_point, stored_x)
     }
 
     fn intersections_with(&self, other: &Self) -> Box<Iterator<Item = Point>> {
-        if let Some(point) = self.intersection_with(other) {
-            Box::new(once(point))
-        } else {
-            Box::new(empty())
-        }
+        segments_intersections(self, other)
     }
 }
 
-impl BentleyOttmannPath<ComplexKey> for Segment {
+impl BentleyOttmannPath for ElementaryPath {
+    type BentleyOttmannKey = ComplexKey;
     fn compute_key(&self, current_point: &Point, stored_x: Option<&Coordinate>) -> ComplexKey {
-        let Key(coordinate, angle) = compute_segment_key(self, current_point, stored_x);
-        ComplexKey(coordinate, angle, angle)
+        match *self {
+            ElementaryPath::Arc(ref _a) => unimplemented!(),
+            ElementaryPath::Segment(ref s) => {
+                let Key(coordinate, angle) = compute_segment_key(s, current_point, stored_x);
+                ComplexKey(coordinate, angle, angle)
+            }
+        }
     }
 
-    fn intersections_with(&self, other: &Self) -> Box<Iterator<Item = Point>> {
-        if let Some(point) = self.intersection_with(other) {
-            Box::new(once(point))
-        } else {
-            Box::new(empty())
+    fn intersections_with<'a>(&'a self, other: &'a Self) -> Box<Iterator<Item = Point> + 'a> {
+        match *self {
+            ElementaryPath::Arc(ref self_arc) => match *other {
+                ElementaryPath::Arc(ref other_arc) => {
+                    Box::new(self_arc.intersections_with_arc(other_arc))
+                }
+                ElementaryPath::Segment(ref other_segment) => {
+                    Box::new(self_arc.intersections_with_segment(other_segment))
+                }
+            },
+            ElementaryPath::Segment(ref self_segment) => match *other {
+                ElementaryPath::Arc(ref other_arc) => {
+                    Box::new(other_arc.intersections_with_segment(self_segment))
+                }
+                ElementaryPath::Segment(ref other_segment) => {
+                    segments_intersections(self_segment, other_segment)
+                }
+            },
         }
     }
 }
