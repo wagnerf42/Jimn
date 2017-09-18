@@ -2,7 +2,7 @@
 //! TODO: document: no more that 2 overlapping segments at any place.
 use std::rc::Rc;
 use std::cell::RefCell;
-use std::collections::{HashMap, HashSet, BinaryHeap};
+use std::collections::{BinaryHeap, HashMap, HashSet};
 use ordered_float::NotNaN;
 use {Point, Segment};
 use dyntreap::Treap;
@@ -116,11 +116,10 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
         paths: &'a [T],
         rounder: &'b mut PointsHash,
     ) -> (Cutter<'a, 'b, T>, Treap<'a, Key, SegmentIndex>) {
-
         //guess the capacity of all our events related hash tables.
         //we need to be above truth to avoid collisions but not too much above.
         let generator = KeyGenerator::new(paths);
-        let closure_generator = generator.clone();
+        let closure_generator = Rc::clone(&generator);
         let get_key = move |index: &SegmentIndex| closure_generator.borrow().compute_key(index);
         let crossed_segments = Treap::new_with_key_generator(get_key);
 
@@ -157,8 +156,7 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
         self.events_data.entry(event_point).or_insert_with(|| {
             events.push(event_point);
             [HashSet::new(), HashSet::new()]
-        })
-            [event_type]
+        })[event_type]
             .insert(path);
     }
 
@@ -307,7 +305,6 @@ pub fn bentley_ottmann<T: AsRef<Segment>>(
     segments: &[T],
     rounder: &mut PointsHash,
 ) -> HashMap<usize, HashSet<Point>> {
-
     let (mut cutter, mut crossed_segments) = Cutter::new(segments, rounder);
     cutter.run(&mut crossed_segments);
     cutter.intersections

@@ -34,7 +34,7 @@ pub struct Key(Coordinate, Angle);
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Copy, Clone)]
 pub struct ComplexKey(Coordinate, Angle, Angle);
 
-trait BentleyOttmannPath<BentleyOttmannKey : Ord + Eq> {
+trait BentleyOttmannPath<BentleyOttmannKey: Ord + Eq> {
     fn compute_key(
         &self,
         current_point: &Point,
@@ -44,49 +44,44 @@ trait BentleyOttmannPath<BentleyOttmannKey : Ord + Eq> {
 }
 
 fn compute_segment_key(
-        segment: &Segment,
-        current_point: &Point,
-        stored_x: Option<&Coordinate>,
-    ) -> Key {
-        let (current_x, current_y) = current_point.coordinates();
-        let angle = segment.sweeping_angle();
-        let x = if segment.is_horizontal() {
-            current_x
-        } else {
-            // sweep goes from bottom to top and right to left
-            //
-            //     |    \    /   |       --- on this line xa > xb (no angle needed)
-            //  l1 |     \  /    | l2
-            //     |      \/     |         ____ now here, at start of l2 a < b and
-            //            /\                    at start of l1 a > b
-            //           /  \                   xa == xb so we use angles
-            //          /    \       ---- on this line xa < xb (no angle needed)
-            //         a      b
-            //
-            //         angle of a is 3pi/4 ; angle of b is pi/4
-            if let Some(&x) = stored_x {
-                x
-            } else {
-                segment.horizontal_line_intersection(current_y)
-                    .expect("computing key for non intersecting segment")
-            }
-        };
+    segment: &Segment,
+    current_point: &Point,
+    stored_x: Option<&Coordinate>,
+) -> Key {
+    let (current_x, current_y) = current_point.coordinates();
+    let angle = segment.sweeping_angle();
+    // sweep goes from bottom to top and right to left
+    //
+    //     |    \    /   |       --- on this line xa > xb (no angle needed)
+    //  l1 |     \  /    | l2
+    //     |      \/     |         ____ now here, at start of l2 a < b and
+    //            /\                    at start of l1 a > b
+    //           /  \                   xa == xb so we use angles
+    //          /    \       ---- on this line xa < xb (no angle needed)
+    //         a      b
+    //
+    //         angle of a is 3pi/4 ; angle of b is pi/4
+    let x = if segment.is_horizontal() {
+        current_x
+    } else if let Some(&x) = stored_x {
+        x
+    } else {
+        segment
+            .horizontal_line_intersection(current_y)
+            .expect("computing key for non intersecting segment")
+    };
 
-        if current_x > x {
-            // we are not yet arrived on intersection
-            Key(x, -angle)
-        } else {
-            // we are past the intersection
-            Key(x, angle)
-        }
+    if current_x > x {
+        // we are not yet arrived on intersection
+        Key(x, -angle)
+    } else {
+        // we are past the intersection
+        Key(x, angle)
+    }
 }
 
 impl BentleyOttmannPath<Key> for Segment {
-    fn compute_key(
-        &self,
-        current_point: &Point,
-        stored_x: Option<&Coordinate>,
-    ) -> Key {
+    fn compute_key(&self, current_point: &Point, stored_x: Option<&Coordinate>) -> Key {
         compute_segment_key(self, current_point, stored_x)
     }
 
@@ -100,11 +95,7 @@ impl BentleyOttmannPath<Key> for Segment {
 }
 
 impl BentleyOttmannPath<ComplexKey> for Segment {
-    fn compute_key(
-        &self,
-        current_point: &Point,
-        stored_x: Option<&Coordinate>,
-    ) -> ComplexKey {
+    fn compute_key(&self, current_point: &Point, stored_x: Option<&Coordinate>) -> ComplexKey {
         let Key(coordinate, angle) = compute_segment_key(self, current_point, stored_x);
         ComplexKey(coordinate, angle, angle)
     }
@@ -214,7 +205,7 @@ impl<'a, 'b, T: 'a + AsRef<Segment>> Cutter<'a, 'b, T> {
         //guess the capacity of all our events related hash tables.
         //we need to be above truth to avoid collisions but not too much above.
         let generator = KeyGenerator::new(paths);
-        let closure_generator = generator.clone();
+        let closure_generator = Rc::clone(&generator);
         let get_key = move |index: &SegmentIndex| closure_generator.borrow().compute_key(index);
         let crossed_segments = Treap::new_with_key_generator(get_key);
 

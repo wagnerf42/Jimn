@@ -4,10 +4,10 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::collections::Bound::*;
 
-use bentley_ottmann::{SegmentIndex, Key, KeyGenerator};
+use bentley_ottmann::{Key, KeyGenerator, SegmentIndex};
 use point::Point;
 use segment::Segment;
-use dyntreap::{CTreap, INCREASING};
+use dyntreap::CTreap;
 use super::ClippingSegment;
 
 type ClassifyEvent = (Point, Vec<SegmentIndex>, Vec<SegmentIndex>);
@@ -17,9 +17,8 @@ type Generator<'a> = Rc<RefCell<KeyGenerator<'a, ClippingSegment>>>;
 /// Return all segments inside the clip.
 /// pre-condition: no intersection.
 pub fn classify_clip_segments(segments: &[ClippingSegment]) -> Vec<Segment> {
-
     let generator = KeyGenerator::new(segments);
-    let closure_generator = generator.clone();
+    let closure_generator = Rc::clone(&generator);
     let mut crossed_clip_segments =
         CTreap::new_with_key_generator(move |index| closure_generator.borrow().compute_key(index));
     let events = create_events(segments);
@@ -78,7 +77,6 @@ fn start_segments(
         if !generator.borrow().paths[*segment_index].clipping {
             let key = generator.borrow().compute_key(segment_index);
             //TODO: why find_key ?
-            unimplemented!("does it work with overlapping segments");
             if crossed_clip_segments.get(&key).is_none() &&
                 crossed_clip_segments
                     .ordered_nodes((Excluded(key), Unbounded))
@@ -88,6 +86,7 @@ fn start_segments(
             }
         }
     }
+    unimplemented!("does it work with overlapping segments");
 }
 
 fn create_events(segments: &[ClippingSegment]) -> Vec<ClassifyEvent> {

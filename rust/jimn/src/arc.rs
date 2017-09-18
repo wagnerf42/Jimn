@@ -1,8 +1,9 @@
 //! provides the `Arc` class.
+use std::iter::{empty, once};
 use ordered_float::NotNaN;
 use std::f64::consts::PI;
 use {Point, Segment};
-use quadrant::{Shape, Quadrant};
+use quadrant::{Quadrant, Shape};
 use utils::precision::is_almost;
 use utils::coordinates_hash::PointsHash;
 
@@ -26,7 +27,7 @@ impl Arc {
             radius: radius.into(),
         };
         if !(is_almost(arc.center.distance_to(&arc.start), arc.radius) &&
-                 is_almost(arc.center.distance_to(&arc.end), arc.radius))
+            is_almost(arc.center.distance_to(&arc.end), arc.radius))
         {
             arc.adjust_center();
         }
@@ -179,5 +180,45 @@ fn solve_quadratic_equation(a: NotNaN<f64>, b: NotNaN<f64>, c: NotNaN<f64>) -> V
             (-b - delta.sqrt()) / (a * 2.0),
             (-b + delta.sqrt()) / (a * 2.0),
         ]
+    }
+}
+
+fn _circles_intersections(
+    c1: &Point,
+    c2: &Point,
+    r1: NotNaN<f64>,
+    r2: NotNaN<f64>,
+) -> Box<Iterator<Item = Point>> {
+    let d = c1.distance_to(c2);
+    if is_almost(d, 0.0) {
+        Box::new(empty()) // common center
+    } else {
+        let (x1, y1) = c1.coordinates();
+        let (x2, y2) = c2.coordinates();
+        let l = if is_almost(r1, r2) {
+            d / 2.0
+        } else {
+            (r1 * r1 - r2 * r2) / (d * 2.0) + d / 2.0
+        };
+
+        if is_almost(r1, l) {
+            // only one intersection
+            Box::new(once(
+                Point::new(l / d * (x2 - x1) + x1, l / d * (y2 - y1) + y1),
+            ))
+        } else if (r1 < l) || (r1.abs() < l.abs()) {
+            Box::new(empty()) // too far away
+        } else {
+            let h = NotNaN::new((r1 * r1 - l * l).sqrt()).unwrap();
+            Box::new(
+                once(Point::new(
+                    l / d * (x2 - x1) + h / d * (y2 - y1) + x1,
+                    l / d * (y2 - y1) - h / d * (x2 - x1) + y1,
+                )).chain(once(Point::new(
+                    l / d * (x2 - x1) - h / d * (y2 - y1) + x1,
+                    l / d * (y2 - y1) + h / d * (x2 - x1) + y1,
+                ))),
+            )
+        }
     }
 }

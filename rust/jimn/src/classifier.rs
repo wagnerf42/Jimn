@@ -5,11 +5,11 @@ use std::collections::{HashMap, HashSet};
 use std::collections::Bound::*;
 
 use quadrant::Shape;
-use bentley_ottmann::{SegmentIndex, Key, KeyGenerator};
+use bentley_ottmann::{Key, KeyGenerator, SegmentIndex};
 use point::Point;
 use segment::Segment;
 use polygon::Polygon;
-use dyntreap::{Treap, INCREASING};
+use dyntreap::Treap;
 use tree::Tree;
 
 /// We are enclosed in a polygon.
@@ -17,6 +17,7 @@ pub trait HasEdge {
     /// Return outer polygon;
     fn edge(&self) -> &Polygon;
 }
+
 
 type ClassifyEvent = (Point, Vec<SegmentIndex>, Vec<SegmentIndex>);
 type PolygonIndex = usize;
@@ -59,7 +60,6 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
         segments: &'a mut Vec<OwnedSegment>,
         polygons: Vec<T>,
     ) -> (Vec<ClassifyEvent>, Classifier<'a, 'b, T>) {
-
         // immediately add all polygons as tree nodes
         // this way we can use their position in tree as their id
         for polygon in polygons {
@@ -131,7 +131,7 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
             });
         }
 
-        let closure_generator = generator.clone();
+        let closure_generator = Rc::clone(&generator);
         let get_key = move |index: &SegmentIndex| closure_generator.borrow().compute_key(index);
         (
             events,
@@ -186,7 +186,6 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
     fn classify_polygon(&mut self, owner: PolygonIndex, segment_index: &SegmentIndex) {
         let father_id; // where to connect us ?
         let limit = self.key_generator.borrow().compute_key(segment_index);
-        unimplemented!("does it work with overlapping segments ?");
         let nearest_node = self.crossed_segments
             .ordered_nodes((Excluded(limit), Unbounded))
             .next();
@@ -205,7 +204,8 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
             // we are son of root
             father_id = self.inclusion_tree.root();
         }
-        self.inclusion_tree.set_child(father_id, owner)
+        self.inclusion_tree.set_child(father_id, owner);
+        unimplemented!("does it work with overlapping segments ?")
     }
 
 

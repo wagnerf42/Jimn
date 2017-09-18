@@ -29,7 +29,7 @@ pub struct Node<T> {
 }
 
 /// Basic tree structure
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Tree<T> {
     /// Vector containing all nodes.
     pub nodes: Vec<Node<T>>,

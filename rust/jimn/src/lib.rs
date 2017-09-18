@@ -20,11 +20,8 @@
 #![deny(missing_docs)]
 
 extern crate byteorder;
-extern crate rand;
 extern crate ordered_float;
-extern crate test;
 extern crate dyntreap;
-extern crate itertools;
 
 pub mod utils;
 #[macro_use]
@@ -52,7 +49,6 @@ pub use elementary_path::ElementaryPath;
 pub mod pocket;
 pub use pocket::Pocket;
 pub mod offsetter;
-
 
 use stl::Stl;
 use utils::coordinates_hash::PointsHash;

@@ -2,7 +2,7 @@
 //!
 //! Provides `Facet` class for handling 3D facets from stl files.
 use std::io::{Read, Seek, SeekFrom};
-use byteorder::{ReadBytesExt, LittleEndian};
+use byteorder::{LittleEndian, ReadBytesExt};
 use ordered_float::NotNaN;
 
 use quadrant::Quadrant;
@@ -30,9 +30,9 @@ impl Facet {
             quadrant: &mut Quadrant,
             heights: &mut CoordinatesHash,
         ) -> Point3 {
-            let x = NotNaN::new(raw_data.read_f32::<LittleEndian>().unwrap() as f64).unwrap();
-            let y = NotNaN::new(raw_data.read_f32::<LittleEndian>().unwrap() as f64).unwrap();
-            let z = NotNaN::new(raw_data.read_f32::<LittleEndian>().unwrap() as f64).unwrap();
+            let x = NotNaN::new(f64::from(raw_data.read_f32::<LittleEndian>().unwrap())).unwrap();
+            let y = NotNaN::new(f64::from(raw_data.read_f32::<LittleEndian>().unwrap())).unwrap();
+            let z = NotNaN::new(f64::from(raw_data.read_f32::<LittleEndian>().unwrap())).unwrap();
             let point = Point3::new(x, y, heights.hash_coordinate(z));
             quadrant.add(&point);
             point
@@ -61,7 +61,6 @@ impl Facet {
 
     /// Intersects facet at given height.
     pub fn intersect(&self, height: NotNaN<f64>, hasher: &mut PointsHash) -> Option<Segment> {
-
         let mut intersections: Vec<Point> = [(0, 1), (0, 2), (1, 2)]
             .iter()
             .filter_map(|&(i, j)| {
