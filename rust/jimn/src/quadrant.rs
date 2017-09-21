@@ -105,7 +105,6 @@ impl Quadrant {
     ///         ##                ###
     ///         ## <-other        ###
     pub fn update(&mut self, other: &Quadrant) {
-
         for (min_coordinate, coordinate) in self.min_coordinates
             .iter_mut()
             .zip(other.min_coordinates.iter())

@@ -2,9 +2,9 @@
 use ordered_float::NotNaN;
 use std::collections::HashMap;
 use std::iter::once;
-use classifier::{HasEdge, complete_inclusion_tree};
+use classifier::{complete_inclusion_tree, HasEdge};
 use segment::Segment;
-use polygon::{Polygon, build_polygons};
+use polygon::{build_polygons, Polygon};
 use quadrant::{Quadrant, Shape};
 use tree::Tree;
 

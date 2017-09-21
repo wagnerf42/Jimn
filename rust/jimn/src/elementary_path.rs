@@ -1,8 +1,8 @@
 //! This module holds the `ElementaryPath` class.
 use std::f64::consts::FRAC_PI_2;
 use ordered_float::NotNaN;
-use {Arc, Segment, Point};
-use quadrant::{Shape, Quadrant};
+use {Arc, Point, Segment};
+use quadrant::{Quadrant, Shape};
 use utils::coordinates_hash::PointsHash;
 
 /// Elementary path (used for building larger paths)

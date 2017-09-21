@@ -3,7 +3,7 @@
 //! Provides a `Point` structure for storing 2d points.
 //! Points can also serve as vectors: for example point2-point1 is a point
 //! which coordinates encode the direction vector of segment(point1,point2).
-use std::ops::{Add, Sub, Mul, Div};
+use std::ops::{Add, Div, Mul, Sub};
 use ordered_float::NotNaN;
 
 use quadrant::{Quadrant, Shape};

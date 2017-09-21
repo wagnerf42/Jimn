@@ -5,4 +5,3 @@ use ElementaryPath;
 pub struct Pocket {
     _edge: Vec<ElementaryPath>,
 }
-

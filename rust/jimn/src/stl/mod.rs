@@ -3,9 +3,9 @@
 //! Provides **Stl** class handling 3d models from stl files.
 //! Color information is discarded.
 use std::fs::File;
-use std::io::{Error, Read, SeekFrom, Seek, Cursor};
+use std::io::{Cursor, Error, Read, Seek, SeekFrom};
 use std::collections::HashSet;
-use byteorder::{ReadBytesExt, LittleEndian};
+use byteorder::{LittleEndian, ReadBytesExt};
 
 mod facet;
 mod point3;

@@ -1,9 +1,9 @@
 //!Point3 (in 3d space) submodule for jimn.
-use quadrant::{Shape, Quadrant};
+use quadrant::{Quadrant, Shape};
 use point::Point;
 use utils::coordinates_hash::PointsHash;
 use ordered_float::NotNaN;
-use std::cmp::{min, max};
+use std::cmp::{max, min};
 
 #[derive(Copy, Clone, Debug)]
 /// 3D Point structure.

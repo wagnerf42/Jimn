@@ -6,6 +6,7 @@ use std::collections::Bound::*;
 
 use quadrant::Shape;
 use bentley_ottmann::{Key, KeyGenerator, SegmentIndex};
+use bentley_ottmann2::BentleyOttmannPath;
 use point::Point;
 use segment::Segment;
 use polygon::Polygon;

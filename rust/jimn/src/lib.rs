@@ -20,8 +20,9 @@
 #![deny(missing_docs)]
 
 extern crate byteorder;
-extern crate ordered_float;
 extern crate dyntreap;
+extern crate ordered_float;
+extern crate test;
 
 pub mod utils;
 #[macro_use]

@@ -73,8 +73,7 @@ pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
         width,
         height
     )?;
-    svg_file
-        .write_all(b"xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n")?;
+    svg_file.write_all(b"xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n")?;
 
     // white background
     write!(svg_file, "<rect x=\"{}\" y=\"{}\" ", xmin, ymin)?;

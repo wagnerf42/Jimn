@@ -3,11 +3,11 @@
 //! Provides a `Segment` structure for storing oriented 2d segments.
 use std::io;
 use std::fs::File;
-use std::cmp::{min, max};
 use std::collections::HashSet;
 use std::iter::once;
-use byteorder::{ReadBytesExt, WriteBytesExt, LittleEndian};
+use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use ordered_float::NotNaN;
+use bentley_ottmann2::BentleyOttmannPath;
 
 use point::Point;
 use quadrant::{Quadrant, Shape};
@@ -56,27 +56,6 @@ impl Segment {
             start: self.end,
             end: self.start,
             angle: self.angle,
-        }
-    }
-
-    /// Returns start and end point for sweeping line algorithm.
-    /// We go for ymax to ymin and for equal ys from xmax to xmin.
-    /// # Example
-    /// ```
-    /// use jimn::point::Point;
-    /// use jimn::segment::Segment;
-    /// let p1 = Point::new(0.0, 3.0);
-    /// let p2 = Point::new(-1.0, 4.0);
-    /// let s = Segment::new(p1, p2);
-    /// let (start, end) = s.ordered_points();
-    /// assert!(start == p2);
-    /// assert!(end == p1);
-    /// ```
-    pub fn ordered_points(&self) -> (Point, Point) {
-        if self.start > self.end {
-            (self.start, self.end)
-        } else {
-            (self.end, self.start)
         }
     }
 
@@ -150,11 +129,9 @@ impl Segment {
             None // almost parallel lines
         } else {
             let alpha = (x_diff2 * (other.start.y - self.start.y) +
-                             y_diff2 * (self.start.x - other.start.x)) /
-                denominator;
+                y_diff2 * (self.start.x - other.start.x)) / denominator;
             let beta = (x_diff * (other.start.y - self.start.y) +
-                            y_diff * (self.start.x - other.start.x)) /
-                denominator;
+                y_diff * (self.start.x - other.start.x)) / denominator;
             let zero = NotNaN::new(0.0).unwrap();
             let one = NotNaN::new(1.0).unwrap();
             if (is_almost(0.0, alpha) || is_almost(1.0, alpha) || (zero < alpha && alpha < one)) &&
@@ -165,28 +142,6 @@ impl Segment {
                 None
             }
         }
-    }
-
-    /// If we overlap with given segment return inside points.
-    /// Pre-condition: we are aligned segments.
-    /// Might return one duplicated point
-    pub fn overlap_points(&self, other: &Segment) -> Option<[Point; 2]> {
-        //     p2     p1
-        // *---+------+--*
-        let (max1, min1) = self.ordered_points();
-        let (max2, min2) = other.ordered_points();
-        let p1 = min(max1, max2);
-        let p2 = max(min1, min2);
-        if p1 >= p2 {
-            Some([p1, p2])
-        } else {
-            None
-        }
-    }
-
-    /// Do we have given point as EXACTLY one of our endpoints ?
-    pub fn has_endpoint(&self, point: &Point) -> bool {
-        (self.start == *point) || (self.end == *point)
     }
 
     /// Translate ourselves by given vector.

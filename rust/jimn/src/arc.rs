@@ -51,7 +51,7 @@ impl Arc {
         // find bisector
         let middle = translated_end / 2.0;
         let bisector_point = middle + translated_end.perpendicular_vector();
-        let line = [middle, bisector_point];
+        let line = Segment::new(middle, bisector_point);
         let origin = Point::new(0.0, 0.0);
         let intersections = line_circle_intersections(&line, &origin, self.radius);
         let centers: Vec<_> = intersections.map(|i| self.start + i).collect();
@@ -92,6 +92,60 @@ impl Arc {
         s.intersection_with(&s2).is_some()
     }
 
+    /// Intersect ourselves with horizontal line at given y.
+    /// pre-condition: there can be at most one intersection
+    ///
+    /// # Example
+    /// ```
+    /// use jimn::{Point, Arc};
+    /// let arc = Arc::new(Point::new(1.0, 0.0), Point::new(0.0, -1.0), Point::new(0.0, 0.0), 1.0);
+    /// let half_coordinate = 1.0/(2.0 as f64).sqrt();
+    /// let half_point = arc.horizontal_line_intersection(-half_coordinate).unwrap();
+    /// assert!(half_point.is_almost(&Point::new(half_coordinate, -half_coordinate)));
+    /// ```
+    pub fn horizontal_line_intersection<T: Into<NotNaN<f64>>>(&self, y: T) -> Option<Point> {
+        let y = y.into();
+        // we use pythagoras
+        let side_length = NotNaN::new((y - self.center.y).abs()).unwrap();
+        if is_almost(side_length, self.radius) {
+            return Some(Point::new(self.center.x, y));
+        }
+        if side_length > self.radius {
+            return None;
+        }
+        let other_side_length = (self.radius * self.radius - side_length * side_length).sqrt();
+        let candidate_point = Point::new(self.center.x - other_side_length, y);
+        if self.contains_circle_point(&candidate_point) {
+            Some(candidate_point)
+        } else {
+            let candidate_point2 = Point::new(self.center.x + other_side_length, y);
+            if self.contains_circle_point(&candidate_point2) {
+                Some(candidate_point2)
+            } else {
+                None
+            }
+        }
+    }
+
+    /// Return angle for tangent at given point.
+    /// pre-condition: we contain given point.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use jimn::{Point, Arc};
+    /// use std::f64::consts::PI;
+    /// use jimn::utils::precision::is_almost;
+    ///
+    /// let arc = Arc::new(Point::new(1.0, 0.0), Point::new(0.0, -1.0), Point::new(0.0, 0.0), 1.0);
+    /// let half_coordinate = 1.0/(2.0 as f64).sqrt();
+    /// assert!(is_almost(arc.tangent_angle(&Point::new(half_coordinate, -half_coordinate)), PI/4.0));
+    /// ```
+    pub fn tangent_angle(&self, tangent_point: &Point) -> NotNaN<f64> {
+        (NotNaN::new(PI).unwrap() - self.center.angle_with(tangent_point)) %
+            NotNaN::new(PI).unwrap()
+    }
+
     /// Split given `Arc` in possible two so that for any given y, each arc
     /// only has one point.
     /// Does not return anything if arc requires no splitting.
@@ -124,8 +178,8 @@ impl Arc {
         &'a self,
         other: &'a Segment,
     ) -> impl Iterator<Item = Point> + 'a {
-        unimplemented!();
-        empty()
+        line_circle_intersections(other, &self.center, self.radius)
+            .filter(move |p| self.contains_circle_point(p) && other.contains(p))
     }
 }
 
@@ -161,13 +215,14 @@ impl Shape for Arc {
     }
 }
 
+
 fn line_circle_intersections<'a>(
-    segment: &'a [Point; 2],
+    segment: &'a Segment,
     center: &'a Point,
     radius: NotNaN<f64>,
 ) -> impl Iterator<Item = Point> + 'a {
-    let d = segment[1] - segment[0];
-    let c = center - segment[0];
+    let d = segment.end - segment.start;
+    let c = center - segment.start;
     // segment points are at alpha * d
     // distance(alpha * d, center) = r
 
@@ -180,7 +235,7 @@ fn line_circle_intersections<'a>(
     let b = (c.x * d.x + c.y * d.y) * (-2.0);
     let c = c.x * c.x + c.y * c.y - radius * radius;
     let solutions = solve_quadratic_equation(a, b, c);
-    solutions.into_iter().map(move |s| segment[0] + d * s)
+    solutions.into_iter().map(move |s| segment.start + d * s)
 }
 
 fn solve_quadratic_equation(a: NotNaN<f64>, b: NotNaN<f64>, c: NotNaN<f64>) -> Vec<NotNaN<f64>> {
