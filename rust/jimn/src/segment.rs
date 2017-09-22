@@ -60,10 +60,8 @@ impl Segment {
     }
 
     /// Check if we contain the given point.
-    /// Precondition: Do not call near endpoints or on endpoints.
+    /// Precondition: be careful when calling near endpoints.
     pub fn contains(&self, point: &Point) -> bool {
-        assert!(!self.start.is_almost(point));
-        assert!(!self.end.is_almost(point));
         is_almost(
             self.start.distance_to(point) + self.end.distance_to(point),
             self.start.distance_to(&self.end),

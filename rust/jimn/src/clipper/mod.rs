@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use point::Point;
 use segment::Segment;
 use utils::coordinates_hash::PointsHash;
-use bentley_ottmann::{bentley_ottmann, cut_segments, Cuttable};
+use bentley_ottmann::{bentley_ottmann, cut_paths, Cuttable};
 mod clip_classifier;
 use self::clip_classifier::classify_clip_segments;
 
@@ -55,6 +55,6 @@ pub fn clip(clipper: &[Segment], clipped: &[Segment], rounder: &mut PointsHash) 
         }))
         .collect();
     let intersections = bentley_ottmann(&segments, rounder);
-    let small_segments = cut_segments(&segments, &intersections);
+    let small_segments = cut_paths(&segments, &intersections);
     classify_clip_segments(&small_segments)
 }

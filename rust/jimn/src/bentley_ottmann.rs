@@ -466,14 +466,14 @@ impl<
     }
 }
 
-/// Computes all intersections amongst given segments
-/// and return a hashmap associating to each segment's index the set of intersection points found.
-pub fn bentley_ottmann<T: AsRef<Segment>>(
-    segments: &[T],
+/// Computes all intersections amongst given paths
+/// and return a hashmap associating to each path's index the set of intersection points found.
+pub fn bentley_ottmann<K: Ord + Copy, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: AsRef<P>>(
+    paths: &[T],
     rounder: &mut PointsHash,
 ) -> HashMap<usize, HashSet<Point>> {
-    let (mut cutter, mut crossed_segments) = Cutter::new(segments, rounder);
-    cutter.run(&mut crossed_segments);
+    let (mut cutter, mut crossed_paths) = Cutter::new(paths, rounder);
+    cutter.run(&mut crossed_paths);
     cutter.intersections
 }
 
@@ -485,20 +485,20 @@ pub trait Cuttable {
         Self: Sized;
 }
 
-/// Cut all segments with intersection points obtained from `bentley_ottmann`.
-pub fn cut_segments<T: Cuttable + Clone>(
-    segments: &[T],
+/// Cut all paths with intersection points obtained from `bentley_ottmann`.
+pub fn cut_paths<T: Cuttable + Clone>(
+    paths: &[T],
     cut_points: &HashMap<PathIndex, HashSet<Point>>,
 ) -> Vec<T> {
-    segments
+    paths
         .iter()
         .enumerate()
-        .flat_map(|(i, segment)| {
+        .flat_map(|(i, path)| {
             let cuts = cut_points.get(&i);
             if let Some(points) = cuts {
-                segment.cut(points)
+                path.cut(points)
             } else {
-                vec![segment.clone()]
+                vec![path.clone()]
             }
         })
         .collect()

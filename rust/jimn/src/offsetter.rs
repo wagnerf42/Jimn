@@ -6,6 +6,7 @@ use ordered_float::NotNaN;
 use quadrant::{Quadrant, Shape};
 use tycat::display;
 use utils::coordinates_hash::PointsHash;
+use bentley_ottmann::{bentley_ottmann, cut_paths};
 
 
 /// Add to given vector all paths obtained when taking inner parallel segments in a polygon
@@ -64,5 +65,8 @@ pub fn offset_holed_polygon<T: Into<NotNaN<f64>>>(
         inner_paths(polygon, radius, &mut raw_paths, rounder);
     }
     display!(holed_polygon, raw_paths);
+    let intersections = bentley_ottmann(&raw_paths, rounder);
+    let small_paths = cut_paths(&raw_paths, &intersections);
+    display!(holed_polygon, small_paths);
     unimplemented!()
 }

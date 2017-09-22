@@ -1,20 +1,40 @@
 //! This module holds the `ElementaryPath` class.
 use std::f64::consts::FRAC_PI_2;
+use std::collections::HashSet;
 use ordered_float::NotNaN;
 use {Arc, Point, Segment};
 use quadrant::{Quadrant, Shape};
 use utils::coordinates_hash::PointsHash;
+use bentley_ottmann::Cuttable;
 
 /// Elementary path (used for building larger paths)
 /// can be either:
 /// - `Arc`
 /// - `Segment`
-/// - vertical segment
+#[derive(Copy, Clone)]
 pub enum ElementaryPath {
     /// `Arc` path
     Arc(Arc),
     /// `Segment` path
     Segment(Segment),
+}
+
+impl Cuttable for ElementaryPath {
+    fn cut(&self, points: &HashSet<Point>) -> Vec<Self> {
+        match *self {
+            ElementaryPath::Arc(a) => a.cut(points).into_iter().map(ElementaryPath::Arc).collect(),
+            ElementaryPath::Segment(s) => s.cut(points)
+                .into_iter()
+                .map(ElementaryPath::Segment)
+                .collect(),
+        }
+    }
+}
+
+impl AsRef<ElementaryPath> for ElementaryPath {
+    fn as_ref(&self) -> &ElementaryPath {
+        self
+    }
 }
 
 impl Shape for ElementaryPath {

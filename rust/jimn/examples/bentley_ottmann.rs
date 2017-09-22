@@ -4,7 +4,7 @@ use std::env::args;
 use jimn::point::Point;
 use jimn::segment::load_segments;
 use jimn::utils::coordinates_hash::PointsHash;
-use jimn::bentley_ottmann::{bentley_ottmann, cut_segments};
+use jimn::bentley_ottmann::{bentley_ottmann, cut_paths};
 use jimn::tycat::display;
 use jimn::quadrant::{Quadrant, Shape};
 
@@ -18,9 +18,12 @@ fn try_bentley_ottmann_on<T: AsRef<str>>(filename: &T) {
         rounder.hash_point(&segment.end);
     }
     let intersections = bentley_ottmann(&segments, &mut rounder);
-    let points: Vec<&Point> = intersections.values().flat_map(|points| points.iter()).collect();
+    let points: Vec<&Point> = intersections
+        .values()
+        .flat_map(|points| points.iter())
+        .collect();
     display!(segments, points);
-    let small_segments = cut_segments(&segments, &intersections);
+    let small_segments = cut_paths(&segments, &intersections);
     display!(small_segments);
 }
 

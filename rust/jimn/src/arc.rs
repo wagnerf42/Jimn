@@ -1,13 +1,16 @@
 //! provides the `Arc` class.
 use std::iter::{empty, once};
+use std::collections::HashSet;
 use ordered_float::NotNaN;
 use std::f64::consts::PI;
 use {Point, Segment};
 use quadrant::{Quadrant, Shape};
 use utils::precision::is_almost;
 use utils::coordinates_hash::PointsHash;
+use bentley_ottmann::Cuttable;
 
 /// Oriented arc segment.
+#[derive(Copy, Clone)]
 pub struct Arc {
     /// Starting point
     pub start: Point,
@@ -15,6 +18,24 @@ pub struct Arc {
     pub end: Point,
     center: Point,
     radius: NotNaN<f64>,
+}
+
+impl Cuttable for Arc {
+    fn cut(&self, points: &HashSet<Point>) -> Vec<Self> {
+        let mut sorted_points: Vec<&Point> = points.iter().collect();
+        if self.start < self.end {
+            sorted_points.sort();
+        } else {
+            sorted_points.sort_by(|a, b| b.cmp(a));
+        }
+
+        let iterator = once(&self.start).chain(sorted_points.into_iter().chain(once(&self.end)));
+        iterator
+            .clone()
+            .zip(iterator.skip(1))
+            .map(|(p1, p2)| Arc::new(*p1, *p2, self.center, self.radius))
+            .collect()
+    }
 }
 
 impl Arc {

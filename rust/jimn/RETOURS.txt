@@ -1,16 +1,8 @@
 
-+ les iterateurs sont supers (-> voir decoupe de segments)
 
 - pas moyen d'initialiser une struct qui contient une sous-struct contenant une ref vers un
 morceau de la struct
 
-- pas moyen de renvoyer un iterateur sur les segments d'un polygone (quel type ?)
+- implementer AsRef pour tout le monde
+- implementer toutes les operations arithmetiques pour le tuple vide
 
-- le borrow checker contraint les API (voir enlever un element quelconque d'un hashset)
-
-- pas moyen de creer par map les OwnedSegment (pb closure)
-
-- le borrow checker contraint les actions
---> par exemple transformation vecteur en arbre, impossible d'avoir un vecteur partiellement faux
-
-+ genericisation du treap
