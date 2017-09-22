@@ -14,11 +14,8 @@ use utils::coordinates_hash::PointsHash;
 
 
 //ROADMAP
-// 1) take arcs and segments
-// 2) do not round coordinates while computing new points
-// 3) round after computing everything
 // 4) angles caching to avoid ever recomputing
-// 5) simplify logic by having one event for each path start/end instead of each point
+// 5) simplify logic by having one event for each path start/end instead of each point ?
 
 //some type aliases for more readability
 type Coordinate = NotNaN<f64>;
@@ -36,7 +33,7 @@ pub struct Key(Coordinate, Angle);
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Copy, Clone)]
 pub struct ComplexKey(Coordinate, Angle, Angle);
 
-/// A BentleyOttmannPath is usable in sweeping line algorithms.
+/// A `BentleyOttmannPath` is usable in sweeping line algorithms.
 /// can in fact be segments or arcs.
 pub trait BentleyOttmannPath {
     /// Paths need to be comparable and should provide comparison keys.
@@ -218,7 +215,7 @@ impl BentleyOttmannPath for ElementaryPath {
     }
 }
 
-///We need someone able to compute comparison keys for our segments.
+///We need someone able to compute comparison keys for our paths.
 #[derive(Debug)]
 pub struct KeyGenerator<'a, K: Ord, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: 'a + AsRef<P>>
 {
@@ -234,7 +231,7 @@ pub struct KeyGenerator<'a, K: Ord, P: BentleyOttmannPath<BentleyOttmannKey = K>
 
 impl<'a, K: Ord, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: AsRef<P>>
     KeyGenerator<'a, K, P, T> {
-    /// Create a key generator from segments.
+    /// Create a key generator from paths.
     pub fn new(paths: &'a [T]) -> Rc<RefCell<KeyGenerator<'a, K, P, T>>> {
         Rc::new(RefCell::new(KeyGenerator {
             //initial current point does not matter
@@ -249,7 +246,7 @@ impl<'a, K: Ord, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: AsRef<P>>
 
 impl<'a, K: Ord, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: AsRef<P>>
     KeyGenerator<'a, K, P, T> {
-    /// Return comparison key for given segment at current position.
+    /// Return comparison key for given paths at current position.
     pub fn compute_key(&self, path_index: &PathIndex) -> K {
         let current_y = self.current_point.y;
         let path = self.paths[*path_index].as_ref();
@@ -262,7 +259,7 @@ impl<'a, K: Ord, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: AsRef<P>>
 /// The `Cutter` structure holds all data needed for bentley ottmann's execution.
 struct Cutter<'a, 'b, K: Ord, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: 'a + AsRef<P>> {
     //TODO: could we replace the hashset by a vector ?
-    /// Results: we associate to each segment (identified by it's position in input vector)
+    /// Results: we associate to each path (identified by it's position in input vector)
     /// a set of intersections.
     intersections: HashMap<PathIndex, HashSet<Point>>,
 
@@ -270,13 +267,13 @@ struct Cutter<'a, 'b, K: Ord, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: '
     events: BinaryHeap<Point>,
 
     //TODO: switch to vectors
-    //we would need to remember the pairs of segments already tested for intersections
-    /// We store for each event point sets of segments ending and starting there.
+    //we would need to remember the pairs of paths already tested for intersections
+    /// We store for each event point sets of paths ending and starting there.
     /// The use of set instead of vector allows us to not bother about intersections
     /// being detected twice.
     events_data: HashMap<Point, [HashSet<PathIndex>; 2]>,
 
-    /// We store the key generator for our own segments comparison purposes.
+    /// We store the key generator for our own paths comparison purposes.
     key_generator: Rc<RefCell<KeyGenerator<'a, K, P, T>>>,
 
     /// Rounder for new points.
@@ -300,7 +297,7 @@ impl<
         let generator = KeyGenerator::new(paths);
         let closure_generator = Rc::clone(&generator);
         let get_key = move |index: &PathIndex| closure_generator.borrow().compute_key(index);
-        let crossed_segments = Treap::new_with_key_generator(get_key);
+        let crossed_paths = Treap::new_with_key_generator(get_key);
 
         let mut cutter = Cutter {
             intersections: HashMap::new(),
@@ -325,10 +322,10 @@ impl<
                 .x_coordinates
                 .insert((index, end.y), end.x);
         }
-        (cutter, crossed_segments)
+        (cutter, crossed_paths)
     }
 
-    /// Add event at given point starting or ending given segment.
+    /// Add event at given point starting or ending given paths.
     fn add_event(&mut self, event_point: Point, path: PathIndex, event_type: usize) {
         let events = &mut self.events;
         // if there is no event data it's a new event
@@ -339,12 +336,12 @@ impl<
             .insert(path);
     }
 
-    /// Try intersecting given segments.
+    /// Try intersecting given paths.
     fn try_intersecting(&mut self, indices: [PathIndex; 2]) {
         let paths = indices.map(|i| &self.key_generator.borrow().paths[*i]);
         let current_point = self.key_generator.borrow().current_point;
-        for intersection in paths[0].as_ref().intersections_with(&paths[1].as_ref()) {
-            //TODO: adjust to avoid going back to the past
+        for intersection in paths[0].as_ref().intersections_with(paths[1].as_ref()) {
+            let intersection = self.rounder.hash_point(&intersection);
             if intersection > current_point {
                 return; // we already know about it
             }
@@ -368,85 +365,77 @@ impl<
         }
     }
 
-    /// End a set of segments.
+    /// End a set of paths.
     /// Checks for possible intersections to add in the system.
-    fn end_segments(
-        &mut self,
-        segments: &mut Vec<PathIndex>,
-        crossed_segments: &mut Treap<K, PathIndex>,
-    ) {
-        if segments.is_empty() {
+    fn end_paths(&mut self, paths: &mut Vec<PathIndex>, crossed_paths: &mut Treap<K, PathIndex>) {
+        if paths.is_empty() {
             return;
         }
-        let mut sorted_segments: Vec<_> = segments
+        let mut sorted_paths: Vec<_> = paths
             .iter()
             .map(|s| (self.key_generator.borrow().compute_key(s), s))
             .collect();
 
-        sorted_segments.sort();
-        for &(ref key, _) in &sorted_segments {
-            crossed_segments.remove(key);
+        sorted_paths.sort();
+        for &(ref key, _) in &sorted_paths {
+            crossed_paths.remove(key);
         }
-        let small_key = &sorted_segments.first().unwrap().0;
-        let big_key = &sorted_segments.last().unwrap().0;
-        for small in crossed_segments.neighbouring_values(*small_key, 0) {
-            for big in crossed_segments.neighbouring_values(*big_key, 1) {
+        let small_key = &sorted_paths.first().unwrap().0;
+        let big_key = &sorted_paths.last().unwrap().0;
+        for small in crossed_paths.neighbouring_values(*small_key, 0) {
+            for big in crossed_paths.neighbouring_values(*big_key, 1) {
                 self.try_intersecting([*small, *big]);
             }
         }
     }
 
-    /// Start a set of segments.
+    /// Start a set of paths.
     /// Checks for possible intersections to add in the system.
-    fn start_segments(
-        &mut self,
-        segments: &mut Vec<PathIndex>,
-        crossed_segments: &mut Treap<K, PathIndex>,
-    ) {
-        if segments.is_empty() {
+    fn start_paths(&mut self, paths: &mut Vec<PathIndex>, crossed_paths: &mut Treap<K, PathIndex>) {
+        if paths.is_empty() {
             return;
         }
 
-        let mut sorted_segments: Vec<_> = segments
+        let mut sorted_paths: Vec<_> = paths
             .iter()
             .map(|s| (self.key_generator.borrow().compute_key(s), s))
             .collect();
 
-        sorted_segments.sort();
+        sorted_paths.sort();
 
-        for &(ref new_key, segment) in &sorted_segments {
+        for &(ref new_key, path) in &sorted_paths {
             {
-                let same_key_node = crossed_segments.get(new_key);
+                let same_key_node = crossed_paths.get(new_key);
 
                 if let Some(overlap_index) = same_key_node {
                     // handle overlaps
-                    self.handle_overlapping_segments(*segment, *overlap_index);
+                    self.handle_overlapping_paths(*path, *overlap_index);
                 }
             }
-            crossed_segments.insert(*segment);
+            crossed_paths.insert(*path);
         }
 
-        let small_key = &sorted_segments.first().unwrap().0;
-        for &(_, added_small) in sorted_segments.iter().take_while(|t| t.0 == *small_key) {
-            for existing_small in crossed_segments.neighbouring_values(*small_key, 0) {
+        let small_key = &sorted_paths.first().unwrap().0;
+        for &(_, added_small) in sorted_paths.iter().take_while(|t| t.0 == *small_key) {
+            for existing_small in crossed_paths.neighbouring_values(*small_key, 0) {
                 self.try_intersecting([*added_small, *existing_small]);
             }
         }
-        let big_key = &sorted_segments.last().unwrap().0;
-        for &(_, added_big) in sorted_segments.iter().rev().take_while(|t| t.0 == *big_key) {
-            for existing_big in crossed_segments.neighbouring_values(*big_key, 1) {
+        let big_key = &sorted_paths.last().unwrap().0;
+        for &(_, added_big) in sorted_paths.iter().rev().take_while(|t| t.0 == *big_key) {
+            for existing_big in crossed_paths.neighbouring_values(*big_key, 1) {
                 self.try_intersecting([*added_big, *existing_big]);
             }
         }
     }
 
-    fn handle_overlapping_segments(&mut self, index1: PathIndex, index2: PathIndex) {
+    fn handle_overlapping_paths(&mut self, index1: PathIndex, index2: PathIndex) {
         let generator = self.key_generator.borrow();
-        let s1 = &generator.paths[index1];
-        let s2 = &generator.paths[index2];
-        if let Some(points) = s1.as_ref().overlap_points(s2.as_ref()) {
+        let p1 = &generator.paths[index1];
+        let p2 = &generator.paths[index2];
+        if let Some(points) = p1.as_ref().overlap_points(p2.as_ref()) {
             for point in &points {
-                for &(segment, index) in &[(s1, index1), (s2, index2)] {
+                for &(segment, index) in &[(p1, index1), (p2, index2)] {
                     if !segment.as_ref().has_endpoint(point) {
                         self.intersections
                             .entry(index)
@@ -459,19 +448,19 @@ impl<
     }
 
     /// Main algorithm's loop.
-    fn run(&mut self, crossed_segments: &mut Treap<K, PathIndex>) {
+    fn run(&mut self, crossed_paths: &mut Treap<K, PathIndex>) {
         while !self.events.is_empty() {
             let event_point = self.events.pop().unwrap();
-            let mut starting_segments: Vec<PathIndex>;
-            let mut ending_segments: Vec<PathIndex>;
+            let mut starting_paths: Vec<PathIndex>;
+            let mut ending_paths: Vec<PathIndex>;
             {
-                let changing_segments = &self.events_data[&event_point];
-                starting_segments = changing_segments[0].iter().cloned().collect();
-                ending_segments = changing_segments[1].iter().cloned().collect();
+                let changing_paths = &self.events_data[&event_point];
+                starting_paths = changing_paths[0].iter().cloned().collect();
+                ending_paths = changing_paths[1].iter().cloned().collect();
             }
-            self.end_segments(&mut ending_segments, crossed_segments);
+            self.end_paths(&mut ending_paths, crossed_paths);
             self.key_generator.borrow_mut().current_point = event_point;
-            self.start_segments(&mut starting_segments, crossed_segments);
+            self.start_paths(&mut starting_paths, crossed_paths);
             self.events_data.remove(&event_point);
         }
     }

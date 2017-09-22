@@ -22,6 +22,7 @@
 extern crate byteorder;
 extern crate dyntreap;
 extern crate ordered_float;
+#[cfg(test)]
 extern crate test;
 
 pub mod utils;
