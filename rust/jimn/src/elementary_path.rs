@@ -11,7 +11,7 @@ use bentley_ottmann::Cuttable;
 /// can be either:
 /// - `Arc`
 /// - `Segment`
-#[derive(Copy, Clone)]
+#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Ord, Eq, Hash)]
 pub enum ElementaryPath {
     /// `Arc` path
     Arc(Arc),

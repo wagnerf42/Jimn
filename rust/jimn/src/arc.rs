@@ -10,7 +10,7 @@ use utils::coordinates_hash::PointsHash;
 use bentley_ottmann::Cuttable;
 
 /// Oriented arc segment.
-#[derive(Copy, Clone)]
+#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Ord, Eq, Hash)]
 pub struct Arc {
     /// Starting point
     pub start: Point,
