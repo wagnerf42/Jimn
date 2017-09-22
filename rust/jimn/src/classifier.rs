@@ -5,8 +5,7 @@ use std::collections::{HashMap, HashSet};
 use std::collections::Bound::*;
 
 use quadrant::Shape;
-use bentley_ottmann::{Key, KeyGenerator, SegmentIndex};
-use bentley_ottmann2::BentleyOttmannPath;
+use bentley_ottmann::{BentleyOttmannPath, Key, KeyGenerator, PathIndex};
 use point::Point;
 use segment::Segment;
 use polygon::Polygon;
@@ -20,7 +19,7 @@ pub trait HasEdge {
 }
 
 
-type ClassifyEvent = (Point, Vec<SegmentIndex>, Vec<SegmentIndex>);
+type ClassifyEvent = (Point, Vec<PathIndex>, Vec<PathIndex>);
 type PolygonIndex = usize;
 
 /// we need to remember which segment belongs to which polygon
@@ -43,14 +42,14 @@ struct Classifier<'a, 'b, T: HasEdge + 'b> {
     inclusion_tree: &'b mut Tree<T>,
 
     /// We store currently crossed segments in a treap (again their positions in input vector).
-    crossed_segments: Treap<'a, Key, SegmentIndex>,
+    crossed_segments: Treap<'a, Key, PathIndex>,
 
     /// We store the key generator for our own segments comparison purposes.
-    key_generator: Rc<RefCell<KeyGenerator<'a, OwnedSegment>>>,
+    key_generator: Rc<RefCell<KeyGenerator<'a, Key, Segment, OwnedSegment>>>,
 
     /// Store alive segments, by polygons.
     /// Using this we can easily iterate on all segments from a given polygon.
-    alive_segments: HashMap<PolygonIndex, HashSet<SegmentIndex>>,
+    alive_segments: HashMap<PolygonIndex, HashSet<PathIndex>>,
 }
 
 impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
@@ -133,7 +132,7 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
         }
 
         let closure_generator = Rc::clone(&generator);
-        let get_key = move |index: &SegmentIndex| closure_generator.borrow().compute_key(index);
+        let get_key = move |index: &PathIndex| closure_generator.borrow().compute_key(index);
         (
             events,
             Classifier {
@@ -156,7 +155,7 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
     }
 
     /// End given segments.
-    fn end_segments(&mut self, segments: &[SegmentIndex]) {
+    fn end_segments(&mut self, segments: &[PathIndex]) {
         for segment in segments {
             self.crossed_segments
                 .remove(&self.key_generator.borrow().compute_key(segment));
@@ -167,7 +166,7 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
 
 
     /// Add given segments in treap, classify new polygons.
-    fn start_segments(&mut self, segments: &[SegmentIndex]) {
+    fn start_segments(&mut self, segments: &[PathIndex]) {
         // add everyone and classify new polygons on the fly
         for segment in segments {
             self.crossed_segments.insert(*segment);
@@ -184,7 +183,7 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
     }
 
     /// Add given polygon at right place in polygons tree.
-    fn classify_polygon(&mut self, owner: PolygonIndex, segment_index: &SegmentIndex) {
+    fn classify_polygon(&mut self, owner: PolygonIndex, segment_index: &PathIndex) {
         let father_id; // where to connect us ?
         let limit = self.key_generator.borrow().compute_key(segment_index);
         let nearest_node = self.crossed_segments

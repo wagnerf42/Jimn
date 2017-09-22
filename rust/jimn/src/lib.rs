@@ -33,7 +33,6 @@ pub use point::Point;
 pub mod stl;
 pub mod tree;
 pub mod bentley_ottmann;
-pub mod bentley_ottmann2;
 pub mod classifier;
 pub mod clipper;
 pub mod polygon;

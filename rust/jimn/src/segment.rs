@@ -7,7 +7,7 @@ use std::collections::HashSet;
 use std::iter::once;
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use ordered_float::NotNaN;
-use bentley_ottmann2::BentleyOttmannPath;
+use bentley_ottmann::BentleyOttmannPath;
 
 use point::Point;
 use quadrant::{Quadrant, Shape};

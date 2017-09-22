@@ -4,15 +4,14 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::collections::Bound::*;
 
-use bentley_ottmann::{Key, KeyGenerator, SegmentIndex};
-use bentley_ottmann2::BentleyOttmannPath;
+use bentley_ottmann::{BentleyOttmannPath, Key, KeyGenerator, PathIndex};
 use point::Point;
 use segment::Segment;
 use dyntreap::CTreap;
 use super::ClippingSegment;
 
-type ClassifyEvent = (Point, Vec<SegmentIndex>, Vec<SegmentIndex>);
-type Generator<'a> = Rc<RefCell<KeyGenerator<'a, ClippingSegment>>>;
+type ClassifyEvent = (Point, Vec<PathIndex>, Vec<PathIndex>);
+type Generator<'a> = Rc<RefCell<KeyGenerator<'a, Key, Segment, ClippingSegment>>>;
 
 /// Takes a set of segments (the clip) forming a polygon and another set of segments (the clipped).
 /// Return all segments inside the clip.
@@ -29,7 +28,7 @@ pub fn classify_clip_segments(segments: &[ClippingSegment]) -> Vec<Segment> {
 fn run_events(
     events: &[ClassifyEvent],
     generator: Generator,
-    crossed_clip_segments: &mut CTreap<Key, SegmentIndex>,
+    crossed_clip_segments: &mut CTreap<Key, PathIndex>,
 ) -> Vec<Segment> {
     let mut kept_segments = Vec::new();
     for event in events {
@@ -47,9 +46,9 @@ fn run_events(
 
 // Remove all clipping segments.
 fn end_segments(
-    ending: &[SegmentIndex],
+    ending: &[PathIndex],
     generator: &Generator,
-    crossed_clip_segments: &mut CTreap<Key, SegmentIndex>,
+    crossed_clip_segments: &mut CTreap<Key, PathIndex>,
 ) {
     for segment_index in ending {
         if generator.borrow().paths[*segment_index].clipping {
@@ -60,9 +59,9 @@ fn end_segments(
 
 // Start all clipping segments, categorize all others.
 fn start_segments(
-    starting: &[SegmentIndex],
+    starting: &[PathIndex],
     generator: &Generator,
-    crossed_clip_segments: &mut CTreap<Key, SegmentIndex>,
+    crossed_clip_segments: &mut CTreap<Key, PathIndex>,
     kept_segments: &mut Vec<Segment>,
 ) {
     // we start by adding all clip segments
