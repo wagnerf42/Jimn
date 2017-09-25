@@ -121,14 +121,14 @@ impl Segment {
         if is_almost(denominator, 0.0) {
             None // almost parallel lines
         } else {
-            let alpha = (x_diff2 * (other.start.y - self.start.y) +
-                y_diff2 * (self.start.x - other.start.x)) / denominator;
-            let beta = (x_diff * (other.start.y - self.start.y) +
-                y_diff * (self.start.x - other.start.x)) / denominator;
+            let alpha = (x_diff2 * (other.start.y - self.start.y)
+                + y_diff2 * (self.start.x - other.start.x)) / denominator;
+            let beta = (x_diff * (other.start.y - self.start.y)
+                + y_diff * (self.start.x - other.start.x)) / denominator;
             let zero = NotNaN::new(0.0).unwrap();
             let one = NotNaN::new(1.0).unwrap();
-            if (is_almost(0.0, alpha) || is_almost(1.0, alpha) || (zero < alpha && alpha < one)) &&
-                (is_almost(0.0, beta) || is_almost(1.0, beta) || (zero < beta && beta < one))
+            if (is_almost(0.0, alpha) || is_almost(1.0, alpha) || (zero < alpha && alpha < one))
+                && (is_almost(0.0, beta) || is_almost(1.0, beta) || (zero < beta && beta < one))
             {
                 Some(self.start + direction * alpha)
             } else {

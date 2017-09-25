@@ -7,17 +7,18 @@ use jimn::quadrant::{Quadrant, Shape};
 use jimn::tycat::{colored_display, display};
 use ordered_float::NotNaN;
 use jimn::bentley_ottmann::BentleyOttmannPath;
-use std::f64::consts::PI;
+use std::f64::consts::{FRAC_PI_2, PI};
 
 fn angles(path: &ElementaryPath, point: &Point) -> (NotNaN<f64>, NotNaN<f64>) {
     let final_angle = path.start().angle_with(&path.end());
     match *path {
         ElementaryPath::Segment(ref s) => (final_angle, final_angle),
         ElementaryPath::Arc(ref a) => {
-            let afgle = a.center.angle_with(&a.start);
-            let angle = (NotNaN::new(PI).unwrap() * 2.0 - afgle) % (NotNaN::new(PI).unwrap() * 2.0);
-            println!("{:?} {} {}", a, afgle, angle);
-            (angle, final_angle)
+            let mut tangent_angle = a.center.angle_with(&a.start) + FRAC_PI_2;
+            if ((final_angle - tangent_angle) % (PI * 2.0)).abs() > PI {
+                tangent_angle -= PI;
+            }
+            (tangent_angle % (PI * 2.0), final_angle)
         }
     }
 }
@@ -46,13 +47,6 @@ fn main() {
 
     display!(paths);
 
-    colored_display(paths.iter());
     paths.sort_by_key(|p| angles(p, &o));
     colored_display(paths.iter());
-
-
-    println!("{}", o.angle_with(&Point::new(1.0, 0.0)));
-    println!("{}", o.angle_with(&Point::new(0.0, 1.0)));
-    println!("{}", o.angle_with(&Point::new(-1.0, 0.0)));
-    println!("{}", o.angle_with(&Point::new(0.0, -1.0)));
 }

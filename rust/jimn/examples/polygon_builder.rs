@@ -2,7 +2,7 @@
 extern crate jimn;
 use jimn::segment::load_segments;
 use jimn::utils::coordinates_hash::PointsHash;
-use jimn::bentley_ottmann::{bentley_ottmann, cut_segments};
+use jimn::bentley_ottmann::{bentley_ottmann, cut_paths};
 use jimn::tycat::{colored_display, display};
 use jimn::quadrant::{Quadrant, Shape};
 use jimn::polygon::build_polygons;
@@ -17,7 +17,7 @@ fn main() {
         rounder.hash_point(&segment.end);
     }
     let intersections = bentley_ottmann(&segments, &mut rounder);
-    let small_segments = cut_segments(&segments, &intersections);
+    let small_segments = cut_paths(&segments, &intersections);
     let polygons = build_polygons(&small_segments);
     colored_display(&polygons).expect("display failed");
 }
