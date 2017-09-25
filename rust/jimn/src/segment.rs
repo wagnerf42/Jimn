@@ -22,8 +22,6 @@ pub struct Segment {
     pub start: Point,
     /// end point
     pub end: Point,
-    /// sweeping angle,
-    pub angle: NotNaN<f64>,
 }
 
 impl AsRef<Segment> for Segment {
@@ -39,13 +37,11 @@ impl Segment {
             Segment {
                 start: start,
                 end: end,
-                angle: end.angle_with(&start),
             }
         } else {
             Segment {
                 start: start,
                 end: end,
-                angle: start.angle_with(&end),
             }
         }
     }
@@ -55,7 +51,6 @@ impl Segment {
         Segment {
             start: self.end,
             end: self.start,
-            angle: self.angle,
         }
     }
 
@@ -148,7 +143,6 @@ impl Segment {
         Segment {
             start: rounder.hash_point(&(self.start + vector)),
             end: rounder.hash_point(&(self.end + vector)),
-            angle: self.angle,
         }
     }
 
@@ -159,7 +153,7 @@ impl Segment {
         } else {
             let alpha = (NotNaN::new(0.0).unwrap() - self.start.y) / (self.end.y - self.start.y);
             let x = self.start.x + alpha * (self.end.x - self.start.x);
-            (self.angle, x)
+            (self.sweeping_angle(), x)
         }
     }
 

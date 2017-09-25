@@ -3,6 +3,10 @@
 - pas moyen d'initialiser une struct qui contient une sous-struct contenant une ref vers un
 morceau de la struct
 
+- pas possible de boucler sur un tuple uniforme vs pas de matching pour les tableaux
+
 - implementer AsRef pour tout le monde
+
 - implementer toutes les operations arithmetiques pour le tuple vide
 
+- PI peut il etre un NotNaN ???

@@ -16,7 +16,8 @@ pub struct Arc {
     pub start: Point,
     /// Ending point
     pub end: Point,
-    center: Point,
+    /// Center
+    pub center: Point,
     radius: NotNaN<f64>,
 }
 
