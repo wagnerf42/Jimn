@@ -2,11 +2,12 @@
 use std::iter::{empty, once};
 use std::collections::HashSet;
 use ordered_float::NotNaN;
-use std::f64::consts::PI;
+use std::f64::consts::{FRAC_PI_2, PI};
 use {Point, Segment};
 use quadrant::{Quadrant, Shape};
 use utils::precision::is_almost;
 use utils::coordinates_hash::PointsHash;
+use utils::ArrayMap;
 use bentley_ottmann::Cuttable;
 
 /// Oriented arc segment.
@@ -233,7 +234,36 @@ impl Shape for Arc {
             self.end.x,
             self.end.y
         );
-        center_string + &arc_string
+        // now draw a small arrow indicating orientation
+        let mut middle_angle =
+            (self.center.angle_with(&self.start) + self.center.angle_with(&self.end)) / 2.0;
+        // we need to figure out where is the middle point between two candidates
+        let possible_points = [
+            self.center + Point::new(middle_angle.cos(), middle_angle.sin()) * self.radius,
+            self.center
+                + Point::new((middle_angle + PI).cos(), (middle_angle + PI).sin()) * self.radius,
+        ];
+        let distances = possible_points.map(|p| self.start.distance_to(p));
+        let tangent_point = if distances[0] < distances[1] {
+            possible_points[0]
+        } else {
+            middle_angle = middle_angle + PI;
+            possible_points[1]
+        };
+        let tangent_angle = if sweep_flag == 1 {
+            middle_angle + FRAC_PI_2
+        } else {
+            middle_angle - FRAC_PI_2
+        };
+        let arrow_string = format!(
+            "<use xlink:href=\"#a\" x=\"{}\" y=\"{}\" transform=\"rotate({} {} {})\"/>",
+            tangent_point.x,
+            tangent_point.y,
+            tangent_angle * 180.0 / PI,
+            tangent_point.x,
+            tangent_point.y
+        );
+        center_string + &arc_string + &arrow_string
     }
 }
 

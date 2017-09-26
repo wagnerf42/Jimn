@@ -16,10 +16,17 @@ fn main() {
         ),
         Arc::new(Point::new(3.0, 0.0), Point::new(0.0, 3.0), origin, 3.0),
         Arc::new(Point::new(0.0, 3.1), Point::new(3.1, 0.0), origin, 3.1),
+        Arc::new(
+            Point::new((PI * 1.2).cos(), (PI * 1.2).sin()) * 4.0,
+            Point::new(0.0, 4.0),
+            origin,
+            4.0,
+        ),
     ];
-    println!("red: quarter circle");
-    println!("green: almost half circle");
-    println!("blue: quarter circle one way");
-    println!("purple: quarter circle other way");
+    println!("red: quarter circle {:?}", arcs[0]);
+    println!("green: almost half circle {:?}", arcs[1]);
+    println!("blue: quarter circle one way {:?}", arcs[2]);
+    println!("purple: quarter circle other way {:?}", arcs[3]);
+    println!("orange: other quarter circle {:?}", arcs[4]);
     colored_display(arcs.iter()).expect("display failed");
 }
