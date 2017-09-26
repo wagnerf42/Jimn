@@ -37,9 +37,11 @@ impl Shape for HoledPolygon {
     }
 
     fn svg_string(&self) -> String {
-        let mut strings: Vec<String> = self.holes.iter().map(|h| h.svg_string()).collect();
-        strings.push(self.polygon.svg_string());
-        strings.join("\n")
+        self.holes
+            .iter()
+            .chain(once(&self.polygon))
+            .map(|h| h.svg_string())
+            .collect()
     }
 }
 

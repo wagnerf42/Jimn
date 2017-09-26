@@ -48,8 +48,7 @@ impl<T: Shape> Shape for Vec<T> {
     }
 
     fn svg_string(&self) -> String {
-        let strings: Vec<String> = self.iter().map(|e| e.svg_string()).collect();
-        strings.join("")
+        self.iter().map(|e| e.svg_string()).collect()
     }
 }
 
@@ -65,8 +64,7 @@ impl<'a, T: Shape> Shape for &'a [T] {
     }
 
     fn svg_string(&self) -> String {
-        let strings: Vec<String> = self.iter().map(|e| e.svg_string()).collect();
-        strings.join("")
+        self.iter().map(|e| e.svg_string()).collect()
     }
 }
 

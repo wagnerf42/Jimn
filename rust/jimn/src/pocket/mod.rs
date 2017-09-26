@@ -1,4 +1,7 @@
 //! `Pocket` class.
+use std::f64::consts::PI;
+use std::iter::once;
+use ordered_float::NotNaN;
 use {ElementaryPath, Quadrant};
 use quadrant::Shape;
 
@@ -27,8 +30,30 @@ impl Shape for Pocket {
         quadrant
     }
     fn svg_string(&self) -> String {
-        let strings: Vec<_> = self.edge.iter().map(|p| p.start().to_string()).collect();
-        let string = strings.join(" ");
-        format!("<polygon points=\"{}\"/>", string)
+        let starting_point = self.edge.first().unwrap().start();
+        once(format!(
+            "<path d=\"M{},{}",
+            starting_point.x,
+            starting_point.y
+        )).chain(self.edge.iter().map(|p| match *p {
+            ElementaryPath::Segment(ref s) => format!(" L {} {}", s.end.x, s.end.y),
+            ElementaryPath::Arc(ref a) => {
+                let sweep_flag = if a.angle() > NotNaN::new(PI).unwrap() {
+                    1
+                } else {
+                    0
+                };
+                format!(
+                    " A {},{} 0 0,{} {},{}",
+                    a.radius,
+                    a.radius,
+                    sweep_flag,
+                    a.end.x,
+                    a.end.y
+                )
+            }
+        }))
+            .chain(once("\"/>".to_string()))
+            .collect()
     }
 }

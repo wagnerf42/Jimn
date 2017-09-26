@@ -5,10 +5,6 @@ use elementary_path::ElementaryPath;
 use pocket::Pocket;
 use ordered_float::NotNaN;
 
-use Quadrant;
-use quadrant::Shape;
-use tycat::display;
-
 type PathIndex = usize;
 type Angle = NotNaN<f64>;
 
@@ -37,12 +33,16 @@ pub fn build_pockets(paths: &[ElementaryPath]) -> Vec<Pocket> {
         points
             .entry(path.start())
             .or_insert_with(Vec::new)
-            .push((path_index, angles(&path, path.start())));
+            .push((path_index, angles(&path, path.start()), 1));
+        points
+            .entry(path.end())
+            .or_insert_with(Vec::new)
+            .push((path_index, angles(&path, path.end()), -1));
         remaining_paths.insert(path_index);
     }
 
     for neighbours in points.values_mut() {
-        neighbours.sort_by_key(|&(_, a)| a);
+        neighbours.sort_by_key(|&(_, a, _)| a);
     }
 
     let mut pockets = Vec::new();
@@ -51,7 +51,6 @@ pub fn build_pockets(paths: &[ElementaryPath]) -> Vec<Pocket> {
         if let Some(pocket) =
             build_pocket(next_start_path_index, paths, &points, &mut remaining_paths)
         {
-            println!("built {:?}", pocket);
             pockets.push(pocket);
         }
     }
@@ -62,7 +61,7 @@ pub fn build_pockets(paths: &[ElementaryPath]) -> Vec<Pocket> {
 fn build_pocket(
     start_path_index: PathIndex,
     paths: &[ElementaryPath],
-    points: &HashMap<&Point, Vec<(PathIndex, (Angle, Angle))>>,
+    points: &HashMap<&Point, Vec<(PathIndex, (Angle, Angle), i8)>>,
     remaining_paths: &mut HashSet<PathIndex>,
 ) -> Option<Pocket> {
     let mut current_path_index = start_path_index;
@@ -74,7 +73,6 @@ fn build_pocket(
         let current_point = current_path.end();
         current_path_index = find_next_path(&points[current_point], current_path);
     }
-    display!(paths, paths[start_path_index], pocket_paths);
     Some(Pocket::new(pocket_paths))
     //    let polygon = Polygon::new(polygon_points);
     //    let area = polygon.area();
@@ -90,17 +88,25 @@ fn build_pocket(
 
 /// Return where to go next when arriving from given path.
 fn find_next_path(
-    neighbours: &[(PathIndex, (Angle, Angle))],
+    neighbours: &[(PathIndex, (Angle, Angle), i8)],
     current_path: &ElementaryPath,
 ) -> PathIndex {
     let incoming_angles = angles(current_path, current_path.end());
-    //TODO: bisect ?
-    for n in neighbours.windows(2) {
-        let (_, a1) = n[0];
-        let (i, a2) = n[1];
-        if a1 < incoming_angles && incoming_angles < a2 {
-            return i;
+    // first figure out where we arrive
+    let incoming_index = neighbours
+        .binary_search_by_key(&incoming_angles, |&(_, a, _)| a)
+        .unwrap();
+    // now, rotate through neighbours until we find a leaving neighbouring path which is not
+    // compensated by an incoming one.
+    let mut count = 0;
+    for &(index, _, path_type) in neighbours[(incoming_index + 1)..]
+        .iter()
+        .chain(neighbours[..incoming_index].iter())
+    {
+        count += path_type;
+        if count == 1 {
+            return index;
         }
     }
-    neighbours.first().unwrap().0
+    panic!("we turned around and found no one");
 }

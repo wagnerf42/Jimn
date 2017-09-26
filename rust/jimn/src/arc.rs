@@ -19,7 +19,8 @@ pub struct Arc {
     pub end: Point,
     /// Center
     pub center: Point,
-    radius: NotNaN<f64>,
+    /// Radius
+    pub radius: NotNaN<f64>,
 }
 
 impl Cuttable for Arc {

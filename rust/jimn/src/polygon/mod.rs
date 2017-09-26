@@ -8,6 +8,7 @@ use Segment;
 use classifier::HasEdge;
 use utils::Identifiable;
 use utils::precision::is_almost;
+use std::iter::once;
 
 pub use self::polygon_builder::build_polygons;
 mod polygon_builder;
@@ -196,12 +197,10 @@ impl Shape for Polygon {
         if self.points.is_empty() {
             String::new()
         } else {
-            let strings: Vec<String> = self.points
-                .iter()
-                .map(|p| format!("{},{}", p.x, p.y))
-                .collect();
-            let points_string = strings.join(" ");
-            format!("<polygon points=\"{}\" opacity=\"0.5\"/>", points_string)
+            once("<polygon points=\"".to_string())
+                .chain(self.points.iter().map(|p| format!(" {},{}", p.x, p.y)))
+                .chain(once("\" opacity=\"0.5\"/>".to_string()))
+                .collect()
         }
     }
 }
