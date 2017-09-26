@@ -89,11 +89,21 @@ pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
     let yscale = NotNaN::new(480.0).unwrap() / height;
     let scale = min(xscale, yscale);
     let stroke = 3.0 / scale.into_inner();
+    write!(svg_file, "<defs>\n")?;
     write!(
         svg_file,
-        "<defs><symbol id=\"c\"><circle r=\"{}\"/></symbol></defs>\n",
+        "<symbol id=\"c\"><circle r=\"{}\"/></symbol>\n",
         2.0 * stroke
     )?;
+    write!(
+        svg_file,
+        "<symbol id=\"a\"><line x1=\"{}\" y1=\"{}\" x2=\"0.0\" y2=\"0.0\"/><line x1=\"{}\" y1=\"{}\" x2=\"0.0\" y2=\"0.0\"/></symbol>\n",
+        -3.0 * stroke,
+        -3.0 * stroke,
+        -3.0 * stroke,
+        3.0 * stroke,
+    )?;
+    write!(svg_file, "</defs>\n")?;
     write!(
         svg_file,
         "<g stroke-width=\"{}\" opacity=\"0.7\">\n",

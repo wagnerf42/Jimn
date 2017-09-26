@@ -1,6 +1,7 @@
 //! Segments on the plane.
 //!
 //! Provides a `Segment` structure for storing oriented 2d segments.
+use std::f64::consts::PI;
 use std::io;
 use std::fs::File;
 use std::collections::HashSet;
@@ -220,12 +221,18 @@ impl Shape for Segment {
 
     /// Returns svg string for tycat.
     fn svg_string(&self) -> String {
+        let middle = (self.start + self.end) / 2.0;
         format!(
-            "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>",
+            "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/><use xlink:href=\"#a\" x=\"{}\" y=\"{}\" transform=\"rotate({} {} {})\"/>",
             self.start.x,
             self.start.y,
             self.end.x,
-            self.end.y
+            self.end.y,
+            middle.x,
+            middle.y,
+            self.start.angle_with(&self.end) * 360.0 / (2.0 * PI),
+            middle.x,
+            middle.y
         )
     }
 }
