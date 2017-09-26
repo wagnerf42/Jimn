@@ -48,8 +48,8 @@ impl Arc {
             center: center,
             radius: radius.into(),
         };
-        if !(is_almost(arc.center.distance_to(&arc.start), arc.radius) &&
-            is_almost(arc.center.distance_to(&arc.end), arc.radius))
+        if !(is_almost(arc.center.distance_to(&arc.start), arc.radius)
+            && is_almost(arc.center.distance_to(&arc.end), arc.radius))
         {
             arc.adjust_center();
         }
@@ -83,8 +83,8 @@ impl Arc {
 
     /// Return normalized angle of points with center.
     pub fn angle(&self) -> NotNaN<f64> {
-        (self.center.angle_with(&self.start) - self.center.angle_with(&self.end) + 2.0 * PI) %
-            (2.0 * PI)
+        (self.center.angle_with(&self.start) - self.center.angle_with(&self.end) + 2.0 * PI)
+            % (2.0 * PI)
     }
 
     /// Do we contain given point ?
@@ -164,8 +164,8 @@ impl Arc {
     /// assert!(is_almost(arc.tangent_angle(&Point::new(half_coordinate, -half_coordinate)), PI/4.0));
     /// ```
     pub fn tangent_angle(&self, tangent_point: &Point) -> NotNaN<f64> {
-        (NotNaN::new(PI).unwrap() - self.center.angle_with(tangent_point)) %
-            NotNaN::new(PI).unwrap()
+        (NotNaN::new(PI).unwrap() - self.center.angle_with(tangent_point))
+            % NotNaN::new(PI).unwrap()
     }
 
     /// Split given `Arc` in possible two so that for any given y, each arc

@@ -77,8 +77,8 @@ fn start_segments(
         if !generator.borrow().paths[*segment_index].clipping {
             let key = generator.borrow().compute_key(segment_index);
             //TODO: why find_key ?
-            if crossed_clip_segments.get(&key).is_none() &&
-                crossed_clip_segments
+            if crossed_clip_segments.get(&key).is_none()
+                && crossed_clip_segments
                     .ordered_nodes((Excluded(key), Unbounded))
                     .count() % 2 == 1
             {

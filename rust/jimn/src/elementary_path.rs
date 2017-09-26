@@ -88,4 +88,14 @@ impl ElementaryPath {
             ElementaryPath::Arc(ref a) => &a.end,
         }
     }
+
+    /// Return endpoint which is not the given one.
+    /// pre-condition: point given is an endpoint.
+    pub fn other_endpoint(&self, endpoint: &Point) -> &Point {
+        if self.start() == endpoint {
+            self.end()
+        } else {
+            self.start()
+        }
+    }
 }

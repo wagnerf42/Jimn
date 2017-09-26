@@ -1,9 +1,9 @@
 #[macro_use]
 extern crate jimn;
-use jimn::polygon::{square, build_polygons};
+use jimn::polygon::{build_polygons, square};
 use jimn::segment::Segment;
 use jimn::quadrant::{Quadrant, Shape};
-use jimn::tycat::{display, colored_display};
+use jimn::tycat::{colored_display, display};
 use jimn::tile::hexagonal_tile;
 use jimn::utils::coordinates_hash::PointsHash;
 use jimn::clipper::clip;
@@ -20,12 +20,10 @@ fn main() {
     let tile = hexagonal_tile(0.2, 0.2);
     let tiled = tile.tile(&quadrant, &mut rounder);
     display!(polygon, tiled);
-    let segments: Vec<Segment> = polygon.points
+    let segments: Vec<Segment> = polygon
+        .points
         .iter()
-        .zip(polygon.points
-                 .iter()
-                 .cycle()
-                 .skip(1))
+        .zip(polygon.points.iter().cycle().skip(1))
         .map(|(&p1, &p2)| Segment::new(p1, p2))
         .collect();
     let clipped = clip(&segments, &tiled, &mut rounder);

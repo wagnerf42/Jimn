@@ -29,6 +29,7 @@ pub mod utils;
 #[macro_use]
 pub mod tycat;
 pub mod quadrant;
+pub use quadrant::Quadrant;
 pub mod point;
 pub use point::Point;
 pub mod stl;

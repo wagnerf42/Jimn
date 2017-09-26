@@ -4,6 +4,7 @@
 //! Points can also serve as vectors: for example point2-point1 is a point
 //! which coordinates encode the direction vector of segment(point1,point2).
 use std::ops::{Add, Div, Mul, Sub};
+use std::fmt;
 use ordered_float::NotNaN;
 
 use quadrant::{Quadrant, Shape};
@@ -27,6 +28,12 @@ impl Default for Point {
     }
 }
 
+impl fmt::Display for Point {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{},{}", self.x, self.y)
+    }
+}
+
 impl Point {
     /// Returns a new Point from given coordinates.
     pub fn new<T: Into<NotNaN<f64>>, U: Into<NotNaN<f64>>>(x: T, y: U) -> Point {
@@ -38,8 +45,8 @@ impl Point {
 
     /// Returns if the three given points are approximately aligned.
     pub fn is_aligned_with(&self, p2: &Point, p3: &Point) -> bool {
-        let determinant = self.x * p2.y + self.y * p3.x + p2.x * p3.y -
-            (p2.y * p3.x + self.y * p2.x + self.x * p3.y);
+        let determinant = self.x * p2.y + self.y * p3.x + p2.x * p3.y
+            - (p2.y * p3.x + self.y * p2.x + self.x * p3.y);
         determinant.abs() < 10.0_f64.powi(-5) //TODO: why 5 ?
     }
 
