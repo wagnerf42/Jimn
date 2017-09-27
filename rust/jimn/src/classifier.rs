@@ -62,43 +62,31 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
     ) -> (Vec<ClassifyEvent>, Classifier<'a, 'b, T>) {
         // immediately add all polygons as tree nodes
         // this way we can use their position in tree as their id
+        // NOTE that it is important that their polygon_id is larger than the ids
+        // of previous polygons. in this way previous polygons events will come first on
+        // overlapping cases.
         for polygon in polygons {
-            let polygon_index = tree.len();
-            segments.extend(
-                polygon
-                    .edge()
-                    .segments()
-                    .filter(|s| !s.is_horizontal())
-                    .map(|s| {
-                        OwnedSegment {
-                            segment: s,
-                            owner: polygon_index,
-                        }
-                    }),
-            );
             tree.add_node(polygon);
         }
 
-        // we continue by adding all segments from existing leaves
-        // NOTE that it is important to add these last.
-        // In this way if an old segment is overlapping a new one,
-        // the index of the old segment will be larger and therefore
-        // and will be > than the new one.
-        for node in tree.walk().filter(|n| n.children.is_empty()) {
-            let index = node.index;
-            segments.extend(
+        // we continue by adding all segments from existing leaves.
+        *segments = tree.nodes
+            .iter()
+            .filter(|n| n.children.is_empty())
+            .flat_map(|node| {
+                let index = node.index;
                 node.value
                     .edge()
                     .segments()
                     .filter(|s| !s.is_horizontal())
-                    .map(|s| {
+                    .map(move |s| {
                         OwnedSegment {
                             segment: s,
                             owner: index,
                         }
-                    }),
-            );
-        }
+                    })
+            })
+            .collect();
 
 
         let mut raw_events = HashMap::with_capacity(2 * segments.len());
