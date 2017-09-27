@@ -96,6 +96,7 @@ impl<T: Default + Shape> Tree<T> {
     }
 
     /// Return a depth-first iterator on all nodes.
+    /// Starts from root, only reach nodes connected to it.
     pub fn walk(&self) -> DepthFirstIterator<T> {
         DepthFirstIterator {
             tree: self,

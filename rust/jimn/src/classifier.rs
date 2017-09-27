@@ -187,13 +187,13 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
         let father_id; // where to connect us ?
         let limit = self.key_generator.borrow().compute_key(segment_index);
         let nearest_node = self.crossed_segments
-            .ordered_nodes((Excluded(limit), Unbounded))
+            .ordered_nodes((Included(limit), Unbounded))
+            .filter(|n| n.value != *segment_index)
             .next();
         if let Some(larger_neighbour) = nearest_node {
             let neighbour_owner = self.key_generator.borrow().paths[larger_neighbour.value].owner;
             // we are either a brother of neighbour or its child
-            let key = self.key_generator.borrow().compute_key(segment_index);
-            if self.inclusion_test(key, neighbour_owner) {
+            if self.inclusion_test(limit, neighbour_owner) {
                 // we are his child
                 father_id = neighbour_owner;
             } else {
@@ -205,7 +205,6 @@ impl<'a, 'b, T: HasEdge + Shape + Default> Classifier<'a, 'b, T> {
             father_id = self.inclusion_tree.root();
         }
         self.inclusion_tree.set_child(father_id, owner);
-        unimplemented!("does it work with overlapping segments ?")
     }
 
 
