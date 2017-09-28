@@ -68,6 +68,8 @@ pub trait BentleyOttmannPath {
     /// Pre-condition: we are aligned segments.
     /// Might return one duplicated point
     fn overlap_points(&self, other: &Self) -> Option<[Point; 2]>;
+    /// Is the path a horizontal segment ?
+    fn is_horizontal(&self) -> bool;
 }
 
 fn compute_segment_key(
@@ -162,6 +164,9 @@ impl BentleyOttmannPath for Segment {
     fn overlap_points(&self, other: &Segment) -> Option<[Point; 2]> {
         segments_overlap_points(self, other)
     }
+    fn is_horizontal(&self) -> bool {
+        self.is_horizontal()
+    }
 }
 
 impl BentleyOttmannPath for ElementaryPath {
@@ -211,6 +216,12 @@ impl BentleyOttmannPath for ElementaryPath {
                 ElementaryPath::Arc(_) => panic!("overlapping arcs"),
                 ElementaryPath::Segment(ref s2) => segments_overlap_points(s, s2),
             },
+        }
+    }
+    fn is_horizontal(&self) -> bool {
+        match *self {
+            ElementaryPath::Arc(_) => false,
+            ElementaryPath::Segment(ref s) => s.is_horizontal(),
         }
     }
 }

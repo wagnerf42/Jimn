@@ -2,7 +2,7 @@
 use ordered_float::NotNaN;
 use std::collections::HashMap;
 use std::iter::once;
-use classifier::{complete_inclusion_tree, HasEdge};
+use classifier::complete_inclusion_tree;
 use segment::Segment;
 use polygon::{build_polygons, Polygon};
 use quadrant::{Quadrant, Shape};
@@ -10,8 +10,10 @@ use tree::Tree;
 
 /// Polygon with some potential holes inside
 pub struct HoledPolygon {
-    polygon: Polygon,
-    holes: Vec<Polygon>,
+    /// Outer polygon
+    pub polygon: Polygon,
+    /// Inner holes
+    pub holes: Vec<Polygon>,
 }
 
 impl HoledPolygon {
@@ -51,12 +53,6 @@ impl Default for HoledPolygon {
             polygon: Default::default(),
             holes: Vec::new(),
         }
-    }
-}
-
-impl HasEdge for HoledPolygon {
-    fn edge(&self) -> &Polygon {
-        &self.polygon
     }
 }
 

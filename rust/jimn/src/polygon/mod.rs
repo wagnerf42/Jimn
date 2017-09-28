@@ -5,7 +5,6 @@ use ordered_float::NotNaN;
 use quadrant::{Quadrant, Shape};
 use point::Point;
 use Segment;
-use classifier::HasEdge;
 use utils::Identifiable;
 use utils::precision::is_almost;
 use std::iter::once;
@@ -175,12 +174,6 @@ impl<'a> Polygon {
             .collect();
         assert!(final_points.len() > 2);
         Polygon::new(final_points)
-    }
-}
-
-impl HasEdge for Polygon {
-    fn edge(&self) -> &Polygon {
-        self
     }
 }
 

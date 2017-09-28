@@ -40,6 +40,7 @@ pub mod clipper;
 pub mod polygon;
 pub use polygon::Polygon;
 pub mod holed_polygon;
+pub use holed_polygon::HoledPolygon;
 pub mod tile;
 pub mod overlap;
 pub mod segment;
