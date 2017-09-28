@@ -14,19 +14,19 @@ use tree::Tree;
 /// Container is a pocket or a polygon.
 
 /// Each container has an outer edge composed of paths.
-pub trait Contains<'a, P> {
+pub trait Contains<P> {
     /// Return outer edge in form of path iterator
-    fn edge(&'a self) -> Box<Iterator<Item = P> + 'a>;
+    fn edge<'a>(&'a self) -> Box<Iterator<Item = P> + 'a>;
 }
 
-impl<'a> Contains<'a, Segment> for Polygon {
-    fn edge(&'a self) -> Box<Iterator<Item = Segment> + 'a> {
+impl Contains<Segment> for Polygon {
+    fn edge<'a>(&'a self) -> Box<Iterator<Item = Segment> + 'a> {
         Box::new(self.segments())
     }
 }
 
-impl<'a> Contains<'a, Segment> for HoledPolygon {
-    fn edge(&'a self) -> Box<Iterator<Item = Segment> + 'a> {
+impl Contains<Segment> for HoledPolygon {
+    fn edge<'a>(&'a self) -> Box<Iterator<Item = Segment> + 'a> {
         Box::new(self.polygon.segments())
     }
 }
@@ -57,7 +57,7 @@ struct Classifier<
     't: 'p,
     K: 'k + Ord + Eq + Copy,
     P: 'p + BentleyOttmannPath<BentleyOttmannKey = K>,
-    C: Contains<'p, P> + 't,
+    C: Contains<P> + 't,
 > {
     /// Final result
     inclusion_tree: &'t mut Tree<C>,
@@ -81,7 +81,7 @@ impl<
     't: 'p,
     K: 'k + Ord + Copy + Eq,
     P: 'p + BentleyOttmannPath<BentleyOttmannKey = K>,
-    C: Contains<'p, P> + Shape + Default,
+    C: Contains<P> + Shape + Default,
 > Classifier<'s, 'k, 'p, 't, K, P, C> {
     /// Create all owned paths and events.
     fn new(
@@ -99,7 +99,6 @@ impl<
         }
 
         // we continue by adding all paths from existing leaves.
-        {
         *paths = tree.nodes
             .iter()
             .filter(|n| n.children.is_empty())
@@ -116,8 +115,6 @@ impl<
                     })
             })
             .collect();
-        }
-
 
         let mut raw_events = HashMap::with_capacity(2 * paths.len());
         for (index, path) in paths.iter().enumerate() {
@@ -245,7 +242,7 @@ pub fn complete_inclusion_tree<
     't: 'p,
     K: 'k + Ord + Eq + Copy,
     P: 'p + BentleyOttmannPath<BentleyOttmannKey = K>,
-    C: Contains<'p, P> + Shape + Default,
+    C: Contains<P> + Shape + Default,
 >(
     tree: &'t mut Tree<C>,
     containers: Vec<C>,
