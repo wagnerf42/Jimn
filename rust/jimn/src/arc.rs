@@ -166,7 +166,8 @@ impl Arc {
     /// assert!(is_almost(arc.tangent_angle(&Point::new(half_coordinate, -half_coordinate)), PI/4.0));
     /// ```
     pub fn tangent_angle(&self, tangent_point: &Point) -> NotNaN<f64> {
-        (NotNaN::new(PI).unwrap() - self.center.angle_with(tangent_point))
+        let base_angle = self.center.angle_with(tangent_point);
+        (base_angle + NotNaN::new(FRAC_PI_2).unwrap())
             % NotNaN::new(PI).unwrap()
     }
 

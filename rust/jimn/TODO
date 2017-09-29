@@ -1,5 +1,8 @@
 bentley ottmann:
 
+    - simplify key logic for segments:
+    angle is if before where to we come from and if after where do we go to 
+
     - lots of 'move' in closures in Arc. do they inccur overhead ? are they really needed ?
 
     - treap memory cleaning (we need weak references)

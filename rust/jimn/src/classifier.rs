@@ -3,13 +3,16 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::collections::Bound::*;
+use std::collections::Bound;
 use std::marker::PhantomData;
+use utils::debug::AsDebug;
 
-use {HoledPolygon, Point, Polygon, Segment};
-use quadrant::Shape;
+use {ElementaryPath, Pocket, HoledPolygon, Point, Polygon, Segment};
 use bentley_ottmann::{BentleyOttmannPath, KeyGenerator, PathIndex};
 use dyntreap::Treap;
 use tree::Tree;
+use tycat::colored_display;
+use quadrant::{Shape};
 
 /// Container is a pocket or a polygon.
 
@@ -28,6 +31,12 @@ impl Contains<Segment> for Polygon {
 impl Contains<Segment> for HoledPolygon {
     fn edge<'a>(&'a self) -> Box<Iterator<Item = Segment> + 'a> {
         Box::new(self.polygon.segments())
+    }
+}
+
+impl Contains<ElementaryPath> for Pocket {
+    fn edge<'a>(&'a self) -> Box<Iterator<Item = ElementaryPath> + 'a> {
+        Box::new(self.edge.iter().cloned())
     }
 }
 
@@ -80,7 +89,7 @@ impl<
     'p: 'k,
     't: 'p,
     K: 'k + Ord + Copy + Eq,
-    P: 'p + BentleyOttmannPath<BentleyOttmannKey = K>,
+    P: 'p + BentleyOttmannPath<BentleyOttmannKey = K> + Shape,
     C: Contains<P> + Shape + Default,
 > Classifier<'s, 'k, 'p, 't, K, P, C> {
     /// Create all owned paths and events.
@@ -164,8 +173,11 @@ impl<
     fn run(&mut self, events: &[ClassifyEvent]) {
         for event in events {
             // remove ending paths
+            println!("ending paths");
             self.end_paths(&event.2);
+            println!("changing point");
             self.key_generator.borrow_mut().current_point = event.0;
+            println!("starting paths");
             self.start_paths(&event.1);
         }
     }
@@ -195,7 +207,13 @@ impl<
                 // not classified yet
                 self.classify_container(owner, path);
             }
+            let key = self.key_generator.borrow().compute_key(path);
+            println!("key for {} is {:?}", *path, key.as_debug());
         }
+        println!("added");
+        self.crossed_paths.tycat();
+        let bounds:(Bound<K>, Bound<K>) = (Unbounded, Unbounded);
+        colored_display(self.crossed_paths.ordered_values(bounds).rev().map(|i| &self.key_generator.borrow().paths[*i].path)).expect("display failed");
     }
 
     /// Add given container at right place in containers tree.
@@ -241,7 +259,7 @@ pub fn complete_inclusion_tree<
     'p: 'k,
     't: 'p,
     K: 'k + Ord + Eq + Copy,
-    P: 'p + BentleyOttmannPath<BentleyOttmannKey = K>,
+    P: 'p + BentleyOttmannPath<BentleyOttmannKey = K> + Shape,
     C: Contains<P> + Shape + Default,
 >(
     tree: &'t mut Tree<C>,

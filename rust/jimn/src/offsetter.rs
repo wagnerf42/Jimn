@@ -8,6 +8,8 @@ use tycat::{colored_display, display};
 use utils::coordinates_hash::PointsHash;
 use bentley_ottmann::{bentley_ottmann, cut_paths};
 use pocket::build_pockets;
+use classifier::complete_inclusion_tree;
+use tree::Tree;
 
 
 /// Add to given vector all paths obtained when taking inner parallel segments in a polygon
@@ -70,6 +72,9 @@ pub fn offset_holed_polygon<T: Into<NotNaN<f64>>>(
     let small_paths = cut_paths(&raw_paths, &intersections);
     display!(holed_polygon, small_paths);
     let pockets = build_pockets(&small_paths);
-    colored_display(pockets.iter()).expect("display failed");
+    colored_display(pockets.iter()).expect("pockets display failed");
+    let mut pockets_tree = Tree::new();
+    complete_inclusion_tree(&mut pockets_tree, pockets);
+    pockets_tree.tycat().expect("pockets tree display failed");
     unimplemented!()
 }

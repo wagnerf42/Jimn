@@ -117,13 +117,18 @@ fn compute_arc_key(arc: &Arc, current_point: &Point, stored_x: &Option<&Coordina
         arc.horizontal_line_intersection(current_y)
             .expect("computing key for non intersecting arc")
     };
-    let tangent = if current_x > intersection_point.x {
-        -arc.tangent_angle(&intersection_point)
+    let tangent = arc.tangent_angle(&intersection_point);
+    if current_x > intersection_point.x {
+        // we are not yet at intersection
+        let coming_from = max(arc.start, arc.end);
+        let final_angle = Segment::new(intersection_point, coming_from).sweeping_angle();
+        ComplexKey(intersection_point.x, -tangent, -final_angle)
     } else {
-        arc.tangent_angle(&intersection_point)
-    };
-    let final_angle = Segment::new(intersection_point, arc.end).sweeping_angle();
-    ComplexKey(intersection_point.x, tangent, final_angle)
+        // we are past intersection
+        let going_to = min(arc.start, arc.end);
+        let final_angle = Segment::new(intersection_point, going_to).sweeping_angle();
+        ComplexKey(intersection_point.x, tangent, final_angle)
+    }
 }
 
 fn segments_intersections(s1: &Segment, s2: &Segment) -> Box<Iterator<Item = Point>> {
@@ -176,7 +181,7 @@ impl BentleyOttmannPath for ElementaryPath {
             ElementaryPath::Arc(ref a) => compute_arc_key(a, current_point, stored_x),
             ElementaryPath::Segment(ref s) => {
                 let Key(coordinate, angle) = compute_segment_key(s, current_point, stored_x);
-                ComplexKey(coordinate, angle, NotNaN::new(angle.abs()).unwrap())
+                ComplexKey(coordinate, angle, angle)
             }
         }
     }

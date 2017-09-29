@@ -8,7 +8,6 @@ use std::collections::HashSet;
 use std::iter::once;
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use ordered_float::NotNaN;
-use bentley_ottmann::BentleyOttmannPath;
 
 use point::Point;
 use quadrant::{Quadrant, Shape};
@@ -96,8 +95,16 @@ impl Segment {
     /// Return angle between largest point and smallest point.
     /// This function is used for key computations in sweeping line algorithms.
     pub fn sweeping_angle(&self) -> NotNaN<f64> {
-        let (sweeping_start, sweeping_end) = self.ordered_points();
-        sweeping_end.angle_with(&sweeping_start)
+        let raw_angle = self.start.angle_with(&self.end);
+        if raw_angle < NotNaN::new(0.0).unwrap() {
+            raw_angle + PI
+        } else {
+            if raw_angle == NotNaN::new(PI).unwrap() {
+                NotNaN::new(0.0).unwrap()
+            } else {
+                raw_angle
+            }
+        }
     }
 
     /// Compute intersection between two segments.

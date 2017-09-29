@@ -11,7 +11,16 @@ mod pocket_builder;
 /// `Polygon` equivalent, but also allowing arcs.
 #[derive(Debug)]
 pub struct Pocket {
-    edge: Vec<ElementaryPath>,
+    /// All paths forming the pocket, one after the other.
+    pub edge: Vec<ElementaryPath>,
+}
+
+impl Default for Pocket {
+    fn default() -> Self {
+        Pocket {
+            edge: Vec::new()
+        }
+    }
 }
 
 impl Pocket {

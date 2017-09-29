@@ -14,7 +14,7 @@ fn angles(path: &ElementaryPath, point: &Point) -> (NotNaN<f64>, NotNaN<f64>) {
     match *path {
         ElementaryPath::Segment(ref s) => (final_angle, final_angle),
         ElementaryPath::Arc(ref a) => {
-            let mut tangent_angle = a.center.angle_with(&a.start) + FRAC_PI_2;
+            let mut tangent_angle = a.center.angle_with(&point) + FRAC_PI_2;
             if ((final_angle - tangent_angle) % (PI * 2.0)).abs() > PI {
                 tangent_angle -= PI;
             }
@@ -49,4 +49,7 @@ fn main() {
 
     paths.sort_by_key(|p| angles(p, &o));
     colored_display(paths.iter());
+    for path in &paths {
+        println!("angle is {:?}", angles(path, &o));
+    }
 }

@@ -16,6 +16,7 @@
 
 #![feature(test)]
 #![feature(conservative_impl_trait)]
+#![feature(specialization, core_intrinsics)]
 // allow easy returning of iterators
 #![deny(missing_docs)]
 
