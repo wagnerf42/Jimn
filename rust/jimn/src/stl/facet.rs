@@ -3,7 +3,6 @@
 //! Provides `Facet` class for handling 3D facets from stl files.
 use std::io::{Read, Seek, SeekFrom};
 use byteorder::{LittleEndian, ReadBytesExt};
-use ordered_float::NotNaN;
 
 use quadrant::Quadrant;
 use point::Point;
@@ -30,9 +29,9 @@ impl Facet {
             quadrant: &mut Quadrant,
             heights: &mut CoordinatesHash,
         ) -> Point3 {
-            let x = NotNaN::new(f64::from(raw_data.read_f32::<LittleEndian>().unwrap())).unwrap();
-            let y = NotNaN::new(f64::from(raw_data.read_f32::<LittleEndian>().unwrap())).unwrap();
-            let z = NotNaN::new(f64::from(raw_data.read_f32::<LittleEndian>().unwrap())).unwrap();
+            let x = f64::from(raw_data.read_f32::<LittleEndian>().unwrap());
+            let y = f64::from(raw_data.read_f32::<LittleEndian>().unwrap());
+            let z = f64::from(raw_data.read_f32::<LittleEndian>().unwrap());
             let point = Point3::new(x, y, heights.hash_coordinate(z));
             quadrant.add(&point);
             point
@@ -53,14 +52,14 @@ impl Facet {
     }
 
     /// Returns zmin and zmax.
-    pub fn height_limits(&self) -> (NotNaN<f64>, NotNaN<f64>) {
-        let mut z_coordinates: Vec<NotNaN<f64>> = self.points.iter().map(|p| p.z).collect();
-        z_coordinates.sort();
+    pub fn height_limits(&self) -> (f64, f64) {
+        let mut z_coordinates: Vec<f64> = self.points.iter().map(|p| p.z).collect();
+        z_coordinates.sort_by(|c1, c2| c1.partial_cmp(c2).unwrap());
         (z_coordinates[0], z_coordinates[2])
     }
 
     /// Intersects facet at given height.
-    pub fn intersect(&self, height: NotNaN<f64>, hasher: &mut PointsHash) -> Option<Segment> {
+    pub fn intersect(&self, height: f64, hasher: &mut PointsHash) -> Option<Segment> {
         let mut intersections: Vec<Point> = [(0, 1), (0, 2), (1, 2)]
             .iter()
             .filter_map(|&(i, j)| {

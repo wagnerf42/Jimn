@@ -1,5 +1,4 @@
 //! Holed Polygons.
-use ordered_float::NotNaN;
 use std::collections::HashMap;
 use std::iter::once;
 use classifier::complete_inclusion_tree;
@@ -81,7 +80,7 @@ pub fn build_holed_polygons(polygons: Vec<Polygon>) -> Vec<HoledPolygon> {
     result
 }
 /// Turns slices of 3d model into holed polygon tree.
-pub fn build_holed_polygons_tree(slices: &[(NotNaN<f64>, Vec<Segment>)]) -> Tree<HoledPolygon> {
+pub fn build_holed_polygons_tree(slices: &[(f64, Vec<Segment>)]) -> Tree<HoledPolygon> {
     let mut holed_polygons_tree = Tree::new();
     // inclusion tree is built from top to bottom
     for slice in slices.iter().rev() {

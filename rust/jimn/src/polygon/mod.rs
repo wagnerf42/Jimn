@@ -1,7 +1,6 @@
 //! Polygons.
 //! Provides `Polygon` structure.
 
-use ordered_float::NotNaN;
 use quadrant::{Quadrant, Shape};
 use point::Point;
 use Segment;
@@ -43,13 +42,12 @@ impl<'a> Polygon {
 
     /// Returns area taken by polygon.
     /// Negative or Positive depending on orientation.
-    pub fn area(&self) -> NotNaN<f64> {
-        //TODO: change ordered_float library to allow sum
+    pub fn area(&self) -> f64 {
         self.points
             .iter()
             .zip(self.points.iter().cycle().skip(1))
             .map(|(p1, p2)| p1.cross_product(p2))
-            .fold(NotNaN::new(0.0).unwrap(), |s, x| s + x)
+            .sum()
     }
 
     /// Returns if polygon is oriented clockwise (with respect to svg
@@ -57,7 +55,7 @@ impl<'a> Polygon {
     pub fn is_oriented_clockwise(&self) -> bool {
         let area = self.area();
         assert!(!is_almost(area, 0.0)); // flat or crossing polygon
-        area > NotNaN::new(0.0).unwrap()
+        area > 0.0
     }
 
     /// Simplifies polygon by removing points
@@ -141,10 +139,8 @@ impl<'a> Polygon {
     /// ```
     pub fn simplify(&self) -> Polygon {
         //triangle area
-        fn area(p1: &Point, p2: &Point, p3: &Point) -> NotNaN<f64> {
-            let a =
-                (p1.cross_product(p2) + p2.cross_product(p3) + p3.cross_product(p1)).abs() / 2.0;
-            NotNaN::new(a).unwrap()
+        fn area(p1: &Point, p2: &Point, p3: &Point) -> f64 {
+            (p1.cross_product(p2) + p2.cross_product(p3) + p3.cross_product(p1)).abs() / 2.0
         }
 
         //remove all small triangles
@@ -153,12 +149,10 @@ impl<'a> Polygon {
             .iter()
             .zip(self.points.iter().cycle().skip(1))
             .zip(self.points.iter().cycle().skip(2))
-            .filter_map(|((p1, p2), p3)| {
-                if area(p1, p2, p3) < NotNaN::new(0.000001).unwrap() {
-                    None
-                } else {
-                    Some(*p2)
-                }
+            .filter_map(|((p1, p2), p3)| if area(p1, p2, p3) < 0.000001 {
+                None
+            } else {
+                Some(*p2)
             })
             .collect();
         //now remove aligned points

@@ -1,7 +1,6 @@
 //! `Pocket` class.
 use std::f64::consts::PI;
 use std::iter::once;
-use ordered_float::NotNaN;
 use {ElementaryPath, Quadrant};
 use quadrant::Shape;
 
@@ -17,9 +16,7 @@ pub struct Pocket {
 
 impl Default for Pocket {
     fn default() -> Self {
-        Pocket {
-            edge: Vec::new()
-        }
+        Pocket { edge: Vec::new() }
     }
 }
 
@@ -47,11 +44,7 @@ impl Shape for Pocket {
         )).chain(self.edge.iter().map(|p| match *p {
             ElementaryPath::Segment(ref s) => format!(" L {} {}", s.end.x, s.end.y),
             ElementaryPath::Arc(ref a) => {
-                let sweep_flag = if a.angle() > NotNaN::new(PI).unwrap() {
-                    1
-                } else {
-                    0
-                };
+                let sweep_flag = if a.angle() > PI { 1 } else { 0 };
                 format!(
                     " A {},{} 0 0,{} {},{}",
                     a.radius,

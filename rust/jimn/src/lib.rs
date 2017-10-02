@@ -22,7 +22,8 @@
 
 extern crate byteorder;
 extern crate dyntreap;
-extern crate ordered_float;
+extern crate float_cmp;
+extern crate num_traits;
 #[cfg(test)]
 extern crate test;
 

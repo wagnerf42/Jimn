@@ -2,7 +2,6 @@
 use {Arc, ElementaryPath};
 use polygon::Polygon;
 use holed_polygon::HoledPolygon;
-use ordered_float::NotNaN;
 use quadrant::{Quadrant, Shape};
 use tycat::{colored_display, display};
 use utils::coordinates_hash::PointsHash;
@@ -14,9 +13,9 @@ use tree::Tree;
 
 /// Add to given vector all paths obtained when taking inner parallel segments in a polygon
 /// (displaced by radius) and looping around endpoints.
-pub fn inner_paths<T: Into<NotNaN<f64>>>(
+pub fn inner_paths(
     polygon: &Polygon,
-    radius: T,
+    radius: f64,
     paths: &mut Vec<ElementaryPath>,
     rounder: &mut PointsHash,
 ) {
@@ -57,11 +56,7 @@ pub fn inner_paths<T: Into<NotNaN<f64>>>(
 
 /// Offset given `HoledPolygon` at given distance.
 /// Return a vector of `HoledPocket`.
-pub fn offset_holed_polygon<T: Into<NotNaN<f64>>>(
-    holed_polygon: &HoledPolygon,
-    radius: T,
-    rounder: &mut PointsHash,
-) {
+pub fn offset_holed_polygon(holed_polygon: &HoledPolygon, radius: f64, rounder: &mut PointsHash) {
     let mut raw_paths = Vec::new();
     let radius = radius.into();
     for polygon in holed_polygon.polygons() {

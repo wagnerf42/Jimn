@@ -2,20 +2,17 @@
 use std::collections::HashMap;
 use segment::Segment;
 use point::Point;
-use utils::coordinates_hash::CoordinatesHash;
+use utils::coordinates_hash::PointsHash;
 
 /// Take some segments and remove all overlapping parts.
 pub fn remove_overlaps(segments: &[Segment]) -> Vec<Segment> {
     // Hash each point as starting or ending point on the line going through the segment.
     // We use line keys that we need to round to decrease the chance of precision problems.
-    let mut key_hashes = [CoordinatesHash::new(5), CoordinatesHash::new(5)];
+    let mut key_hash = PointsHash::new(6);
     let mut events = HashMap::new();
     for segment in segments {
         let key = segment.line_key();
-        let adjusted_key = (
-            key_hashes[0].hash_coordinate(key.0),
-            key_hashes[1].hash_coordinate(key.1),
-        );
+        let adjusted_key = key_hash.hash_point(&key);
         let line_entry = events.entry(adjusted_key).or_insert_with(HashMap::new);
         {
             let start_entry = line_entry.entry(segment.start).or_insert(0);

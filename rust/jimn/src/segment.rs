@@ -7,7 +7,6 @@ use std::fs::File;
 use std::collections::HashSet;
 use std::iter::once;
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
-use ordered_float::NotNaN;
 
 use point::Point;
 use quadrant::{Quadrant, Shape};
@@ -66,7 +65,7 @@ impl Segment {
     /// Intersect with horizontal line at given y.
     /// Returns only x coordinate of intersection.
     /// Precondition: we are not a quasi-horizontal segment.
-    pub fn horizontal_line_intersection(&self, y: NotNaN<f64>) -> Option<NotNaN<f64>> {
+    pub fn horizontal_line_intersection(&self, y: f64) -> Option<f64> {
         assert!(!is_almost(self.start.y, self.end.y));
         let alpha = (y - self.start.y) / (self.end.y - self.start.y);
         if is_almost(alpha, 0) {
@@ -94,13 +93,13 @@ impl Segment {
 
     /// Return angle between largest point and smallest point.
     /// This function is used for key computations in sweeping line algorithms.
-    pub fn sweeping_angle(&self) -> NotNaN<f64> {
+    pub fn sweeping_angle(&self) -> f64 {
         let raw_angle = self.start.angle_with(&self.end);
-        if raw_angle < NotNaN::new(0.0).unwrap() {
+        if raw_angle < 0.0 {
             raw_angle + PI
         } else {
-            if raw_angle == NotNaN::new(PI).unwrap() {
-                NotNaN::new(0.0).unwrap()
+            if raw_angle == PI {
+                0.0
             } else {
                 raw_angle
             }
@@ -133,10 +132,8 @@ impl Segment {
                 + y_diff2 * (self.start.x - other.start.x)) / denominator;
             let beta = (x_diff * (other.start.y - self.start.y)
                 + y_diff * (self.start.x - other.start.x)) / denominator;
-            let zero = NotNaN::new(0.0).unwrap();
-            let one = NotNaN::new(1.0).unwrap();
-            if (is_almost(0.0, alpha) || is_almost(1.0, alpha) || (zero < alpha && alpha < one))
-                && (is_almost(0.0, beta) || is_almost(1.0, beta) || (zero < beta && beta < one))
+            if (is_almost(0.0, alpha) || is_almost(1.0, alpha) || (0.0 < alpha && alpha < 1.0))
+                && (is_almost(0.0, beta) || is_almost(1.0, beta) || (0.0 < beta && beta < 1.0))
             {
                 Some(self.start + direction * alpha)
             } else {
@@ -155,22 +152,22 @@ impl Segment {
     }
 
     /// Return unique key identifying line going through ourselves.
-    pub fn line_key(&self) -> (NotNaN<f64>, NotNaN<f64>) {
+    pub fn line_key(&self) -> Point {
         if self.is_horizontal() {
-            (NotNaN::new(0.0).unwrap(), self.start.y)
+            Point::new(0.0, self.start.y)
         } else {
-            let alpha = (NotNaN::new(0.0).unwrap() - self.start.y) / (self.end.y - self.start.y);
+            let alpha = (-self.start.y) / (self.end.y - self.start.y);
             let x = self.start.x + alpha * (self.end.x - self.start.x);
-            (self.sweeping_angle(), x)
+            Point::new(self.sweeping_angle(), x)
         }
     }
 
     /// Save ourselves in given file as 4 64bits little endian floats
     fn write_to_file(&self, file: &mut File) -> io::Result<()> {
-        file.write_f64::<LittleEndian>(self.start.x.into_inner())?;
-        file.write_f64::<LittleEndian>(self.start.y.into_inner())?;
-        file.write_f64::<LittleEndian>(self.end.x.into_inner())?;
-        file.write_f64::<LittleEndian>(self.end.y.into_inner())?;
+        file.write_f64::<LittleEndian>(self.start.x)?;
+        file.write_f64::<LittleEndian>(self.start.y)?;
+        file.write_f64::<LittleEndian>(self.end.x)?;
+        file.write_f64::<LittleEndian>(self.end.y)?;
         Ok(())
     }
 }
@@ -230,7 +227,8 @@ impl Shape for Segment {
     fn svg_string(&self) -> String {
         let middle = (self.start + self.end) / 2.0;
         format!(
-            "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/><use xlink:href=\"#a\" x=\"{}\" y=\"{}\" transform=\"rotate({} {} {})\"/>",
+            "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>\
+             <use xlink:href=\"#a\" x=\"{}\" y=\"{}\" transform=\"rotate({} {} {})\"/>",
             self.start.x,
             self.start.y,
             self.end.x,

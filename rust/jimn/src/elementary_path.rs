@@ -1,7 +1,6 @@
 //! This module holds the `ElementaryPath` class.
 use std::f64::consts::FRAC_PI_2;
 use std::collections::HashSet;
-use ordered_float::NotNaN;
 use {Arc, Point, Segment};
 use quadrant::{Quadrant, Shape};
 use utils::coordinates_hash::PointsHash;
@@ -11,7 +10,7 @@ use bentley_ottmann::Cuttable;
 /// can be either:
 /// - `Arc`
 /// - `Segment`
-#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Ord, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub enum ElementaryPath {
     /// `Arc` path
     Arc(Arc),
@@ -58,7 +57,7 @@ impl ElementaryPath {
     /// at given distance and we can be on right or left side.
     pub fn parallel_segment(
         segment: &Segment,
-        distance: NotNaN<f64>,
+        distance: f64,
         right_side: bool,
         rounder: &mut PointsHash,
     ) -> ElementaryPath {

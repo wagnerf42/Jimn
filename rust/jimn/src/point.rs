@@ -3,23 +3,49 @@
 //! Provides a `Point` structure for storing 2d points.
 //! Points can also serve as vectors: for example point2-point1 is a point
 //! which coordinates encode the direction vector of segment(point1,point2).
+use std::cmp::Ordering;
 use std::ops::{Add, Div, Mul, Sub};
 use std::fmt;
-use ordered_float::NotNaN;
 
 use quadrant::{Quadrant, Shape};
 use utils::precision::is_almost;
+use utils::float::hash_float;
+use std::hash::{Hash, Hasher};
 
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 /// 2D point structure.
 /// Note that Y is defined first so that lexicographical comparisons will
 /// start with y.
 pub struct Point {
-    /// Y coordinate.
-    pub y: NotNaN<f64>,
     /// X coordinate.
-    pub x: NotNaN<f64>,
+    pub x: f64,
+    /// Y coordinate.
+    pub y: f64,
+}
+
+impl Hash for Point {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        hash_float(&self.x, state);
+        hash_float(&self.y, state);
+    }
+}
+
+
+impl Eq for Point {}
+impl Ord for Point {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.y
+            .partial_cmp(&other.y)
+            .unwrap()
+            .then(self.x.partial_cmp(&other.x).unwrap())
+    }
+}
+
+impl PartialOrd for Point {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
 impl Default for Point {
@@ -36,11 +62,8 @@ impl fmt::Display for Point {
 
 impl Point {
     /// Returns a new Point from given coordinates.
-    pub fn new<T: Into<NotNaN<f64>>, U: Into<NotNaN<f64>>>(x: T, y: U) -> Point {
-        Point {
-            x: x.into(),
-            y: y.into(),
-        }
+    pub fn new(x: f64, y: f64) -> Point {
+        Point { x: x, y: y }
     }
 
     /// Returns if the three given points are approximately aligned.
@@ -59,17 +82,11 @@ impl Point {
     /// let distance = Point::new(0.0, 0.0).distance_to(&Point::new(3.0, 0.0));
     /// assert!(is_almost(distance, 3.0));
     /// ```
-    pub fn distance_to(self: &Point, other: &Point) -> NotNaN<f64> {
+    pub fn distance_to(self: &Point, other: &Point) -> f64 {
         let x_diff = self.x - other.x;
         let y_diff = self.y - other.y;
         let squared_distance = x_diff * x_diff + y_diff * y_diff;
-        NotNaN::new(squared_distance.sqrt()).unwrap()
-    }
-
-    /// Returns vector of our coordinates.
-    /// Useful for mapping or arithmetic operations.
-    pub fn to_vector(&self) -> Vec<NotNaN<f64>> {
-        vec![self.x, self.y]
+        squared_distance.sqrt()
     }
 
     /// Look at ourselves as a vector and return a perpendicular one.
@@ -78,10 +95,10 @@ impl Point {
     }
 
     /// Returns the angle needed for going towards other.
-    pub fn angle_with(&self, other: &Point) -> NotNaN<f64> {
+    pub fn angle_with(&self, other: &Point) -> f64 {
         let x = other.x - self.x;
         let y = other.y - self.y;
-        NotNaN::new(y.atan2(x.into_inner())).unwrap()
+        y.atan2(x)
     }
 
     /// Returns cross product between vector in self and vector in other.
@@ -93,7 +110,7 @@ impl Point {
     /// let product = Point::new(1.0, 2.0).cross_product(&Point::new(2.0, 4.0));
     /// assert!(is_almost(product, 0.0));
     /// ```
-    pub fn cross_product(&self, other: &Point) -> NotNaN<f64> {
+    pub fn cross_product(&self, other: &Point) -> f64 {
         (self.x * other.y) - (self.y * other.x)
     }
 
@@ -103,7 +120,7 @@ impl Point {
     }
 
     /// Return our x and y coordinates as a tuple.
-    pub fn coordinates(&self) -> (NotNaN<f64>, NotNaN<f64>) {
+    pub fn coordinates(&self) -> (f64, f64) {
         (self.x, self.y)
     }
 }
@@ -171,24 +188,22 @@ impl<'a, 'b> Sub<Point> for &'a Point {
     }
 }
 
-impl<T: Into<NotNaN<f64>>> Mul<T> for Point {
+impl Mul<f64> for Point {
     type Output = Point;
-    fn mul(self: Point, rhs: T) -> Point {
-        let factor = rhs.into();
+    fn mul(self: Point, rhs: f64) -> Point {
         Point {
-            x: self.x * factor,
-            y: self.y * factor,
+            x: self.x * rhs,
+            y: self.y * rhs,
         }
     }
 }
 
-impl<T: Into<NotNaN<f64>>> Div<T> for Point {
+impl Div<f64> for Point {
     type Output = Point;
-    fn div(self: Point, rhs: T) -> Point {
-        let divisor = rhs.into();
+    fn div(self: Point, rhs: f64) -> Point {
         Point {
-            x: self.x / divisor,
-            y: self.y / divisor,
+            x: self.x / rhs,
+            y: self.y / rhs,
         }
     }
 }

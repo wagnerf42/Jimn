@@ -9,7 +9,6 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 mod facet;
 mod point3;
-use ordered_float::NotNaN;
 use segment::Segment;
 use stl::facet::Facet;
 use quadrant::Quadrant;
@@ -35,7 +34,7 @@ enum EventType {
 
 struct CuttingEvent {
     /// Height at which event is happening
-    height: NotNaN<f64>,
+    height: f64,
     /// Event type
     event_type: EventType,
     /// Optional facet for facets creations / destructions
@@ -76,7 +75,7 @@ impl Stl {
     }
 
     /// Prepares for cutting by generating all events.
-    fn generate_cutting_events(&self, thickness: NotNaN<f64>) -> Vec<CuttingEvent> {
+    fn generate_cutting_events(&self, thickness: f64) -> Vec<CuttingEvent> {
         let (min_height, max_height) = self.dimensions.limits(2);
         let height = max_height - min_height;
         let slices_number = (height / thickness).ceil() as usize;
@@ -114,13 +113,18 @@ impl Stl {
 
     /// Cuts model into slices of given thickness.
     /// Returns vector of tuples (height, slice).
-    pub fn compute_slices<T: Into<NotNaN<f64>>>(
+    pub fn compute_slices(
         &self,
-        thickness: T,
+        thickness: f64,
         hasher: &mut PointsHash,
-    ) -> Vec<(NotNaN<f64>, Vec<Segment>)> {
+    ) -> Vec<(f64, Vec<Segment>)> {
         let mut events = self.generate_cutting_events(thickness.into());
-        events.sort_by_key(|a| (a.height, a.event_type));
+        events.sort_by(|a, b| {
+            a.height
+                .partial_cmp(&b.height)
+                .unwrap()
+                .then(a.event_type.cmp(&b.event_type))
+        });
         let mut facets: HashSet<usize> = HashSet::new();
         let mut slices = Vec::new();
         for event in &events {

@@ -1,6 +1,5 @@
 //! `Tiles` structures handling different tiling patterns.
 use std::f64::consts::PI;
-use ordered_float::NotNaN;
 use quadrant::Quadrant;
 use point::Point;
 use segment::Segment;
@@ -11,11 +10,11 @@ pub struct Tile {
     /// segments defining pattern (they do not overlap when tiled)
     segments: Vec<Segment>,
     /// by how much do we move when tiling horizontally ?
-    horizontal_move: NotNaN<f64>,
+    horizontal_move: f64,
     /// by how much do we move when going vertically ?
-    vertical_move: NotNaN<f64>,
+    vertical_move: f64,
     /// by how much do we move horizontally at start of new lines ?
-    horizontal_offset: NotNaN<f64>,
+    horizontal_offset: f64,
 }
 
 impl Tile {
@@ -40,9 +39,9 @@ impl Tile {
     fn tile_line(
         &self,
         rounder: &mut PointsHash,
-        current_x: NotNaN<f64>,
-        current_y: NotNaN<f64>,
-        right_x: NotNaN<f64>,
+        current_x: f64,
+        current_y: f64,
+        right_x: f64,
         result: &mut Vec<Segment>,
     ) {
         let width = right_x + self.horizontal_move - current_x;
@@ -60,9 +59,7 @@ impl Tile {
 }
 
 /// Return a rectangular tile of given dimensions.
-pub fn rectangular_tile<T: Into<NotNaN<f64>>, U: Into<NotNaN<f64>>>(width: T, height: U) -> Tile {
-    let w = width.into();
-    let h = height.into();
+pub fn rectangular_tile(w: f64, h: f64) -> Tile {
     let p1 = Point::new(0.0, 0.0);
     let p2 = Point::new(-w, 0.0);
     let p3 = Point::new(0.0, -h);
@@ -70,21 +67,19 @@ pub fn rectangular_tile<T: Into<NotNaN<f64>>, U: Into<NotNaN<f64>>>(width: T, he
         segments: vec![Segment::new(p1, p2), Segment::new(p1, p3)],
         horizontal_move: w,
         vertical_move: h,
-        horizontal_offset: NotNaN::new(0.0).unwrap(),
+        horizontal_offset: 0.0,
     }
 }
 
 /// Return a tile for brick like patterns of given dimensions.
-pub fn brick_tile<T: Into<NotNaN<f64>>, U: Into<NotNaN<f64>>>(width: T, height: U) -> Tile {
+pub fn brick_tile(width: f64, height: f64) -> Tile {
     let mut tile = rectangular_tile(width, height);
     tile.horizontal_offset = tile.horizontal_move / 2.0;
     tile
 }
 
 /// Return a hexagonal tile (scaled) of given dimensions.
-pub fn hexagonal_tile<T: Into<NotNaN<f64>>, U: Into<NotNaN<f64>>>(width: T, height: U) -> Tile {
-    let w = width.into();
-    let h = height.into();
+pub fn hexagonal_tile(w: f64, h: f64) -> Tile {
     //segments are top half of hexagon with bottom right point at (0,0)
     let angle = PI / 3.0;
     let x = w / 2.0 * angle.cos();

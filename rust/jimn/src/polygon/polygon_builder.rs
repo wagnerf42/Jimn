@@ -2,7 +2,6 @@ use std::collections::{HashMap, HashSet};
 use point::Point;
 use segment::Segment;
 use polygon::Polygon;
-use ordered_float::NotNaN;
 
 /// Converts segment into oriented polygons (clockwise) by following edges.
 /// Flat polygons are discarded in the process.
@@ -18,7 +17,12 @@ pub fn build_polygons(segments: &[Segment]) -> Vec<Polygon> {
         remaining_segments.insert(segment);
     }
     for (point, neighbours) in &mut points {
-        neighbours.sort_by(|p1, p2| point.angle_with(p1).cmp(&point.angle_with(p2)))
+        neighbours.sort_by(|p1, p2| {
+            point
+                .angle_with(p1)
+                .partial_cmp(&point.angle_with(p2))
+                .unwrap()
+        })
     }
 
     let mut polygons = Vec::new();
@@ -54,7 +58,7 @@ fn build_polygon(
     let polygon = Polygon::new(polygon_points);
     let area = polygon.area();
     //TODO: check which orientation we really want and adjust increment in find next accordingly
-    if area > NotNaN::new(-0.00001).unwrap() {
+    if area > -0.00001 {
         // discard both flat and badly oriented polygons
         None
     } else {
@@ -66,7 +70,12 @@ fn build_polygon(
 fn find_next_point(neighbours: &[Point], current_point: &Point, previous_point: &Point) -> Point {
     let incoming_angle = current_point.angle_with(previous_point);
     let index = neighbours
-        .binary_search_by_key(&incoming_angle, |p| current_point.angle_with(p))
+        .binary_search_by(|p| {
+            current_point
+                .angle_with(p)
+                .partial_cmp(&incoming_angle)
+                .unwrap()
+        })
         .unwrap();
     neighbours[(index + 1) % neighbours.len()]
 }

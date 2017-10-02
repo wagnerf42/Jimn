@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate jimn;
 use std::f64::consts::FRAC_PI_4;
-use jimn::{Segment, Point, ElementaryPath, Arc};
+use jimn::{Arc, ElementaryPath, Point, Segment};
 use jimn::quadrant::{Quadrant, Shape};
 use jimn::tycat::display;
 use jimn::bentley_ottmann::BentleyOttmannPath;
@@ -30,21 +30,31 @@ fn main() {
     let paths = vec![
         ElementaryPath::Segment(Segment::new(Point::new(-3.0, 3.0), Point::new(3.0, -3.0))),
         ElementaryPath::Segment(Segment::new(Point::new(0.0, 2.0), Point::new(0.0, -2.0))),
-        ElementaryPath::Arc(Arc::new(Point::new(-1.0+FRAC_PI_4.cos(), FRAC_PI_4.sin()), Point::new(-1.0+FRAC_PI_4.cos(), -FRAC_PI_4.sin()), Point::new(-1.0, 0.0), 1.0)),
-        ElementaryPath::Arc(Arc::new(Point::new(1.0+(3.0*FRAC_PI_4).cos(), (3.0*FRAC_PI_4).sin()), Point::new(1.0+(3.0*FRAC_PI_4).cos(), -(3.0*FRAC_PI_4).sin()), Point::new(1.0, 0.0), 1.0)),
+        ElementaryPath::Arc(Arc::new(
+            Point::new(-1.0 + FRAC_PI_4.cos(), FRAC_PI_4.sin()),
+            Point::new(-1.0 + FRAC_PI_4.cos(), -FRAC_PI_4.sin()),
+            Point::new(-1.0, 0.0),
+            1.0,
+        )),
+        ElementaryPath::Arc(Arc::new(
+            Point::new(1.0 + (3.0 * FRAC_PI_4).cos(), (3.0 * FRAC_PI_4).sin()),
+            Point::new(1.0 + (3.0 * FRAC_PI_4).cos(), -(3.0 * FRAC_PI_4).sin()),
+            Point::new(1.0, 0.0),
+            1.0,
+        )),
     ];
     println!("**********************************");
     println!("**before arriving*****************");
     println!("**********************************");
     for path in &paths {
-        println!("key {:?}", path.compute_key(&Point::new(4.0, 0.0), &None));
+        println!("key {:?}", path.compute_key(&Point::new(4.0, 0.0)));
         display!(paths, path);
     }
     println!("**********************************");
     println!("**after arriving******************");
     println!("**********************************");
     for path in &paths {
-        println!("key {:?}", path.compute_key(&o, &None));
+        println!("key {:?}", path.compute_key(&o));
         display!(paths, path);
     }
 }

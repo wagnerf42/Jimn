@@ -13,13 +13,12 @@
 use std::collections::HashMap;
 use point::Point;
 use quadrant::Quadrant;
-use ordered_float::NotNaN;
 
-fn coordinate_key(coordinate: NotNaN<f64>, precision: usize) -> String {
+fn coordinate_key(coordinate: f64, precision: usize) -> String {
     format!("{:.p$}", coordinate, p = precision)
 }
 
-fn displaced_coordinate_key(coordinate: NotNaN<f64>, precision: usize) -> String {
+fn displaced_coordinate_key(coordinate: f64, precision: usize) -> String {
     coordinate_key(
         coordinate + 5.0 * 10.0_f64.powi(-((precision + 1) as i32)),
         precision,
@@ -28,7 +27,7 @@ fn displaced_coordinate_key(coordinate: NotNaN<f64>, precision: usize) -> String
 
 /// a `CoordinatesHash` allows for hashing nearby coordinates together in O(1).
 pub struct CoordinatesHash {
-    hashes: Vec<HashMap<String, NotNaN<f64>>>,
+    hashes: Vec<HashMap<String, f64>>,
     precision: usize,
 }
 
@@ -44,7 +43,7 @@ impl CoordinatesHash {
     /// Hash given coordinate.
     /// If no nearby coordinate in the hash, adds it and returns it
     /// else returns the nearby coordinate.
-    pub fn hash_coordinate(&mut self, coordinate: NotNaN<f64>) -> NotNaN<f64> {
+    pub fn hash_coordinate(&mut self, coordinate: f64) -> f64 {
         let keys = vec![
             coordinate_key(coordinate, self.precision),
             displaced_coordinate_key(coordinate, self.precision),
@@ -63,7 +62,7 @@ impl CoordinatesHash {
 
     /// Lookup a coordinate in the table. Returns nearby coordinate if any or unchanged
     /// value if none. Leaves table unmodified.
-    pub fn lookup_coordinate(&self, coordinate: NotNaN<f64>) -> NotNaN<f64> {
+    pub fn lookup_coordinate(&self, coordinate: f64) -> f64 {
         let base_key = coordinate_key(coordinate, self.precision);
         let base_lookup = self.hashes[0].get(&base_key);
         match base_lookup {

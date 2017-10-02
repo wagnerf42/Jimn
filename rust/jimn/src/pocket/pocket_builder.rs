@@ -3,10 +3,9 @@ use std::collections::{HashMap, HashSet};
 use point::Point;
 use elementary_path::ElementaryPath;
 use pocket::Pocket;
-use ordered_float::NotNaN;
 
 type PathIndex = usize;
-type Angle = NotNaN<f64>;
+type Angle = f64;
 
 /// Return couple of angles estimating where we go / come from.
 /// Allows for ordering of connected paths.
@@ -42,7 +41,12 @@ pub fn build_pockets(paths: &[ElementaryPath]) -> Vec<Pocket> {
     }
 
     for neighbours in points.values_mut() {
-        neighbours.sort_by_key(|&(_, a, _)| a);
+        neighbours.sort_by(|&(_, b, _), &(_, a, _)| {
+            a.0
+                .partial_cmp(&b.0)
+                .unwrap()
+                .then(a.1.partial_cmp(&b.1).unwrap())
+        });
     }
 
     let mut pockets = Vec::new();
@@ -57,7 +61,8 @@ pub fn build_pockets(paths: &[ElementaryPath]) -> Vec<Pocket> {
     pockets
 }
 
-/// Builds pocket obtained when following given start path. Might return None if obtained pocket is flat.
+/// Builds pocket obtained when following given start path.
+/// Might return None if obtained pocket is flat.
 fn build_pocket(
     start_path_index: PathIndex,
     paths: &[ElementaryPath],
@@ -74,16 +79,6 @@ fn build_pocket(
         current_path_index = find_next_path(&points[current_point], current_path);
     }
     Some(Pocket::new(pocket_paths))
-    //    let polygon = Polygon::new(polygon_points);
-    //    let area = polygon.area();
-    //    //TODO: check which orientation we really want and adjust increment in find next accordingly
-    //    if area > NotNaN::new(-0.00001).unwrap() {
-    //        // discard both flat and badly oriented polygons
-    //        None
-    //    } else {
-    //        //keep only reverse-clockwise polygons
-    //        Some(polygon.simplify())
-    //    }
 }
 
 /// Return where to go next when arriving from given path.
@@ -94,7 +89,13 @@ fn find_next_path(
     let incoming_angles = angles(current_path, current_path.end());
     // first figure out where we arrive
     let incoming_index = neighbours
-        .binary_search_by_key(&incoming_angles, |&(_, a, _)| a)
+        .binary_search_by(|&(_, a, _)| {
+            incoming_angles
+                .0
+                .partial_cmp(&a.0)
+                .unwrap()
+                .then(incoming_angles.1.partial_cmp(&a.1).unwrap())
+        })
         .unwrap();
     // now, rotate through neighbours until we find a leaving neighbouring path which is not
     // compensated by an incoming one.

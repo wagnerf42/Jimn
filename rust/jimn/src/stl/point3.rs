@@ -2,29 +2,23 @@
 use quadrant::{Quadrant, Shape};
 use point::Point;
 use utils::coordinates_hash::PointsHash;
-use ordered_float::NotNaN;
-use std::cmp::{max, min};
 
 #[derive(Copy, Clone, Debug)]
 /// 3D Point structure.
 pub struct Point3 {
     /// X coordinate.
-    pub x: NotNaN<f64>,
+    pub x: f64,
     /// Y coordinate.
-    pub y: NotNaN<f64>,
+    pub y: f64,
     /// Z coordinate (height).
-    pub z: NotNaN<f64>,
+    pub z: f64,
 }
 
 impl Point3 {
     /// Returns a new point with given coordinates.
     #[inline]
-    pub fn new<T: Into<NotNaN<f64>>>(x: T, y: T, z: T) -> Point3 {
-        Point3 {
-            x: x.into(),
-            y: y.into(),
-            z: z.into(),
-        }
+    pub fn new(x: f64, y: f64, z: f64) -> Point3 {
+        Point3 { x, y, z }
     }
 
     /// Intersects segment between *self* and *end* with horizontal plane
@@ -34,11 +28,14 @@ impl Point3 {
     pub fn segment_intersection(
         &self,
         end: &Point3,
-        height: NotNaN<f64>,
+        height: f64,
         hasher: &mut PointsHash,
     ) -> Option<Point> {
-        let lower_z = min(self.z, end.z);
-        let higher_z = max(self.z, end.z);
+        let (lower_z, higher_z) = if self.z < end.z {
+            (self.z, end.z)
+        } else {
+            (end.z, self.z)
+        };
         if height < lower_z || height > higher_z {
             None
         } else {

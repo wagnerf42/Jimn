@@ -3,13 +3,11 @@
 //! Allows graphical displays under terminology.
 //! Provides a **display** function for **Displayable objects**.
 use std::io;
-use std::cmp::min;
 use std::io::prelude::*;
 use std::fs::File;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::process::Command;
 use quadrant::{Quadrant, Shape};
-use ordered_float::NotNaN;
 
 static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
 
@@ -85,10 +83,10 @@ pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
     )?;
 
     // circle definition and stroke size
-    let xscale = NotNaN::new(640.0).unwrap() / width;
-    let yscale = NotNaN::new(480.0).unwrap() / height;
-    let scale = min(xscale, yscale);
-    let stroke = 3.0 / scale.into_inner();
+    let xscale = 640.0 / width;
+    let yscale = 480.0 / height;
+    let scale = if xscale < yscale { xscale } else { yscale };
+    let stroke = 3.0 / scale;
     write!(svg_file, "<defs>\n")?;
     write!(
         svg_file,
@@ -97,7 +95,8 @@ pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
     )?;
     write!(
         svg_file,
-        "<symbol id=\"a\"><line x1=\"{}\" y1=\"{}\" x2=\"0.0\" y2=\"0.0\"/><line x1=\"{}\" y1=\"{}\" x2=\"0.0\" y2=\"0.0\"/></symbol>\n",
+        "<symbol id=\"a\"><line x1=\"{}\" y1=\"{}\" x2=\"0.0\" y2=\"0.0\"/>\
+         <line x1=\"{}\" y1=\"{}\" x2=\"0.0\" y2=\"0.0\"/></symbol>\n",
         -3.0 * stroke,
         -3.0 * stroke,
         -3.0 * stroke,

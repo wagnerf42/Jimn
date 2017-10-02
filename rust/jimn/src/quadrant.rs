@@ -4,7 +4,6 @@
 //! Allows for example a fast pre-test to know complex shape do not intersect.
 //! Quadrants are also used for computing display dimensions.
 
-use ordered_float::NotNaN;
 use point::Point;
 use segment::Segment;
 use utils::coordinates_hash::PointsHash;
@@ -14,9 +13,9 @@ use utils::coordinates_hash::PointsHash;
 #[derive(Debug)]
 pub struct Quadrant {
     /// Vector of lower bounds on each coordinate.
-    pub min_coordinates: Vec<NotNaN<f64>>,
+    pub min_coordinates: Vec<f64>,
     /// Vector of upper bounds on each coordinate.
-    pub max_coordinates: Vec<NotNaN<f64>>,
+    pub max_coordinates: Vec<f64>,
 }
 
 /// Any displayable `Shape` is enclosed in a quadrant.
@@ -81,17 +80,17 @@ impl Quadrant {
     /// ```
     pub fn new(dimension: usize) -> Quadrant {
         Quadrant {
-            min_coordinates: vec![NotNaN::new(::std::f64::INFINITY).unwrap(); dimension],
-            max_coordinates: vec![NotNaN::new(::std::f64::NEG_INFINITY).unwrap(); dimension],
+            min_coordinates: vec![::std::f64::INFINITY; dimension],
+            max_coordinates: vec![::std::f64::NEG_INFINITY; dimension],
         }
     }
 
     /// Return dimensions (width, height, ...) of given `Quadrant`.
-    pub fn dimensions(&self) -> Vec<NotNaN<f64>> {
+    pub fn dimensions(&self) -> Vec<f64> {
         self.min_coordinates
             .iter()
             .zip(self.max_coordinates.iter())
-            .map(|(&a, &b)| NotNaN::new((b - a).abs()).unwrap())
+            .map(|(&a, &b)| (b - a).abs())
             .collect()
     }
 
@@ -122,7 +121,7 @@ impl Quadrant {
     }
 
     /// Returns min and max value for given dimension.
-    pub fn limits(&self, dimension_index: usize) -> (NotNaN<f64>, NotNaN<f64>) {
+    pub fn limits(&self, dimension_index: usize) -> (f64, f64) {
         (
             self.min_coordinates[dimension_index],
             self.max_coordinates[dimension_index],
@@ -130,10 +129,15 @@ impl Quadrant {
     }
 
     /// Adds border of given size around self.
-    pub fn inflate<T: Into<NotNaN<f64>>>(&mut self, border_size: T) {
-        let border = border_size.into();
-        self.min_coordinates = self.min_coordinates.iter().map(|&c| c - border).collect();
-        self.max_coordinates = self.max_coordinates.iter().map(|&c| c + border).collect();
+    pub fn inflate(&mut self, border_size: f64) {
+        self.min_coordinates = self.min_coordinates
+            .iter()
+            .map(|&c| c - border_size)
+            .collect();
+        self.max_coordinates = self.max_coordinates
+            .iter()
+            .map(|&c| c + border_size)
+            .collect();
     }
 
     /// Adds quadrant around given shape to ourselves.

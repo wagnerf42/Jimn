@@ -5,6 +5,7 @@
 pub mod debug;
 pub mod coordinates_hash;
 pub mod precision;
+pub mod float;
 
 /// `Identifiable` allows equivalent to python's `id`
 pub trait Identifiable {

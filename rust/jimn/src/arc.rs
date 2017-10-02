@@ -1,7 +1,6 @@
 //! provides the `Arc` class.
 use std::iter::{empty, once};
 use std::collections::HashSet;
-use ordered_float::NotNaN;
 use std::f64::consts::{FRAC_PI_2, PI};
 use {Point, Segment};
 use quadrant::{Quadrant, Shape};
@@ -11,7 +10,7 @@ use utils::ArrayMap;
 use bentley_ottmann::Cuttable;
 
 /// Oriented arc segment.
-#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Ord, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialOrd, PartialEq)]
 pub struct Arc {
     /// Starting point
     pub start: Point,
@@ -20,7 +19,7 @@ pub struct Arc {
     /// Center
     pub center: Point,
     /// Radius
-    pub radius: NotNaN<f64>,
+    pub radius: f64,
 }
 
 impl Cuttable for Arc {
@@ -43,12 +42,12 @@ impl Cuttable for Arc {
 
 impl Arc {
     /// Create a new arc.
-    pub fn new<T: Into<NotNaN<f64>>>(start: Point, end: Point, center: Point, radius: T) -> Arc {
+    pub fn new(start: Point, end: Point, center: Point, radius: f64) -> Arc {
         let mut arc = Arc {
-            start: start,
-            end: end,
-            center: center,
-            radius: radius.into(),
+            start,
+            end,
+            center,
+            radius,
         };
         if !(is_almost(arc.center.distance_to(&arc.start), arc.radius)
             && is_almost(arc.center.distance_to(&arc.end), arc.radius))
@@ -63,7 +62,11 @@ impl Arc {
     fn adjust_center(&mut self) {
         self.center = *self.compute_centers()
             .iter()
-            .min_by_key(|c| c.distance_to(&self.center))
+            .min_by(|c1, c2| {
+                c1.distance_to(&self.center)
+                    .partial_cmp(&c2.distance_to(&self.center))
+                    .unwrap()
+            })
             .unwrap();
     }
 
@@ -84,7 +87,7 @@ impl Arc {
     }
 
     /// Return normalized angle of points with center.
-    pub fn angle(&self) -> NotNaN<f64> {
+    pub fn angle(&self) -> f64 {
         (self.center.angle_with(&self.start) - self.center.angle_with(&self.end) + 2.0 * PI)
             % (2.0 * PI)
     }
@@ -127,10 +130,9 @@ impl Arc {
     /// let half_point = arc.horizontal_line_intersection(-half_coordinate).unwrap();
     /// assert!(half_point.is_almost(&Point::new(half_coordinate, -half_coordinate)));
     /// ```
-    pub fn horizontal_line_intersection<T: Into<NotNaN<f64>>>(&self, y: T) -> Option<Point> {
-        let y = y.into();
+    pub fn horizontal_line_intersection(&self, y: f64) -> Option<Point> {
         // we use pythagoras
-        let side_length = NotNaN::new((y - self.center.y).abs()).unwrap();
+        let side_length = (y - self.center.y).abs();
         if is_almost(side_length, self.radius) {
             return Some(Point::new(self.center.x, y));
         }
@@ -163,12 +165,12 @@ impl Arc {
     ///
     /// let arc = Arc::new(Point::new(1.0, 0.0), Point::new(0.0, -1.0), Point::new(0.0, 0.0), 1.0);
     /// let half_coordinate = 1.0/(2.0 as f64).sqrt();
-    /// assert!(is_almost(arc.tangent_angle(&Point::new(half_coordinate, -half_coordinate)), PI/4.0));
+    /// assert!(is_almost(arc.tangent_angle(&Point::new(half_coordinate, -half_coordinate)),
+    ///                   PI/4.0));
     /// ```
-    pub fn tangent_angle(&self, tangent_point: &Point) -> NotNaN<f64> {
+    pub fn tangent_angle(&self, tangent_point: &Point) -> f64 {
         let base_angle = self.center.angle_with(tangent_point);
-        (base_angle + NotNaN::new(FRAC_PI_2).unwrap())
-            % NotNaN::new(PI).unwrap()
+        (base_angle + FRAC_PI_2) % PI
     }
 
     /// Split given `Arc` in possible two so that for any given y, each arc
@@ -221,11 +223,7 @@ impl Shape for Arc {
     fn svg_string(&self) -> String {
         let center_string = self.center.svg_string();
         // go always for the small arc
-        let sweep_flag = if self.angle() > NotNaN::new(PI).unwrap() {
-            1
-        } else {
-            0
-        };
+        let sweep_flag = if self.angle() > PI { 1 } else { 0 };
         let arc_string = format!(
             "<path d=\"M{},{} A{},{} 0 0,{} {},{}\" fill=\"none\"/>",
             self.start.x,
@@ -273,7 +271,7 @@ impl Shape for Arc {
 fn line_circle_intersections<'a>(
     segment: &'a Segment,
     center: &'a Point,
-    radius: NotNaN<f64>,
+    radius: f64,
 ) -> impl Iterator<Item = Point> + 'a {
     let d = segment.end - segment.start;
     let c = center - segment.start;
@@ -292,7 +290,7 @@ fn line_circle_intersections<'a>(
     solutions.into_iter().map(move |s| segment.start + d * s)
 }
 
-fn solve_quadratic_equation(a: NotNaN<f64>, b: NotNaN<f64>, c: NotNaN<f64>) -> Vec<NotNaN<f64>> {
+fn solve_quadratic_equation(a: f64, b: f64, c: f64) -> Vec<f64> {
     let delta = b * b - a * c * 4.0;
     if is_almost(delta.abs().sqrt(), 0.0) {
         if is_almost(a, 0.0) {
@@ -300,7 +298,7 @@ fn solve_quadratic_equation(a: NotNaN<f64>, b: NotNaN<f64>, c: NotNaN<f64>) -> V
         } else {
             vec![-b / (a * 2.0)]
         }
-    } else if delta < NotNaN::new(0.0).unwrap() {
+    } else if delta < 0.0 {
         Vec::new()
     } else {
         vec![
@@ -311,12 +309,7 @@ fn solve_quadratic_equation(a: NotNaN<f64>, b: NotNaN<f64>, c: NotNaN<f64>) -> V
 }
 
 
-fn circles_intersections(
-    c1: &Point,
-    c2: &Point,
-    r1: NotNaN<f64>,
-    r2: NotNaN<f64>,
-) -> Box<Iterator<Item = Point>> {
+fn circles_intersections(c1: &Point, c2: &Point, r1: f64, r2: f64) -> Box<Iterator<Item = Point>> {
     // TODO: should we unbox everything
     // I just solved all equations to end up with this.
     let d = c1.distance_to(c2);
@@ -339,7 +332,7 @@ fn circles_intersections(
         } else if (r1 < l) || (r1.abs() < l.abs()) {
             Box::new(empty()) // too far away
         } else {
-            let h = NotNaN::new((r1 * r1 - l * l).sqrt()).unwrap();
+            let h = (r1 * r1 - l * l).sqrt();
             let p1 = Point::new(
                 l / d * (x2 - x1) + h / d * (y2 - y1) + x1,
                 l / d * (y2 - y1) - h / d * (x2 - x1) + y1,

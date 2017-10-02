@@ -1,18 +1,15 @@
 #[macro_use]
 extern crate jimn;
-extern crate ordered_float;
 use jimn::point::Point;
 use jimn::{Arc, ElementaryPath, Segment};
 use jimn::quadrant::{Quadrant, Shape};
 use jimn::tycat::{colored_display, display};
-use ordered_float::NotNaN;
-use jimn::bentley_ottmann::BentleyOttmannPath;
 use std::f64::consts::{FRAC_PI_2, PI};
 
-fn angles(path: &ElementaryPath, point: &Point) -> (NotNaN<f64>, NotNaN<f64>) {
+fn angles(path: &ElementaryPath, point: &Point) -> (f64, f64) {
     let final_angle = path.start().angle_with(&path.end());
     match *path {
-        ElementaryPath::Segment(ref s) => (final_angle, final_angle),
+        ElementaryPath::Segment(_) => (final_angle, final_angle),
         ElementaryPath::Arc(ref a) => {
             let mut tangent_angle = a.center.angle_with(&point) + FRAC_PI_2;
             if ((final_angle - tangent_angle) % (PI * 2.0)).abs() > PI {
@@ -47,8 +44,10 @@ fn main() {
 
     display!(paths);
 
-    paths.sort_by_key(|p| angles(p, &o));
-    colored_display(paths.iter());
+    paths.sort_by(|p1, p2| {
+        angles(p1, &o).partial_cmp(&angles(p2, &o)).unwrap()
+    });
+    colored_display(paths.iter()).expect("display failed");
     for path in &paths {
         println!("angle is {:?}", angles(path, &o));
     }
