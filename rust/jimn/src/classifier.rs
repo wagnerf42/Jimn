@@ -145,7 +145,8 @@ impl<
         let generator = KeyGenerator::new(paths);
         // sort start events
         for event in &mut events {
-            generator.borrow_mut().current_point = event.0;
+            unimplemented!("REDO");
+            //generator.borrow_mut().current_point = event.0;
             //TODO: triple check this one
             event.1.sort_by(|a, b| {
                 generator
@@ -174,7 +175,8 @@ impl<
         for event in events {
             // remove ending paths
             self.end_paths(&event.2);
-            self.key_generator.borrow_mut().current_point = event.0;
+            unimplemented!("REDO");
+            //self.key_generator.borrow_mut().current_point = event.0;
             self.start_paths(&event.1);
         }
     }

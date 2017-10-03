@@ -65,22 +65,11 @@ impl Segment {
     /// Intersect with horizontal line at given y.
     /// Returns only x coordinate of intersection.
     /// Precondition: we are not a quasi-horizontal segment.
-    pub fn horizontal_line_intersection(&self, y: f64) -> Option<f64> {
+    /// There is an intersection.
+    pub fn horizontal_line_intersection(&self, y: f64) -> f64 {
         assert!(!is_almost(self.start.y, self.end.y));
         let alpha = (y - self.start.y) / (self.end.y - self.start.y);
-        if is_almost(alpha, 0) {
-            Some(self.start.x)
-        } else if is_almost(alpha, 1) {
-            Some(self.end.x)
-        } else {
-            let x = self.start.x + alpha * (self.end.x - self.start.x);
-            let point = Point::new(x, y);
-            if self.contains(&point) {
-                Some(x)
-            } else {
-                None
-            }
-        }
+        self.start.x + alpha * (self.end.x - self.start.x)
     }
 
     /// Return if we are horizontal.

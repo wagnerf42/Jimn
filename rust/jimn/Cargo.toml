@@ -19,5 +19,5 @@ byteorder = "0.5.3"
 argparse = "0.2.1"
 dyntreap = {path="../dyntreap"}
 itertools = "*"
-float-cmp = "*"
+float-cmp = "^0.2.5"
 num-traits = "*"

@@ -4,7 +4,7 @@ use std::f64::consts::FRAC_PI_4;
 use jimn::{Arc, ElementaryPath, Point, Segment};
 use jimn::quadrant::{Quadrant, Shape};
 use jimn::tycat::display;
-use jimn::bentley_ottmann::BentleyOttmannPath;
+use jimn::bentley_ottmann::{BentleyOttmannPath, YCoordinate};
 
 fn main() {
     let o = Point::new(0.0, 0.0);
@@ -44,17 +44,10 @@ fn main() {
         )),
     ];
     println!("**********************************");
-    println!("**before arriving*****************");
-    println!("**********************************");
-    for path in &paths {
-        println!("key {:?}", path.compute_key(&Point::new(4.0, 0.0)));
-        display!(paths, path);
-    }
-    println!("**********************************");
     println!("**after arriving******************");
     println!("**********************************");
     for path in &paths {
-        println!("key {:?}", path.compute_key(&o));
+        println!("key {:?}", path.compute_key(YCoordinate(0.0)));
         display!(paths, path);
     }
 }

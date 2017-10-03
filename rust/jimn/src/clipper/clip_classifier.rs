@@ -33,7 +33,8 @@ fn run_events(
     let mut kept_segments = Vec::new();
     for event in events {
         end_segments(&event.2, &generator, crossed_clip_segments);
-        generator.borrow_mut().current_point = event.0;
+        unimplemented!("REDO");
+        //generator.borrow_mut().current_point = event.0;
         start_segments(
             &event.1,
             &generator,

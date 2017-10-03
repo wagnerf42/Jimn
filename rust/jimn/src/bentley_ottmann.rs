@@ -10,7 +10,7 @@ use std::marker::PhantomData;
 use {Arc, ElementaryPath, Point, Segment};
 use dyntreap::Treap;
 use utils::ArrayMap;
-use utils::coordinates_hash::PointsHash;
+use utils::coordinates_hash::{CoordinatesHash, PointsHash};
 use quadrant::Shape;
 use float_cmp::{ApproxEqUlps, ApproxOrdUlps};
 use std::fmt;
@@ -19,11 +19,11 @@ use utils::debug::AsDebug;
 use tycat::colored_display;
 use std::collections::Bound::*;
 use std::collections::Bound;
+use utils::float::hash_float;
+use std::hash::{Hash, Hasher};
 
-
-//ROADMAP
-// 4) angles caching to avoid ever recomputing
-// 5) simplify logic by having one event for each path start/end instead of each point ?
+//precision for float comparisons
+const ULPS: i64 = 1000;
 
 //some type aliases for more readability
 type Coordinate = f64;
@@ -31,33 +31,55 @@ type Angle = f64;
 /// A `PathIndex` allows identification of a path in sweeping line algorithms.
 pub type PathIndex = usize;
 
+/// Y coordinates for sweeping line positions.
+#[derive(Copy, Clone, Debug)]
+pub struct YCoordinate(pub f64);
+
+impl PartialEq for YCoordinate {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.approx_eq_ulps(&other.0, ULPS)
+    }
+}
+impl Eq for YCoordinate {}
+impl Ord for YCoordinate {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.0.approx_cmp(&other.0, ULPS)
+    }
+}
+impl PartialOrd for YCoordinate {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Hash for YCoordinate {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        hash_float(&self.0, state)
+    }
+}
+
+impl Default for YCoordinate {
+    fn default() -> Self {
+        YCoordinate(0.0)
+    }
+}
+
 /// A `Key` allows segments comparisons in sweeping line algorithms.
 #[derive(Copy, Clone)]
 pub struct Key(Coordinate, Angle);
 
 impl PartialEq for Key {
     fn eq(&self, other: &Self) -> bool {
-        self.0.approx_eq_ulps(&other.0, 2) && self.1.approx_eq_ulps(&other.1, 2)
+        self.0.approx_eq_ulps(&other.0, ULPS) && self.1.approx_eq_ulps(&other.1, ULPS)
     }
 }
 impl Eq for Key {}
 
 impl Ord for Key {
     fn cmp(&self, other: &Self) -> Ordering {
-        let first_part = self.0.approx_cmp(&other.0, 2);
-        let second_part = self.1.approx_cmp(&other.1, 2);
-        let result = self.0
-            .approx_cmp(&other.0, 2)
-            .then(self.1.approx_cmp(&other.1, 2));
-        println!(
-            "comparing {:?} and {:?} : {:?} ({:?},{:?})",
-            self,
-            other,
-            result,
-            first_part,
-            second_part,
-        );
-        result
+        self.0
+            .approx_cmp(&other.0, ULPS)
+            .then(self.1.approx_cmp(&other.1, ULPS))
     }
 }
 impl PartialOrd for Key {
@@ -81,8 +103,8 @@ pub struct ComplexKey(Coordinate, Angle, Angle);
 
 impl PartialEq for ComplexKey {
     fn eq(&self, other: &Self) -> bool {
-        self.0.approx_eq_ulps(&other.0, 2) && self.1.approx_eq_ulps(&other.1, 2)
-            && self.2.approx_eq_ulps(&other.2, 2)
+        self.0.approx_eq_ulps(&other.0, ULPS) && self.1.approx_eq_ulps(&other.1, ULPS)
+            && self.2.approx_eq_ulps(&other.2, ULPS)
     }
 }
 impl Eq for ComplexKey {}
@@ -90,9 +112,9 @@ impl Eq for ComplexKey {}
 impl Ord for ComplexKey {
     fn cmp(&self, other: &Self) -> Ordering {
         self.0
-            .approx_cmp(&other.0, 2)
-            .then(self.1.approx_cmp(&other.1, 2))
-            .then(self.2.approx_cmp(&other.2, 2))
+            .approx_cmp(&other.0, ULPS)
+            .then(self.1.approx_cmp(&other.1, ULPS))
+            .then(self.2.approx_cmp(&other.2, ULPS))
     }
 }
 
@@ -108,8 +130,7 @@ pub trait BentleyOttmannPath: Shape {
     /// Paths need to be comparable and should provide comparison keys.
     type BentleyOttmannKey: Ord + Eq;
     /// Compute key for given path at given position.
-    /// The stored_x is a cached part of the key to avoid rounding errors.
-    fn compute_key(&self, current_point: &Point) -> Self::BentleyOttmannKey;
+    fn compute_key(&self, current_y: YCoordinate) -> Self::BentleyOttmannKey;
     /// Paths need to compute intersections between each others.
     fn intersections_with<'a>(&'a self, other: &'a Self) -> Box<Iterator<Item = Point> + 'a>;
     /// Paths have endpoints.
@@ -137,8 +158,7 @@ pub trait BentleyOttmannPath: Shape {
     fn is_horizontal(&self) -> bool;
 }
 
-fn compute_segment_key(segment: &Segment, current_point: &Point) -> Key {
-    let (current_x, current_y) = current_point.coordinates();
+fn compute_segment_key(segment: &Segment, current_y: YCoordinate) -> Key {
     let angle = segment.sweeping_angle();
     // sweep goes from bottom to top and right to left
     //
@@ -151,39 +171,17 @@ fn compute_segment_key(segment: &Segment, current_point: &Point) -> Key {
     //         a      b
     //
     //         angle of a is 3pi/4 ; angle of b is pi/4
-    let x = if segment.is_horizontal() {
-        current_x
-    } else {
-        segment
-            .horizontal_line_intersection(current_y)
-            .expect("computing key for non intersecting segment")
-    };
-
-    if current_x > x {
-        // we are not yet arrived on intersection
-        Key(x, -angle)
-    } else {
-        // we are past the intersection
-        Key(x, angle)
-    }
+    let x = segment.horizontal_line_intersection(current_y.0);
+    Key(x, angle)
 }
 
-fn compute_arc_key(arc: &Arc, current_point: &Point) -> ComplexKey {
-    let (current_x, current_y) = current_point.coordinates();
-    let intersection_point = arc.horizontal_line_intersection(current_y)
+fn compute_arc_key(arc: &Arc, current_y: YCoordinate) -> ComplexKey {
+    let intersection_point = arc.horizontal_line_intersection(current_y.0)
         .expect("computing key for non intersecting arc");
     let tangent = arc.tangent_angle(&intersection_point);
-    if current_x > intersection_point.x {
-        // we are not yet at intersection
-        let coming_from = max(arc.start, arc.end);
-        let final_angle = Segment::new(intersection_point, coming_from).sweeping_angle();
-        ComplexKey(intersection_point.x, -tangent, -final_angle)
-    } else {
-        // we are past intersection
-        let going_to = min(arc.start, arc.end);
-        let final_angle = Segment::new(intersection_point, going_to).sweeping_angle();
-        ComplexKey(intersection_point.x, tangent, final_angle)
-    }
+    let going_to = min(arc.start, arc.end);
+    let final_angle = Segment::new(intersection_point, going_to).sweeping_angle();
+    ComplexKey(intersection_point.x, tangent, final_angle)
 }
 
 fn segments_intersections(s1: &Segment, s2: &Segment) -> Box<Iterator<Item = Point>> {
@@ -211,8 +209,8 @@ fn segments_overlap_points(segment1: &Segment, segment2: &Segment) -> Option<[Po
 
 impl BentleyOttmannPath for Segment {
     type BentleyOttmannKey = Key;
-    fn compute_key(&self, current_point: &Point) -> Key {
-        compute_segment_key(self, current_point)
+    fn compute_key(&self, current_y: YCoordinate) -> Key {
+        compute_segment_key(self, current_y)
     }
 
     fn intersections_with(&self, other: &Self) -> Box<Iterator<Item = Point>> {
@@ -231,11 +229,11 @@ impl BentleyOttmannPath for Segment {
 
 impl BentleyOttmannPath for ElementaryPath {
     type BentleyOttmannKey = ComplexKey;
-    fn compute_key(&self, current_point: &Point) -> ComplexKey {
+    fn compute_key(&self, current_y: YCoordinate) -> ComplexKey {
         match *self {
-            ElementaryPath::Arc(ref a) => compute_arc_key(a, current_point),
+            ElementaryPath::Arc(ref a) => compute_arc_key(a, current_y),
             ElementaryPath::Segment(ref s) => {
-                let Key(coordinate, angle) = compute_segment_key(s, current_point);
+                let Key(coordinate, angle) = compute_segment_key(s, current_y);
                 ComplexKey(coordinate, angle, angle)
             }
         }
@@ -291,7 +289,7 @@ impl BentleyOttmannPath for ElementaryPath {
 pub struct KeyGenerator<'a, K: Ord, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: 'a + AsRef<P>>
 {
     /// Where we currently are.
-    pub current_point: Point,
+    pub current_y: YCoordinate,
     /// We need a reference to our paths in order to perform index <-> path conversion.
     pub paths: &'a [T],
     phantom1: PhantomData<K>,
@@ -304,7 +302,7 @@ impl<'a, K: Ord, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: AsRef<P>>
     pub fn new(paths: &'a [T]) -> Rc<RefCell<KeyGenerator<'a, K, P, T>>> {
         Rc::new(RefCell::new(KeyGenerator {
             //initial current point does not matter
-            current_point: Default::default(),
+            current_y: Default::default(),
             paths: paths,
             phantom1: PhantomData,
             phantom2: PhantomData,
@@ -317,32 +315,30 @@ impl<'a, K: Ord, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: AsRef<P>>
     /// Return comparison key for given paths at current position.
     pub fn compute_key(&self, path_index: &PathIndex) -> K {
         let path = self.paths[*path_index].as_ref();
-        path.compute_key(&self.current_point)
+        path.compute_key(self.current_y)
     }
 }
 
 /// The `Cutter` structure holds all data needed for bentley ottmann's execution.
-struct Cutter<'a, 'b, K: Ord, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: 'a + AsRef<P>> {
+struct Cutter<'a, K: Ord, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: 'a + AsRef<P>> {
     //TODO: could we replace the hashset by a vector ?
     /// Results: we associate to each path (identified by it's position in input vector)
     /// a set of intersections.
     intersections: HashMap<PathIndex, HashSet<Point>>,
 
     /// Remaining events.
-    events: BinaryHeap<Point>,
+    events: BinaryHeap<YCoordinate>,
 
-    //TODO: switch to vectors
-    //we would need to remember the pairs of paths already tested for intersections
     /// We store for each event point sets of paths ending and starting there.
     /// The use of set instead of vector allows us to not bother about intersections
     /// being detected twice.
-    events_data: HashMap<Point, [HashSet<PathIndex>; 2]>,
+    events_data: HashMap<YCoordinate, [HashSet<PathIndex>; 2]>,
 
     /// We store the key generator for our own paths comparison purposes.
     key_generator: Rc<RefCell<KeyGenerator<'a, K, P, T>>>,
 
-    /// Rounder for new points.
-    rounder: &'b mut PointsHash,
+    /// We need to round events.
+    events_rounder: CoordinatesHash,
 }
 
 
@@ -352,11 +348,8 @@ impl<
     K: 'a + Ord + Copy,
     P: 'a + BentleyOttmannPath<BentleyOttmannKey = K>,
     T: 'a + AsRef<P>,
-> Cutter<'a, 'b, K, P, T> {
-    fn new(
-        paths: &'a [T],
-        rounder: &'b mut PointsHash,
-    ) -> (Cutter<'a, 'b, K, P, T>, Treap<'a, K, PathIndex>) {
+> Cutter<'a, K, P, T> {
+    fn new(paths: &'a [T]) -> (Cutter<'a, K, P, T>, Treap<'a, K, PathIndex>) {
         //guess the capacity of all our events related hash tables.
         //we need to be above truth to avoid collisions but not too much above.
         let generator = KeyGenerator::new(paths);
@@ -369,10 +362,15 @@ impl<
             events: BinaryHeap::new(),
             events_data: HashMap::with_capacity(paths.len()),
             key_generator: generator,
-            rounder: rounder,
+            events_rounder: CoordinatesHash::new(6),
         };
 
-        for (index, path) in paths.iter().enumerate() {
+        //TODO : for now, skip horizontal paths
+        for (index, path) in paths
+            .iter()
+            .enumerate()
+            .filter(|&(_, ref p)| !p.as_ref().is_horizontal())
+        {
             let (start, end) = path.as_ref().ordered_points();
             cutter.add_event(start, index, 0);
             cutter.add_event(end, index, 1);
@@ -383,9 +381,10 @@ impl<
     /// Add event at given point starting or ending given paths.
     fn add_event(&mut self, event_point: Point, path: PathIndex, event_type: usize) {
         let events = &mut self.events;
+        let event_y = YCoordinate(self.events_rounder.hash_coordinate(event_point.y));
         // if there is no event data it's a new event
-        self.events_data.entry(event_point).or_insert_with(|| {
-            events.push(event_point);
+        self.events_data.entry(event_y).or_insert_with(|| {
+            events.push(event_y);
             [HashSet::new(), HashSet::new()]
         })[event_type]
             .insert(path);
@@ -394,15 +393,16 @@ impl<
     /// Try intersecting given paths.
     fn try_intersecting(&mut self, indices: [PathIndex; 2]) {
         let paths = indices.map(|i| &self.key_generator.borrow().paths[*i]);
-        let current_point = self.key_generator.borrow().current_point;
+        let current_y = self.key_generator.borrow().current_y;
         for intersection in paths[0].as_ref().intersections_with(paths[1].as_ref()) {
-            let intersection = self.rounder.hash_point(&intersection);
-            if intersection > current_point {
+            if intersection.y > current_y.0 {
+                //TODO: this is not true anymore
                 return; // we already know about it
             }
             for (index, path) in indices.iter().zip(paths.iter()) {
                 if !path.as_ref().has_endpoint(&intersection) {
-                    if intersection < current_point {
+                    if intersection.y < current_y.0 {
+                        //TODO: checky check also
                         // it is possible to be equal in case of overlapping segments
                         self.add_event(intersection, *index, 0);
                         self.add_event(intersection, *index, 1);
@@ -428,26 +428,12 @@ impl<
             .collect();
 
         sorted_paths.sort();
-        for &(ref key, path) in &sorted_paths {
-            println!(
-                "removing {:?} with key {:?}",
-                self.key_generator.borrow().paths[*path].as_debug(),
-                key.as_debug()
-            );
-        }
         for &(ref key, _) in &sorted_paths {
-            println!("removing key {:?}", key.as_debug());
-            let bounds: (Bound<K>, Bound<K>) = (Unbounded, Unbounded);
-            for value in crossed_paths.ordered_values(bounds) {
-                println!("{:?}", self.key_generator.borrow().paths[*value].as_debug());
-            }
             crossed_paths.remove(key);
-        }
-        let small_key = &sorted_paths.first().unwrap().0;
-        let big_key = &sorted_paths.last().unwrap().0;
-        for small in crossed_paths.neighbouring_values(*small_key, 0) {
-            for big in crossed_paths.neighbouring_values(*big_key, 1) {
-                self.try_intersecting([*small, *big]);
+            for small in crossed_paths.neighbouring_values(*key, 0) {
+                for big in crossed_paths.neighbouring_values(*key, 1) {
+                    self.try_intersecting([*small, *big]);
+                }
             }
         }
     }
@@ -465,13 +451,6 @@ impl<
             .collect();
 
         sorted_paths.sort();
-        for &(ref key, path) in &sorted_paths {
-            println!(
-                "adding {:?} with key {:?}",
-                self.key_generator.borrow().paths[*path].as_debug(),
-                key.as_debug()
-            );
-        }
 
         for &(ref new_key, path) in &sorted_paths {
             {
@@ -484,17 +463,13 @@ impl<
             }
             crossed_paths.insert(*path);
         }
-
-        let small_key = &sorted_paths.first().unwrap().0;
-        for &(_, added_small) in sorted_paths.iter().take_while(|t| t.0 == *small_key) {
-            for existing_small in crossed_paths.neighbouring_values(*small_key, 0) {
-                self.try_intersecting([*added_small, *existing_small]);
+        //TODO: we can reduce the intersections number with a more clever algorithm
+        for &(key, path) in &sorted_paths {
+            for small_neighbour in crossed_paths.neighbouring_values(key, 0) {
+                self.try_intersecting([*small_neighbour, *path]);
             }
-        }
-        let big_key = &sorted_paths.last().unwrap().0;
-        for &(_, added_big) in sorted_paths.iter().rev().take_while(|t| t.0 == *big_key) {
-            for existing_big in crossed_paths.neighbouring_values(*big_key, 1) {
-                self.try_intersecting([*added_big, *existing_big]);
+            for big_neighbour in crossed_paths.neighbouring_values(key, 1) {
+                self.try_intersecting([*big_neighbour, *path]);
             }
         }
     }
@@ -520,25 +495,50 @@ impl<
     /// Main algorithm's loop.
     fn run(&mut self, crossed_paths: &mut Treap<K, PathIndex>) {
         while !self.events.is_empty() {
-            let event_point = self.events.pop().unwrap();
+            let event_y = self.events.pop().unwrap();
             let mut starting_paths: Vec<PathIndex>;
             let mut ending_paths: Vec<PathIndex>;
             {
-                let range: (Bound<K>, Bound<K>) = (Unbounded, Unbounded);
-                colored_display(
-                    crossed_paths
-                        .ordered_values(range)
-                        .map(|i| self.key_generator.borrow().paths[*i].as_ref()),
-                ).expect("bad display");
-                let changing_paths = &self.events_data[&event_point];
+                let changing_paths = &self.events_data[&event_y];
                 starting_paths = changing_paths[0].iter().cloned().collect();
                 ending_paths = changing_paths[1].iter().cloned().collect();
             }
             self.end_paths(&mut ending_paths, crossed_paths);
-            println!("we are now at {}", event_point);
-            self.key_generator.borrow_mut().current_point = event_point;
+            self.key_generator.borrow_mut().current_y = event_y;
+            let mut previous_key = None;
+            let bounds: (Bound<K>, Bound<K>) = (Unbounded, Unbounded);
+            for path in crossed_paths.ordered_values(bounds) {
+                let key = self.key_generator.borrow().compute_key(path);
+                if let Some(previous) = previous_key {
+                    if key < previous {
+                        println!("current y is {:?}", event_y);
+                        println!("invalid key for {}", path);
+                        self.debug_display(crossed_paths);
+                        panic!("tree is invalid");
+                    }
+                }
+                previous_key = Some(key);
+            }
             self.start_paths(&mut starting_paths, crossed_paths);
-            self.events_data.remove(&event_point);
+            self.events_data.remove(&event_y);
+        }
+    }
+
+    fn debug_display(&mut self, crossed_paths: &Treap<K, PathIndex>) {
+        let bounds: (Bound<K>, Bound<K>) = (Unbounded, Unbounded);
+        crossed_paths.tycat();
+        colored_display(
+            crossed_paths
+                .ordered_values(bounds)
+                .map(|p| self.key_generator.borrow().paths[*p].as_ref()),
+        ).expect("display failed");
+        for p in crossed_paths.ordered_values(bounds) {
+            println!(
+                "{} is {:?} : {:?}",
+                p,
+                self.key_generator.borrow().paths[*p].as_debug(),
+                self.key_generator.borrow().compute_key(p).as_debug()
+            );
         }
     }
 }
@@ -549,7 +549,7 @@ pub fn bentley_ottmann<K: Ord + Copy, P: BentleyOttmannPath<BentleyOttmannKey = 
     paths: &[T],
     rounder: &mut PointsHash,
 ) -> HashMap<usize, HashSet<Point>> {
-    let (mut cutter, mut crossed_paths) = Cutter::new(paths, rounder);
+    let (mut cutter, mut crossed_paths) = Cutter::new(paths);
     cutter.run(&mut crossed_paths);
     cutter.intersections
 }
