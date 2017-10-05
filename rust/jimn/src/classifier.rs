@@ -6,7 +6,7 @@ use std::marker::PhantomData;
 use std::collections::Bound::*;
 
 use {ElementaryPath, HoledPolygon, Pocket, Point, Polygon, Segment};
-use bentley_ottmann::{BentleyOttmannPath, KeyGenerator, PathIndex};
+use bentley_ottmann::{BentleyOttmannPath, HasX, KeyGenerator, PathIndex};
 use dyntreap::Treap;
 use tree::Tree;
 use quadrant::Shape;
@@ -64,7 +64,7 @@ struct Classifier<
     'k: 's,
     'p: 'k,
     't: 'p,
-    K: 'k + Ord + Eq + Copy,
+    K: 'k + Ord + Eq + Copy + HasX,
     P: 'p + BentleyOttmannPath<BentleyOttmannKey = K>,
     C: Contains<P> + 't,
 > {
@@ -88,7 +88,7 @@ impl<
     'k: 's,
     'p: 'k,
     't: 'p,
-    K: 'k + Ord + Copy + Eq,
+    K: 'k + Ord + Copy + Eq + HasX,
     P: 'p + BentleyOttmannPath<BentleyOttmannKey = K> + Shape,
     C: Contains<P> + Shape + Default,
 > Classifier<'s, 'k, 'p, 't, K, P, C> {
@@ -260,7 +260,7 @@ pub fn complete_inclusion_tree<
     'k,
     'p: 'k,
     't: 'p,
-    K: 'k + Ord + Eq + Copy,
+    K: 'k + Ord + Eq + Copy + HasX,
     P: 'p + BentleyOttmannPath<BentleyOttmannKey = K> + Shape,
     C: Contains<P> + Shape + Default,
 >(

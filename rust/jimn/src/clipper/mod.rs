@@ -21,7 +21,7 @@ impl AsRef<Segment> for ClippingSegment {
 }
 
 impl Cuttable for ClippingSegment {
-    fn cut(&self, points: &HashSet<Point>) -> Vec<ClippingSegment> {
+    fn cut<I: Iterator<Item = Point>>(&self, points: I) -> Vec<ClippingSegment> {
         self.segment
             .cut(points)
             .iter()
@@ -54,7 +54,7 @@ pub fn clip(clipper: &[Segment], clipped: &[Segment], rounder: &mut PointsHash) 
             }
         }))
         .collect();
-    let intersections = bentley_ottmann(&segments, rounder);
-    let small_segments = cut_paths(&segments, &intersections);
+    let intersections = bentley_ottmann(&segments);
+    let small_segments = cut_paths(&segments, &intersections, rounder);
     classify_clip_segments(&small_segments)
 }

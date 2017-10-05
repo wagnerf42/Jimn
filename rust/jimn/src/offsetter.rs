@@ -63,8 +63,8 @@ pub fn offset_holed_polygon(holed_polygon: &HoledPolygon, radius: f64, rounder: 
         inner_paths(polygon, radius, &mut raw_paths, rounder);
     }
     display!(holed_polygon, raw_paths);
-    let intersections = bentley_ottmann(&raw_paths, rounder);
-    let small_paths = cut_paths(&raw_paths, &intersections);
+    let intersections = bentley_ottmann(&raw_paths);
+    let small_paths = cut_paths(&raw_paths, &intersections, rounder);
     display!(holed_polygon, small_paths);
     let pockets = build_pockets(&small_paths);
     colored_display(pockets.iter()).expect("pockets display failed");

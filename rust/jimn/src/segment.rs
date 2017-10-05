@@ -4,7 +4,6 @@
 use std::f64::consts::PI;
 use std::io;
 use std::fs::File;
-use std::collections::HashSet;
 use std::iter::once;
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
@@ -167,38 +166,34 @@ impl Cuttable for Segment {
     ///
     /// # Example
     /// ```
-    /// use std::collections::HashSet;
-    /// use jimn::point::Point;
-    /// use jimn::segment::Segment;
+    /// use jimn::{Point, Segment};
     /// use jimn::bentley_ottmann::Cuttable;
     /// let p1 = Point::new(0.0, 0.0);
     /// let p2 = Point::new(1.0, 1.0);
     /// let p3 = Point::new(2.0, 2.0);
     /// let p4 = Point::new(3.0, 3.0);
     /// let s = Segment::new(p1.clone(), p4.clone());
-    /// let mut p = HashSet::new();
-    /// p.insert(p2.clone());
-    /// p.insert(p3.clone());
-    /// let segments = s.cut(&p);
+    /// let mut p = vec![p2.clone(), p3.clone()];
+    /// let segments = s.cut(p.into_iter());
     /// println!("{:?}", segments);
     /// assert!(segments[0] == Segment::new(p1, p2.clone()));
     /// assert!(segments[1] == Segment::new(p2, p3.clone()));
     /// assert!(segments[2] == Segment::new(p3, p4));
     /// assert!(segments.len() == 3);
     /// ```
-    fn cut(&self, points: &HashSet<Point>) -> Vec<Segment> {
-        let mut sorted_points: Vec<&Point> = points.iter().collect();
+    fn cut<I: Iterator<Item = Point>>(&self, points: I) -> Vec<Segment> {
+        let mut sorted_points: Vec<Point> = points.collect();
         if self.start < self.end {
             sorted_points.sort();
         } else {
             sorted_points.sort_by(|a, b| b.cmp(a));
         }
 
-        let iterator = once(&self.start).chain(sorted_points.into_iter().chain(once(&self.end)));
+        let iterator = once(self.start).chain(sorted_points.into_iter().chain(once(self.end)));
         iterator
             .clone()
             .zip(iterator.skip(1))
-            .map(|(p1, p2)| Segment::new(*p1, *p2))
+            .map(|(p1, p2)| Segment::new(p1, p2))
             .collect()
     }
 }

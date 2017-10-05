@@ -1,6 +1,5 @@
 //! This module holds the `ElementaryPath` class.
 use std::f64::consts::FRAC_PI_2;
-use std::collections::HashSet;
 use {Arc, Point, Segment};
 use quadrant::{Quadrant, Shape};
 use utils::coordinates_hash::PointsHash;
@@ -19,7 +18,7 @@ pub enum ElementaryPath {
 }
 
 impl Cuttable for ElementaryPath {
-    fn cut(&self, points: &HashSet<Point>) -> Vec<Self> {
+    fn cut<I: Iterator<Item = Point>>(&self, points: I) -> Vec<Self> {
         match *self {
             ElementaryPath::Arc(a) => a.cut(points).into_iter().map(ElementaryPath::Arc).collect(),
             ElementaryPath::Segment(s) => s.cut(points)

@@ -23,19 +23,19 @@ pub struct Arc {
 }
 
 impl Cuttable for Arc {
-    fn cut(&self, points: &HashSet<Point>) -> Vec<Self> {
-        let mut sorted_points: Vec<&Point> = points.iter().collect();
+    fn cut<I: Iterator<Item = Point>>(&self, points: I) -> Vec<Self> {
+        let mut sorted_points: Vec<Point> = points.collect();
         if self.start < self.end {
             sorted_points.sort();
         } else {
             sorted_points.sort_by(|a, b| b.cmp(a));
         }
 
-        let iterator = once(&self.start).chain(sorted_points.into_iter().chain(once(&self.end)));
+        let iterator = once(self.start).chain(sorted_points.into_iter().chain(once(self.end)));
         iterator
             .clone()
             .zip(iterator.skip(1))
-            .map(|(p1, p2)| Arc::new(*p1, *p2, self.center, self.radius))
+            .map(|(p1, p2)| Arc::new(p1, p2, self.center, self.radius))
             .collect()
     }
 }

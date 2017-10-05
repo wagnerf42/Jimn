@@ -1,7 +1,9 @@
 bentley ottmann:
 
-    - simplify key logic for segments:
-    angle is if before where to we come from and if after where do we go to 
+    - debug polygon builder example
+
+    - check if some y rounding is unneeded (like in intersections and again in add events)
+    - remove all overlapping code from bentley ottmann
 
     - lots of 'move' in closures in Arc. do they inccur overhead ? are they really needed ?
 
@@ -9,7 +11,6 @@ bentley ottmann:
     - we need to be resilient to overlapping segments
         -> write some examples + tests (partly done)
 
-    - is tangent angle really valid ?
 
 general:
 

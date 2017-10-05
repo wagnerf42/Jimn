@@ -17,13 +17,13 @@ fn try_bentley_ottmann_on<T: AsRef<str>>(filename: &T) {
         rounder.hash_point(&segment.start);
         rounder.hash_point(&segment.end);
     }
-    let intersections = bentley_ottmann(&segments, &mut rounder);
+    let intersections = bentley_ottmann(&segments);
     let points: Vec<&Point> = intersections
         .values()
         .flat_map(|points| points.iter())
         .collect();
     display!(segments, points);
-    let small_segments = cut_paths(&segments, &intersections);
+    let small_segments = cut_paths(&segments, &intersections, &mut rounder);
     display!(small_segments);
 }
 
