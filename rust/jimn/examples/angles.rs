@@ -50,4 +50,17 @@ fn main() {
         println!("key {:?}", path.compute_key(YCoordinate(0.0)));
         display!(paths, path);
     }
+
+    // last test
+    let a = Arc::new(
+        Point::new(5.0, 0.5),
+        Point::new(4.583974852831078, -0.27735009811261446),
+        Point::new(5.0, 0.0),
+        0.5,
+    );
+    let e = ElementaryPath::Arc(a);
+    let y = -0.27735009811261446;
+    let p = a.horizontal_line_intersection(y).unwrap();
+    println!("key {:?}", e.compute_key(YCoordinate(y)));
+    display!(e, p);
 }

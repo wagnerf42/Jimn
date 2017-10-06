@@ -5,8 +5,9 @@ use std::collections::{HashMap, HashSet};
 use std::marker::PhantomData;
 use std::collections::Bound::*;
 
-use {ElementaryPath, HoledPolygon, Pocket, Point, Polygon, Segment};
-use bentley_ottmann::{BentleyOttmannPath, HasX, KeyGenerator, PathIndex};
+use {ElementaryPath, HoledPolygon, Pocket, Polygon, Segment};
+use bentley_ottmann::{check_keys_validity, debug_display, BentleyOttmannPath, HasX, KeyGenerator,
+                      PathIndex, YCoordinate};
 use dyntreap::Treap;
 use tree::Tree;
 use quadrant::Shape;
@@ -41,7 +42,7 @@ impl Contains<ElementaryPath> for Pocket {
 }
 
 
-type ClassifyEvent = (Point, Vec<PathIndex>, Vec<PathIndex>);
+type ClassifyEvent = (YCoordinate, Vec<PathIndex>, Vec<PathIndex>);
 type ContainerIndex = usize;
 
 /// we need to remember which path belongs to which container
@@ -125,16 +126,17 @@ impl<
             })
             .collect();
 
-        let mut raw_events = HashMap::with_capacity(2 * paths.len());
+        let mut raw_events = HashMap::new();
+
         for (index, path) in paths.iter().enumerate() {
             let (first_point, last_point) = path.path.ordered_points();
             raw_events
-                .entry(first_point)
+                .entry(YCoordinate(first_point.y))
                 .or_insert_with(|| (Vec::new(), Vec::new()))
                 .0
                 .push(index);
             raw_events
-                .entry(last_point)
+                .entry(YCoordinate(last_point.y))
                 .or_insert_with(|| (Vec::new(), Vec::new()))
                 .1
                 .push(index);
@@ -143,10 +145,21 @@ impl<
         let mut events: Vec<_> = raw_events.into_iter().map(|(k, v)| (k, v.0, v.1)).collect();
         events.sort_by(|a, b| b.0.cmp(&a.0));
         let generator = KeyGenerator::new(paths);
+
+        //TODO: could we avoid looping twice ?
+        for (index, path) in paths.iter().enumerate() {
+            let (first_point, last_point) = path.path.ordered_points();
+            for point in &[&first_point, &last_point] {
+                let y = YCoordinate(point.y);
+                let mut key = path.path.compute_key(y);
+                key.set_x(point.x);
+                generator.borrow_mut().keys_cache.insert((index, y), key);
+            }
+        }
+
         // sort start events
         for event in &mut events {
-            unimplemented!("REDO");
-            //generator.borrow_mut().current_point = event.0;
+            generator.borrow_mut().current_y = event.0;
             //TODO: triple check this one
             event.1.sort_by(|a, b| {
                 generator
@@ -175,8 +188,7 @@ impl<
         for event in events {
             // remove ending paths
             self.end_paths(&event.2);
-            unimplemented!("REDO");
-            //self.key_generator.borrow_mut().current_point = event.0;
+            self.key_generator.borrow_mut().current_y = event.0;
             self.start_paths(&event.1);
         }
     }
@@ -207,15 +219,9 @@ impl<
                 self.classify_container(owner, path);
             }
         }
-        //        println!("added");
-        //        self.crossed_paths.tycat();
-        //        let bounds: (Bound<K>, Bound<K>) = (Unbounded, Unbounded);
-        //        colored_display(
-        //            self.crossed_paths
-        //                .ordered_values(bounds)
-        //                .rev()
-        //                .map(|i| &self.key_generator.borrow().paths[*i].path),
-        //        ).expect("display failed");
+        if cfg!(debug_assertions) {
+            check_keys_validity(&self.crossed_paths, &self.key_generator);
+        }
     }
 
     /// Add given container at right place in containers tree.

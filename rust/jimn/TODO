@@ -1,15 +1,15 @@
 bentley ottmann:
 
-    - debug polygon builder example
-
-    - check if some y rounding is unneeded (like in intersections and again in add events)
     - remove all overlapping code from bentley ottmann
-
     - lots of 'move' in closures in Arc. do they inccur overhead ? are they really needed ?
+    - we might create points in the present
 
     - treap memory cleaning (we need weak references)
-    - we need to be resilient to overlapping segments
-        -> write some examples + tests (partly done)
+
+    - it might be possible to create rounding problems:
+        consider two consecutive lines (hashed differently) with two almost vertical
+        segments intersecting on line 2
+        could the x coordinates of intersections with line 1 be equal ?
 
 
 general:

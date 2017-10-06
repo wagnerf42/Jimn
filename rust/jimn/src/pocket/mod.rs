@@ -36,26 +36,30 @@ impl Shape for Pocket {
         quadrant
     }
     fn svg_string(&self) -> String {
-        let starting_point = self.edge.first().unwrap().start();
-        once(format!(
-            "<path d=\"M{},{}",
-            starting_point.x,
-            starting_point.y
-        )).chain(self.edge.iter().map(|p| match *p {
-            ElementaryPath::Segment(ref s) => format!(" L {} {}", s.end.x, s.end.y),
-            ElementaryPath::Arc(ref a) => {
-                let sweep_flag = if a.angle() > PI { 1 } else { 0 };
-                format!(
-                    " A {},{} 0 0,{} {},{}",
-                    a.radius,
-                    a.radius,
-                    sweep_flag,
-                    a.end.x,
-                    a.end.y
-                )
-            }
-        }))
-            .chain(once("\"/>".to_string()))
-            .collect()
+        if let Some(first_path) = self.edge.first() {
+            let starting_point = first_path.start();
+            once(format!(
+                "<path d=\"M{},{}",
+                starting_point.x,
+                starting_point.y
+            )).chain(self.edge.iter().map(|p| match *p {
+                ElementaryPath::Segment(ref s) => format!(" L {} {}", s.end.x, s.end.y),
+                ElementaryPath::Arc(ref a) => {
+                    let sweep_flag = if a.angle() > PI { 1 } else { 0 };
+                    format!(
+                        " A {},{} 0 0,{} {},{}",
+                        a.radius,
+                        a.radius,
+                        sweep_flag,
+                        a.end.x,
+                        a.end.y
+                    )
+                }
+            }))
+                .chain(once("\"/>".to_string()))
+                .collect()
+        } else {
+            String::new()
+        }
     }
 }

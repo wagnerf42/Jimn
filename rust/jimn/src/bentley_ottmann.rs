@@ -25,7 +25,7 @@ use utils::float::hash_float;
 use std::hash::{Hash, Hasher};
 
 //precision for float comparisons
-const ULPS: i64 = 4;
+const ULPS: i64 = 10;
 
 //some type aliases for more readability
 type Coordinate = f64;
@@ -128,7 +128,7 @@ pub struct ComplexKey(Coordinate, Angle, Angle);
 
 impl PartialEq for ComplexKey {
     fn eq(&self, other: &Self) -> bool {
-        self.0.approx_eq_ulps(&other.0, ULPS) && self.1.approx_eq_ulps(&other.1, ULPS)
+        self.0.eq(&other.0) && self.1.approx_eq_ulps(&other.1, ULPS)
             && self.2.approx_eq_ulps(&other.2, ULPS)
     }
 }
@@ -215,7 +215,7 @@ fn compute_segment_key(segment: &Segment, current_y: YCoordinate) -> Key {
 fn compute_arc_key(arc: &Arc, current_y: YCoordinate) -> ComplexKey {
     let intersection_point = arc.horizontal_line_intersection(current_y.0)
         .expect("computing key for non intersecting arc");
-    let tangent = arc.tangent_angle(&intersection_point);
+    let tangent = (arc.tangent_angle(&intersection_point) + PI) % PI;
     let going_to = min(arc.start, arc.end);
     let final_angle = Segment::new(intersection_point, going_to).sweeping_angle();
     ComplexKey(intersection_point.x, tangent, final_angle)
@@ -335,7 +335,8 @@ pub struct KeyGenerator<
     pub paths: &'a [T],
     phantom1: PhantomData<K>,
     phantom2: PhantomData<P>,
-    keys_cache: FnvHashMap<(PathIndex, YCoordinate), K>,
+    /// Store all keys here for fast access and rounding errors avoidance
+    pub keys_cache: FnvHashMap<(PathIndex, YCoordinate), K>,
     //keys_cache: HashMap<(PathIndex, YCoordinate), K>,
 }
 
@@ -576,20 +577,9 @@ impl<
             }
             self.end_paths(&mut ending_paths, crossed_paths);
             self.key_generator.borrow_mut().current_y = event_y;
-            //            let mut previous_key = None;
-            //            let bounds: (Bound<K>, Bound<K>) = (Unbounded, Unbounded);
-            //            for path in crossed_paths.ordered_values(bounds) {
-            //                let key = self.key_generator.borrow().compute_key(path);
-            //                if let Some(previous) = previous_key {
-            //                    if key < previous {
-            //                        println!("current y is {:?}", event_y);
-            //                        println!("invalid key for {}", path);
-            //                        self._debug_display(crossed_paths);
-            //                        panic!("tree is invalid");
-            //                    }
-            //                }
-            //                previous_key = Some(key);
-            //            }
+            if cfg!(debug_assertions) {
+                check_keys_validity(crossed_paths, &self.key_generator);
+            }
             self.start_paths(&mut starting_paths, crossed_paths);
             self.handle_horizontal_segments(crossed_paths);
             self.events_data.remove(&event_y);
@@ -612,24 +602,6 @@ impl<
                     self.try_intersecting([segment_index, *path_index]);
                 }
             }
-        }
-    }
-
-    fn _debug_display(&mut self, crossed_paths: &Treap<K, PathIndex>) {
-        let bounds: (Bound<K>, Bound<K>) = (Unbounded, Unbounded);
-        crossed_paths.tycat();
-        colored_display(
-            crossed_paths
-                .ordered_values(bounds)
-                .map(|p| self.key_generator.borrow().paths[*p].as_ref()),
-        ).expect("display failed");
-        for p in crossed_paths.ordered_values(bounds) {
-            println!(
-                "{} is {:?} : {:?}",
-                p,
-                self.key_generator.borrow().paths[*p].as_debug(),
-                self.key_generator.borrow().compute_key(p).as_debug()
-            );
         }
     }
 }
@@ -675,6 +647,60 @@ pub fn cut_paths<T: Cuttable + Clone>(
         })
         .collect()
 }
+
+// Debugging tools
+
+/// Check one by one the all crossed paths keys are in valid order
+pub fn check_keys_validity<
+    K: Ord + HasX + Copy,
+    P: BentleyOttmannPath<BentleyOttmannKey = K>,
+    T: AsRef<P>,
+>(
+    crossed_paths: &Treap<K, PathIndex>,
+    key_generator: &Rc<RefCell<KeyGenerator<K, P, T>>>,
+) {
+    let mut previous_key = None;
+    let bounds: (Bound<K>, Bound<K>) = (Unbounded, Unbounded);
+    for path in crossed_paths.ordered_values(bounds) {
+        let key = key_generator.borrow().compute_key(path);
+        if let Some(previous) = previous_key {
+            if key < previous {
+                println!("current y is {:?}", key_generator.borrow().current_y);
+                println!("invalid key for {}", path);
+                debug_display(crossed_paths, key_generator);
+                panic!("tree is invalid");
+            }
+        }
+        previous_key = Some(key);
+    }
+}
+
+/// Display the whole tree of paths with their corresponding keys.
+pub fn debug_display<
+    K: Ord + HasX + Copy,
+    P: BentleyOttmannPath<BentleyOttmannKey = K>,
+    T: AsRef<P>,
+>(
+    crossed_paths: &Treap<K, PathIndex>,
+    key_generator: &Rc<RefCell<KeyGenerator<K, P, T>>>,
+) {
+    let bounds: (Bound<K>, Bound<K>) = (Unbounded, Unbounded);
+    crossed_paths.tycat();
+    colored_display(
+        crossed_paths
+            .ordered_values(bounds)
+            .map(|p| key_generator.borrow().paths[*p].as_ref()),
+    ).expect("display failed");
+    for p in crossed_paths.ordered_values(bounds) {
+        println!(
+            "{} is {:?} : {:?}",
+            p,
+            key_generator.borrow().paths[*p].as_debug(),
+            key_generator.borrow().compute_key(p).as_debug()
+        );
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
