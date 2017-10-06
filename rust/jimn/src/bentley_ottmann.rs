@@ -15,6 +15,7 @@ use utils::coordinates_hash::PointsHash;
 use quadrant::Shape;
 use float_cmp::{ApproxEqUlps, ApproxOrdUlps};
 use std::fmt;
+use fnv::FnvHashMap;
 
 use utils::debug::AsDebug;
 use tycat::colored_display;
@@ -334,7 +335,8 @@ pub struct KeyGenerator<
     pub paths: &'a [T],
     phantom1: PhantomData<K>,
     phantom2: PhantomData<P>,
-    keys_cache: HashMap<(PathIndex, YCoordinate), K>,
+    keys_cache: FnvHashMap<(PathIndex, YCoordinate), K>,
+    //keys_cache: HashMap<(PathIndex, YCoordinate), K>,
 }
 
 impl<'a, K: Ord + HasX, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: AsRef<P>>
@@ -347,7 +349,8 @@ impl<'a, K: Ord + HasX, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: AsRef<P
             paths: paths,
             phantom1: PhantomData,
             phantom2: PhantomData,
-            keys_cache: HashMap::with_capacity(2 * paths.len()),
+            keys_cache: FnvHashMap::with_capacity_and_hasher(2 * paths.len(), Default::default()),
+            //keys_cache: HashMap::with_capacity(2 * paths.len()),
         }))
     }
 }
@@ -496,13 +499,16 @@ impl<
         if paths.is_empty() {
             return;
         }
+
         let mut sorted_paths: Vec<_> = paths
             .iter()
             .map(|s| (self.key_generator.borrow().compute_key(s), s))
             .collect();
 
+        //sorting is good for performances :-)
         sorted_paths.sort();
         for &(ref key, _) in &sorted_paths {
+            //TODO: simplify if no overlap
             crossed_paths.remove(key);
             for small in crossed_paths.neighbouring_values(*key, 0) {
                 for big in crossed_paths.neighbouring_values(*key, 1) {
@@ -514,7 +520,7 @@ impl<
 
     /// Start a set of paths.
     /// Checks for possible intersections to add in the system.
-    fn start_paths(&mut self, paths: &mut Vec<PathIndex>, crossed_paths: &mut Treap<K, PathIndex>) {
+    fn start_paths(&mut self, paths: &Vec<PathIndex>, crossed_paths: &mut Treap<K, PathIndex>) {
         if paths.is_empty() {
             return;
         }
@@ -526,19 +532,10 @@ impl<
 
         sorted_paths.sort();
 
-        for &(ref new_key, path) in &sorted_paths {
-            {
-                let same_key_node = crossed_paths.get(new_key);
-
-                if let Some(overlap_index) = same_key_node {
-                    // handle overlaps
-                    self.handle_overlapping_paths(*path, *overlap_index);
-                }
-            }
-            crossed_paths.insert(*path);
-        }
-        //TODO: we can reduce the intersections number with a more clever algorithm
         for &(key, path) in &sorted_paths {
+            crossed_paths.insert(*path);
+            //TODO: simplify algorithm if we have a guarantee of no overlapping segments
+            // it does not work anyway for horizontal overlapping segments
             for small_neighbour in crossed_paths.neighbouring_values(key, 0) {
                 self.try_intersecting([*small_neighbour, *path]);
             }
@@ -548,7 +545,7 @@ impl<
         }
     }
 
-    fn handle_overlapping_paths(&mut self, index1: PathIndex, index2: PathIndex) {
+    fn _handle_overlapping_paths(&mut self, index1: PathIndex, index2: PathIndex) {
         let generator = self.key_generator.borrow();
         let p1 = &generator.paths[index1];
         let p2 = &generator.paths[index2];

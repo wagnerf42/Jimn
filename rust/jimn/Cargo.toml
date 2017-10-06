@@ -21,3 +21,4 @@ dyntreap = {path="../dyntreap"}
 itertools = "*"
 float-cmp = "^0.2.5"
 num-traits = "*"
+fnv = "*"

@@ -11,6 +11,7 @@
 //! * no coordinates of distance > 10^-precision are hashed together.
 
 use std::collections::HashMap;
+//use fnv::FnvHashMap;
 use point::Point;
 use quadrant::Quadrant;
 
@@ -27,6 +28,7 @@ fn displaced_coordinate_key(coordinate: f64, precision: usize) -> String {
 
 /// a `CoordinatesHash` allows for hashing nearby coordinates together in O(1).
 pub struct CoordinatesHash {
+    //hashes: Vec<FnvHashMap<String, f64>>,
     hashes: Vec<HashMap<String, f64>>,
     precision: usize,
 }
@@ -35,6 +37,7 @@ impl CoordinatesHash {
     /// Creates a new `CoordinatesHash` with given precision.
     pub fn new(precision: usize) -> CoordinatesHash {
         CoordinatesHash {
+            //hashes: vec![FnvHashMap::default(); 2],
             hashes: vec![HashMap::new(); 2],
             precision: precision,
         }
