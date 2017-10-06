@@ -1,5 +1,4 @@
 //! polygon clipping algorithm.
-use std::collections::HashSet;
 use point::Point;
 use segment::Segment;
 use utils::coordinates_hash::PointsHash;
@@ -21,7 +20,7 @@ impl AsRef<Segment> for ClippingSegment {
 }
 
 impl Cuttable for ClippingSegment {
-    fn cut<I: Iterator<Item = Point>>(&self, points: I) -> Vec<ClippingSegment> {
+    fn cut<'a, I: 'a + IntoIterator<Item = &'a Point>>(&self, points: I) -> Vec<ClippingSegment> {
         self.segment
             .cut(points)
             .iter()
@@ -54,7 +53,7 @@ pub fn clip(clipper: &[Segment], clipped: &[Segment], rounder: &mut PointsHash) 
             }
         }))
         .collect();
-    let intersections = bentley_ottmann(&segments);
-    let small_segments = cut_paths(&segments, &intersections, rounder);
+    let intersections = bentley_ottmann(&segments, rounder);
+    let small_segments = cut_paths(&segments, &intersections);
     classify_clip_segments(&small_segments)
 }

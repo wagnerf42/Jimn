@@ -121,6 +121,11 @@ impl PointsHash {
         }
     }
 
+    /// Hash coordinate at given index (0 for x, 1 for y...).
+    pub fn hash_coordinate(&mut self, coordinate: f64, index: usize) -> f64 {
+        self.hashes[index].hash_coordinate(coordinate)
+    }
+
     /// Returns `Quadrant` delimiting all points we contain.
     /// TODO
     pub fn get_quadrant(&self) -> Quadrant {

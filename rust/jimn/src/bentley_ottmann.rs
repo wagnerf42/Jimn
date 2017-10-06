@@ -11,7 +11,7 @@ use std::marker::PhantomData;
 use {Arc, ElementaryPath, Point, Segment};
 use dyntreap::Treap;
 use utils::ArrayMap;
-use utils::coordinates_hash::{CoordinatesHash, PointsHash};
+use utils::coordinates_hash::PointsHash;
 use quadrant::Shape;
 use float_cmp::{ApproxEqUlps, ApproxOrdUlps};
 use std::fmt;
@@ -366,7 +366,8 @@ impl<'a, K: Ord + HasX + Copy, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: 
 }
 
 /// The `Cutter` structure holds all data needed for bentley ottmann's execution.
-struct Cutter<'a, K: Ord + HasX, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: 'a + AsRef<P>> {
+struct Cutter<'a, 'b, K: Ord + HasX, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: 'a + AsRef<P>>
+{
     //TODO: could we replace the hashset by a vector ?
     /// Results: we associate to each path (identified by it's position in input vector)
     /// a set of intersections.
@@ -383,11 +384,11 @@ struct Cutter<'a, K: Ord + HasX, P: BentleyOttmannPath<BentleyOttmannKey = K>, T
     /// We store the key generator for our own paths comparison purposes.
     key_generator: Rc<RefCell<KeyGenerator<'a, K, P, T>>>,
 
-    /// We need to round events.
-    events_rounder: CoordinatesHash,
-
     /// Horizontal segments now get a special treatment.
     horizontal_segments: HashMap<YCoordinate, Vec<PathIndex>>,
+
+    /// Round new points immediately
+    rounder: &'b mut PointsHash,
 }
 
 
@@ -397,8 +398,11 @@ impl<
     K: 'a + Ord + Copy + HasX,
     P: 'a + BentleyOttmannPath<BentleyOttmannKey = K>,
     T: 'a + AsRef<P>,
-> Cutter<'a, K, P, T> {
-    fn new(paths: &'a [T]) -> (Cutter<'a, K, P, T>, Treap<'a, K, PathIndex>) {
+> Cutter<'a, 'b, K, P, T> {
+    fn new(
+        paths: &'a [T],
+        rounder: &'b mut PointsHash,
+    ) -> (Cutter<'a, 'b, K, P, T>, Treap<'a, K, PathIndex>) {
         //guess the capacity of all our events related hash tables.
         //we need to be above truth to avoid collisions but not too much above.
         let generator = KeyGenerator::new(paths);
@@ -411,15 +415,14 @@ impl<
             events: BinaryHeap::new(),
             events_data: HashMap::with_capacity(paths.len()),
             key_generator: generator,
-            events_rounder: CoordinatesHash::new(6),
+            rounder,
             horizontal_segments: HashMap::new(),
         };
 
         //TODO : for now, skip horizontal paths
         for (index, path) in paths.iter().enumerate() {
             if path.as_ref().is_horizontal() {
-                let y = path.as_ref().points().0.y;
-                let event_y = YCoordinate(cutter.events_rounder.hash_coordinate(y));
+                let event_y = YCoordinate(path.as_ref().points().0.y);
                 cutter
                     .horizontal_segments
                     .entry(event_y)
@@ -442,7 +445,7 @@ impl<
     /// Add event at given point starting or ending given paths.
     fn add_event(&mut self, event_point: Point, path: PathIndex, event_type: usize) {
         let events = &mut self.events;
-        let event_y = YCoordinate(self.events_rounder.hash_coordinate(event_point.y));
+        let event_y = YCoordinate(event_point.y);
         // if there is no event data it's a new event
         self.events_data.entry(event_y).or_insert_with(|| {
             events.push(event_y);
@@ -466,16 +469,15 @@ impl<
         let paths = indices.map(|i| &self.key_generator.borrow().paths[*i]);
         let current_y = self.key_generator.borrow().current_y;
         for intersection in paths[0].as_ref().intersections_with(paths[1].as_ref()) {
-            let intersection_y = self.events_rounder.hash_coordinate(intersection.y);
-            if intersection_y > current_y.0 {
+            let intersection = self.rounder.hash_point(&intersection);
+            if intersection.y > current_y.0 {
                 return; // we already know about it
             }
             for (index, path) in indices.iter().zip(paths.iter()) {
                 if !path.as_ref().has_endpoint(&intersection) {
-                    if intersection_y < current_y.0 {
+                    if intersection.y < current_y.0 {
                         //TODO: checky check also
                         // it is possible to be equal in case of overlapping segments
-                        let intersection = Point::new(intersection.x, intersection_y);
                         self.add_event(intersection, *index, 0);
                         self.add_event(intersection, *index, 1);
                     }
@@ -643,8 +645,9 @@ pub fn bentley_ottmann<
     T: AsRef<P>,
 >(
     paths: &[T],
+    rounder: &mut PointsHash,
 ) -> HashMap<usize, HashSet<Point>> {
-    let (mut cutter, mut crossed_paths) = Cutter::new(paths);
+    let (mut cutter, mut crossed_paths) = Cutter::new(paths, rounder);
     cutter.run(&mut crossed_paths);
     cutter.intersections
 }
@@ -652,7 +655,7 @@ pub fn bentley_ottmann<
 /// A path is `Cuttable` if you can cut it into subpaths at given points.
 pub trait Cuttable {
     /// Cut path at all given points.
-    fn cut<I: Iterator<Item = Point>>(&self, points: I) -> Vec<Self>
+    fn cut<'a, I: 'a + IntoIterator<Item = &'a Point>>(&self, points: I) -> Vec<Self>
     where
         Self: Sized;
 }
@@ -661,7 +664,6 @@ pub trait Cuttable {
 pub fn cut_paths<T: Cuttable + Clone>(
     paths: &[T],
     cut_points: &HashMap<PathIndex, HashSet<Point>>,
-    rounder: &mut PointsHash,
 ) -> Vec<T> {
     paths
         .iter()
@@ -669,7 +671,7 @@ pub fn cut_paths<T: Cuttable + Clone>(
         .flat_map(|(i, path)| {
             let cuts = cut_points.get(&i);
             if let Some(points) = cuts {
-                path.cut(points.iter().map(|p| rounder.hash_point(&p)))
+                path.cut(points)
             } else {
                 vec![path.clone()]
             }
@@ -696,12 +698,8 @@ mod tests {
     #[test]
     fn simple_case_works() {
         let (mut rounder, segments) = prepare_tests("tests_bentley_ottmann/simple_three.bo");
-        let results = bentley_ottmann(&segments);
-        let unique_points: HashSet<Point> = results
-            .values()
-            .flat_map(|v| v)
-            .map(|p| rounder.hash_point(p))
-            .collect();
+        let results = bentley_ottmann(&segments, &mut rounder);
+        let unique_points: HashSet<&Point> = results.values().flat_map(|v| v).collect();
         let intersections_number = unique_points.len();
         assert!(intersections_number == 3);
     }
@@ -709,12 +707,8 @@ mod tests {
     #[test]
     fn simple_hexagonal_works() {
         let (mut rounder, segments) = prepare_tests("tests_bentley_ottmann/triangle_h_1.0.bo");
-        let results = bentley_ottmann(&segments);
-        let unique_points: HashSet<Point> = results
-            .values()
-            .flat_map(|v| v)
-            .map(|p| rounder.hash_point(p))
-            .collect();
+        let results = bentley_ottmann(&segments, &mut rounder);
+        let unique_points: HashSet<&Point> = results.values().flat_map(|v| v).collect();
         let intersections_number = unique_points.len();
         println!("intersections_number is {}", intersections_number);
         assert!(intersections_number == 15);
@@ -722,13 +716,13 @@ mod tests {
 
     #[bench]
     fn bench_fast(b: &mut Bencher) {
-        let (_, segments) = prepare_tests("tests_bentley_ottmann/triangle_h_0.5.bo");
-        b.iter(|| bentley_ottmann(&segments));
+        let (mut rounder, segments) = prepare_tests("tests_bentley_ottmann/triangle_h_0.5.bo");
+        b.iter(|| bentley_ottmann(&segments, &mut rounder));
     }
 
     #[bench]
     fn bench_slow(b: &mut Bencher) {
-        let (_, segments) = prepare_tests("tests_bentley_ottmann/carnifex_h_0.5.bo");
-        b.iter(|| bentley_ottmann(&segments));
+        let (mut rounder, segments) = prepare_tests("tests_bentley_ottmann/carnifex_h_0.5.bo");
+        b.iter(|| bentley_ottmann(&segments, &mut rounder));
     }
 }

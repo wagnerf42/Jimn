@@ -161,8 +161,9 @@ impl Segment {
 }
 
 impl Cuttable for Segment {
-    /// Cut into subsegments at given set of points.
+    /// Cut into subsegments at given points.
     /// pre-requisite: all given points are strictly inside us.
+    /// they contain no duplicate
     ///
     /// # Example
     /// ```
@@ -173,27 +174,27 @@ impl Cuttable for Segment {
     /// let p3 = Point::new(2.0, 2.0);
     /// let p4 = Point::new(3.0, 3.0);
     /// let s = Segment::new(p1.clone(), p4.clone());
-    /// let mut p = vec![p2.clone(), p3.clone()];
-    /// let segments = s.cut(p.into_iter());
+    /// let p = vec![p2.clone(), p3.clone()];
+    /// let segments = s.cut(&p);
     /// println!("{:?}", segments);
     /// assert!(segments[0] == Segment::new(p1, p2.clone()));
     /// assert!(segments[1] == Segment::new(p2, p3.clone()));
     /// assert!(segments[2] == Segment::new(p3, p4));
     /// assert!(segments.len() == 3);
     /// ```
-    fn cut<I: Iterator<Item = Point>>(&self, points: I) -> Vec<Segment> {
-        let mut sorted_points: Vec<Point> = points.collect();
+    fn cut<'a, I: 'a + IntoIterator<Item = &'a Point>>(&self, points: I) -> Vec<Segment> {
+        let mut sorted_points: Vec<&Point> = points.into_iter().collect();
         if self.start < self.end {
             sorted_points.sort();
         } else {
             sorted_points.sort_by(|a, b| b.cmp(a));
         }
 
-        let iterator = once(self.start).chain(sorted_points.into_iter().chain(once(self.end)));
+        let iterator = once(&self.start).chain(sorted_points.into_iter().chain(once(&self.end)));
         iterator
             .clone()
             .zip(iterator.skip(1))
-            .map(|(p1, p2)| Segment::new(p1, p2))
+            .map(|(p1, p2)| Segment::new(*p1, *p2))
             .collect()
     }
 }

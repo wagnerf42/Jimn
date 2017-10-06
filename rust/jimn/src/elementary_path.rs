@@ -18,7 +18,7 @@ pub enum ElementaryPath {
 }
 
 impl Cuttable for ElementaryPath {
-    fn cut<I: Iterator<Item = Point>>(&self, points: I) -> Vec<Self> {
+    fn cut<'a, I: 'a + IntoIterator<Item = &'a Point>>(&self, points: I) -> Vec<Self> {
         match *self {
             ElementaryPath::Arc(a) => a.cut(points).into_iter().map(ElementaryPath::Arc).collect(),
             ElementaryPath::Segment(s) => s.cut(points)

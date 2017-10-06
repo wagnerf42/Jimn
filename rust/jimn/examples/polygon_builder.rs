@@ -16,8 +16,8 @@ fn main() {
         rounder.hash_point(&segment.start);
         rounder.hash_point(&segment.end);
     }
-    let intersections = bentley_ottmann(&segments);
-    let small_segments = cut_paths(&segments, &intersections, &mut rounder);
+    let intersections = bentley_ottmann(&segments, &mut rounder);
+    let small_segments = cut_paths(&segments, &intersections);
     let polygons = build_polygons(&small_segments);
     colored_display(&polygons).expect("display failed");
 }

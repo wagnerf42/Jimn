@@ -1,6 +1,5 @@
 //! provides the `Arc` class.
 use std::iter::{empty, once};
-use std::collections::HashSet;
 use std::f64::consts::{FRAC_PI_2, PI};
 use {Point, Segment};
 use quadrant::{Quadrant, Shape};
@@ -23,19 +22,19 @@ pub struct Arc {
 }
 
 impl Cuttable for Arc {
-    fn cut<I: Iterator<Item = Point>>(&self, points: I) -> Vec<Self> {
-        let mut sorted_points: Vec<Point> = points.collect();
+    fn cut<'a, I: 'a + IntoIterator<Item = &'a Point>>(&self, points: I) -> Vec<Self> {
+        let mut sorted_points: Vec<&Point> = points.into_iter().collect();
         if self.start < self.end {
             sorted_points.sort();
         } else {
             sorted_points.sort_by(|a, b| b.cmp(a));
         }
 
-        let iterator = once(self.start).chain(sorted_points.into_iter().chain(once(self.end)));
+        let iterator = once(&self.start).chain(sorted_points.into_iter().chain(once(&self.end)));
         iterator
             .clone()
             .zip(iterator.skip(1))
-            .map(|(p1, p2)| Arc::new(p1, p2, self.center, self.radius))
+            .map(|(p1, p2)| Arc::new(*p1, *p2, self.center, self.radius))
             .collect()
     }
 }
