@@ -6,8 +6,8 @@ use std::marker::PhantomData;
 use std::collections::Bound::*;
 
 use {ElementaryPath, HoledPolygon, Pocket, Polygon, Segment};
-use bentley_ottmann::{check_keys_validity, debug_display, BentleyOttmannPath, HasX, KeyGenerator,
-                      PathIndex, YCoordinate};
+use bentley_ottmann::{check_keys_validity, BentleyOttmannPath, HasX, KeyGenerator, PathIndex,
+                      YCoordinate};
 use dyntreap::Treap;
 use tree::Tree;
 use quadrant::Shape;

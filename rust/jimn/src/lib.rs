@@ -54,6 +54,8 @@ pub mod elementary_path;
 pub use elementary_path::ElementaryPath;
 pub mod pocket;
 pub use pocket::Pocket;
+pub mod holed_pocket;
+pub use holed_pocket::HoledPocket;
 pub mod offsetter;
 
 use stl::Stl;

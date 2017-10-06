@@ -18,5 +18,4 @@ fn main() {
     let p = Polygon::new(points);
     let h = HoledPolygon::new(p, Vec::new());
     offset_holed_polygon(&h, 0.5, &mut rounder);
-    unimplemented!()
 }

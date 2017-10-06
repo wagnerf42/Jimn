@@ -1,5 +1,6 @@
 //! offsetting related functions
-use {Arc, ElementaryPath};
+use std::iter::repeat;
+use {Arc, ElementaryPath, HoledPocket};
 use polygon::Polygon;
 use holed_polygon::HoledPolygon;
 use quadrant::{Quadrant, Shape};
@@ -56,20 +57,51 @@ pub fn inner_paths(
 
 /// Offset given `HoledPolygon` at given distance.
 /// Return a vector of `HoledPocket`.
-pub fn offset_holed_polygon(holed_polygon: &HoledPolygon, radius: f64, rounder: &mut PointsHash) {
+pub fn offset_holed_polygon(
+    holed_polygon: &HoledPolygon,
+    radius: f64,
+    rounder: &mut PointsHash,
+) -> Vec<HoledPocket> {
     let mut raw_paths = Vec::new();
-    let radius = radius.into();
+    // take some segments parallel to holed poly, on the inside (joined with arcs)
     for polygon in holed_polygon.polygons() {
         inner_paths(polygon, radius, &mut raw_paths, rounder);
     }
     display!(holed_polygon, raw_paths);
+
+    // convert to elementary paths
     let intersections = bentley_ottmann(&raw_paths, rounder);
     let small_paths = cut_paths(&raw_paths, &intersections);
     display!(holed_polygon, small_paths);
+
+    // build a set of small pockets
     let pockets = build_pockets(&small_paths);
     colored_display(pockets.iter()).expect("pockets display failed");
+
+    // figure out which pocket is inside what
     let mut pockets_tree = Tree::new();
     complete_inclusion_tree(&mut pockets_tree, pockets);
     pockets_tree.tycat().expect("pockets tree display failed");
-    unimplemented!()
+
+    // now all correctly oriented children of root are our results
+    // with subnodes as the holes in each
+    let mut holed_pockets = Vec::new();
+    let mut indices: Vec<usize> = repeat(0).take(pockets_tree.nodes.len()).collect();
+    for node in pockets_tree.nodes.drain(..) {
+        if let Some(father) = node.father {
+            if father == 0 {
+                if node.value.is_oriented_clockwise() {
+                    indices[node.index] = holed_pockets.len();
+                    holed_pockets.push(HoledPocket::new(
+                        node.value,
+                        Vec::with_capacity(node.children.len()),
+                    ));
+                }
+            } else {
+                holed_pockets[indices[father]].add_hole(node.value);
+            }
+        }
+    }
+    display!(holed_pockets);
+    holed_pockets
 }

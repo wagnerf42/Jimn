@@ -3,6 +3,7 @@ use std::f64::consts::PI;
 use std::iter::once;
 use {ElementaryPath, Quadrant};
 use quadrant::Shape;
+use utils::precision::is_almost;
 
 pub use self::pocket_builder::build_pockets;
 mod pocket_builder;
@@ -24,6 +25,16 @@ impl Pocket {
     /// Build a new `Pocket` from given paths forming its edge.
     pub fn new(edge: Vec<ElementaryPath>) -> Self {
         Pocket { edge }
+    }
+
+    /// Compute pocket orientation.
+    pub fn is_oriented_clockwise(&self) -> bool {
+        let approximate_area: f64 = self.edge
+            .iter()
+            .map(|path| path.start().cross_product(path.end()))
+            .sum();
+        assert!(!is_almost(approximate_area, 0.0)); // flat or crossing pocket
+        approximate_area > 0.0
     }
 }
 
