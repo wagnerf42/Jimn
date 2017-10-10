@@ -3,7 +3,6 @@ use std::f64::consts::FRAC_PI_2;
 use {Arc, Point, Segment};
 use quadrant::{Quadrant, Shape};
 use utils::coordinates_hash::PointsHash;
-use bentley_ottmann::Cuttable;
 
 /// Elementary path (used for building larger paths)
 /// can be either:
@@ -15,18 +14,6 @@ pub enum ElementaryPath {
     Arc(Arc),
     /// `Segment` path
     Segment(Segment),
-}
-
-impl Cuttable for ElementaryPath {
-    fn cut<'a, I: 'a + IntoIterator<Item = &'a Point>>(&self, points: I) -> Vec<Self> {
-        match *self {
-            ElementaryPath::Arc(a) => a.cut(points).into_iter().map(ElementaryPath::Arc).collect(),
-            ElementaryPath::Segment(s) => s.cut(points)
-                .into_iter()
-                .map(ElementaryPath::Segment)
-                .collect(),
-        }
-    }
 }
 
 impl AsRef<ElementaryPath> for ElementaryPath {

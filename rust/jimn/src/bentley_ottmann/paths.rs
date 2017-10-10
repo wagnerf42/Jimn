@@ -63,6 +63,8 @@ impl Default for YCoordinate {
 pub trait HasX {
     /// Change x value in comparison key.
     fn set_x(&mut self, new_x: f64);
+    /// Get x value from key.
+    fn get_x(&self) -> f64;
     /// Compute a new key with given x and minimal angles.
     fn min_key(x: f64) -> Self;
     /// Compute a new key with given x and maximal angles.
@@ -103,6 +105,9 @@ impl fmt::Debug for Key {
 impl HasX for Key {
     fn set_x(&mut self, new_x: f64) {
         self.0 = new_x
+    }
+    fn get_x(&self) -> f64 {
+        self.0
     }
     fn min_key(x: f64) -> Self {
         Key(x, 0.0)
@@ -146,6 +151,9 @@ impl HasX for ComplexKey {
     fn set_x(&mut self, new_x: f64) {
         self.0 = new_x
     }
+    fn get_x(&self) -> f64 {
+        self.0
+    }
     fn min_key(x: f64) -> Self {
         ComplexKey(x, 0.0, 0.0)
     }
@@ -161,6 +169,8 @@ pub trait BentleyOttmannPath: Shape {
     type BentleyOttmannKey: Ord + Eq + HasX;
     /// Compute key for given path at given position.
     fn compute_key(&self, current_y: YCoordinate) -> Self::BentleyOttmannKey;
+    /// Intersecting with a sweeping line gives exactly one point.
+    fn sweeping_line_intersection(&self, y: f64) -> Point;
     /// Paths need to compute intersections between each others.
     fn intersections_with<'a>(&'a self, other: &'a Self) -> Box<Iterator<Item = Point> + 'a>;
     /// Paths have endpoints.
@@ -206,8 +216,7 @@ fn compute_segment_key(segment: &Segment, current_y: YCoordinate) -> Key {
 }
 
 fn compute_arc_key(arc: &Arc, current_y: YCoordinate) -> ComplexKey {
-    let intersection_point = arc.horizontal_line_intersection(current_y.0)
-        .expect("computing key for non intersecting arc");
+    let intersection_point = arc.horizontal_line_intersection(current_y.0);
     let tangent = (arc.tangent_angle(&intersection_point) + PI) % PI;
     let going_to = min(arc.start, arc.end);
     let final_angle = Segment::new(intersection_point, going_to).sweeping_angle();
@@ -246,6 +255,11 @@ impl BentleyOttmannPath for Segment {
     fn intersections_with(&self, other: &Self) -> Box<Iterator<Item = Point>> {
         segments_intersections(self, other)
     }
+
+    fn sweeping_line_intersection(&self, y: f64) -> Point {
+        Point::new(self.horizontal_line_intersection(y), y)
+    }
+
     fn points(&self) -> (Point, Point) {
         (self.start, self.end)
     }
@@ -266,6 +280,13 @@ impl BentleyOttmannPath for ElementaryPath {
                 let Key(coordinate, angle) = compute_segment_key(s, current_y);
                 ComplexKey(coordinate, angle, angle)
             }
+        }
+    }
+
+    fn sweeping_line_intersection(&self, y: f64) -> Point {
+        match *self {
+            ElementaryPath::Arc(ref a) => a.horizontal_line_intersection(y),
+            ElementaryPath::Segment(ref s) => Point::new(s.horizontal_line_intersection(y), y),
         }
     }
 
@@ -359,5 +380,110 @@ impl<'a, K: Ord + HasX + Copy, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: 
             .unwrap_or_else(|| {
                 self.paths[*path_index].as_ref().compute_key(self.current_y)
             })
+    }
+
+    /// Return the point for given path at given y.
+    pub fn point_at(&self, path_index: &PathIndex, y: &YCoordinate) -> Point {
+        Point::new(
+            self.keys_cache
+                .get(&(*path_index, *y))
+                .expect("getting x for missing key")
+                .get_x(),
+            y.0,
+        )
+    }
+}
+
+/// A path is `Cuttable` if you can cut it into subpaths at given points.
+pub trait Cuttable {
+    /// Cut path at all given points.
+    fn cut<'a, I: 'a + IntoIterator<Item = &'a Point>>(&self, points: I) -> Vec<Self>
+    where
+        Self: Sized;
+    /// Create a new subpath at given points from given path.
+    fn new_from(&self, start: &Point, end: &Point) -> Self;
+}
+
+impl Cuttable for Segment {
+    /// Cut into subsegments at given points.
+    /// pre-requisite: all given points are strictly inside us.
+    /// they contain no duplicate
+    ///
+    /// # Example
+    /// ```
+    /// use jimn::{Point, Segment};
+    /// use jimn::bentley_ottmann::Cuttable;
+    /// let p1 = Point::new(0.0, 0.0);
+    /// let p2 = Point::new(1.0, 1.0);
+    /// let p3 = Point::new(2.0, 2.0);
+    /// let p4 = Point::new(3.0, 3.0);
+    /// let s = Segment::new(p1.clone(), p4.clone());
+    /// let p = vec![p2.clone(), p3.clone()];
+    /// let segments = s.cut(&p);
+    /// println!("{:?}", segments);
+    /// assert!(segments[0] == Segment::new(p1, p2.clone()));
+    /// assert!(segments[1] == Segment::new(p2, p3.clone()));
+    /// assert!(segments[2] == Segment::new(p3, p4));
+    /// assert!(segments.len() == 3);
+    /// ```
+    fn cut<'a, I: 'a + IntoIterator<Item = &'a Point>>(&self, points: I) -> Vec<Segment> {
+        let mut sorted_points: Vec<&Point> = points.into_iter().collect();
+        if self.start < self.end {
+            sorted_points.sort();
+        } else {
+            sorted_points.sort_by(|a, b| b.cmp(a));
+        }
+
+        let iterator = once(&self.start).chain(sorted_points.into_iter().chain(once(&self.end)));
+        iterator
+            .clone()
+            .zip(iterator.skip(1))
+            .map(|(p1, p2)| Segment::new(*p1, *p2))
+            .collect()
+    }
+
+    fn new_from(&self, start: &Point, end: &Point) -> Self {
+        Segment::new(*start, *end)
+    }
+}
+
+impl Cuttable for Arc {
+    fn cut<'a, I: 'a + IntoIterator<Item = &'a Point>>(&self, points: I) -> Vec<Self> {
+        let mut sorted_points: Vec<&Point> = points.into_iter().collect();
+        if self.start < self.end {
+            sorted_points.sort();
+        } else {
+            sorted_points.sort_by(|a, b| b.cmp(a));
+        }
+
+        let iterator = once(&self.start).chain(sorted_points.into_iter().chain(once(&self.end)));
+        iterator
+            .clone()
+            .zip(iterator.skip(1))
+            .map(|(p1, p2)| Arc::new(*p1, *p2, self.center, self.radius))
+            .collect()
+    }
+
+    fn new_from(&self, start: &Point, end: &Point) -> Self {
+        Arc::new(*start, *end, self.center, self.radius)
+    }
+}
+
+impl Cuttable for ElementaryPath {
+    fn cut<'a, I: 'a + IntoIterator<Item = &'a Point>>(&self, points: I) -> Vec<Self> {
+        match *self {
+            ElementaryPath::Arc(a) => a.cut(points).into_iter().map(ElementaryPath::Arc).collect(),
+            ElementaryPath::Segment(s) => s.cut(points)
+                .into_iter()
+                .map(ElementaryPath::Segment)
+                .collect(),
+        }
+    }
+
+    fn new_from(&self, start: &Point, end: &Point) -> Self {
+        match *self {
+            ElementaryPath::Arc(ref a) => ElementaryPath::Arc(a.new_from(start, end)),
+            ElementaryPath::Segment(ref s) => ElementaryPath::Segment(s.new_from(start, end)),
+        }
     }
 }

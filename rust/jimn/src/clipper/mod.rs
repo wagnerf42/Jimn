@@ -2,7 +2,7 @@
 use point::Point;
 use segment::Segment;
 use utils::coordinates_hash::PointsHash;
-use bentley_ottmann::{bentley_ottmann, cut_paths, Cuttable};
+use bentley_ottmann::{bentley_ottmann, Cuttable};
 mod clip_classifier;
 use self::clip_classifier::classify_clip_segments;
 
@@ -32,6 +32,12 @@ impl Cuttable for ClippingSegment {
             })
             .collect()
     }
+    fn new_from(&self, start: &Point, end: &Point) -> Self {
+        ClippingSegment {
+            segment: self.segment.new_from(start, end),
+            clipping: self.clipping,
+        }
+    }
 }
 
 /// Clip *clipped* segments inside *clipper* polygon's segments.
@@ -53,7 +59,6 @@ pub fn clip(clipper: &[Segment], clipped: &[Segment], rounder: &mut PointsHash) 
             }
         }))
         .collect();
-    let intersections = bentley_ottmann(&segments, rounder);
-    let small_segments = cut_paths(&segments, &intersections);
+    let small_segments = bentley_ottmann(&segments, rounder);
     classify_clip_segments(&small_segments)
 }

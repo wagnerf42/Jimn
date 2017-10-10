@@ -6,7 +6,6 @@ use quadrant::{Quadrant, Shape};
 use utils::precision::is_almost;
 use utils::coordinates_hash::PointsHash;
 use utils::ArrayMap;
-use bentley_ottmann::Cuttable;
 
 /// Oriented arc segment.
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq)]
@@ -19,24 +18,6 @@ pub struct Arc {
     pub center: Point,
     /// Radius
     pub radius: f64,
-}
-
-impl Cuttable for Arc {
-    fn cut<'a, I: 'a + IntoIterator<Item = &'a Point>>(&self, points: I) -> Vec<Self> {
-        let mut sorted_points: Vec<&Point> = points.into_iter().collect();
-        if self.start < self.end {
-            sorted_points.sort();
-        } else {
-            sorted_points.sort_by(|a, b| b.cmp(a));
-        }
-
-        let iterator = once(&self.start).chain(sorted_points.into_iter().chain(once(&self.end)));
-        iterator
-            .clone()
-            .zip(iterator.skip(1))
-            .map(|(p1, p2)| Arc::new(*p1, *p2, self.center, self.radius))
-            .collect()
-    }
 }
 
 impl Arc {
@@ -119,7 +100,7 @@ impl Arc {
     }
 
     /// Intersect ourselves with horizontal line at given y.
-    /// pre-condition: there can be at most one intersection
+    /// pre-condition: there is exactly one intersection
     ///
     /// # Example
     /// ```
@@ -129,25 +110,25 @@ impl Arc {
     /// let half_point = arc.horizontal_line_intersection(-half_coordinate).unwrap();
     /// assert!(half_point.is_almost(&Point::new(half_coordinate, -half_coordinate)));
     /// ```
-    pub fn horizontal_line_intersection(&self, y: f64) -> Option<Point> {
+    pub fn horizontal_line_intersection(&self, y: f64) -> Point {
         // we use pythagoras
         let side_length = (y - self.center.y).abs();
         if is_almost(side_length, self.radius) {
-            return Some(Point::new(self.center.x, y));
+            return Point::new(self.center.x, y);
         }
         if side_length > self.radius {
-            return None;
+            panic!("no arc hline intersection");
         }
         let other_side_length = (self.radius * self.radius - side_length * side_length).sqrt();
         let candidate_point = Point::new(self.center.x - other_side_length, y);
         if self.contains_circle_point(&candidate_point) {
-            Some(candidate_point)
+            candidate_point
         } else {
             let candidate_point2 = Point::new(self.center.x + other_side_length, y);
             if self.contains_circle_point(&candidate_point2) {
-                Some(candidate_point2)
+                candidate_point2
             } else {
-                None
+                panic!("no arc hline");
             }
         }
     }

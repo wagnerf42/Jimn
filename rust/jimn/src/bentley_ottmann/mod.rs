@@ -7,6 +7,7 @@ use dyntreap::Treap;
 use utils::ArrayMap;
 use utils::coordinates_hash::PointsHash;
 use std::rc::Rc;
+use std::iter::repeat;
 
 use utils::debug::AsDebug;
 use tycat::colored_display;
@@ -14,15 +15,17 @@ use std::collections::Bound::*;
 use std::collections::Bound;
 
 mod paths;
-pub use self::paths::{BentleyOttmannPath, HasX, Key, KeyGenerator, PathIndex, YCoordinate};
+pub use self::paths::{BentleyOttmannPath, Cuttable, HasX, Key, KeyGenerator, PathIndex,
+                      YCoordinate};
 
 /// The `Cutter` structure holds all data needed for bentley ottmann's execution.
 struct Cutter<'a, 'b, K: Ord + HasX, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: 'a + AsRef<P>>
 {
-    //TODO: could we replace the hashset by a vector ?
-    /// Results: we associate to each path (identified by it's position in input vector)
-    /// a set of intersections.
-    intersections: HashMap<PathIndex, HashSet<Point>>,
+    /// Small paths obtained after cutting
+    results: Vec<T>,
+
+    /// On each path, which point was previously visited ?
+    previous_points: Vec<Point>,
 
     /// Remaining events.
     events: BinaryHeap<YCoordinate>,
@@ -48,7 +51,7 @@ impl<
     'b,
     K: 'a + Ord + Copy + HasX,
     P: 'a + BentleyOttmannPath<BentleyOttmannKey = K>,
-    T: 'a + AsRef<P>,
+    T: 'a + AsRef<P> + Cuttable,
 > Cutter<'a, 'b, K, P, T> {
     fn new(
         paths: &'a [T],
@@ -62,7 +65,8 @@ impl<
         let crossed_paths = Treap::new_with_key_generator(get_key);
 
         let mut cutter = Cutter {
-            intersections: HashMap::new(),
+            results: Vec::with_capacity(2 * paths.len()),
+            previous_points: repeat(Default::default()).take(paths.len()).collect(),
             events: BinaryHeap::new(),
             events_data: HashMap::with_capacity(paths.len()),
             key_generator: generator,
@@ -70,7 +74,6 @@ impl<
             horizontal_segments: HashMap::new(),
         };
 
-        //TODO : for now, skip horizontal paths
         for (index, path) in paths.iter().enumerate() {
             if path.as_ref().is_horizontal() {
                 let event_y = YCoordinate(path.as_ref().points().0.y);
@@ -132,10 +135,6 @@ impl<
                         self.add_event(intersection, *index, 0);
                         self.add_event(intersection, *index, 1);
                     }
-                    self.intersections
-                        .entry(*index)
-                        .or_insert_with(HashSet::new)
-                        .insert(intersection);
                 }
             }
         }
@@ -143,7 +142,12 @@ impl<
 
     /// End a set of paths.
     /// Checks for possible intersections to add in the system.
-    fn end_paths(&mut self, paths: &mut Vec<PathIndex>, crossed_paths: &mut Treap<K, PathIndex>) {
+    fn end_paths(
+        &mut self,
+        paths: &mut Vec<PathIndex>,
+        crossed_paths: &mut Treap<K, PathIndex>,
+        next_y: &YCoordinate,
+    ) {
         if paths.is_empty() {
             return;
         }
@@ -155,7 +159,14 @@ impl<
 
         //sorting is good for performances :-)
         sorted_paths.sort();
-        for &(ref key, _) in &sorted_paths {
+        for &(ref key, path) in &sorted_paths {
+            {
+                let end_point = self.key_generator.borrow().point_at(path, next_y);
+                let start_point = &self.previous_points[*path];
+                self.results.push(
+                    self.key_generator.borrow().paths[*path].new_from(start_point, &end_point),
+                );
+            }
             //TODO: simplify if no overlap
             crossed_paths.remove(key);
             for small in crossed_paths.neighbouring_values(*key, 0) {
@@ -180,7 +191,9 @@ impl<
 
         sorted_paths.sort();
 
+        let current_y = self.key_generator.borrow().current_y;
         for &(key, path) in &sorted_paths {
+            self.previous_points[*path] = self.key_generator.borrow().point_at(path, &current_y);
             crossed_paths.insert(*path);
             //TODO: simplify algorithm if we have a guarantee of no overlapping segments
             // it does not work anyway for horizontal overlapping segments
@@ -201,10 +214,7 @@ impl<
             for point in &points {
                 for &(segment, index) in &[(p1, index1), (p2, index2)] {
                     if !segment.as_ref().has_endpoint(point) {
-                        self.intersections
-                            .entry(index)
-                            .or_insert_with(HashSet::new)
-                            .insert(*point);
+                        unimplemented!("REDO");
                     }
                 }
             }
@@ -222,7 +232,7 @@ impl<
                 starting_paths = changing_paths[0].iter().cloned().collect();
                 ending_paths = changing_paths[1].iter().cloned().collect();
             }
-            self.end_paths(&mut ending_paths, crossed_paths);
+            self.end_paths(&mut ending_paths, crossed_paths, &event_y);
             self.key_generator.borrow_mut().current_y = event_y;
             if cfg!(debug_assertions) {
                 check_keys_validity(crossed_paths, &self.key_generator);
@@ -245,8 +255,27 @@ impl<
                     Included(K::min_key(min_point.x)),
                     Included(K::max_key(max_point.x)),
                 );
+                let mut previous_point = min_point;
                 for path_index in crossed_paths.ordered_values(bounds) {
-                    self.try_intersecting([segment_index, *path_index]);
+                    let path_intersection = self.key_generator.borrow().paths[*path_index]
+                        .as_ref()
+                        .sweeping_line_intersection(y.0);
+                    let path_intersection = self.rounder.hash_point(&path_intersection);
+                    if previous_point != path_intersection {
+                        self.results.push(
+                            self.key_generator.borrow().paths[segment_index]
+                                .new_from(&previous_point, &path_intersection),
+                        );
+                        previous_point = path_intersection;
+                    }
+                    let path_previous_point = self.previous_points[*path_index];
+                    if path_previous_point.y != y.0 {
+                        self.results.push(
+                            self.key_generator.borrow().paths[*path_index]
+                                .new_from(&path_previous_point, &path_intersection),
+                        );
+                        self.previous_points[*path_index] = path_intersection;
+                    }
                 }
             }
         }
@@ -258,41 +287,14 @@ impl<
 pub fn bentley_ottmann<
     K: Ord + Copy + HasX,
     P: BentleyOttmannPath<BentleyOttmannKey = K>,
-    T: AsRef<P>,
+    T: AsRef<P> + Cuttable,
 >(
     paths: &[T],
     rounder: &mut PointsHash,
-) -> HashMap<usize, HashSet<Point>> {
+) -> Vec<T> {
     let (mut cutter, mut crossed_paths) = Cutter::new(paths, rounder);
     cutter.run(&mut crossed_paths);
-    cutter.intersections
-}
-
-/// A path is `Cuttable` if you can cut it into subpaths at given points.
-pub trait Cuttable {
-    /// Cut path at all given points.
-    fn cut<'a, I: 'a + IntoIterator<Item = &'a Point>>(&self, points: I) -> Vec<Self>
-    where
-        Self: Sized;
-}
-
-/// Cut all paths with intersection points obtained from `bentley_ottmann`.
-pub fn cut_paths<T: Cuttable + Clone>(
-    paths: &[T],
-    cut_points: &HashMap<PathIndex, HashSet<Point>>,
-) -> Vec<T> {
-    paths
-        .iter()
-        .enumerate()
-        .flat_map(|(i, path)| {
-            let cuts = cut_points.get(&i);
-            if let Some(points) = cuts {
-                path.cut(points)
-            } else {
-                vec![path.clone()]
-            }
-        })
-        .collect()
+    cutter.results
 }
 
 // Debugging tools

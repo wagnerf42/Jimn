@@ -6,7 +6,7 @@ use holed_polygon::HoledPolygon;
 use quadrant::{Quadrant, Shape};
 use tycat::{colored_display, display};
 use utils::coordinates_hash::PointsHash;
-use bentley_ottmann::{bentley_ottmann, cut_paths};
+use bentley_ottmann::bentley_ottmann;
 use pocket::build_pockets;
 use classifier::complete_inclusion_tree;
 use tree::Tree;
@@ -70,8 +70,7 @@ pub fn offset_holed_polygon(
     display!(holed_polygon, raw_paths);
 
     // convert to elementary paths
-    let intersections = bentley_ottmann(&raw_paths, rounder);
-    let small_paths = cut_paths(&raw_paths, &intersections);
+    let small_paths = bentley_ottmann(&raw_paths, rounder);
     display!(holed_polygon, small_paths);
 
     // build a set of small pockets
