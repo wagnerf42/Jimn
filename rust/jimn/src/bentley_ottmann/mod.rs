@@ -264,7 +264,7 @@ impl<
                     if previous_point != path_intersection {
                         self.results.push(
                             self.key_generator.borrow().paths[segment_index]
-                                .new_from(&previous_point, &path_intersection),
+                                .new_from(&path_intersection, &previous_point),
                         );
                         previous_point = path_intersection;
                     }

@@ -401,7 +401,9 @@ pub trait Cuttable {
     where
         Self: Sized;
     /// Create a new subpath at given points from given path.
-    fn new_from(&self, start: &Point, end: &Point) -> Self;
+    /// Does not change points order.
+    /// Prerequisite: p1 > p2
+    fn new_from(&self, p1: &Point, p2: &Point) -> Self;
 }
 
 impl Cuttable for Segment {
@@ -442,8 +444,12 @@ impl Cuttable for Segment {
             .collect()
     }
 
-    fn new_from(&self, start: &Point, end: &Point) -> Self {
-        Segment::new(*start, *end)
+    fn new_from(&self, p1: &Point, p2: &Point) -> Self {
+        if self.start > self.end {
+            Segment::new(*p1, *p2)
+        } else {
+            Segment::new(*p2, *p1)
+        }
     }
 }
 
@@ -464,8 +470,12 @@ impl Cuttable for Arc {
             .collect()
     }
 
-    fn new_from(&self, start: &Point, end: &Point) -> Self {
-        Arc::new(*start, *end, self.center, self.radius)
+    fn new_from(&self, p1: &Point, p2: &Point) -> Self {
+        if self.start > self.end {
+            Arc::new(*p1, *p2, self.center, self.radius)
+        } else {
+            Arc::new(*p2, *p1, self.center, self.radius)
+        }
     }
 }
 

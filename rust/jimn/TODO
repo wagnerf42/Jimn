@@ -1,5 +1,9 @@
 bentley ottmann:
 
+    move paths out of keygenerator and into cutter
+    this way we can maybe remove the refcell
+    avoid re-comparing points in new_from
+
     overlap : 
 
         two targets:

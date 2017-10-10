@@ -32,9 +32,9 @@ impl Cuttable for ClippingSegment {
             })
             .collect()
     }
-    fn new_from(&self, start: &Point, end: &Point) -> Self {
+    fn new_from(&self, p1: &Point, p2: &Point) -> Self {
         ClippingSegment {
-            segment: self.segment.new_from(start, end),
+            segment: self.segment.new_from(p1, p2),
             clipping: self.clipping,
         }
     }
