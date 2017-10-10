@@ -1,8 +1,25 @@
 bentley ottmann:
 
-    - remove all overlapping code from bentley ottmann
-    - lots of 'move' in closures in Arc. do they inccur overhead ? are they really needed ?
+    overlap : 
+
+        two targets:
+            1) we want to create intersection points and split on overlap points
+               * one version like the old code
+               * one version removes SOME overlapping parts (only on one side)
+            2) we want to destroy all overlapping parts
+               * one version extends current code by having some post-operations
+               * one version where segments are pre-removed 
+
+    --------> in fine we need three different versions
+     a) no overlap anywhere but two different pre-processing
+     b) overlap and postprocess to remove
+     c) overlap and just be resistant to it (almost current code)
+
+
+
     - we might create points in the present
+
+    - lots of 'move' in closures in Arc. do they inccur overhead ? are they really needed ?
 
     - treap memory cleaning (we need weak references)
 
