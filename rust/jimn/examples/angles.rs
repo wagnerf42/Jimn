@@ -60,7 +60,7 @@ fn main() {
     );
     let e = ElementaryPath::Arc(a);
     let y = -0.27735009811261446;
-    let p = a.horizontal_line_intersection(y).unwrap();
+    let p = a.horizontal_line_intersection(y);
     println!("key {:?}", e.compute_key(YCoordinate(y)));
     display!(e, p);
 }

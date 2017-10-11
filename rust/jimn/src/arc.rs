@@ -107,7 +107,7 @@ impl Arc {
     /// use jimn::{Point, Arc};
     /// let arc = Arc::new(Point::new(1.0, 0.0), Point::new(0.0, -1.0), Point::new(0.0, 0.0), 1.0);
     /// let half_coordinate = 1.0/(2.0 as f64).sqrt();
-    /// let half_point = arc.horizontal_line_intersection(-half_coordinate).unwrap();
+    /// let half_point = arc.horizontal_line_intersection(-half_coordinate);
     /// assert!(half_point.is_almost(&Point::new(half_coordinate, -half_coordinate)));
     /// ```
     pub fn horizontal_line_intersection(&self, y: f64) -> Point {

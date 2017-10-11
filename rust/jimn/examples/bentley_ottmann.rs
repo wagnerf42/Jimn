@@ -1,12 +1,12 @@
 #[macro_use]
 extern crate jimn;
 use std::env::args;
-use jimn::point::Point;
 use jimn::segment::load_segments;
 use jimn::utils::coordinates_hash::PointsHash;
-use jimn::bentley_ottmann::{bentley_ottmann, cut_paths};
+use jimn::bentley_ottmann::bentley_ottmann;
 use jimn::tycat::display;
 use jimn::quadrant::{Quadrant, Shape};
+use jimn::overlap::remove_overlaps;
 
 fn try_bentley_ottmann_on<T: AsRef<str>>(filename: &T) {
     println!("loading {}", filename.as_ref());
@@ -17,14 +17,10 @@ fn try_bentley_ottmann_on<T: AsRef<str>>(filename: &T) {
         rounder.hash_point(&segment.start);
         rounder.hash_point(&segment.end);
     }
-    let intersections = bentley_ottmann(&segments, &mut rounder);
-    let points: Vec<&Point> = intersections
-        .values()
-        .flat_map(|points| points.iter())
-        .collect();
-    display!(segments, points);
-    let small_segments = cut_paths(&segments, &intersections);
+    let no_overlap_segments = remove_overlaps(&segments);
+    let small_segments = bentley_ottmann(&no_overlap_segments, &mut rounder);
     display!(small_segments);
+    println!("we now have {} segments", small_segments.len());
 }
 
 fn main() {
