@@ -185,6 +185,8 @@ pub trait BentleyOttmannPath: Shape {
             (end, start)
         }
     }
+    /// Are we a segment ? If yes, on which line are we located ?
+    fn path_key(&self) -> Option<Point>;
     /// Do we have given point as endpoint ?
     fn has_endpoint(&self, potential_endpoint: &Point) -> bool {
         let points = self.points();
@@ -256,6 +258,10 @@ impl BentleyOttmannPath for Segment {
         segments_intersections(self, other)
     }
 
+    fn path_key(&self) -> Option<Point> {
+        Some(self.line_key())
+    }
+
     fn sweeping_line_intersection(&self, y: f64) -> Point {
         Point::new(self.horizontal_line_intersection(y), y)
     }
@@ -287,6 +293,13 @@ impl BentleyOttmannPath for ElementaryPath {
         match *self {
             ElementaryPath::Arc(ref a) => a.horizontal_line_intersection(y),
             ElementaryPath::Segment(ref s) => Point::new(s.horizontal_line_intersection(y), y),
+        }
+    }
+
+    fn path_key(&self) -> Option<Point> {
+        match *self {
+            ElementaryPath::Arc(_) => None,
+            ElementaryPath::Segment(ref s) => Some(s.line_key()),
         }
     }
 

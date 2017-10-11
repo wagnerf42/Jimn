@@ -10,6 +10,7 @@ use bentley_ottmann::bentley_ottmann;
 use pocket::build_pockets;
 use classifier::complete_inclusion_tree;
 use tree::Tree;
+use overlap::remove_overlaps;
 
 
 /// Add to given vector all paths obtained when taking inner parallel segments in a polygon
@@ -70,7 +71,8 @@ pub fn offset_holed_polygon(
     display!(holed_polygon, raw_paths);
 
     // convert to elementary paths
-    let small_paths = bentley_ottmann(&raw_paths, rounder);
+    let paths_without_overlaps = remove_overlaps(&raw_paths);
+    let small_paths = bentley_ottmann(&paths_without_overlaps, rounder);
     display!(holed_polygon, small_paths);
 
     // build a set of small pockets

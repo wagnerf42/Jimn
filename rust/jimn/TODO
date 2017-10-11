@@ -1,9 +1,5 @@
 bentley ottmann:
 
-    move paths out of keygenerator and into cutter
-    this way we can maybe remove the refcell
-    avoid re-comparing points in new_from
-
     overlap : 
 
         two targets:
@@ -14,7 +10,7 @@ bentley ottmann:
                * one version extends current code by having some post-operations
                * one version where segments are pre-removed 
 
-    --------> in fine we need three different versions
+    --------> in fine we need two or three different versions
      a) no overlap anywhere but two different pre-processing
      b) overlap and postprocess to remove
      c) overlap and just be resistant to it (almost current code)
