@@ -126,8 +126,8 @@ pub struct ComplexKey(Coordinate, Angle, Angle);
 
 impl PartialEq for ComplexKey {
     fn eq(&self, other: &Self) -> bool {
-        self.0.eq(&other.0) && self.1.approx_eq_ulps(&other.1, ULPS) &&
-        self.2.approx_eq_ulps(&other.2, ULPS)
+        self.0.eq(&other.0) && self.1.approx_eq_ulps(&other.1, ULPS)
+            && self.2.approx_eq_ulps(&other.2, ULPS)
     }
 }
 impl Eq for ComplexKey {}
@@ -240,7 +240,11 @@ fn segments_overlap_points(segment1: &Segment, segment2: &Segment) -> Option<[Po
     let (max2, min2) = segment2.ordered_points();
     let p1 = min(max1, max2);
     let p2 = max(min1, min2);
-    if p1 >= p2 { Some([p1, p2]) } else { None }
+    if p1 >= p2 {
+        Some([p1, p2])
+    } else {
+        None
+    }
 }
 
 
@@ -301,26 +305,22 @@ impl BentleyOttmannPath for ElementaryPath {
 
     fn intersections_with<'a>(&'a self, other: &'a Self) -> Box<Iterator<Item = Point> + 'a> {
         match *self {
-            ElementaryPath::Arc(ref self_arc) => {
-                match *other {
-                    ElementaryPath::Arc(ref other_arc) => {
-                        Box::new(self_arc.intersections_with_arc(other_arc))
-                    }
-                    ElementaryPath::Segment(ref other_segment) => {
-                        Box::new(self_arc.intersections_with_segment(other_segment))
-                    }
+            ElementaryPath::Arc(ref self_arc) => match *other {
+                ElementaryPath::Arc(ref other_arc) => {
+                    Box::new(self_arc.intersections_with_arc(other_arc))
                 }
-            }
-            ElementaryPath::Segment(ref self_segment) => {
-                match *other {
-                    ElementaryPath::Arc(ref other_arc) => {
-                        Box::new(other_arc.intersections_with_segment(self_segment))
-                    }
-                    ElementaryPath::Segment(ref other_segment) => {
-                        segments_intersections(self_segment, other_segment)
-                    }
+                ElementaryPath::Segment(ref other_segment) => {
+                    Box::new(self_arc.intersections_with_segment(other_segment))
                 }
-            }
+            },
+            ElementaryPath::Segment(ref self_segment) => match *other {
+                ElementaryPath::Arc(ref other_arc) => {
+                    Box::new(other_arc.intersections_with_segment(self_segment))
+                }
+                ElementaryPath::Segment(ref other_segment) => {
+                    segments_intersections(self_segment, other_segment)
+                }
+            },
         }
     }
 
@@ -334,12 +334,10 @@ impl BentleyOttmannPath for ElementaryPath {
     fn overlap_points(&self, other: &ElementaryPath) -> Option<[Point; 2]> {
         match *self {
             ElementaryPath::Arc(_) => panic!("overlapping arcs"),
-            ElementaryPath::Segment(ref s) => {
-                match *other {
-                    ElementaryPath::Arc(_) => panic!("overlapping arcs"),
-                    ElementaryPath::Segment(ref s2) => segments_overlap_points(s, s2),
-                }
-            }
+            ElementaryPath::Segment(ref s) => match *other {
+                ElementaryPath::Arc(_) => panic!("overlapping arcs"),
+                ElementaryPath::Segment(ref s2) => segments_overlap_points(s, s2),
+            },
         }
     }
     fn is_horizontal(&self) -> bool {
@@ -352,11 +350,12 @@ impl BentleyOttmannPath for ElementaryPath {
 
 ///We need someone able to compute comparison keys for our paths.
 #[derive(Debug)]
-pub struct KeyGenerator<'a,
-                        K: Ord + HasX,
-                        P: BentleyOttmannPath<BentleyOttmannKey = K>,
-                        T: 'a + AsRef<P>>
-{
+pub struct KeyGenerator<
+    'a,
+    K: Ord + HasX,
+    P: BentleyOttmannPath<BentleyOttmannKey = K>,
+    T: 'a + AsRef<P>,
+> {
     /// Where we currently are.
     pub current_y: YCoordinate,
     /// We need a reference to our paths in order to perform index <-> path conversion.
@@ -373,16 +372,14 @@ impl<'a, K: Ord + HasX, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: AsRef<P
     /// Create a key generator from paths.
     pub fn new(paths: &'a [T]) -> Rc<RefCell<KeyGenerator<'a, K, P, T>>> {
         Rc::new(RefCell::new(KeyGenerator {
-                                 //initial current point does not matter
-                                 current_y: Default::default(),
-                                 paths: paths,
-                                 phantom1: PhantomData,
-                                 phantom2: PhantomData,
-                                 keys_cache:
-                                     FnvHashMap::with_capacity_and_hasher(2 * paths.len(),
-                                                                          Default::default()),
+            //initial current point does not matter
+            current_y: Default::default(),
+            paths: paths,
+            phantom1: PhantomData,
+            phantom2: PhantomData,
+            keys_cache: FnvHashMap::with_capacity_and_hasher(2 * paths.len(), Default::default()),
             //keys_cache: HashMap::with_capacity(2 * paths.len()),
-                             }))
+        }))
     }
 }
 
@@ -394,19 +391,19 @@ impl<'a, K: Ord + HasX + Copy, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: 
             .get(&(*path_index, self.current_y))
             .map(|&k| k)
             .unwrap_or_else(|| {
-                                self.paths[*path_index]
-                                    .as_ref()
-                                    .compute_key(self.current_y)
-                            })
+                self.paths[*path_index].as_ref().compute_key(self.current_y)
+            })
     }
 
     /// Return the point for given path at given y.
     pub fn point_at(&self, path_index: &PathIndex, y: &YCoordinate) -> Point {
-        Point::new(self.keys_cache
-                       .get(&(*path_index, *y))
-                       .expect("getting x for missing key")
-                       .get_x(),
-                   y.0)
+        Point::new(
+            self.keys_cache
+                .get(&(*path_index, *y))
+                .expect("getting x for missing key")
+                .get_x(),
+            y.0,
+        )
     }
 }
 
@@ -414,7 +411,8 @@ impl<'a, K: Ord + HasX + Copy, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: 
 pub trait Cuttable {
     /// Cut path at all given points.
     fn cut<'a, I: 'a + IntoIterator<Item = &'a Point>>(&self, points: I) -> Vec<Self>
-        where Self: Sized;
+    where
+        Self: Sized;
     /// Create a new subpath at given points from given path.
     /// Does not change points order.
     /// Prerequisite: p1 > p2
@@ -497,18 +495,11 @@ impl Cuttable for Arc {
 impl Cuttable for ElementaryPath {
     fn cut<'a, I: 'a + IntoIterator<Item = &'a Point>>(&self, points: I) -> Vec<Self> {
         match *self {
-            ElementaryPath::Arc(a) => {
-                a.cut(points)
-                    .into_iter()
-                    .map(ElementaryPath::Arc)
-                    .collect()
-            }
-            ElementaryPath::Segment(s) => {
-                s.cut(points)
-                    .into_iter()
-                    .map(ElementaryPath::Segment)
-                    .collect()
-            }
+            ElementaryPath::Arc(a) => a.cut(points).into_iter().map(ElementaryPath::Arc).collect(),
+            ElementaryPath::Segment(s) => s.cut(points)
+                .into_iter()
+                .map(ElementaryPath::Segment)
+                .collect(),
         }
     }
 

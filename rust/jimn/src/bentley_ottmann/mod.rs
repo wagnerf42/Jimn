@@ -19,7 +19,8 @@ pub use self::paths::{BentleyOttmannPath, Cuttable, HasX, Key, KeyGenerator, Pat
                       YCoordinate};
 
 /// The `Cutter` structure holds all data needed for bentley ottmann's execution.
-struct Cutter<'a, 'b, K: Ord + HasX, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: 'a + AsRef<P>> {
+struct Cutter<'a, 'b, K: Ord + HasX, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: 'a + AsRef<P>>
+{
     /// Small paths obtained after cutting
     results: Vec<T>,
 
@@ -45,15 +46,17 @@ struct Cutter<'a, 'b, K: Ord + HasX, P: BentleyOttmannPath<BentleyOttmannKey = K
 }
 
 
-impl<'a,
-     'b,
-     K: 'a + Ord + Copy + HasX,
-     P: 'a + BentleyOttmannPath<BentleyOttmannKey = K>,
-     T: 'a + AsRef<P> + Cuttable>
-    Cutter<'a, 'b, K, P, T> {
-    fn new(paths: &'a [T],
-           rounder: &'b mut PointsHash)
-           -> (Cutter<'a, 'b, K, P, T>, Treap<'a, K, PathIndex>) {
+impl<
+    'a,
+    'b,
+    K: 'a + Ord + Copy + HasX,
+    P: 'a + BentleyOttmannPath<BentleyOttmannKey = K>,
+    T: 'a + AsRef<P> + Cuttable,
+> Cutter<'a, 'b, K, P, T> {
+    fn new(
+        paths: &'a [T],
+        rounder: &'b mut PointsHash,
+    ) -> (Cutter<'a, 'b, K, P, T>, Treap<'a, K, PathIndex>) {
         //guess the capacity of all our events related hash tables.
         //we need to be above truth to avoid collisions but not too much above.
         let generator = KeyGenerator::new(paths);
@@ -80,13 +83,10 @@ impl<'a,
                     .or_insert_with(Vec::new)
                     .push(index);
                 let events = &mut cutter.events;
-                cutter
-                    .events_data
-                    .entry(event_y)
-                    .or_insert_with(|| {
-                                        events.push(event_y);
-                                        [HashSet::new(), HashSet::new()]
-                                    });
+                cutter.events_data.entry(event_y).or_insert_with(|| {
+                    events.push(event_y);
+                    [HashSet::new(), HashSet::new()]
+                });
             } else {
                 let (start, end) = path.as_ref().ordered_points();
                 cutter.add_event(start, index, 0);
@@ -101,14 +101,11 @@ impl<'a,
         let events = &mut self.events;
         let event_y = YCoordinate(event_point.y);
         // if there is no event data it's a new event
-        self.events_data
-            .entry(event_y)
-            .or_insert_with(|| {
-                                events.push(event_y);
-                                [HashSet::new(), HashSet::new()]
-                            })
-            [event_type]
-                .insert(path);
+        self.events_data.entry(event_y).or_insert_with(|| {
+            events.push(event_y);
+            [HashSet::new(), HashSet::new()]
+        })[event_type]
+            .insert(path);
         let mut key = self.key_generator.borrow().paths[path]
             .as_ref()
             .compute_key(event_y);
@@ -145,10 +142,12 @@ impl<'a,
 
     /// End a set of paths.
     /// Checks for possible intersections to add in the system.
-    fn end_paths(&mut self,
-                 paths: &mut Vec<PathIndex>,
-                 crossed_paths: &mut Treap<K, PathIndex>,
-                 next_y: &YCoordinate) {
+    fn end_paths(
+        &mut self,
+        paths: &mut Vec<PathIndex>,
+        crossed_paths: &mut Treap<K, PathIndex>,
+        next_y: &YCoordinate,
+    ) {
         if paths.is_empty() {
             return;
         }
@@ -164,9 +163,9 @@ impl<'a,
             {
                 let end_point = self.key_generator.borrow().point_at(path, next_y);
                 let start_point = &self.previous_points[*path];
-                self.results
-                    .push(self.key_generator.borrow().paths[*path].new_from(start_point,
-                                                                            &end_point));
+                self.results.push(
+                    self.key_generator.borrow().paths[*path].new_from(start_point, &end_point),
+                );
             }
             crossed_paths.remove(key);
             if let Some(small) = crossed_paths.neighbouring_values(*key, 0).next() {
@@ -184,16 +183,9 @@ impl<'a,
             return;
         }
 
-        let mut sorted_paths: Vec<_> = paths
-            .iter()
-            .map(|s| (self.key_generator.borrow().compute_key(s), s))
-            .collect();
-
-        //TODO: check if sorting has any performances impact
-        sorted_paths.sort();
-
         let current_y = self.key_generator.borrow().current_y;
-        for &(key, path) in &sorted_paths {
+        for path in paths {
+            let key = self.key_generator.borrow().compute_key(path);
             self.previous_points[*path] = self.key_generator.borrow().point_at(path, &current_y);
             crossed_paths.insert(*path);
             if let Some(small_neighbour) = crossed_paths.neighbouring_values(key, 0).next() {
@@ -235,8 +227,10 @@ impl<'a,
                 let (max_point, min_point) = self.key_generator.borrow().paths[segment_index]
                     .as_ref()
                     .ordered_points();
-                let bounds: (Bound<K>, Bound<K>) = (Included(K::min_key(min_point.x)),
-                                                    Included(K::max_key(max_point.x)));
+                let bounds: (Bound<K>, Bound<K>) = (
+                    Included(K::min_key(min_point.x)),
+                    Included(K::max_key(max_point.x)),
+                );
                 let mut previous_point = min_point;
                 for path_index in crossed_paths.ordered_values(bounds) {
                     let path_intersection = self.key_generator.borrow().paths[*path_index]
@@ -244,23 +238,26 @@ impl<'a,
                         .sweeping_line_intersection(y.0);
                     let path_intersection = self.rounder.hash_point(&path_intersection);
                     if previous_point != path_intersection {
-                        self.results
-                            .push(self.key_generator.borrow().paths[segment_index]
-                                      .new_from(&path_intersection, &previous_point));
+                        self.results.push(
+                            self.key_generator.borrow().paths[segment_index]
+                                .new_from(&path_intersection, &previous_point),
+                        );
                         previous_point = path_intersection;
                     }
                     let path_previous_point = self.previous_points[*path_index];
                     if path_previous_point.y != y.0 {
-                        self.results
-                            .push(self.key_generator.borrow().paths[*path_index]
-                                      .new_from(&path_previous_point, &path_intersection));
+                        self.results.push(
+                            self.key_generator.borrow().paths[*path_index]
+                                .new_from(&path_previous_point, &path_intersection),
+                        );
                         self.previous_points[*path_index] = path_intersection;
                     }
                 }
                 if previous_point != max_point {
-                        self.results
-                            .push(self.key_generator.borrow().paths[segment_index]
-                                      .new_from(&max_point, &previous_point));
+                    self.results.push(
+                        self.key_generator.borrow().paths[segment_index]
+                            .new_from(&max_point, &previous_point),
+                    );
                 }
             }
         }
@@ -269,12 +266,14 @@ impl<'a,
 
 /// Computes all intersections amongst given paths
 /// and return a hashmap associating to each path's index the set of intersection points found.
-pub fn bentley_ottmann<K: Ord + Copy + HasX,
-                       P: BentleyOttmannPath<BentleyOttmannKey = K>,
-                       T: AsRef<P> + Cuttable>
-    (paths: &[T],
-     rounder: &mut PointsHash)
-     -> Vec<T> {
+pub fn bentley_ottmann<
+    K: Ord + Copy + HasX,
+    P: BentleyOttmannPath<BentleyOttmannKey = K>,
+    T: AsRef<P> + Cuttable,
+>(
+    paths: &[T],
+    rounder: &mut PointsHash,
+) -> Vec<T> {
     let (mut cutter, mut crossed_paths) = Cutter::new(paths, rounder);
     cutter.run(&mut crossed_paths);
     cutter.results
@@ -283,11 +282,14 @@ pub fn bentley_ottmann<K: Ord + Copy + HasX,
 // Debugging tools
 
 /// Check one by one the all crossed paths keys are in valid order
-pub fn check_keys_validity<K: Ord + HasX + Copy,
-                           P: BentleyOttmannPath<BentleyOttmannKey = K>,
-                           T: AsRef<P>>
-    (crossed_paths: &Treap<K, PathIndex>,
-     key_generator: &Rc<RefCell<KeyGenerator<K, P, T>>>) {
+pub fn check_keys_validity<
+    K: Ord + HasX + Copy,
+    P: BentleyOttmannPath<BentleyOttmannKey = K>,
+    T: AsRef<P>,
+>(
+    crossed_paths: &Treap<K, PathIndex>,
+    key_generator: &Rc<RefCell<KeyGenerator<K, P, T>>>,
+) {
     let mut previous_key = None;
     let bounds: (Bound<K>, Bound<K>) = (Unbounded, Unbounded);
     for path in crossed_paths.ordered_values(bounds) {
@@ -305,22 +307,28 @@ pub fn check_keys_validity<K: Ord + HasX + Copy,
 }
 
 /// Display the whole tree of paths with their corresponding keys.
-pub fn debug_display<K: Ord + HasX + Copy,
-                     P: BentleyOttmannPath<BentleyOttmannKey = K>,
-                     T: AsRef<P>>
-    (crossed_paths: &Treap<K, PathIndex>,
-     key_generator: &Rc<RefCell<KeyGenerator<K, P, T>>>) {
+pub fn debug_display<
+    K: Ord + HasX + Copy,
+    P: BentleyOttmannPath<BentleyOttmannKey = K>,
+    T: AsRef<P>,
+>(
+    crossed_paths: &Treap<K, PathIndex>,
+    key_generator: &Rc<RefCell<KeyGenerator<K, P, T>>>,
+) {
     let bounds: (Bound<K>, Bound<K>) = (Unbounded, Unbounded);
     crossed_paths.tycat();
-    colored_display(crossed_paths
-                        .ordered_values(bounds)
-                        .map(|p| key_generator.borrow().paths[*p].as_ref()))
-            .expect("display failed");
+    colored_display(
+        crossed_paths
+            .ordered_values(bounds)
+            .map(|p| key_generator.borrow().paths[*p].as_ref()),
+    ).expect("display failed");
     for p in crossed_paths.ordered_values(bounds) {
-        println!("{} is {:?} : {:?}",
-                 p,
-                 key_generator.borrow().paths[*p].as_debug(),
-                 key_generator.borrow().compute_key(p).as_debug());
+        println!(
+            "{} is {:?} : {:?}",
+            p,
+            key_generator.borrow().paths[*p].as_debug(),
+            key_generator.borrow().compute_key(p).as_debug()
+        );
     }
 }
 
