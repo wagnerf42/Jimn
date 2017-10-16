@@ -1,5 +1,6 @@
 //! All trees structures and related functions.
-use std::collections::VecDeque;
+use std::cmp::max;
+use std::collections::{HashMap, VecDeque};
 use std::fs::File;
 use std::io;
 use std::io::Write;
@@ -195,6 +196,31 @@ impl<T: Default + Shape> Tree<T> {
             .arg(&png_filename)
             .status()?;
         Command::new("tycat").arg(&png_filename).status()?;
+        Ok(())
+    }
+
+    /// Display on console, level by level.
+    pub fn level_tycat(&self) -> io::Result<()> {
+        // associate to each node its level
+        let mut levels = HashMap::new();
+        let mut max_level = 0;
+        for node in self.walk() {
+            let level = if let Some(father) = node.father {
+                levels[&father] + 1
+            } else {
+                0
+            };
+            max_level = max(level, max_level);
+            levels.insert(node.index, level);
+        }
+        for level in 0..max_level {
+            // it is slow but i don't care for now
+            colored_display(
+                self.walk()
+                    .filter(|n| levels[&n.index] == level)
+                    .map(|n| &n.value),
+            )?;
+        }
         Ok(())
     }
 

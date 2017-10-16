@@ -254,7 +254,7 @@ impl<
     fn inclusion_test(&self, key: K, container: ContainerIndex) -> bool {
         let count = self.alive_paths[&container]
             .iter()
-            .filter(|p| self.key_generator.borrow().compute_key(p) > key)
+            .filter(|p| self.key_generator.borrow().compute_key(p) >= key)
             .count();
         (count % 2) == 1
     }

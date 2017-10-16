@@ -8,6 +8,7 @@ use quadrant::{Quadrant, Shape};
 use tree::Tree;
 
 /// Polygon with some potential holes inside
+#[derive(Debug)]
 pub struct HoledPolygon {
     /// Outer polygon
     pub polygon: Polygon,
