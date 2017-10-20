@@ -2,11 +2,11 @@
 extern crate jimn;
 use jimn::{Point, Polygon};
 use jimn::utils::coordinates_hash::PointsHash;
-use jimn::tycat::{colored_display, display};
+use jimn::tycat::display;
 use jimn::quadrant::{Quadrant, Shape};
 use jimn::tile::hexagonal_tile;
 use jimn::clipper::clip;
-use jimn::polygon::build_polygons;
+use jimn::graph::MultiGraph;
 
 fn main() {
     let points = vec![
@@ -26,9 +26,6 @@ fn main() {
     display!(triangle, hexagons_segments);
     let clipping_segments: Vec<_> = triangle.segments().collect();
     let (mut inside, outside) = clip(&clipping_segments, &hexagons_segments, &mut rounder);
-    display!(triangle, inside);
-    inside.extend(outside);
-    display!(inside);
-    let polygons = build_polygons(&inside);
-    colored_display(polygons.iter()).expect("display failed");
+    let graph = MultiGraph::new(inside.iter().chain(outside.iter()));
+    display!(graph);
 }

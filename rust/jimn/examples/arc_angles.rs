@@ -7,11 +7,11 @@ use jimn::tycat::{colored_display, display};
 use std::f64::consts::{FRAC_PI_2, PI};
 
 fn angles(path: &ElementaryPath, point: &Point) -> (f64, f64) {
-    let final_angle = path.start().angle_with(&path.end());
+    let final_angle = path.start().angle_with(path.end());
     match *path {
         ElementaryPath::Segment(_) => (final_angle, final_angle),
         ElementaryPath::Arc(ref a) => {
-            let mut tangent_angle = a.center.angle_with(&point) + FRAC_PI_2;
+            let mut tangent_angle = a.center.angle_with(point) + FRAC_PI_2;
             if ((final_angle - tangent_angle) % (PI * 2.0)).abs() > PI {
                 tangent_angle -= PI;
             }

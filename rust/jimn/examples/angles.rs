@@ -52,15 +52,15 @@ fn main() {
     }
 
     // last test
-    let a = Arc::new(
+    let arc = Arc::new(
         Point::new(5.0, 0.5),
         Point::new(4.583974852831078, -0.27735009811261446),
         Point::new(5.0, 0.0),
         0.5,
     );
-    let e = ElementaryPath::Arc(a);
+    let path = ElementaryPath::Arc(arc);
     let y = -0.27735009811261446;
-    let p = a.horizontal_line_intersection(y);
-    println!("key {:?}", e.compute_key(YCoordinate(y)));
-    display!(e, p);
+    let intersection = arc.horizontal_line_intersection(y);
+    println!("key {:?}", path.compute_key(YCoordinate(y)));
+    display!(path, intersection);
 }

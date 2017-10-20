@@ -128,13 +128,11 @@ impl<
                 return; // we already know about it
             }
             for (index, path) in indices.iter().zip(paths.iter()) {
-                if !path.as_ref().has_endpoint(&intersection) {
-                    if intersection.y < current_y.0 {
-                        //TODO: checky check also
-                        // it is possible to be equal in case of overlapping segments
-                        self.add_event(intersection, *index, 0);
-                        self.add_event(intersection, *index, 1);
-                    }
+                if !path.as_ref().has_endpoint(&intersection) && intersection.y < current_y.0 {
+                    //TODO: checky check also
+                    // it is possible to be equal in case of overlapping segments
+                    self.add_event(intersection, *index, 0);
+                    self.add_event(intersection, *index, 1);
                 }
             }
         }
@@ -178,7 +176,7 @@ impl<
 
     /// Start a set of paths.
     /// Checks for possible intersections to add in the system.
-    fn start_paths(&mut self, paths: &Vec<PathIndex>, crossed_paths: &mut Treap<K, PathIndex>) {
+    fn start_paths(&mut self, paths: &[PathIndex], crossed_paths: &mut Treap<K, PathIndex>) {
         if paths.is_empty() {
             return;
         }
@@ -201,7 +199,7 @@ impl<
     fn run(&mut self, crossed_paths: &mut Treap<K, PathIndex>) {
         while !self.events.is_empty() {
             let event_y = self.events.pop().unwrap();
-            let mut starting_paths: Vec<PathIndex>;
+            let starting_paths: Vec<PathIndex>;
             let mut ending_paths: Vec<PathIndex>;
             {
                 let changing_paths = &self.events_data[&event_y];
@@ -213,7 +211,7 @@ impl<
             if cfg!(debug_assertions) {
                 check_keys_validity(crossed_paths, &self.key_generator);
             }
-            self.start_paths(&mut starting_paths, crossed_paths);
+            self.start_paths(&starting_paths, crossed_paths);
             self.handle_horizontal_segments(crossed_paths);
             self.events_data.remove(&event_y);
         }

@@ -9,6 +9,7 @@ use bentley_ottmann::{BentleyOttmannPath, HasX, KeyGenerator, PathIndex, YCoordi
 use dyntreap::CTreap;
 use super::ClippingPath;
 
+
 type ClassifyEvent = (YCoordinate, Vec<PathIndex>, Vec<PathIndex>);
 type Generator<'a, K, P> = Rc<RefCell<KeyGenerator<'a, K, P, ClippingPath<P>>>>;
 
@@ -20,7 +21,7 @@ pub fn classify_clip_paths<
     P: Copy + BentleyOttmannPath<BentleyOttmannKey = K>,
 >(
     paths: &[ClippingPath<P>],
-) -> Vec<P> {
+) -> (Vec<P>, Vec<P>) {
     let generator = KeyGenerator::new(paths);
     let closure_generator = Rc::clone(&generator);
     let mut crossed_clip_paths =
@@ -39,31 +40,49 @@ fn run_events<K: Ord + HasX + Copy, P: Copy + BentleyOttmannPath<BentleyOttmannK
     generator: Generator<K, P>,
     crossed_clip_paths: &mut CTreap<K, PathIndex>,
     horizontal_paths: &HashMap<YCoordinate, Vec<PathIndex>>,
-) -> Vec<P> {
-    let mut kept_paths = Vec::new();
+) -> (Vec<P>, Vec<P>) {
+    let mut clipped_paths = Vec::new();
+    let mut clipping_paths = Vec::new();
     for event in events {
-        end_paths(&event.2, &generator, crossed_clip_paths);
+        end_paths(
+            &event.2,
+            &generator,
+            crossed_clip_paths,
+            &mut clipping_paths,
+        );
         generator.borrow_mut().current_y = event.0;
+        start_paths(&event.1, &generator, crossed_clip_paths, &mut clipped_paths);
         // handle horizontal segments
         if let Some(paths) = horizontal_paths.get(&event.0) {
             for path_index in paths {
-                unimplemented!("we need a key")
+                let big_point = generator.borrow().paths[*path_index]
+                    .as_ref()
+                    .ordered_points()
+                    .0;
+                let big_key = K::min_key(big_point.x); // min because excluded from bound
+                if crossed_clip_paths
+                    .ordered_nodes((Excluded(big_key), Unbounded))
+                    .count() % 2 == 1
+                {
+                    clipped_paths.push(generator.borrow().paths[*path_index].path);
+                }
             }
         }
-        start_paths(&event.1, &generator, crossed_clip_paths, &mut kept_paths);
     }
-    kept_paths
+    (clipped_paths, clipping_paths)
 }
 
 // Remove all clipping segments.
-fn end_paths<K: Ord + HasX + Copy, P: BentleyOttmannPath<BentleyOttmannKey = K>>(
+fn end_paths<K: Ord + HasX + Copy, P: BentleyOttmannPath<BentleyOttmannKey = K> + Copy>(
     ending: &[PathIndex],
     generator: &Generator<K, P>,
     crossed_clip_paths: &mut CTreap<K, PathIndex>,
+    clipping_paths: &mut Vec<P>,
 ) {
     for path_index in ending {
         if generator.borrow().paths[*path_index].clipping {
             crossed_clip_paths.remove(&generator.borrow().compute_key(path_index));
+            clipping_paths.push(generator.borrow().paths[*path_index].path);
         }
     }
 }

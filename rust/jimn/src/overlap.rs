@@ -102,7 +102,7 @@ fn play_line_events<O: OverlapBehavior, P: BentleyOttmannPath, T: AsRef<P> + Cut
             None
         };
         let starting_paths = &events[point].0;
-        if starting_paths.len() != 0 {
+        if !starting_paths.is_empty() {
             if let Some(previous_point) = entry_point {
                 for alive_path in &alive_paths {
                     results.push(paths[*alive_path].new_from(point, previous_point));

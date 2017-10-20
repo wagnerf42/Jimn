@@ -29,16 +29,9 @@ impl AsRef<Segment> for Segment {
 impl Segment {
     /// Returns a new Segment between the two given points.
     pub fn new(start: Point, end: Point) -> Segment {
-        if start < end {
-            Segment {
-                start: start,
-                end: end,
-            }
-        } else {
-            Segment {
-                start: start,
-                end: end,
-            }
+        Segment {
+            start: start,
+            end: end,
         }
     }
 

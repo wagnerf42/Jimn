@@ -92,7 +92,7 @@ impl Ord for Key {
 }
 impl PartialOrd for Key {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(&other))
+        Some(self.cmp(other))
     }
 }
 
@@ -143,7 +143,7 @@ impl Ord for ComplexKey {
 
 impl PartialOrd for ComplexKey {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(&other))
+        Some(self.cmp(other))
     }
 }
 
@@ -389,7 +389,7 @@ impl<'a, K: Ord + HasX + Copy, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: 
     pub fn compute_key(&self, path_index: &PathIndex) -> K {
         self.keys_cache
             .get(&(*path_index, self.current_y))
-            .map(|&k| k)
+            .cloned()
             .unwrap_or_else(|| {
                 self.paths[*path_index].as_ref().compute_key(self.current_y)
             })

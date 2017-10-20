@@ -1,4 +1,4 @@
-//!this hashing code is taken from ordered_float crate
+//!this hashing code is taken from `ordered_float` crate
 use std::hash::{Hash, Hasher};
 use num_traits::float::Float;
 use std::mem;
@@ -10,13 +10,13 @@ pub fn hash_float<H: Hasher>(f: &f64, state: &mut H) {
 }
 
 // canonical raw bit patterns (for hashing)
-const CANONICAL_NAN_BITS: u64 = 0x7ff8000000000000u64;
+const CANONICAL_NAN_BITS: u64 = 0x7_ff8_000_000_000_000u64;
 const CANONICAL_ZERO_BITS: u64 = 0x0u64;
 
 // masks for the parts of the IEEE 754 float
-const SIGN_MASK: u64 = 0x8000000000000000u64;
-const EXP_MASK: u64 = 0x7ff0000000000000u64;
-const MAN_MASK: u64 = 0x000fffffffffffffu64;
+const SIGN_MASK: u64 = 0x8_000_000_000_000_000u64;
+const EXP_MASK: u64 = 0x7_ff0_000_000_000_000u64;
+const MAN_MASK: u64 = 0x0_00f_fff_fff_fff_fffu64;
 
 #[inline]
 fn raw_double_bits(f: &f64) -> u64 {

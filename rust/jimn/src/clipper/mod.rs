@@ -41,7 +41,7 @@ impl<P: Copy + BentleyOttmannPath + Cuttable> Cuttable for ClippingPath<P> {
 }
 
 /// Clip *clipped* paths inside *clipper* paths.
-/// Return remaining intersected paths.
+/// Return remaining paths from clipper and all smaller paths from clipped.
 /// pre-condition: all endpoints are already hashed in the rounder.
 pub fn clip<
     K: HasX + Ord + Copy,
@@ -50,7 +50,7 @@ pub fn clip<
     clipper: &[P],
     clipped: &[P],
     rounder: &mut PointsHash,
-) -> Vec<P> {
+) -> (Vec<P>, Vec<P>) {
     let paths: Vec<_> = clipper
         .iter()
         .filter(|p| !p.is_horizontal())

@@ -10,7 +10,7 @@ type Angle = f64;
 /// Return couple of angles estimating where we go / come from.
 /// Allows for ordering of connected paths.
 fn angles(path: &ElementaryPath, point: &Point) -> (Angle, Angle) {
-    let final_angle = point.angle_with(&path.other_endpoint(point));
+    let final_angle = point.angle_with(path.other_endpoint(point));
     match *path {
         ElementaryPath::Segment(_) => (final_angle, final_angle),
         ElementaryPath::Arc(ref a) => {
@@ -32,11 +32,11 @@ pub fn build_pockets(paths: &[ElementaryPath]) -> Vec<Pocket> {
         points
             .entry(path.start())
             .or_insert_with(Vec::new)
-            .push((path_index, angles(&path, path.start()), 1));
+            .push((path_index, angles(path, path.start()), 1));
         points
             .entry(path.end())
             .or_insert_with(Vec::new)
-            .push((path_index, angles(&path, path.end()), -1));
+            .push((path_index, angles(path, path.end()), -1));
         remaining_paths.insert(path_index);
     }
 

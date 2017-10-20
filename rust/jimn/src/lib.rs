@@ -57,6 +57,7 @@ pub use pocket::Pocket;
 pub mod holed_pocket;
 pub use holed_pocket::HoledPocket;
 pub mod offsetter;
+pub mod graph;
 
 use stl::Stl;
 use utils::coordinates_hash::PointsHash;

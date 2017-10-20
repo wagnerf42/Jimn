@@ -227,7 +227,7 @@ impl Shape for Arc {
         let tangent_point = if distances[0] < distances[1] {
             possible_points[0]
         } else {
-            middle_angle = middle_angle + PI;
+            middle_angle += PI;
             possible_points[1]
         };
         let tangent_angle = if sweep_flag == 1 {

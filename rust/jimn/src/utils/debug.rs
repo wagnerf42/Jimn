@@ -1,7 +1,7 @@
 //! Debugging related utilities.
 //! Provides `module_debug!` macro.
 
-/// Jimn makes use of the **$JIMN_DEBUG** environment variable
+/// Jimn makes use of the `$JIMN_DEBUG` environment variable
 /// to select code for debugging.
 /// You can export a colon separated list of modules for which you
 /// want to activate logs (even graphical logs in terminology).
@@ -41,9 +41,9 @@ macro_rules! module_debug {
 use std::fmt::Debug;
 use std;
 
-/// Allow for debugging without requiring std::fmt::Debug
+/// Allow for debugging without requiring `std::fmt::Debug`
 /// taken from
-/// https://www.reddit.com/r/rust/comments/6poulm/tip_print_a_t_without_requiring_t_debug/
+/// `https://www.reddit.com/r/rust/comments/6poulm/tip_print_a_t_without_requiring_t_debug/`
 pub trait AsDebug {
     /// convert self to &Debug if we can or panic.
     fn as_debug(&self) -> &Debug;

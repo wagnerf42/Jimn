@@ -230,8 +230,7 @@ impl<
         let limit = self.key_generator.borrow().compute_key(path_index);
         let nearest_node = self.crossed_paths
             .ordered_nodes((Included(limit), Unbounded))
-            .filter(|n| n.value != *path_index)
-            .next();
+            .find(|n| n.value != *path_index);
         if let Some(larger_neighbour) = nearest_node {
             let neighbour_owner = self.key_generator.borrow().paths[larger_neighbour.value].owner;
             // we are either a brother of neighbour or its child
