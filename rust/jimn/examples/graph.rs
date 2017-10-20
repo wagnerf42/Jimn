@@ -25,7 +25,8 @@ fn main() {
     let hexagons_segments = hexagons.tile(&triangle.get_quadrant(), &mut rounder);
     display!(triangle, hexagons_segments);
     let clipping_segments: Vec<_> = triangle.segments().collect();
-    let (mut inside, outside) = clip(&clipping_segments, &hexagons_segments, &mut rounder);
+    let (inside, outside) = clip(&clipping_segments, &hexagons_segments, &mut rounder);
     let graph = MultiGraph::new(inside.iter().chain(outside.iter()));
-    display!(graph);
+    let tree = graph.min_spanning_tree();
+    graph.edges_tycat(&tree);
 }
