@@ -1,7 +1,8 @@
-//! Provides a `MultiGraph` structure for path computations.
+//! Provides a `Graph` structure for path computations.
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::cmp::Ordering;
+use itertools::Itertools;
 
 use {ElementaryPath, Point, Segment};
 use utils::ArrayMap;
@@ -36,17 +37,35 @@ impl GraphEdge<Point> for Segment {
     }
 }
 
+/// Vertices can provide shortcuts between them
+pub trait GraphVertex {
+    /// What is the type of the shortcut between two vertices ?
+    type Path: Shape;
+    /// What is the min distance between the two given vertices ?
+    fn distance_to(&self, other: &Self) -> f64;
+    /// What is the shortest path between the two given vertices ?
+    fn shortcut(&self, other: &Self) -> Self::Path;
+}
+
+impl GraphVertex for Point {
+    type Path = Segment;
+    fn distance_to(&self, other: &Self) -> f64 {
+        self.distance_to(other)
+    }
+    fn shortcut(&self, other: &Self) -> Segment {
+        Segment::new(*self, *other)
+    }
+}
+
 type VertexId = usize;
 // I cannot manage to use references (see self referencing structs)
 type EdgeId = usize;
 
-/// a `MultiGraph` edge connecting two vertices
+/// a `Graph` edge connecting two vertices
 struct Edge<'a, E: 'a> {
     vertices: [VertexId; 2],
     weight: f64,
-    underlying_object: &'a E,
-    // we don't need a lot of multiedges
-    multiplicity: u8,
+    underlying_object: Option<&'a E>,
     id: EdgeId, // needed for turning edge used in heap into a edgeid :-(
                 //TODO: avoid it ?
 }
@@ -68,25 +87,30 @@ impl<'a, E: 'a> PartialOrd for Edge<'a, E> {
     }
 }
 
-/// a `MultiGraph` vertex
+/// a `Graph` vertex
 struct Vertex<'a, V: 'a> {
     neighbours: Vec<EdgeId>,
     underlying_object: &'a V,
-    degree: usize,
 }
 
-/// MultiGraph structure with fast loops on neighbours
-pub struct MultiGraph<'a, V: 'a, E: 'a> {
+impl<'a, V: 'a> Vertex<'a, V> {
+    fn of_odd_degree(&self) -> bool {
+        self.neighbours.len() % 2 == 1
+    }
+}
+
+/// Graph structure with fast loops on neighbours
+pub struct Graph<'a, V: 'a + GraphVertex, E: 'a> {
     vertices: Vec<Vertex<'a, V>>,
     edges: Vec<Edge<'a, E>>,
 }
 
 
-impl<'a, V: Eq + Hash, E: GraphEdge<V>> MultiGraph<'a, V, E> {
+impl<'a, V: Eq + Hash + GraphVertex, E: GraphEdge<V>> Graph<'a, V, E> {
     /// Create a new graph out of given paths.
     /// Assumes there is only one path between any two vertices.
     pub fn new<I: IntoIterator<Item = &'a E>>(paths: I) -> Self {
-        let mut graph = MultiGraph {
+        let mut graph = Graph {
             vertices: Vec::new(),
             edges: Vec::new(),
         };
@@ -100,7 +124,6 @@ impl<'a, V: Eq + Hash, E: GraphEdge<V>> MultiGraph<'a, V, E> {
                     let new_vertex = Vertex {
                         neighbours: Vec::new(),
                         underlying_object: e,
-                        degree: 0,
                     };
                     graph.vertices.push(new_vertex);
                     graph.vertices.len() - 1
@@ -110,8 +133,7 @@ impl<'a, V: Eq + Hash, E: GraphEdge<V>> MultiGraph<'a, V, E> {
             let edge = Edge {
                 vertices: ids,
                 weight: length,
-                underlying_object: path,
-                multiplicity: 1,
+                underlying_object: Some(path),
                 id: edge_id,
             };
             graph.edges.push(edge);
@@ -119,14 +141,13 @@ impl<'a, V: Eq + Hash, E: GraphEdge<V>> MultiGraph<'a, V, E> {
                 graph.vertices[*vertex]
                     .neighbours
                     .push(graph.edges.len() - 1);
-                graph.vertices[*vertex].degree += 1;
             }
         }
         graph
     }
 }
 
-impl<'a, V, E> MultiGraph<'a, V, E> {
+impl<'a, V: GraphVertex, E> Graph<'a, V, E> {
     /// Return a spanning tree of minimal weight in O(|E|log(|E|)).
     /// This is the first step of christofides algorithm for tsp approx.
     pub fn min_spanning_tree(&self) -> Vec<EdgeId> {
@@ -165,45 +186,59 @@ impl<'a, V, E> MultiGraph<'a, V, E> {
 }
 
 
-impl<'a, V, E> MultiGraph<'a, V, E> {
+impl<'a, V: GraphVertex, E> Graph<'a, V, E> {
     /// Add new edges (matching) until all vertices are of even degree.
-    /// We just greedily add edges (it seems to be a 2approx algorithm for complete graphs with
-    /// metric distances). Could be replaced by min-weight perfect matching algorithms.
-    /// Note that we only add current edges.
-    /// It should be possible to improve results further by considering shortcuts between any source, destination
-    /// but this would increase cost to n^2 (though maybe we could use hashing to go back to (m+n)logn).
+    /// We just greedily add smallest edges from complete graph.
+    /// Cost is n^2 log n.
+    /// This seems to be a 2approx for metric spaces.
     pub fn even_degrees(&mut self) {
-        let mut available_edges: Vec<_> = self.edges.iter().map(|e| (e.weight, e.id)).collect();
-        available_edges.sort_by(|s1, s2| s1.0.partial_cmp(&s2.0).unwrap());
-        for &(_, edge_id) in &available_edges {
-            let vertices = self.edges[edge_id].vertices;
-            if (self.vertices[vertices[0]].degree % 2 == 1)
-                && (self.vertices[vertices[1]].degree % 2 == 1)
+        let mut choices: Vec<_> = (0..self.vertices.len())
+            .into_iter()
+            .combinations(2)
+            .map(|v| {
+                let distance = self.vertices[v[0]]
+                    .underlying_object
+                    .distance_to(&self.vertices[v[1]].underlying_object);
+                ([v[0], v[1]], distance)
+            })
+            .collect();
+        choices.sort_by(|c1, c2| c1.1.partial_cmp(&c2.1).unwrap());
+        let mut odd_vertices_number = self.vertices.iter().filter(|v| v.of_odd_degree()).count();
+        let mut remaining_choices = choices.iter();
+        while odd_vertices_number != 0 {
+            let &(vertices, distance) = remaining_choices.next().unwrap();
+            if self.vertices[vertices[0]].of_odd_degree()
+                && self.vertices[vertices[1]].of_odd_degree()
             {
-                self.vertices[vertices[0]].degree += 1;
-                self.vertices[vertices[1]].degree += 1;
-                self.edges[edge_id].multiplicity += 1;
+                odd_vertices_number -= 2;
+                let id = self.edges.len();
+                self.edges.push(Edge {
+                    vertices,
+                    weight: distance,
+                    underlying_object: None,
+                    id,
+                });
             }
         }
     }
 }
 
-impl<'a, V: Shape, E: Shape> MultiGraph<'a, V, E> {
+impl<'a, V: GraphVertex + Shape, E: Shape> Graph<'a, V, E> {
     /// Display self and given edges on terminal.
     pub fn edges_tycat(&self, edges: &[EdgeId]) {
         let real_edges: Vec<&E> = edges
             .iter()
-            .map(|&i| self.edges[i].underlying_object)
+            .filter_map(|&i| self.edges[i].underlying_object)
             .collect();
         display!(self, real_edges)
     }
 }
 
-impl<'a, V: Shape, E: Shape> Shape for MultiGraph<'a, V, E> {
+impl<'a, V: Shape + GraphVertex, E: Shape> Shape for Graph<'a, V, E> {
     fn get_quadrant(&self) -> Quadrant {
         let mut quadrant = Quadrant::new(2);
-        for edge in &self.edges {
-            quadrant.update(&edge.underlying_object.get_quadrant());
+        for object in self.edges.iter().filter_map(|e| e.underlying_object) {
+            quadrant.update(&object.get_quadrant());
         }
         quadrant
     }
@@ -213,8 +248,13 @@ impl<'a, V: Shape, E: Shape> Shape for MultiGraph<'a, V, E> {
             .iter()
             .map(|e| {
                 e.underlying_object
-                    .svg_string()
-                    .repeat(e.multiplicity as usize)
+                    .map(|o| o.svg_string())
+                    .unwrap_or_else(|| {
+                        self.vertices[e.vertices[0]]
+                            .underlying_object
+                            .shortcut(&self.vertices[e.vertices[1]].underlying_object)
+                            .svg_string()
+                    })
             })
             .chain(
                 self.vertices

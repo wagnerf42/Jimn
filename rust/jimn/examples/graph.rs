@@ -6,7 +6,7 @@ use jimn::tycat::display;
 use jimn::quadrant::{Quadrant, Shape};
 use jimn::tile::hexagonal_tile;
 use jimn::clipper::clip;
-use jimn::graph::MultiGraph;
+use jimn::graph::Graph;
 
 fn main() {
     let points = vec![
@@ -26,7 +26,7 @@ fn main() {
     display!(triangle, hexagons_segments);
     let clipping_segments: Vec<_> = triangle.segments().collect();
     let (inside, outside) = clip(&clipping_segments, &hexagons_segments, &mut rounder);
-    let mut graph = MultiGraph::new(inside.iter().chain(outside.iter()));
+    let mut graph = Graph::new(inside.iter().chain(outside.iter()));
     graph.even_degrees();
     display!(graph);
 }
