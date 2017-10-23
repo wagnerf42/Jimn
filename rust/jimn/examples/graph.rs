@@ -26,7 +26,7 @@ fn main() {
     display!(triangle, hexagons_segments);
     let clipping_segments: Vec<_> = triangle.segments().collect();
     let (inside, outside) = clip(&clipping_segments, &hexagons_segments, &mut rounder);
-    let graph = MultiGraph::new(inside.iter().chain(outside.iter()));
-    let tree = graph.min_spanning_tree();
-    graph.edges_tycat(&tree);
+    let mut graph = MultiGraph::new(inside.iter().chain(outside.iter()));
+    graph.even_degrees();
+    display!(graph);
 }

@@ -1,4 +1,4 @@
-//! Provides a `Graph` structure for path computations.
+//! Provides a `MultiGraph` structure for path computations.
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::cmp::Ordering;
@@ -16,24 +16,6 @@ pub trait GraphEdge<V: Eq + Hash> {
     fn ends(&self) -> [&V; 2];
     /// we need a length
     fn length(&self) -> f64;
-}
-
-/// A graph vertex can provide a shortcut towards another
-/// and corresponding distance.
-pub trait GraphVertex<P> {
-    /// Return distance for shortcuting between two given vertices.
-    fn distance_to(&self, other: &Self) -> f64;
-    /// Return shortcut path between two given vertices.
-    fn shortcut(&self, other: &Self) -> P;
-}
-
-impl GraphVertex<Segment> for Point {
-    fn distance_to(&self, other: &Self) -> f64 {
-        self.distance_to(other)
-    }
-    fn shortcut(&self, other: &Self) -> Segment {
-        Segment::new(*self, *other)
-    }
 }
 
 impl GraphEdge<Point> for ElementaryPath {
@@ -58,11 +40,13 @@ type VertexId = usize;
 // I cannot manage to use references (see self referencing structs)
 type EdgeId = usize;
 
-/// a `Graph` edge connecting two vertices
+/// a `MultiGraph` edge connecting two vertices
 struct Edge<'a, E: 'a> {
     vertices: [VertexId; 2],
     weight: f64,
     underlying_object: &'a E,
+    // we don't need a lot of multiedges
+    multiplicity: u8,
     id: EdgeId, // needed for turning edge used in heap into a edgeid :-(
                 //TODO: avoid it ?
 }
@@ -84,23 +68,25 @@ impl<'a, E: 'a> PartialOrd for Edge<'a, E> {
     }
 }
 
-/// a `Graph` vertex
+/// a `MultiGraph` vertex
 struct Vertex<'a, V: 'a> {
     neighbours: Vec<EdgeId>,
     underlying_object: &'a V,
+    degree: usize,
 }
 
-/// Graph structure with fast loops on neighbours
-pub struct Graph<'a, V: 'a, E: 'a> {
+/// MultiGraph structure with fast loops on neighbours
+pub struct MultiGraph<'a, V: 'a, E: 'a> {
     vertices: Vec<Vertex<'a, V>>,
     edges: Vec<Edge<'a, E>>,
 }
 
 
-impl<'a, V: Eq + Hash, E: GraphEdge<V>> Graph<'a, V, E> {
+impl<'a, V: Eq + Hash, E: GraphEdge<V>> MultiGraph<'a, V, E> {
     /// Create a new graph out of given paths.
+    /// Assumes there is only one path between any two vertices.
     pub fn new<I: IntoIterator<Item = &'a E>>(paths: I) -> Self {
-        let mut graph = Graph {
+        let mut graph = MultiGraph {
             vertices: Vec::new(),
             edges: Vec::new(),
         };
@@ -114,6 +100,7 @@ impl<'a, V: Eq + Hash, E: GraphEdge<V>> Graph<'a, V, E> {
                     let new_vertex = Vertex {
                         neighbours: Vec::new(),
                         underlying_object: e,
+                        degree: 0,
                     };
                     graph.vertices.push(new_vertex);
                     graph.vertices.len() - 1
@@ -124,6 +111,7 @@ impl<'a, V: Eq + Hash, E: GraphEdge<V>> Graph<'a, V, E> {
                 vertices: ids,
                 weight: length,
                 underlying_object: path,
+                multiplicity: 1,
                 id: edge_id,
             };
             graph.edges.push(edge);
@@ -131,13 +119,14 @@ impl<'a, V: Eq + Hash, E: GraphEdge<V>> Graph<'a, V, E> {
                 graph.vertices[*vertex]
                     .neighbours
                     .push(graph.edges.len() - 1);
+                graph.vertices[*vertex].degree += 1;
             }
         }
         graph
     }
 }
 
-impl<'a, V, E> Graph<'a, V, E> {
+impl<'a, V, E> MultiGraph<'a, V, E> {
     /// Return a spanning tree of minimal weight in O(|E|log(|E|)).
     /// This is the first step of christofides algorithm for tsp approx.
     pub fn min_spanning_tree(&self) -> Vec<EdgeId> {
@@ -176,16 +165,30 @@ impl<'a, V, E> Graph<'a, V, E> {
 }
 
 
-impl<'a, V, E> Graph<'a, V, E> {
+impl<'a, V, E> MultiGraph<'a, V, E> {
     /// Add new edges (matching) until all vertices are of even degree.
     /// We just greedily add edges (it seems to be a 2approx algorithm for complete graphs with
     /// metric distances). Could be replaced by min-weight perfect matching algorithms.
-    fn even_degrees(&mut self) {
-        unimplemented!()
+    /// Note that we only add current edges.
+    /// It should be possible to improve results further by considering shortcuts between any source, destination
+    /// but this would increase cost to n^2 (though maybe we could use hashing to go back to (m+n)logn).
+    pub fn even_degrees(&mut self) {
+        let mut available_edges: Vec<_> = self.edges.iter().map(|e| (e.weight, e.id)).collect();
+        available_edges.sort_by(|s1, s2| s1.0.partial_cmp(&s2.0).unwrap());
+        for &(_, edge_id) in &available_edges {
+            let vertices = self.edges[edge_id].vertices;
+            if (self.vertices[vertices[0]].degree % 2 == 1)
+                && (self.vertices[vertices[1]].degree % 2 == 1)
+            {
+                self.vertices[vertices[0]].degree += 1;
+                self.vertices[vertices[1]].degree += 1;
+                self.edges[edge_id].multiplicity += 1;
+            }
+        }
     }
 }
 
-impl<'a, V: Shape, E: Shape> Graph<'a, V, E> {
+impl<'a, V: Shape, E: Shape> MultiGraph<'a, V, E> {
     /// Display self and given edges on terminal.
     pub fn edges_tycat(&self, edges: &[EdgeId]) {
         let real_edges: Vec<&E> = edges
@@ -196,7 +199,7 @@ impl<'a, V: Shape, E: Shape> Graph<'a, V, E> {
     }
 }
 
-impl<'a, V: Shape, E: Shape> Shape for Graph<'a, V, E> {
+impl<'a, V: Shape, E: Shape> Shape for MultiGraph<'a, V, E> {
     fn get_quadrant(&self) -> Quadrant {
         let mut quadrant = Quadrant::new(2);
         for edge in &self.edges {
@@ -208,7 +211,11 @@ impl<'a, V: Shape, E: Shape> Shape for Graph<'a, V, E> {
     fn svg_string(&self) -> String {
         self.edges
             .iter()
-            .map(|e| e.underlying_object.svg_string())
+            .map(|e| {
+                e.underlying_object
+                    .svg_string()
+                    .repeat(e.multiplicity as usize)
+            })
             .chain(
                 self.vertices
                     .iter()
