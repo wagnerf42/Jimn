@@ -28,5 +28,9 @@ fn main() {
     let (inside, outside) = clip(&clipping_segments, &hexagons_segments, &mut rounder);
     let mut graph = Graph::new(inside.iter().chain(outside.iter()));
     graph.even_degrees();
-    display!(graph);
+    let cycle = graph.eulerian_cycle();
+    for i in 0..cycle.len() {
+        let paths: Vec<_> = cycle.iter().take(i + 1).collect();
+        display!(paths, paths.last().unwrap());
+    }
 }

@@ -186,30 +186,63 @@ impl<'a, V: GraphVertex<Path = E>, E: Clone + Shape> Graph<'a, V, E> {
 
     /// Return eulerian cycle of real underlying paths.
     /// Pre-condition: all vertices are of even degrees.
+    /// Cost is in O(n+m*degree).
     pub fn eulerian_cycle(&self) -> Vec<E> {
+        if cfg!(debug_assertions) {
+            for vertex in &self.vertices {
+                assert!(!vertex.of_odd_degree());
+            }
+        }
         let mut cycles = HashMap::new();
         let mut remaining_edges: HashSet<_> = self.edges.iter().map(|e| e.id).collect();
-        while !remaining_edges.is_empty() {
-            let starting_edge = *remaining_edges.iter().next().unwrap();
-            remaining_edges.remove(&starting_edge);
+        // remember vertices we could use as a starting point
+        // cycles starting points are constrained to be on a previously discovered cycle
+        // this way we can rebuild the final cycle easily
+        let mut possible_starts = HashMap::with_capacity(self.vertices.len());
+        // we can start with vertex 0
+        possible_starts.insert(0, self.vertices[0].neighbours.len());
+        while !possible_starts.is_empty() {
             // let's find a new cycle
-            let starting_vertex = self.edges[starting_edge].vertices[0];
-            let mut current_vertex = self.edges[starting_edge].vertices[1];
-            let mut current_cycle = vec![starting_edge];
-            while current_vertex != starting_vertex {
-                // find next edge
-                let next_edge = self.vertices[current_vertex]
+            let starting_vertex = *possible_starts.keys().next().unwrap();
+
+            let mut current_cycle = Vec::new();
+            let mut current_vertex = starting_vertex;
+
+            loop {
+                let current_edge = *self.vertices[current_vertex]
                     .neighbours
                     .iter()
                     .find(|e| remaining_edges.contains(e))
                     .unwrap();
-                remaining_edges.remove(next_edge);
-                current_cycle.push(*next_edge);
-                current_vertex = *self.edges[*next_edge]
+                // store path and update all structs
+                for vertex in &self.edges[current_edge].vertices {
+                    let remove = {
+                        let remaining_degree = possible_starts.entry(*vertex).or_insert_with(|| {
+                            self.vertices[*vertex]
+                                .neighbours
+                                .iter()
+                                .filter(|n| remaining_edges.contains(n))
+                                .count() // this loop inccurs the extra "degree" cost
+                        });
+                        *remaining_degree -= 1;
+                        *remaining_degree == 0
+                    };
+                    if remove {
+                        possible_starts.remove(vertex);
+                    }
+                }
+                remaining_edges.remove(&current_edge);
+                current_cycle.push(current_edge);
+
+                current_vertex = *self.edges[current_edge]
                     .vertices
                     .iter()
                     .find(|v| !current_vertex.eq(v))
                     .unwrap();
+
+                if current_vertex == starting_vertex {
+                    break;
+                }
             }
             cycles
                 .entry(starting_vertex)
@@ -218,10 +251,11 @@ impl<'a, V: GraphVertex<Path = E>, E: Clone + Shape> Graph<'a, V, E> {
         }
 
         // now assemble all cycles together (follow first one) and replace by real paths
-        let first_vertex = *cycles.keys().next().unwrap();
+        let first_vertex = 0;
         let mut first_cycle = cycles.remove(&first_vertex).unwrap();
         let mut paths = Vec::new(); // final result
         self.follow_cycle(first_vertex, &mut first_cycle, &mut cycles, &mut paths);
+        assert!(cycles.is_empty());
         paths
     }
 
@@ -294,6 +328,8 @@ impl<'a, V: GraphVertex, E> Graph<'a, V, E> {
                     underlying_object: None,
                     id,
                 });
+                self.vertices[vertices[0]].neighbours.push(id);
+                self.vertices[vertices[1]].neighbours.push(id);
             }
         }
     }
