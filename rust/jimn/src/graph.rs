@@ -1,5 +1,5 @@
 //! Provides a `Graph` structure for path computations.
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use std::cmp::Ordering;
 use itertools::Itertools;
@@ -147,7 +147,7 @@ impl<'a, V: Eq + Hash + GraphVertex, E: GraphEdge<V>> Graph<'a, V, E> {
     }
 }
 
-impl<'a, V: GraphVertex, E> Graph<'a, V, E> {
+impl<'a, V: GraphVertex<Path = E>, E: Clone + Shape> Graph<'a, V, E> {
     /// Return a spanning tree of minimal weight in O(|E|log(|E|)).
     /// This is the first step of christofides algorithm for tsp approx.
     pub fn min_spanning_tree(&self) -> Vec<EdgeId> {
@@ -182,6 +182,82 @@ impl<'a, V: GraphVertex, E> Graph<'a, V, E> {
             }
         }
         tree
+    }
+
+    /// Return eulerian cycle of real underlying paths.
+    /// Pre-condition: all vertices are of even degrees.
+    pub fn eulerian_cycle(&self) -> Vec<E> {
+        let mut cycles = HashMap::new();
+        let mut remaining_edges: HashSet<_> = self.edges.iter().map(|e| e.id).collect();
+        while !remaining_edges.is_empty() {
+            let starting_edge = *remaining_edges.iter().next().unwrap();
+            remaining_edges.remove(&starting_edge);
+            // let's find a new cycle
+            let starting_vertex = self.edges[starting_edge].vertices[0];
+            let mut current_vertex = self.edges[starting_edge].vertices[1];
+            let mut current_cycle = vec![starting_edge];
+            while current_vertex != starting_vertex {
+                // find next edge
+                let next_edge = self.vertices[current_vertex]
+                    .neighbours
+                    .iter()
+                    .find(|e| remaining_edges.contains(e))
+                    .unwrap();
+                remaining_edges.remove(next_edge);
+                current_cycle.push(*next_edge);
+                current_vertex = *self.edges[*next_edge]
+                    .vertices
+                    .iter()
+                    .find(|v| !current_vertex.eq(v))
+                    .unwrap();
+            }
+            cycles
+                .entry(starting_vertex)
+                .or_insert_with(Vec::new)
+                .extend(current_cycle); // if two cycles start at same vertex we just concatenate
+        }
+
+        // now assemble all cycles together (follow first one) and replace by real paths
+        let first_vertex = *cycles.keys().next().unwrap();
+        let mut first_cycle = cycles.remove(&first_vertex).unwrap();
+        let mut paths = Vec::new(); // final result
+        self.follow_cycle(first_vertex, &mut first_cycle, &mut cycles, &mut paths);
+        paths
+    }
+
+    // recursively reconstruct full eulerian cycle
+    fn follow_cycle(
+        &self,
+        first_vertex: VertexId,
+        cycle: &[EdgeId],
+        cycles: &mut HashMap<VertexId, Vec<EdgeId>>,
+        paths: &mut Vec<E>,
+    ) {
+        let mut current_vertex = first_vertex;
+        for next_edge in cycle {
+            // first, try to reconnect a cycle here
+            if let Some(mut sub_cycle) = cycles.remove(&current_vertex) {
+                self.follow_cycle(current_vertex, &sub_cycle, cycles, paths);
+            }
+            // now, go on with our own edge
+            paths.push(self.real_path_for(*next_edge));
+            current_vertex = *self.edges[*next_edge]
+                .vertices
+                .iter()
+                .find(|v| !current_vertex.eq(v))
+                .unwrap();
+        }
+    }
+
+    fn real_path_for(&self, edge: EdgeId) -> E {
+        self.edges[edge]
+            .underlying_object
+            .cloned()
+            .unwrap_or_else(|| {
+                self.vertices[self.edges[edge].vertices[0]]
+                    .underlying_object
+                    .shortcut(&self.vertices[self.edges[edge].vertices[1]].underlying_object)
+            })
     }
 }
 
