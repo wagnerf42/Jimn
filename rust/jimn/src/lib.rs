@@ -24,6 +24,7 @@ extern crate byteorder;
 extern crate dyntreap;
 extern crate float_cmp;
 extern crate fnv;
+#[macro_use]
 extern crate itertools;
 extern crate num_traits;
 #[cfg(test)]

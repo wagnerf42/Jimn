@@ -10,6 +10,8 @@
 //! * any two coordinates with distance < 5 * 10^-(precision+1) are hashed together.
 //! * no coordinates of distance > 10^-precision are hashed together.
 
+use num_traits::Float;
+use std::iter::once;
 use std::collections::HashMap;
 //use fnv::FnvHashMap;
 use point::Point;
@@ -29,7 +31,7 @@ fn displaced_coordinate_key(coordinate: f64, precision: usize) -> String {
 /// a `CoordinatesHash` allows for hashing nearby coordinates together in O(1).
 pub struct CoordinatesHash {
     //hashes: Vec<FnvHashMap<String, f64>>,
-    hashes: Vec<HashMap<String, f64>>,
+    hashes: [HashMap<String, f64>; 2],
     precision: usize,
 }
 
@@ -37,8 +39,7 @@ impl CoordinatesHash {
     /// Creates a new `CoordinatesHash` with given precision.
     pub fn new(precision: usize) -> CoordinatesHash {
         CoordinatesHash {
-            //hashes: vec![FnvHashMap::default(); 2],
-            hashes: vec![HashMap::new(); 2],
+            hashes: [HashMap::new(), HashMap::new()],
             precision: precision,
         }
     }
@@ -133,5 +134,61 @@ impl PointsHash {
     /// TODO
     pub fn get_quadrant(&self) -> Quadrant {
         Quadrant::new(2)
+    }
+}
+
+
+/// The `SquareHash` is a structure allowing identification of nearby points in O(1).
+/// Consider a square grid of a given side length.
+/// We hash a point into the square containing him. Points hashed in the same square are nearby.
+/// Of course two points can also be nearby accross the edge of their respective squares.
+/// To also detect them we do not consider a single grid but 4 overlapping grids starting at
+/// half side lengths.
+/// Each square is identified by a `Point`.
+pub struct SquareHash {
+    hashes: [HashMap<(String, String), Point>; 4],
+    precision: i8,
+}
+
+impl SquareHash {
+    /// Create a new `SquareHash`.
+    /// Grid side's length is 10^precision
+    pub fn new(precision: i8) -> Self {
+        SquareHash {
+            hashes: [
+                HashMap::new(),
+                HashMap::new(),
+                HashMap::new(),
+                HashMap::new(),
+            ],
+            precision,
+        }
+    }
+
+    /// Returns all 4 squares into which given point hashes.
+    pub fn hash_point(&mut self, point: &Point) -> Vec<Point> {
+        //TODO: have an iterator instead of returning a vec
+        // with negative precision we need to divide the point.
+        let (real_precision, real_point) = if self.precision < 0 {
+            (
+                0,
+                Point::new(
+                    point.x * 10.0.powi(self.precision as i32),
+                    point.y * 10.0.powi(self.precision as i32),
+                ),
+            )
+        } else {
+            (self.precision, *point)
+        };
+        iproduct!(once(coordinate_key), once(displaced_coordinate_key))
+            .zip(self.hashes.iter_mut())
+            .map(|(hash_functions, hash_map)| {
+                let key = (
+                    (hash_functions.0)(real_point.x, real_precision as usize),
+                    (hash_functions.1)(real_point.y, real_precision as usize),
+                );
+                *hash_map.entry(key).or_insert(*point)
+            })
+            .collect()
     }
 }
