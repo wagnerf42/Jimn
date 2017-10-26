@@ -252,9 +252,9 @@ impl<'a, V: GraphVertex<Path = E>, E: Clone + Shape> Graph<'a, V, E> {
 
         // now assemble all cycles together (follow first one) and replace by real paths
         let first_vertex = 0;
-        let mut first_cycle = cycles.remove(&first_vertex).unwrap();
+        let first_cycle = cycles.remove(&first_vertex).unwrap();
         let mut paths = Vec::new(); // final result
-        self.follow_cycle(first_vertex, &mut first_cycle, &mut cycles, &mut paths);
+        self.follow_cycle(first_vertex, &first_cycle, &mut cycles, &mut paths);
         assert!(cycles.is_empty());
         paths
     }
@@ -270,7 +270,7 @@ impl<'a, V: GraphVertex<Path = E>, E: Clone + Shape> Graph<'a, V, E> {
         let mut current_vertex = first_vertex;
         for next_edge in cycle {
             // first, try to reconnect a cycle here
-            if let Some(mut sub_cycle) = cycles.remove(&current_vertex) {
+            if let Some(sub_cycle) = cycles.remove(&current_vertex) {
                 self.follow_cycle(current_vertex, &sub_cycle, cycles, paths);
             }
             // now, go on with our own edge
@@ -290,7 +290,7 @@ impl<'a, V: GraphVertex<Path = E>, E: Clone + Shape> Graph<'a, V, E> {
             .unwrap_or_else(|| {
                 self.vertices[self.edges[edge].vertices[0]]
                     .underlying_object
-                    .shortcut(&self.vertices[self.edges[edge].vertices[1]].underlying_object)
+                    .shortcut(self.vertices[self.edges[edge].vertices[1]].underlying_object)
             })
     }
 }
@@ -308,7 +308,7 @@ impl<'a, V: GraphVertex, E> Graph<'a, V, E> {
             .map(|v| {
                 let distance = self.vertices[v[0]]
                     .underlying_object
-                    .distance_to(&self.vertices[v[1]].underlying_object);
+                    .distance_to(self.vertices[v[1]].underlying_object);
                 ([v[0], v[1]], distance)
             })
             .collect();
@@ -364,7 +364,7 @@ impl<'a, V: Shape + GraphVertex, E: Shape> Shape for Graph<'a, V, E> {
                     .unwrap_or_else(|| {
                         self.vertices[e.vertices[0]]
                             .underlying_object
-                            .shortcut(&self.vertices[e.vertices[1]].underlying_object)
+                            .shortcut(self.vertices[e.vertices[1]].underlying_object)
                             .svg_string()
                     })
             })
