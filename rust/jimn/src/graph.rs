@@ -3,13 +3,15 @@ use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use std::cmp::Ordering;
 use itertools::Itertools;
+use std::collections::BinaryHeap;
+use std::iter::repeat;
+
 
 use {ElementaryPath, Point, Segment};
 use utils::ArrayMap;
+use utils::coordinates_hash::SquareHash;
 use quadrant::{Quadrant, Shape};
 use tycat::display;
-use std::iter::repeat;
-use std::collections::BinaryHeap;
 
 /// What do we need to be an edge in a graph ?
 pub trait GraphEdge<V: Eq + Hash> {
@@ -344,6 +346,14 @@ impl<'a, V: GraphVertex + Shape, E: Shape> Graph<'a, V, E> {
             .collect();
         display!(self, real_edges)
     }
+    /// Display self and given vertices on terminal.
+    pub fn vertices_tycat(&self, vertices: &[VertexId]) {
+        let real_vertices: Vec<&V> = vertices
+            .iter()
+            .map(|&i| self.vertices[i].underlying_object)
+            .collect();
+        display!(self, real_vertices)
+    }
 }
 
 impl<'a, V: Shape + GraphVertex, E: Shape> Shape for Graph<'a, V, E> {
@@ -374,5 +384,47 @@ impl<'a, V: Shape + GraphVertex, E: Shape> Shape for Graph<'a, V, E> {
                     .map(|v| v.underlying_object.svg_string()),
             )
             .collect()
+    }
+}
+
+// even degrees and connect graphs in very fast asymptotic time.
+
+
+impl<'a, E> Graph<'a, Point, E> {
+    /// Return groups of nearby vertices starting with very near groups.
+    /// groups grow larger and larger until last group containing all vertices.
+    pub fn nearby_vertices(&self) -> Vec<Vec<VertexId>> {
+        unimplemented!("get quadrant dimension");
+        let starting_precision = ((quadrant
+            .dimensions()
+            .iter()
+            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap() / 2.0)
+            .log(10.0) / 2.0)
+            .ceil() as i8;
+        let mut colliding_vertices = Vec::new();
+        let mut precision = starting_precision;
+        let mut new_squares = HashMap::with_capacity(self.vertices.len());
+        loop {
+            let mut hash = SquareHash::new(precision); //TODO: drain
+            for (vertex_id, vertex) in self.vertices.iter().enumerate() {
+                let squares = hash.hash_point(vertex.underlying_object);
+                for square in squares {
+                    new_squares
+                        .entry(square)
+                        .or_insert_with(Vec::new)
+                        .push(vertex_id);
+                }
+            }
+            let old_size = colliding_vertices.len();
+            colliding_vertices.extend(new_squares.values().filter(|v| v.len() > 1).cloned());
+            let new_size = colliding_vertices.len();
+            if new_size == old_size {
+                break;
+            }
+            precision += 1;
+            new_squares.drain();
+        }
+        colliding_vertices
     }
 }
