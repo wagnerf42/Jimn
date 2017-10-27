@@ -3,8 +3,10 @@ use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use std::cmp::Ordering;
 use itertools::Itertools;
+
 use std::collections::BinaryHeap;
 use std::iter::repeat;
+use disjoint_sets::UnionFind;
 
 
 use {ElementaryPath, Point, Segment};
@@ -402,7 +404,7 @@ impl<'a, E> Graph<'a, Point, E> {
         for vertex in &self.vertices {
             starting_quadrant.update(&vertex.underlying_object.get_quadrant());
         }
-        let starting_precision = -(starting_quadrant.size().log(10.0) / 2.0).ceil() as i8;
+        let starting_precision = starting_quadrant.size() / 2.0;
         let mut colliding_vertices = Vec::new();
         let mut precision = starting_precision;
         let mut new_squares = HashMap::with_capacity(self.vertices.len());
@@ -423,7 +425,7 @@ impl<'a, E> Graph<'a, Point, E> {
             if new_size == old_size {
                 break;
             }
-            precision += 1;
+            precision /= 2.0;
             new_squares.drain();
         }
         colliding_vertices
@@ -431,13 +433,13 @@ impl<'a, E> Graph<'a, Point, E> {
 
     /// Add edges until all degrees are even.
     /// Asymptotic in O(n log(s)) where s is ratio between max and min distance.
-    /// Worse results quality than O(n^2) algorithm.
+    /// Worse results quality than O(n^2) algorithm it seems to be a 4sqrt(2) approx.
+    /// 2 from the greedy algorithm and 2sqrt(2) from the hashing in squares.
     /// Return total weight of added edges.
-    pub fn fast_even_degrees(&mut self) -> f64 {
+    pub fn fast_even_degrees(&mut self, nearby_vertices: &[Vec<VertexId>]) -> f64 {
         let mut odd_vertices_number = self.vertices.iter().filter(|v| v.of_odd_degree()).count();
-        let groups = self.nearby_vertices();
         let mut total_added_weight = 0.0;
-        for group in &groups {
+        for group in nearby_vertices {
             let mut unused_vertex = None;
             for vertex in group {
                 if self.vertices[*vertex].of_odd_degree() {
@@ -469,6 +471,109 @@ impl<'a, E> Graph<'a, Point, E> {
                 }
             }
         }
-        total_added_weight // never reached but disables warning
+        panic!("failed even degrees")
     }
+
+    /// Reconnect graph into one piece very fast.
+    /// We use Kruskal's algorithm modified to take nearby vertices into account.
+    pub fn reconnect(&mut self, nearby_vertices: &[Vec<VertexId>]) -> f64 {
+        let mut components = UnionFind::new(self.vertices.len());
+        let mut remaining_parts = self.vertices.len();
+        let mut total_added_weight = 0.0;
+        for edge in &self.edges {
+            if components.union(edge.vertices[0], edge.vertices[1]) {
+                remaining_parts -= 1;
+            }
+        }
+        for group in nearby_vertices {
+            let map: HashMap<_, _> = group
+                .iter()
+                .cloned()
+                .map(|v| (components.find(v), v))
+                .collect();
+            for (start, end) in map.values().cloned().tuple_windows() {
+                components.union(start, end);
+                remaining_parts -= 1;
+
+                let id = self.edges.len();
+                let distance = {
+                    let v: &Vertex<Point> = &self.vertices[start];
+                    let p: &Point = v.underlying_object;
+                    p.distance_to(self.vertices[end].underlying_object)
+                };
+                total_added_weight += distance;
+                self.edges.push(Edge {
+                    vertices: [start, end],
+                    weight: distance,
+                    underlying_object: None,
+                    id,
+                });
+                self.vertices[start].neighbours.push(id);
+                self.vertices[end].neighbours.push(id);
+
+                if remaining_parts == 1 {
+                    return total_added_weight;
+                }
+            }
+        }
+        panic!("cannot reconnect graph");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use test::Bencher;
+    use {Point, Polygon};
+    use utils::coordinates_hash::PointsHash;
+    use tile::hexagonal_tile;
+    use clipper::clip;
+
+    #[bench]
+    fn graph_quadratic_even_degrees(b: &mut Bencher) {
+        b.iter(|| {
+            let points = vec![
+                Point::new(0.0, 0.0),
+                Point::new(5.0, -1.0),
+                Point::new(3.0, -3.0),
+            ];
+
+            let mut rounder = PointsHash::new(6);
+            for point in &points {
+                rounder.hash_point(point);
+            }
+            let triangle = Polygon::new(points);
+            let hexagons = hexagonal_tile(0.2, 0.2);
+            let hexagons_segments = hexagons.tile(&triangle.get_quadrant(), &mut rounder);
+            let clipping_segments: Vec<_> = triangle.segments().collect();
+            let (inside, outside) = clip(&clipping_segments, &hexagons_segments, &mut rounder);
+            let mut g = Graph::new(inside.iter().chain(outside.iter()));
+            let nearby_vertices = self.nearby_vertices();
+            g.even_degrees(&nearby_vertices);
+        });
+    }
+    #[bench]
+    fn graph_linear_even_degrees(b: &mut Bencher) {
+        b.iter(|| {
+            let points = vec![
+                Point::new(0.0, 0.0),
+                Point::new(5.0, -1.0),
+                Point::new(3.0, -3.0),
+            ];
+
+            let mut rounder = PointsHash::new(6);
+            for point in &points {
+                rounder.hash_point(point);
+            }
+            let triangle = Polygon::new(points);
+            let hexagons = hexagonal_tile(0.2, 0.2);
+            let hexagons_segments = hexagons.tile(&triangle.get_quadrant(), &mut rounder);
+            let clipping_segments: Vec<_> = triangle.segments().collect();
+            let (inside, outside) = clip(&clipping_segments, &hexagons_segments, &mut rounder);
+            let mut g = Graph::new(inside.iter().chain(outside.iter()));
+            let nearby_vertices = self.nearby_vertices();
+            g.fast_even_degrees(&nearby_vertices);
+        });
+    }
+
 }

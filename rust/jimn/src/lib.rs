@@ -21,6 +21,7 @@
 #![deny(missing_docs)]
 
 extern crate byteorder;
+extern crate disjoint_sets;
 extern crate dyntreap;
 extern crate float_cmp;
 extern crate fnv;

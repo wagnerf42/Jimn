@@ -10,12 +10,12 @@
 //! * any two coordinates with distance < 5 * 10^-(precision+1) are hashed together.
 //! * no coordinates of distance > 10^-precision are hashed together.
 
-use num_traits::Float;
 use std::iter::once;
 use std::collections::HashMap;
 //use fnv::FnvHashMap;
 use point::Point;
 use quadrant::Quadrant;
+use bentley_ottmann::YCoordinate;
 
 fn coordinate_key(coordinate: f64, precision: usize) -> String {
     format!("{:.p$}", coordinate, p = precision)
@@ -146,14 +146,25 @@ impl PointsHash {
 /// half side lengths.
 /// Each square is identified by a `Point`.
 pub struct SquareHash {
-    hashes: [HashMap<(String, String), Point>; 4],
-    precision: i8,
+    hashes: [HashMap<(YCoordinate, YCoordinate), Point>; 4],
+    precision: f64,
+}
+
+fn float_key(coordinate: f64, precision: f64) -> YCoordinate {
+    //TODO: think again ; the precision might be improved easily
+    //also, can we use it for pointshash ???
+    YCoordinate((coordinate / precision).ceil())
+}
+
+fn displaced_float_key(coordinate: f64, precision: f64) -> YCoordinate {
+    //TODO: use floor instead ?
+    YCoordinate(((coordinate + precision / 2.0) / precision).ceil())
 }
 
 impl SquareHash {
     /// Create a new `SquareHash`.
     /// Grid side's length is 10^precision
-    pub fn new(precision: i8) -> Self {
+    pub fn new(precision: f64) -> Self {
         SquareHash {
             hashes: [
                 HashMap::new(),
@@ -169,23 +180,13 @@ impl SquareHash {
     pub fn hash_point(&mut self, point: &Point) -> Vec<Point> {
         //TODO: have an iterator instead of returning a vec
         // with negative precision we need to divide the point.
-        let (real_precision, real_point) = if self.precision < 0 {
-            (
-                0,
-                Point::new(
-                    point.x * 10.0.powi(self.precision as i32),
-                    point.y * 10.0.powi(self.precision as i32),
-                ),
-            )
-        } else {
-            (self.precision, *point)
-        };
-        iproduct!(once(coordinate_key), once(displaced_coordinate_key))
+        let precision = self.precision;
+        iproduct!(once(float_key), once(displaced_float_key))
             .zip(self.hashes.iter_mut())
             .map(|(hash_functions, hash_map)| {
                 let key = (
-                    (hash_functions.0)(real_point.x, real_precision as usize),
-                    (hash_functions.1)(real_point.y, real_precision as usize),
+                    (hash_functions.0)(point.x, precision),
+                    (hash_functions.1)(point.y, precision),
                 );
                 *hash_map.entry(key).or_insert(*point)
             })
