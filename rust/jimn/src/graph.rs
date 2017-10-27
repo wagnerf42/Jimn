@@ -303,7 +303,8 @@ impl<'a, V: GraphVertex, E> Graph<'a, V, E> {
     /// We just greedily add smallest edges from complete graph.
     /// Cost is n^2 log n.
     /// This seems to be a 2approx for metric spaces.
-    pub fn even_degrees(&mut self) {
+    /// Returns the total added weights.
+    pub fn even_degrees(&mut self) -> f64 {
         let mut choices: Vec<_> = (0..self.vertices.len())
             .into_iter()
             .combinations(2)
@@ -317,6 +318,7 @@ impl<'a, V: GraphVertex, E> Graph<'a, V, E> {
         choices.sort_by(|c1, c2| c1.1.partial_cmp(&c2.1).unwrap());
         let mut odd_vertices_number = self.vertices.iter().filter(|v| v.of_odd_degree()).count();
         let mut remaining_choices = choices.iter();
+        let mut total_added_weight = 0.0;
         while odd_vertices_number != 0 {
             let &(vertices, distance) = remaining_choices.next().unwrap();
             if self.vertices[vertices[0]].of_odd_degree()
@@ -330,10 +332,12 @@ impl<'a, V: GraphVertex, E> Graph<'a, V, E> {
                     underlying_object: None,
                     id,
                 });
+                total_added_weight += distance;
                 self.vertices[vertices[0]].neighbours.push(id);
                 self.vertices[vertices[1]].neighbours.push(id);
             }
         }
+        total_added_weight
     }
 }
 
@@ -394,14 +398,11 @@ impl<'a, E> Graph<'a, Point, E> {
     /// Return groups of nearby vertices starting with very near groups.
     /// groups grow larger and larger until last group containing all vertices.
     pub fn nearby_vertices(&self) -> Vec<Vec<VertexId>> {
-        unimplemented!("get quadrant dimension");
-        let starting_precision = ((quadrant
-            .dimensions()
-            .iter()
-            .max_by(|a, b| a.partial_cmp(b).unwrap())
-            .unwrap() / 2.0)
-            .log(10.0) / 2.0)
-            .ceil() as i8;
+        let mut starting_quadrant = Quadrant::new(2);
+        for vertex in &self.vertices {
+            starting_quadrant.update(&vertex.underlying_object.get_quadrant());
+        }
+        let starting_precision = -(starting_quadrant.size().log(10.0) / 2.0).ceil() as i8;
         let mut colliding_vertices = Vec::new();
         let mut precision = starting_precision;
         let mut new_squares = HashMap::with_capacity(self.vertices.len());
@@ -426,5 +427,48 @@ impl<'a, E> Graph<'a, Point, E> {
             new_squares.drain();
         }
         colliding_vertices
+    }
+
+    /// Add edges until all degrees are even.
+    /// Asymptotic in O(n log(s)) where s is ratio between max and min distance.
+    /// Worse results quality than O(n^2) algorithm.
+    /// Return total weight of added edges.
+    pub fn fast_even_degrees(&mut self) -> f64 {
+        let mut odd_vertices_number = self.vertices.iter().filter(|v| v.of_odd_degree()).count();
+        let groups = self.nearby_vertices();
+        let mut total_added_weight = 0.0;
+        for group in &groups {
+            let mut unused_vertex = None;
+            for vertex in group {
+                if self.vertices[*vertex].of_odd_degree() {
+                    unused_vertex = if let Some(start) = unused_vertex {
+                        let end = *vertex;
+                        odd_vertices_number -= 2;
+                        let id = self.edges.len();
+                        let distance = {
+                            let v: &Vertex<Point> = &self.vertices[start];
+                            let p: &Point = v.underlying_object;
+                            p.distance_to(self.vertices[end].underlying_object)
+                        };
+                        total_added_weight += distance;
+                        self.edges.push(Edge {
+                            vertices: [start, end],
+                            weight: distance,
+                            underlying_object: None,
+                            id,
+                        });
+                        self.vertices[start].neighbours.push(id);
+                        self.vertices[end].neighbours.push(id);
+                        if odd_vertices_number == 0 {
+                            return total_added_weight;
+                        }
+                        None
+                    } else {
+                        Some(*vertex)
+                    };
+                }
+            }
+        }
+        total_added_weight // never reached but disables warning
     }
 }

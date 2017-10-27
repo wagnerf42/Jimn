@@ -162,4 +162,13 @@ impl Quadrant {
             .map(|(p1, p2)| Segment::new(*p1, *p2))
             .collect()
     }
+
+    /// Return max dimension.
+    pub fn size(&self) -> f64 {
+        self.dimensions()
+            .iter()
+            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .cloned()
+            .unwrap()
+    }
 }

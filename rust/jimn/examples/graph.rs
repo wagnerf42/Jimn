@@ -21,18 +21,23 @@ fn main() {
     }
     let triangle = Polygon::new(points);
     display!(triangle);
-    let hexagons = hexagonal_tile(1.0, 1.0);
+    let hexagons = hexagonal_tile(0.4, 0.4);
     let hexagons_segments = hexagons.tile(&triangle.get_quadrant(), &mut rounder);
     display!(triangle, hexagons_segments);
     let clipping_segments: Vec<_> = triangle.segments().collect();
     let (inside, outside) = clip(&clipping_segments, &hexagons_segments, &mut rounder);
     let mut graph = Graph::new(inside.iter().chain(outside.iter()));
-    let vertices = graph.nearby_vertices();
-    for group in vertices.iter().rev() {
-        graph.vertices_tycat(group);
-    }
-    //    graph.even_degrees();
-    //    let cycle = graph.eulerian_cycle();
+    let mut graph2 = Graph::new(inside.iter().chain(outside.iter()));
+    let good_cost = graph.even_degrees();
+    let bad_cost = graph2.fast_even_degrees();
+    display!(graph);
+    display!(graph2);
+    println!(
+        "cost for quadratic algorithm is {} and for faster algorithm is {}",
+        good_cost,
+        bad_cost
+    );
+    //    let cycle = graph2.eulerian_cycle();
     //    for i in 0..cycle.len() {
     //        let paths: Vec<_> = cycle.iter().take(i + 1).collect();
     //        display!(paths, paths.last().unwrap());
