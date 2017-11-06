@@ -30,18 +30,9 @@ bentley ottmann:
 
 
 *********
-    - graph: even degrees: move to a "faster" algorithm
-      -> take the same hash functions used for detecting nearby points
-      -> start with a coarse function
-      -> loop on points
-          hash it
-             while collision detected, rehash everyone with finer function (twice the precision)
 
-      every time a hash is computed, insert all 4 squares in a heap (priority is (granularity,square)) together with corresponding points
+    graph: nearby vertices : restrict to odd degrees ?
 
-      now, loop on the heap taking out the points, we can do again the greedy algorithm
-    
-    we might lose something on the approx ratio but it still looks like a constant ratio
 *********
 
 

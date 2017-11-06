@@ -10,7 +10,6 @@
 //! * any two coordinates with distance < 5 * 10^-(precision+1) are hashed together.
 //! * no coordinates of distance > 10^-precision are hashed together.
 
-use std::iter::once;
 use std::collections::HashMap;
 //use fnv::FnvHashMap;
 use point::Point;
@@ -144,9 +143,10 @@ impl PointsHash {
 /// Of course two points can also be nearby accross the edge of their respective squares.
 /// To also detect them we do not consider a single grid but 4 overlapping grids starting at
 /// half side lengths.
-/// Each square is identified by a `Point`.
+/// Each square contains a vector of ids.
 pub struct SquareHash {
-    hashes: [HashMap<(YCoordinate, YCoordinate), Point>; 4],
+    /// the four hashmaps. key identifies a square ; value is vec of ids.
+    pub hashes: [HashMap<(YCoordinate, YCoordinate), Vec<usize>>; 4],
     precision: f64,
 }
 
@@ -176,20 +176,20 @@ impl SquareHash {
         }
     }
 
-    /// Returns all 4 squares into which given point hashes.
-    pub fn hash_point(&mut self, point: &Point) -> Vec<Point> {
-        //TODO: have an iterator instead of returning a vec
-        // with negative precision we need to divide the point.
-        let precision = self.precision;
-        iproduct!(once(float_key), once(displaced_float_key))
-            .zip(self.hashes.iter_mut())
-            .map(|(hash_functions, hash_map)| {
-                let key = (
-                    (hash_functions.0)(point.x, precision),
-                    (hash_functions.1)(point.y, precision),
-                );
-                *hash_map.entry(key).or_insert(*point)
-            })
-            .collect()
+    /// Hash given vertex into the four squares it belongs to.
+    pub fn hash_point(&mut self, point: &Point, vertex_id: usize) {
+        let x_keys = [
+            float_key(point.x, self.precision),
+            displaced_float_key(point.x, self.precision),
+        ];
+        let y_keys = [
+            float_key(point.y, self.precision),
+            displaced_float_key(point.y, self.precision),
+        ];
+        for (key, hash) in
+            iproduct!(x_keys.iter().cloned(), y_keys.iter().cloned()).zip(self.hashes.iter_mut())
+        {
+            hash.entry(key).or_insert_with(Vec::new).push(vertex_id);
+        }
     }
 }

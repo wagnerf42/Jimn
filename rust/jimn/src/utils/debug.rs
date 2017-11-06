@@ -40,6 +40,7 @@ macro_rules! module_debug {
 
 use std::fmt::Debug;
 use std;
+use quadrant::Shape;
 
 /// Allow for debugging without requiring `std::fmt::Debug`
 /// taken from
@@ -59,6 +60,26 @@ impl<T> AsDebug for T {
 
 impl<T: Debug> AsDebug for T {
     fn as_debug(&self) -> &Debug {
+        self
+    }
+}
+
+/// We can convert some objects into `Shape` for easy debugging.
+pub trait AsShape {
+    /// convert self to &Shape if we can or panic.
+    fn as_shape(&self) -> &Shape;
+}
+
+impl<T> AsShape for T {
+    default fn as_shape(&self) -> &Shape {
+        panic!("Shape not implemented for {}", unsafe {
+            std::intrinsics::type_name::<T>()
+        });
+    }
+}
+
+impl<T: Shape> AsShape for T {
+    fn as_shape(&self) -> &Shape {
         self
     }
 }

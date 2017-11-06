@@ -396,7 +396,7 @@ impl<'a, V: Shape + GraphVertex, E: Shape> Shape for Graph<'a, V, E> {
 // even degrees and connect graphs in very fast asymptotic time.
 
 
-impl<'a, E> Graph<'a, Point, E> {
+impl<'a, E: Shape> Graph<'a, Point, E> {
     /// Return groups of nearby vertices starting with very near groups.
     /// groups grow larger and larger until last group containing all vertices.
     pub fn nearby_vertices(&self) -> Vec<Vec<VertexId>> {
@@ -404,29 +404,26 @@ impl<'a, E> Graph<'a, Point, E> {
         for vertex in &self.vertices {
             starting_quadrant.update(&vertex.underlying_object.get_quadrant());
         }
-        let starting_precision = starting_quadrant.size() / 2.0;
+        let starting_precision = starting_quadrant.size() * 2.0;
         let mut colliding_vertices = Vec::new();
         let mut precision = starting_precision;
-        let mut new_squares = HashMap::with_capacity(self.vertices.len());
         loop {
             let mut hash = SquareHash::new(precision); //TODO: drain
             for (vertex_id, vertex) in self.vertices.iter().enumerate() {
-                let squares = hash.hash_point(vertex.underlying_object);
-                for square in squares {
-                    new_squares
-                        .entry(square)
-                        .or_insert_with(Vec::new)
-                        .push(vertex_id);
-                }
+                hash.hash_point(vertex.underlying_object, vertex_id);
             }
             let old_size = colliding_vertices.len();
-            colliding_vertices.extend(new_squares.values().filter(|v| v.len() > 1).cloned());
+            colliding_vertices.extend(
+                hash.hashes
+                    .iter()
+                    .flat_map(|h| h.values().filter(|p| p.len() > 1).cloned()),
+                    //TODO: drain
+            );
             let new_size = colliding_vertices.len();
             if new_size == old_size {
                 break;
             }
             precision /= 2.0;
-            new_squares.drain();
         }
         colliding_vertices
     }
@@ -439,7 +436,7 @@ impl<'a, E> Graph<'a, Point, E> {
     pub fn fast_even_degrees(&mut self, nearby_vertices: &[Vec<VertexId>]) -> f64 {
         let mut odd_vertices_number = self.vertices.iter().filter(|v| v.of_odd_degree()).count();
         let mut total_added_weight = 0.0;
-        for group in nearby_vertices {
+        for group in nearby_vertices.iter().rev() {
             let mut unused_vertex = None;
             for vertex in group {
                 if self.vertices[*vertex].of_odd_degree() {
@@ -471,6 +468,7 @@ impl<'a, E> Graph<'a, Point, E> {
                 }
             }
         }
+        self.vertices_tycat(&nearby_vertices[0]);
         panic!("failed even degrees")
     }
 
@@ -485,7 +483,7 @@ impl<'a, E> Graph<'a, Point, E> {
                 remaining_parts -= 1;
             }
         }
-        for group in nearby_vertices {
+        for group in nearby_vertices.iter().rev() {
             let map: HashMap<_, _> = group
                 .iter()
                 .cloned()
