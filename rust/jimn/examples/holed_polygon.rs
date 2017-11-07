@@ -2,7 +2,6 @@
 extern crate jimn;
 use jimn::polygon::square;
 use jimn::holed_polygon::{build_holed_polygons, HoledPolygon};
-use jimn::tycat::colored_display;
 
 fn main() {
     println!("displaying two holed polygons");
@@ -21,7 +20,7 @@ fn main() {
         square(3.0, 3.0, 1.0),
         square(7.5, 3.0, 2.0),
     ];
-    colored_display(polygons.iter()).expect("display failed");
+    display!(multicolor!(polygons.iter()));
     let holed_polygons = build_holed_polygons(polygons);
-    colored_display(holed_polygons.iter()).expect("display failed");
+    display!(multicolor!(holed_polygons.iter()));
 }

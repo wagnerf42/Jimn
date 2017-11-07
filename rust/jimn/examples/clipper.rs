@@ -3,7 +3,6 @@ extern crate jimn;
 use jimn::{Point, Polygon};
 use jimn::utils::coordinates_hash::PointsHash;
 use jimn::quadrant::Shape;
-use jimn::tycat::colored_display;
 use jimn::tile::hexagonal_tile;
 use jimn::clipper::clip;
 use jimn::polygon::build_polygons;
@@ -23,12 +22,12 @@ fn main() {
     display!(triangle);
     let hexagons = hexagonal_tile(1.0, 1.0);
     let hexagons_segments = hexagons.tile(&triangle.get_quadrant(), &mut rounder);
-    display!(triangle, hexagons_segments);
+    display!(triangle, unicolor!(&hexagons_segments));
     let clipping_segments: Vec<_> = triangle.segments().collect();
     let (mut inside, outside) = clip(&clipping_segments, &hexagons_segments, &mut rounder);
-    display!(triangle, inside);
+    display!(triangle, unicolor!(&inside));
     inside.extend(outside);
-    display!(inside);
+    display!(unicolor!(&inside));
     let polygons = build_polygons(&inside);
-    colored_display(polygons.iter()).expect("display failed");
+    display!(multicolor!(&polygons));
 }

@@ -349,7 +349,7 @@ impl<'a, V: GraphVertex + Shape, E: Shape> Graph<'a, V, E> {
             .iter()
             .filter_map(|&i| self.edges[i].underlying_object)
             .collect();
-        display!(self, real_edges)
+        display!(self, unicolor!(&real_edges))
     }
     /// Display self and given vertices on terminal.
     pub fn vertices_tycat(&self, vertices: &[VertexId]) {
@@ -357,7 +357,7 @@ impl<'a, V: GraphVertex + Shape, E: Shape> Graph<'a, V, E> {
             .iter()
             .map(|&i| self.vertices[i].underlying_object)
             .collect();
-        display!(self, real_vertices)
+        display!(self, unicolor!(&real_vertices))
     }
 }
 

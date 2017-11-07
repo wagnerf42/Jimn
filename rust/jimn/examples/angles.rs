@@ -22,7 +22,7 @@ fn main() {
     for segment in &segments {
         let angle = segment.sweeping_angle();
         println!("angle de {:?} : {}", segment, angle);
-        display!(segments, segment);
+        display!(unicolor!(&segments), segment);
     }
 
     let paths = vec![
@@ -46,7 +46,7 @@ fn main() {
     println!("**********************************");
     for path in &paths {
         println!("key {:?}", path.compute_key(YCoordinate(0.0)));
-        display!(paths, path);
+        display!(unicolor!(&paths), path);
     }
 
     // last test

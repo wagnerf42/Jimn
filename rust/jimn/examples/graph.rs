@@ -1,11 +1,10 @@
 #[macro_use]
 extern crate jimn;
-use jimn::{HoledPolygon, Point, Polygon, Segment};
+use jimn::{HoledPolygon, Point, Polygon};
 use jimn::utils::coordinates_hash::PointsHash;
-use jimn::tycat::colored_display;
 use jimn::tile::hexagonal_tile;
-use jimn::clipper::clip;
-use jimn::graph::Graph;
+//use jimn::clipper::clip;
+//use jimn::graph::Graph;
 use jimn::offsetter::offset_holed_polygon;
 
 fn main() {
@@ -37,13 +36,13 @@ fn main() {
         .into_iter()
         .map(|p| HoledPolygon::new(Polygon::new(p), Vec::new()))
         .collect();
-    colored_display(triangles.iter()).expect("display failed");
+    display!(multicolor!(&triangles));
 
     let pockets: Vec<_> = triangles
         .iter()
-        .map(|t| offset_holed_polygon(t, 0.2, &mut rounder))
+        .flat_map(|t| offset_holed_polygon(t, 0.2, &mut rounder))
         .collect();
-    colored_display(pockets.iter()).expect("display failed");
+    display!(multicolor!(&pockets));
 
     let hexagons = hexagonal_tile(0.8, 0.8);
     //    let mut segments: Vec<Segment> = Vec::new();

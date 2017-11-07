@@ -10,7 +10,7 @@ use utils::coordinates_hash::PointsHash;
 
 /// The `Quadrant` structure stores bounds on each coordinate.
 /// In 2D this translates to rectangles.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Quadrant {
     /// Vector of lower bounds on each coordinate.
     pub min_coordinates: Vec<f64>,
@@ -26,47 +26,14 @@ pub trait Shape {
     fn svg_string(&self) -> String;
 }
 
-// references on shapes are still shapes
-impl<'a, T: Shape> Shape for &'a T {
+impl<'a, S: Shape> Shape for &'a S {
     fn get_quadrant(&self) -> Quadrant {
-        (**self).get_quadrant()
+        (*self).get_quadrant()
     }
-
     fn svg_string(&self) -> String {
-        (**self).svg_string()
+        (*self).svg_string()
     }
 }
-
-impl<T: Shape> Shape for Vec<T> {
-    fn get_quadrant(&self) -> Quadrant {
-        let mut quadrant = Quadrant::new(2);
-        for e in self {
-            quadrant.add(e);
-        }
-        quadrant
-    }
-
-    fn svg_string(&self) -> String {
-        self.iter().map(|e| e.svg_string()).collect()
-    }
-}
-
-//TODO: how to factorize it ?
-//---> see borrow trait
-impl<'a, T: Shape> Shape for &'a [T] {
-    fn get_quadrant(&self) -> Quadrant {
-        let mut quadrant = Quadrant::new(2);
-        for e in *self {
-            quadrant.add(e);
-        }
-        quadrant
-    }
-
-    fn svg_string(&self) -> String {
-        self.iter().map(|e| e.svg_string()).collect()
-    }
-}
-
 
 impl Quadrant {
     /// Builds a `Quadrant` (unconstrained) in space of given dimension.

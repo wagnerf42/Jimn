@@ -1,9 +1,9 @@
+#[macro_use]
 extern crate jimn;
 
 use jimn::polygon::square;
 use jimn::classifier::complete_inclusion_tree;
 use jimn::tree::Tree;
-use jimn::tycat::colored_display;
 
 fn main() {
     let squares = vec![
@@ -16,7 +16,7 @@ fn main() {
         square(7.1, 7.1, 0.5),
         square(8.0, 8.0, 0.5),
     ];
-    colored_display(&squares).expect("display failed");
+    display!(multicolor!(&squares));
     let mut inclusion_tree = Tree::new();
     complete_inclusion_tree(&mut inclusion_tree, squares);
     inclusion_tree.tycat().expect("display failed");

@@ -3,7 +3,6 @@ use std::iter::repeat;
 use {Arc, ElementaryPath, HoledPocket};
 use polygon::Polygon;
 use holed_polygon::HoledPolygon;
-use tycat::colored_display;
 use utils::coordinates_hash::PointsHash;
 use bentley_ottmann::bentley_ottmann;
 use pocket::build_pockets;
@@ -74,26 +73,26 @@ pub fn offset_holed_polygon(
     }
     module_debug!({
         println!("we computed offsetted paths:");
-        display!(holed_polygon, raw_paths);
+        display!(holed_polygon, unicolor!(&raw_paths));
     });
 
     // convert to elementary paths
     let paths_without_overlaps = remove_overlaps(&raw_paths);
     module_debug!({
         println!("after removing overlaps:");
-        display!(holed_polygon, paths_without_overlaps);
+        display!(holed_polygon, unicolor!(&paths_without_overlaps));
     });
     let small_paths = bentley_ottmann(&paths_without_overlaps, rounder);
     module_debug!({
         println!("after computing all intersections:");
-        display!(holed_polygon, small_paths);
+        display!(holed_polygon, unicolor!(&small_paths));
     });
 
     // build a set of small pockets
     let pockets = build_pockets(&small_paths);
     module_debug!({
         println!("after rebuilding pockets");
-        colored_display(pockets.iter()).expect("pockets display failed");
+        display!(multicolor!(&pockets));
     });
 
     // figure out which pocket is inside what
@@ -125,7 +124,7 @@ pub fn offset_holed_polygon(
     }
     module_debug!({
         println!("final result is:");
-        display!(holed_pockets);
+        display!(multicolor!(&holed_pockets));
     });
     holed_pockets
 }

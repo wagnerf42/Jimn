@@ -2,15 +2,15 @@
 //! TODO: document: no more that 2 overlapping segments at any place.
 use std::cell::RefCell;
 use std::collections::{BinaryHeap, HashMap, HashSet};
-use Point;
 use dyntreap::Treap;
 use utils::ArrayMap;
 use utils::coordinates_hash::PointsHash;
 use std::rc::Rc;
 use std::iter::repeat;
 
+use {Point, Segment};
+use quadrant::Quadrant;
 use utils::debug::AsDebug;
-use tycat::colored_display;
 use std::collections::Bound::*;
 use std::collections::Bound;
 
@@ -211,6 +211,10 @@ impl<
             if cfg!(debug_assertions) {
                 check_keys_validity(crossed_paths, &self.key_generator);
             }
+            module_debug!({
+                println!("bentley ottmann: reaching new y");
+                debug_display(crossed_paths, &self.key_generator);
+            });
             self.start_paths(&starting_paths, crossed_paths);
             self.handle_horizontal_segments(crossed_paths);
             self.events_data.remove(&event_y);
@@ -315,11 +319,24 @@ pub fn debug_display<
 ) {
     let bounds: (Bound<K>, Bound<K>) = (Unbounded, Unbounded);
     crossed_paths.tycat();
-    colored_display(
-        crossed_paths
-            .ordered_values(bounds)
-            .map(|p| key_generator.borrow().paths[*p].as_ref()),
-    ).expect("display failed");
+    let mut quadrant = Quadrant::new(2);
+    for sub_quadrant in crossed_paths
+        .ordered_values(bounds)
+        .map(|p| key_generator.borrow().paths[*p].as_ref().get_quadrant())
+    {
+        quadrant.update(&sub_quadrant);
+    }
+    let (x1, x2) = quadrant.limits(0);
+    let y = key_generator.borrow().current_y.0;
+    let current_line = Segment::new(Point::new(x1, y), Point::new(x2, y));
+    display!(
+        current_line,
+        multicolor!(
+            crossed_paths
+                .ordered_values(bounds)
+                .map(|p| key_generator.borrow().paths[*p].as_ref())
+        )
+    );
     for p in crossed_paths.ordered_values(bounds) {
         println!(
             "{} is {:?} : {:?}",

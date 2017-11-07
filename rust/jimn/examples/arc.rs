@@ -1,8 +1,8 @@
+#[macro_use]
 extern crate jimn;
 use std::f64::consts::PI;
 use jimn::point::Point;
 use jimn::Arc;
-use jimn::tycat::colored_display;
 
 fn main() {
     let origin = Point::new(0.0, 0.0);
@@ -28,5 +28,5 @@ fn main() {
     println!("blue: quarter circle one way {:?}", arcs[2]);
     println!("purple: quarter circle other way {:?}", arcs[3]);
     println!("orange: other quarter circle {:?}", arcs[4]);
-    colored_display(arcs.iter()).expect("display failed");
+    display!(multicolor!(&arcs));
 }

@@ -9,7 +9,7 @@ use jimn::overlap::remove_overlaps;
 fn try_bentley_ottmann_on<T: AsRef<str>>(filename: &T) {
     println!("loading {}", filename.as_ref());
     let segments = load_segments(filename.as_ref()).expect("error loading segments file");
-    display!(segments);
+    display!(unicolor!(&segments));
     let mut rounder = PointsHash::new(6);
     for segment in &segments {
         rounder.hash_point(&segment.start);
@@ -17,7 +17,7 @@ fn try_bentley_ottmann_on<T: AsRef<str>>(filename: &T) {
     }
     let no_overlap_segments = remove_overlaps(&segments);
     let small_segments = bentley_ottmann(&no_overlap_segments, &mut rounder);
-    display!(small_segments);
+    display!(unicolor!(&small_segments));
     println!("we now have {} segments", small_segments.len());
 }
 

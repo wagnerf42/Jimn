@@ -7,7 +7,6 @@ use std::io::Write;
 use std::process::Command;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use quadrant::Shape;
-use tycat::colored_display;
 use tycat::SVG_COLORS;
 
 /// sequential counter for tycat files
@@ -179,7 +178,7 @@ impl<T: Default + Shape> Tree<T> {
 
     /// Graphical display on console of both the tree and its contents.
     pub fn tycat(&self) -> io::Result<()> {
-        colored_display(self.walk().map(|n| &n.value))?;
+        display!(multicolor!(self.walk().map(|n| &n.value)));
         let file_number = FILE_COUNT.fetch_add(1, Ordering::SeqCst);
         let dot_filename = format!("/tmp/tree-{}.dot", file_number);
         let png_filename = format!("/tmp/tree-{}.png", file_number);
@@ -215,11 +214,11 @@ impl<T: Default + Shape> Tree<T> {
         }
         for level in 0..max_level {
             // it is slow but i don't care for now
-            colored_display(
+            display!(multicolor!(
                 self.walk()
                     .filter(|n| levels[&n.index] == level)
-                    .map(|n| &n.value),
-            )?;
+                    .map(|n| &n.value)
+            ));
         }
         Ok(())
     }
