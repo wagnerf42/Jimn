@@ -13,7 +13,6 @@ use {ElementaryPath, Point, Segment};
 use utils::ArrayMap;
 use utils::coordinates_hash::SquareHash;
 use quadrant::{Quadrant, Shape};
-use tycat::display;
 
 /// What do we need to be an edge in a graph ?
 pub trait GraphEdge<V: Eq + Hash> {
@@ -396,7 +395,7 @@ impl<'a, V: Shape + GraphVertex, E: Shape> Shape for Graph<'a, V, E> {
 // even degrees and connect graphs in very fast asymptotic time.
 
 
-impl<'a, E: Shape> Graph<'a, Point, E> {
+impl<'a, E> Graph<'a, Point, E> {
     /// Return groups of nearby vertices starting with very near groups.
     /// groups grow larger and larger until last group containing all vertices.
     pub fn nearby_vertices(&self) -> Vec<Vec<VertexId>> {
@@ -468,7 +467,6 @@ impl<'a, E: Shape> Graph<'a, Point, E> {
                 }
             }
         }
-        self.vertices_tycat(&nearby_vertices[0]);
         panic!("failed even degrees")
     }
 
@@ -546,8 +544,7 @@ mod tests {
             let clipping_segments: Vec<_> = triangle.segments().collect();
             let (inside, outside) = clip(&clipping_segments, &hexagons_segments, &mut rounder);
             let mut g = Graph::new(inside.iter().chain(outside.iter()));
-            let nearby_vertices = self.nearby_vertices();
-            g.even_degrees(&nearby_vertices);
+            g.even_degrees();
         });
     }
     #[bench]
@@ -569,7 +566,7 @@ mod tests {
             let clipping_segments: Vec<_> = triangle.segments().collect();
             let (inside, outside) = clip(&clipping_segments, &hexagons_segments, &mut rounder);
             let mut g = Graph::new(inside.iter().chain(outside.iter()));
-            let nearby_vertices = self.nearby_vertices();
+            let nearby_vertices = g.nearby_vertices();
             g.fast_even_degrees(&nearby_vertices);
         });
     }

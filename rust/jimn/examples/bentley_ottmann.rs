@@ -4,8 +4,6 @@ use std::env::args;
 use jimn::segment::load_segments;
 use jimn::utils::coordinates_hash::PointsHash;
 use jimn::bentley_ottmann::bentley_ottmann;
-use jimn::tycat::display;
-use jimn::quadrant::{Quadrant, Shape};
 use jimn::overlap::remove_overlaps;
 
 fn try_bentley_ottmann_on<T: AsRef<str>>(filename: &T) {

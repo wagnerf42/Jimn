@@ -141,8 +141,6 @@ pub fn colored_display<'a, T: 'a + Shape, U: IntoIterator<Item = &'a T>>(
 /// # #[macro_use] extern crate jimn;
 /// use jimn::point::Point;
 /// use jimn::segment::Segment;
-/// use jimn::quadrant::{Quadrant, Shape};
-/// use jimn::tycat::display;
 /// # fn main() {
 /// let p1 = Point::new(3.0, 2.0);
 /// let p2 = Point::new(1.0, 1.0);
@@ -154,13 +152,15 @@ pub fn colored_display<'a, T: 'a + Shape, U: IntoIterator<Item = &'a T>>(
 macro_rules! display {
     ( $($x:expr ), +) => {
         {
-        let mut quadrant = Quadrant::new(2);
-        let mut svg_strings = Vec::new();
-        $(
-            quadrant.add(&$x);
-            svg_strings.push($x.svg_string());
-        )*
-        display(&quadrant, &svg_strings).expect("tycat failed");
+            use $crate::quadrant::{Quadrant, Shape};
+            use $crate::tycat::display;
+            let mut quadrant = Quadrant::new(2);
+            let mut svg_strings = Vec::new();
+            $(
+                quadrant.add(&$x);
+                svg_strings.push($x.svg_string());
+             )*
+                display(&quadrant, &svg_strings).expect("tycat failed");
         }
     }
 }

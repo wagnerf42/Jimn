@@ -3,7 +3,7 @@
 
 /// Jimn makes use of the `$JIMN_DEBUG` environment variable
 /// to select code for debugging.
-/// You can export a colon separated list of modules for which you
+/// You can export a spaces separated list of modules for which you
 /// want to activate logs (even graphical logs in terminology).
 ///
 /// Using `module_debug!` on some code block will ensure that:
@@ -26,9 +26,10 @@
 macro_rules! module_debug {
     ($b:block) => {
         {
+            use std;
             if cfg!(debug_assertions) {
                 if let Ok(debugged) = std::env::var("JIMN_DEBUG") {
-                    if debugged.split(':')
+                    if debugged.split(' ')
                         .any(|s| &*s == module_path!()) {
                             $b
                         }
@@ -38,8 +39,8 @@ macro_rules! module_debug {
     }
 }
 
-use std::fmt::Debug;
 use std;
+use std::fmt::Debug;
 use quadrant::Shape;
 
 /// Allow for debugging without requiring `std::fmt::Debug`

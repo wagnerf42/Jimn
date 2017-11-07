@@ -31,6 +31,7 @@ extern crate num_traits;
 #[cfg(test)]
 extern crate test;
 
+#[macro_use]
 pub mod utils;
 #[macro_use]
 pub mod tycat;
@@ -48,6 +49,7 @@ pub use polygon::Polygon;
 pub mod holed_polygon;
 pub use holed_polygon::HoledPolygon;
 pub mod tile;
+pub use tile::Tile;
 pub mod overlap;
 pub mod segment;
 pub use segment::Segment;
@@ -61,6 +63,8 @@ pub mod holed_pocket;
 pub use holed_pocket::HoledPocket;
 pub mod offsetter;
 pub mod graph;
+pub mod tagged_path;
+pub use tagged_path::TaggedPath;
 
 use stl::Stl;
 use utils::coordinates_hash::PointsHash;

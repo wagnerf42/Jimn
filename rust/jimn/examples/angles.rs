@@ -2,8 +2,6 @@
 extern crate jimn;
 use std::f64::consts::FRAC_PI_4;
 use jimn::{Arc, ElementaryPath, Point, Segment};
-use jimn::quadrant::{Quadrant, Shape};
-use jimn::tycat::display;
 use jimn::bentley_ottmann::{BentleyOttmannPath, YCoordinate};
 
 fn main() {

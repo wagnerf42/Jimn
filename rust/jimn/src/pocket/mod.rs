@@ -1,9 +1,11 @@
 //! `Pocket` class.
 use std::f64::consts::PI;
 use std::iter::once;
-use {ElementaryPath, Quadrant};
+use {ElementaryPath, Quadrant, TaggedPath, Tile};
+use utils::coordinates_hash::PointsHash;
 use quadrant::Shape;
 use utils::precision::is_almost;
+use clipper::clip;
 
 pub use self::pocket_builder::build_pockets;
 mod pocket_builder;
@@ -25,6 +27,22 @@ impl Pocket {
     /// Build a new `Pocket` from given paths forming its edge.
     pub fn new(edge: Vec<ElementaryPath>) -> Self {
         Pocket { edge }
+    }
+
+    /// Convert `Pocket` to vector of `TaggedPath` by filling it with given `Tile`.
+    /// Pocket's edge is tagged as `TaggedPath::Shell` and inner paths as `TaggedPath::Fill`.
+    pub fn tile(&self, tile: &Tile, rounder: &mut PointsHash) -> Vec<TaggedPath> {
+        let tiling_segments = tile.tile(&self.get_quadrant(), rounder);
+        let tiling_paths: Vec<ElementaryPath> = tiling_segments
+            .into_iter()
+            .map(|s| ElementaryPath::Segment(s))
+            .collect();
+        let (inside, edge) = clip(&self.edge, &tiling_paths, rounder);
+        inside
+            .into_iter()
+            .map(|p| TaggedPath::Fill(p))
+            .chain(edge.into_iter().map(|p| TaggedPath::Shell(p)))
+            .collect()
     }
 
     /// Compute pocket orientation.

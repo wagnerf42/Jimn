@@ -2,8 +2,7 @@
 extern crate jimn;
 use jimn::point::Point;
 use jimn::{Arc, ElementaryPath, Segment};
-use jimn::quadrant::{Quadrant, Shape};
-use jimn::tycat::{colored_display, display};
+use jimn::tycat::colored_display;
 use std::f64::consts::{FRAC_PI_2, PI};
 
 fn angles(path: &ElementaryPath, point: &Point) -> (f64, f64) {

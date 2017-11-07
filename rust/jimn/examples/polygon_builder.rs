@@ -3,8 +3,7 @@ extern crate jimn;
 use jimn::segment::load_segments;
 use jimn::utils::coordinates_hash::PointsHash;
 use jimn::bentley_ottmann::bentley_ottmann;
-use jimn::tycat::{colored_display, display};
-use jimn::quadrant::{Quadrant, Shape};
+use jimn::tycat::colored_display;
 use jimn::polygon::build_polygons;
 use jimn::overlap::cut_overlaps;
 

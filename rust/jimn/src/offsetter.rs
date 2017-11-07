@@ -3,8 +3,7 @@ use std::iter::repeat;
 use {Arc, ElementaryPath, HoledPocket};
 use polygon::Polygon;
 use holed_polygon::HoledPolygon;
-use quadrant::{Quadrant, Shape};
-use tycat::{colored_display, display};
+use tycat::colored_display;
 use utils::coordinates_hash::PointsHash;
 use bentley_ottmann::bentley_ottmann;
 use pocket::build_pockets;
@@ -63,26 +62,47 @@ pub fn offset_holed_polygon(
     radius: f64,
     rounder: &mut PointsHash,
 ) -> Vec<HoledPocket> {
+    //TODO: take as input a vec of polygons to do all classify in one sweep
     let mut raw_paths = Vec::new();
     // take some segments parallel to holed poly, on the inside (joined with arcs)
+    module_debug!({
+        println!("starting offsetter on:");
+        display!(holed_polygon);
+    });
     for polygon in holed_polygon.polygons() {
         inner_paths(polygon, radius, &mut raw_paths, rounder);
     }
-    display!(holed_polygon, raw_paths);
+    module_debug!({
+        println!("we computed offsetted paths:");
+        display!(holed_polygon, raw_paths);
+    });
 
     // convert to elementary paths
     let paths_without_overlaps = remove_overlaps(&raw_paths);
+    module_debug!({
+        println!("after removing overlaps:");
+        display!(holed_polygon, paths_without_overlaps);
+    });
     let small_paths = bentley_ottmann(&paths_without_overlaps, rounder);
-    display!(holed_polygon, small_paths);
+    module_debug!({
+        println!("after computing all intersections:");
+        display!(holed_polygon, small_paths);
+    });
 
     // build a set of small pockets
     let pockets = build_pockets(&small_paths);
-    colored_display(pockets.iter()).expect("pockets display failed");
+    module_debug!({
+        println!("after rebuilding pockets");
+        colored_display(pockets.iter()).expect("pockets display failed");
+    });
 
     // figure out which pocket is inside what
     let mut pockets_tree = Tree::new();
     complete_inclusion_tree(&mut pockets_tree, pockets);
-    pockets_tree.tycat().expect("pockets tree display failed");
+    module_debug!({
+        println!("pockets for the following inclusion tree:");
+        pockets_tree.tycat().expect("pockets tree display failed");
+    });
 
     // now all correctly oriented children of root are our results
     // with subnodes as the holes in each
@@ -103,6 +123,9 @@ pub fn offset_holed_polygon(
             }
         }
     }
-    display!(holed_pockets);
+    module_debug!({
+        println!("final result is:");
+        display!(holed_pockets);
+    });
     holed_pockets
 }

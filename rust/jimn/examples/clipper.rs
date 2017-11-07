@@ -2,8 +2,8 @@
 extern crate jimn;
 use jimn::{Point, Polygon};
 use jimn::utils::coordinates_hash::PointsHash;
-use jimn::tycat::{colored_display, display};
-use jimn::quadrant::{Quadrant, Shape};
+use jimn::quadrant::Shape;
+use jimn::tycat::colored_display;
 use jimn::tile::hexagonal_tile;
 use jimn::clipper::clip;
 use jimn::polygon::build_polygons;

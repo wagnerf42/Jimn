@@ -2,8 +2,7 @@
 extern crate jimn;
 use jimn::polygon::square;
 use jimn::holed_polygon::{build_holed_polygons, HoledPolygon};
-use jimn::quadrant::{Quadrant, Shape};
-use jimn::tycat::{colored_display, display};
+use jimn::tycat::colored_display;
 
 fn main() {
     println!("displaying two holed polygons");

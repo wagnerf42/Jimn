@@ -1,5 +1,9 @@
 bentley ottmann:
 
+    offsetter:
+        take as input an iterator on all polygons (oriented):
+        this way we do not even need holed polygons
+
     overlap : 
 
         two targets:
