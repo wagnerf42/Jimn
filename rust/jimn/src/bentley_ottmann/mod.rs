@@ -64,6 +64,11 @@ impl<
         let get_key = move |index: &PathIndex| closure_generator.borrow().compute_key(index);
         let crossed_paths = Treap::new_with_key_generator(get_key);
 
+        module_debug!({
+            println!("starting new bentley ottmann");
+            display!(unicolor!(paths.iter().map(|p| p.as_ref())));
+        });
+
         let mut cutter = Cutter {
             results: Vec::with_capacity(2 * paths.len()),
             previous_points: repeat(Default::default()).take(paths.len()).collect(),
@@ -211,13 +216,13 @@ impl<
             if cfg!(debug_assertions) {
                 check_keys_validity(crossed_paths, &self.key_generator);
             }
-            module_debug!({
-                println!("bentley ottmann: reaching new y");
-                debug_display(crossed_paths, &self.key_generator);
-            });
             self.start_paths(&starting_paths, crossed_paths);
             self.handle_horizontal_segments(crossed_paths);
             self.events_data.remove(&event_y);
+            module_debug!({
+                println!("bentley ottmann: after reaching new y");
+                debug_display(crossed_paths, &self.key_generator);
+            });
         }
     }
 
@@ -330,6 +335,7 @@ pub fn debug_display<
     let y = key_generator.borrow().current_y.0;
     let current_line = Segment::new(Point::new(x1, y), Point::new(x2, y));
     display!(
+        unicolor!(key_generator.borrow().paths.iter().map(|p| p.as_ref())),
         current_line,
         multicolor!(
             crossed_paths

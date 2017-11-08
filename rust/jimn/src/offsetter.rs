@@ -36,22 +36,15 @@ pub fn inner_paths(
             segment.start,
             radius,
         );
-        let sub_arcs = arc.split_for_unique_y(rounder);
-        if let Some((a1, a2)) = sub_arcs {
-            paths.push(ElementaryPath::Arc(a1));
-            paths.push(ElementaryPath::Arc(a2));
-        } else {
-            paths.push(ElementaryPath::Arc(arc));
-        }
+        paths.extend(arc.split_for_unique_y(rounder));
 
         previous_point = *inner_segment.end();
         paths.push(inner_segment);
     }
     //add last arc
     let last_point = *paths.last().unwrap().end();
-    paths.push(ElementaryPath::Arc(
-        Arc::new(last_point, start_point, start_center, radius),
-    ));
+    let last_arc = Arc::new(last_point, start_point, start_center, radius);
+    paths.extend(last_arc.split_for_unique_y(rounder));
 }
 
 /// Offset given `HoledPolygon` at given distance.

@@ -1,7 +1,7 @@
 //! provides the `Arc` class.
 use std::iter::{empty, once};
 use std::f64::consts::{FRAC_PI_2, PI};
-use {Point, Segment};
+use {ElementaryPath, Point, Segment};
 use quadrant::{Quadrant, Shape};
 use utils::precision::is_almost;
 use utils::coordinates_hash::PointsHash;
@@ -156,18 +156,28 @@ impl Arc {
     /// Split given `Arc` in possible two so that for any given y, each arc
     /// only has one point.
     /// Does not return anything if arc requires no splitting.
-    pub fn split_for_unique_y(&self, rounder: &mut PointsHash) -> Option<(Arc, Arc)> {
+    pub fn split_for_unique_y(&self, rounder: &mut PointsHash) -> Vec<ElementaryPath> {
         for direction in &[1.0f64, -1.0f64] {
             let extremum = self.center + Point::new(0.0, self.radius * *direction);
             if self.strictly_contains(&extremum) {
                 let rounded_extremum = rounder.hash_point(&extremum);
-                return Some((
-                    Arc::new(self.start, rounded_extremum, self.center, self.radius),
-                    Arc::new(rounded_extremum, self.end, self.center, self.radius),
-                ));
+                return vec![
+                    ElementaryPath::Arc(Arc::new(
+                        self.start,
+                        rounded_extremum,
+                        self.center,
+                        self.radius,
+                    )),
+                    ElementaryPath::Arc(Arc::new(
+                        rounded_extremum,
+                        self.end,
+                        self.center,
+                        self.radius,
+                    )),
+                ];
             }
         }
-        None
+        vec![ElementaryPath::Arc(*self)]
     }
 
     /// Iterate on all points obtained when intersecting with given Arc.

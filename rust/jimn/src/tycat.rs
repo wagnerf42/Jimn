@@ -87,6 +87,7 @@ impl ColoredShape for MultiColor {
 macro_rules! unicolor {
     ( $x:expr ) => {
         {
+            #[allow(unused_imports)]
             use $crate::quadrant::Shape;
             use $crate::tycat::UniColor;
             let mut quadrant = Quadrant::new(2);
