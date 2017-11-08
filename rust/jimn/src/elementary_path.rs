@@ -58,6 +58,14 @@ impl ElementaryPath {
         ))
     }
 
+    /// Return length of underlying path.
+    pub fn length(&self) -> f64 {
+        match *self {
+            ElementaryPath::Segment(ref s) => s.length(),
+            ElementaryPath::Arc(ref a) => a.length(),
+        }
+    }
+
     /// Return ref on starting point.
     pub fn start(&self) -> &Point {
         match *self {

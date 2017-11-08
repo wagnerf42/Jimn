@@ -29,7 +29,7 @@ fn raw_double_bits(f: &f64) -> u64 {
         return CANONICAL_ZERO_BITS;
     }
 
-    let exp_u64 = unsafe { mem::transmute::<i16, u16>(exp) } as u64;
+    let exp_u64 = u64::from(unsafe { mem::transmute::<i16, u16>(exp) });
     let sign_u64 = if sign > 0 { 1u64 } else { 0u64 };
     (man & MAN_MASK) | ((exp_u64 << 52) & EXP_MASK) | ((sign_u64 << 63) & SIGN_MASK)
 }

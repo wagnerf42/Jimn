@@ -149,10 +149,12 @@ impl<'a> Polygon {
             .iter()
             .zip(self.points.iter().cycle().skip(1))
             .zip(self.points.iter().cycle().skip(2))
-            .filter_map(|((p1, p2), p3)| if area(p1, p2, p3) < 0.000001 {
-                None
-            } else {
-                Some(*p2)
+            .filter_map(|((p1, p2), p3)| {
+                if area(p1, p2, p3) < 0.000001 {
+                    None
+                } else {
+                    Some(*p2)
+                }
             })
             .collect();
         //now remove aligned points
@@ -160,10 +162,12 @@ impl<'a> Polygon {
             .iter()
             .zip(new_points.iter().cycle().skip(1))
             .zip(new_points.iter().cycle().skip(2))
-            .filter_map(|((p1, p2), p3)| if p1.is_aligned_with(p2, p3) {
-                None
-            } else {
-                Some(*p2)
+            .filter_map(|((p1, p2), p3)| {
+                if p1.is_aligned_with(p2, p3) {
+                    None
+                } else {
+                    Some(*p2)
+                }
             })
             .collect();
         assert!(final_points.len() > 2);

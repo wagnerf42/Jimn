@@ -72,6 +72,16 @@ impl Arc {
             % (2.0 * PI)
     }
 
+    /// Return the arc's length.
+    pub fn length(&self) -> f64 {
+        let angle = self.angle();
+        if angle > PI {
+            ((2.0 * PI) - angle) * self.radius
+        } else {
+            angle * self.radius
+        }
+    }
+
     /// Do we contain given point ?
     pub fn contains(&self, point: &Point) -> bool {
         if self.start.is_almost(point) || self.end.is_almost(point) {
@@ -228,11 +238,9 @@ impl Shape for Arc {
         let mut middle_angle =
             (self.center.angle_with(&self.start) + self.center.angle_with(&self.end)) / 2.0;
         // we need to figure out where is the middle point between two candidates
-        let possible_points = [
-            self.center + Point::new(middle_angle.cos(), middle_angle.sin()) * self.radius,
-            self.center
-                + Point::new((middle_angle + PI).cos(), (middle_angle + PI).sin()) * self.radius,
-        ];
+        let angles = [middle_angle, middle_angle + PI];
+        let possible_points =
+            angles.map(|a| self.center + Point::new(a.cos(), a.sin()) * self.radius);
         let distances = possible_points.map(|p| self.start.distance_to(p));
         let tangent_point = if distances[0] < distances[1] {
             possible_points[0]

@@ -44,30 +44,57 @@ impl<P: Copy + BentleyOttmannPath + Cuttable> Cuttable for ClippingPath<P> {
 /// Return remaining paths from clipper and all smaller paths from clipped.
 /// pre-condition: all endpoints are already hashed in the rounder.
 pub fn clip<
+    'a,
     K: HasX + Ord + Copy,
-    P: Copy + BentleyOttmannPath<BentleyOttmannKey = K> + Cuttable,
+    P: 'a + Copy + BentleyOttmannPath<BentleyOttmannKey = K> + Cuttable,
+    I: IntoIterator<Item = &'a P>,
+    J: IntoIterator<Item = &'a P>,
 >(
-    clipper: &[P],
-    clipped: &[P],
+    clipper: I,
+    clipped: J,
     rounder: &mut PointsHash,
 ) -> (Vec<P>, Vec<P>) {
     let paths: Vec<_> = clipper
-        .iter()
-        .filter(|p| !p.is_horizontal())
+        .into_iter()
         .map(|p| {
             ClippingPath {
                 path: *p,
                 clipping: true,
             }
         })
-        .chain(clipped.iter().map(|p| {
+        .chain(clipped.into_iter().map(|p| {
             ClippingPath {
                 path: *p,
                 clipping: false,
             }
         }))
         .collect();
+    module_debug!({
+        println!("starting clipper on:");
+        display!(
+            unicolor!(paths.iter().filter(|p| p.clipping).map(|p| p.as_ref())),
+            unicolor!(paths.iter().filter(|p| !p.clipping).map(|p| p.as_ref()))
+        );
+    });
     let no_overlap_paths = cut_overlaps(&paths);
+    println!("WARNING: clipper does not work with horizontal segments");
+    module_debug!({
+        println!("after discarding overlapping inside:");
+        display!(
+            unicolor!(
+                no_overlap_paths
+                    .iter()
+                    .filter(|p| p.clipping)
+                    .map(|p| p.as_ref())
+            ),
+            unicolor!(
+                no_overlap_paths
+                    .iter()
+                    .filter(|p| !p.clipping)
+                    .map(|p| p.as_ref())
+            )
+        );
+    });
     let small_paths = bentley_ottmann(&no_overlap_paths, rounder);
     classify_clip_paths(&small_paths)
 }

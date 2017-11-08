@@ -118,7 +118,7 @@ impl Stl {
         thickness: f64,
         hasher: &mut PointsHash,
     ) -> Vec<(f64, Vec<Segment>)> {
-        let mut events = self.generate_cutting_events(thickness.into());
+        let mut events = self.generate_cutting_events(thickness);
         events.sort_by(|a, b| {
             a.height
                 .partial_cmp(&b.height)

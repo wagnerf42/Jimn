@@ -29,4 +29,6 @@ fn main() {
     println!("purple: quarter circle other way {:?}", arcs[3]);
     println!("orange: other quarter circle {:?}", arcs[4]);
     display!(multicolor!(&arcs));
+    let lengths: Vec<_> = arcs.iter().map(|a| a.length()).collect();
+    println!("lengths are: {:?}", lengths);
 }

@@ -1,6 +1,5 @@
 //! Provides a `Graph` structure for path computations.
 use std::collections::{HashMap, HashSet};
-use std::hash::Hash;
 use std::cmp::Ordering;
 use itertools::Itertools;
 
@@ -9,117 +8,71 @@ use std::iter::repeat;
 use disjoint_sets::UnionFind;
 
 
-use {ElementaryPath, Point, Segment};
+use {ElementaryPath, Point, Segment, TaggedPath};
 use utils::ArrayMap;
 use utils::coordinates_hash::SquareHash;
 use quadrant::{Quadrant, Shape};
-
-/// What do we need to be an edge in a graph ?
-pub trait GraphEdge<V: Eq + Hash> {
-    /// we need some ends
-    fn ends(&self) -> [&V; 2];
-    /// we need a length
-    fn length(&self) -> f64;
-}
-
-impl GraphEdge<Point> for ElementaryPath {
-    fn ends(&self) -> [&Point; 2] {
-        [self.start(), self.end()]
-    }
-    fn length(&self) -> f64 {
-        unimplemented!()
-    }
-}
-
-impl GraphEdge<Point> for Segment {
-    fn ends(&self) -> [&Point; 2] {
-        [&self.start, &self.end]
-    }
-    fn length(&self) -> f64 {
-        self.start.distance_to(&self.end)
-    }
-}
-
-/// Vertices can provide shortcuts between them
-pub trait GraphVertex {
-    /// What is the type of the shortcut between two vertices ?
-    type Path: Shape;
-    /// What is the min distance between the two given vertices ?
-    fn distance_to(&self, other: &Self) -> f64;
-    /// What is the shortest path between the two given vertices ?
-    fn shortcut(&self, other: &Self) -> Self::Path;
-}
-
-impl GraphVertex for Point {
-    type Path = Segment;
-    fn distance_to(&self, other: &Self) -> f64 {
-        self.distance_to(other)
-    }
-    fn shortcut(&self, other: &Self) -> Segment {
-        Segment::new(*self, *other)
-    }
-}
 
 type VertexId = usize;
 // I cannot manage to use references (see self referencing structs)
 type EdgeId = usize;
 
 /// a `Graph` edge connecting two vertices
-struct Edge<'a, E: 'a> {
+struct Edge<'a> {
     vertices: [VertexId; 2],
     weight: f64,
-    underlying_object: Option<&'a E>,
+    underlying_object: Option<&'a TaggedPath>,
     id: EdgeId, // needed for turning edge used in heap into a edgeid :-(
                 //TODO: avoid it ?
 }
 
-impl<'a, E: 'a> PartialEq for Edge<'a, E> {
+impl<'a> PartialEq for Edge<'a> {
     fn eq(&self, other: &Self) -> bool {
         self.id.eq(&other.id)
     }
 }
-impl<'a, E: 'a> Eq for Edge<'a, E> {}
-impl<'a, E: 'a> Ord for Edge<'a, E> {
+impl<'a> Eq for Edge<'a> {}
+impl<'a> Ord for Edge<'a> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.weight.partial_cmp(&other.weight).unwrap().reverse() // because of max heap
     }
 }
-impl<'a, E: 'a> PartialOrd for Edge<'a, E> {
+impl<'a> PartialOrd for Edge<'a> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.weight.partial_cmp(&other.weight).map(|o| o.reverse())
     }
 }
 
 /// a `Graph` vertex
-struct Vertex<'a, V: 'a> {
+struct Vertex<'a> {
     neighbours: Vec<EdgeId>,
-    underlying_object: &'a V,
+    underlying_object: &'a Point,
 }
 
-impl<'a, V: 'a> Vertex<'a, V> {
+impl<'a> Vertex<'a> {
     fn of_odd_degree(&self) -> bool {
         self.neighbours.len() % 2 == 1
     }
 }
 
 /// Graph structure with fast loops on neighbours
-pub struct Graph<'a, V: 'a + GraphVertex, E: 'a> {
-    vertices: Vec<Vertex<'a, V>>,
-    edges: Vec<Edge<'a, E>>,
+pub struct Graph<'a> {
+    vertices: Vec<Vertex<'a>>,
+    edges: Vec<Edge<'a>>,
 }
 
 
-impl<'a, V: Eq + Hash + GraphVertex, E: GraphEdge<V>> Graph<'a, V, E> {
+impl<'a> Graph<'a> {
     /// Create a new graph out of given paths.
     /// Assumes there is only one path between any two vertices.
-    pub fn new<I: IntoIterator<Item = &'a E>>(paths: I) -> Self {
+    pub fn new<I: IntoIterator<Item = &'a TaggedPath>>(paths: I) -> Self {
         let mut graph = Graph {
             vertices: Vec::new(),
             edges: Vec::new(),
         };
 
         let mut all_ends = HashMap::new();
-        for path in paths.into_iter() {
+        for path in paths {
             let length = path.length();
             let ends = path.ends();
             let ids = ends.map(|&e| {
@@ -148,15 +101,13 @@ impl<'a, V: Eq + Hash + GraphVertex, E: GraphEdge<V>> Graph<'a, V, E> {
         }
         graph
     }
-}
 
-impl<'a, V: GraphVertex<Path = E>, E: Clone + Shape> Graph<'a, V, E> {
     /// Return a spanning tree of minimal weight in O(|E|log(|E|)).
     /// This is the first step of christofides algorithm for tsp approx.
     pub fn min_spanning_tree(&self) -> Vec<EdgeId> {
         let mut seen_vertices: Vec<_> = repeat(false).take(self.vertices.len()).collect();
         seen_vertices[0] = true;
-        let mut remaining_edges: BinaryHeap<&Edge<'a, E>> = self.vertices[0]
+        let mut remaining_edges: BinaryHeap<&Edge<'a>> = self.vertices[0]
             .neighbours
             .iter()
             .map(|i| &self.edges[*i])
@@ -190,7 +141,7 @@ impl<'a, V: GraphVertex<Path = E>, E: Clone + Shape> Graph<'a, V, E> {
     /// Return eulerian cycle of real underlying paths.
     /// Pre-condition: all vertices are of even degrees.
     /// Cost is in O(n+m*degree).
-    pub fn eulerian_cycle(&self) -> Vec<E> {
+    pub fn eulerian_cycle(&self) -> Vec<TaggedPath> {
         if cfg!(debug_assertions) {
             for vertex in &self.vertices {
                 assert!(!vertex.of_odd_degree());
@@ -268,7 +219,7 @@ impl<'a, V: GraphVertex<Path = E>, E: Clone + Shape> Graph<'a, V, E> {
         first_vertex: VertexId,
         cycle: &[EdgeId],
         cycles: &mut HashMap<VertexId, Vec<EdgeId>>,
-        paths: &mut Vec<E>,
+        paths: &mut Vec<TaggedPath>,
     ) {
         let mut current_vertex = first_vertex;
         for next_edge in cycle {
@@ -286,20 +237,18 @@ impl<'a, V: GraphVertex<Path = E>, E: Clone + Shape> Graph<'a, V, E> {
         }
     }
 
-    fn real_path_for(&self, edge: EdgeId) -> E {
+    fn real_path_for(&self, edge: EdgeId) -> TaggedPath {
         self.edges[edge]
             .underlying_object
             .cloned()
             .unwrap_or_else(|| {
-                self.vertices[self.edges[edge].vertices[0]]
-                    .underlying_object
-                    .shortcut(self.vertices[self.edges[edge].vertices[1]].underlying_object)
+                TaggedPath::Move(ElementaryPath::Segment(Segment::new(
+                    *self.vertices[self.edges[edge].vertices[0]].underlying_object,
+                    *self.vertices[self.edges[edge].vertices[1]].underlying_object,
+                )))
             })
     }
-}
 
-
-impl<'a, V: GraphVertex, E> Graph<'a, V, E> {
     /// Add new edges (matching) until all vertices are of even degree.
     /// We just greedily add smallest edges from complete graph.
     /// Cost is n^2 log n.
@@ -340,12 +289,10 @@ impl<'a, V: GraphVertex, E> Graph<'a, V, E> {
         }
         total_added_weight
     }
-}
 
-impl<'a, V: GraphVertex + Shape, E: Shape> Graph<'a, V, E> {
     /// Display self and given edges on terminal.
     pub fn edges_tycat(&self, edges: &[EdgeId]) {
-        let real_edges: Vec<&E> = edges
+        let real_edges: Vec<&TaggedPath> = edges
             .iter()
             .filter_map(|&i| self.edges[i].underlying_object)
             .collect();
@@ -353,49 +300,13 @@ impl<'a, V: GraphVertex + Shape, E: Shape> Graph<'a, V, E> {
     }
     /// Display self and given vertices on terminal.
     pub fn vertices_tycat(&self, vertices: &[VertexId]) {
-        let real_vertices: Vec<&V> = vertices
+        let real_vertices: Vec<&Point> = vertices
             .iter()
             .map(|&i| self.vertices[i].underlying_object)
             .collect();
         display!(self, unicolor!(&real_vertices))
     }
-}
 
-impl<'a, V: Shape + GraphVertex, E: Shape> Shape for Graph<'a, V, E> {
-    fn get_quadrant(&self) -> Quadrant {
-        let mut quadrant = Quadrant::new(2);
-        for object in self.edges.iter().filter_map(|e| e.underlying_object) {
-            quadrant.update(&object.get_quadrant());
-        }
-        quadrant
-    }
-
-    fn svg_string(&self) -> String {
-        self.edges
-            .iter()
-            .map(|e| {
-                e.underlying_object
-                    .map(|o| o.svg_string())
-                    .unwrap_or_else(|| {
-                        self.vertices[e.vertices[0]]
-                            .underlying_object
-                            .shortcut(self.vertices[e.vertices[1]].underlying_object)
-                            .svg_string()
-                    })
-            })
-            .chain(
-                self.vertices
-                    .iter()
-                    .map(|v| v.underlying_object.svg_string()),
-            )
-            .collect()
-    }
-}
-
-// even degrees and connect graphs in very fast asymptotic time.
-
-
-impl<'a, E> Graph<'a, Point, E> {
     /// Return groups of nearby vertices starting with very near groups.
     /// groups grow larger and larger until last group containing all vertices.
     pub fn nearby_vertices(&self) -> Vec<Vec<VertexId>> {
@@ -444,7 +355,7 @@ impl<'a, E> Graph<'a, Point, E> {
                         odd_vertices_number -= 2;
                         let id = self.edges.len();
                         let distance = {
-                            let v: &Vertex<Point> = &self.vertices[start];
+                            let v: &Vertex = &self.vertices[start];
                             let p: &Point = v.underlying_object;
                             p.distance_to(self.vertices[end].underlying_object)
                         };
@@ -493,7 +404,7 @@ impl<'a, E> Graph<'a, Point, E> {
 
                 let id = self.edges.len();
                 let distance = {
-                    let v: &Vertex<Point> = &self.vertices[start];
+                    let v: &Vertex = &self.vertices[start];
                     let p: &Point = v.underlying_object;
                     p.distance_to(self.vertices[end].underlying_object)
                 };
@@ -513,6 +424,30 @@ impl<'a, E> Graph<'a, Point, E> {
             }
         }
         panic!("cannot reconnect graph");
+    }
+}
+
+
+
+impl<'a> Shape for Graph<'a> {
+    fn get_quadrant(&self) -> Quadrant {
+        let mut quadrant = Quadrant::new(2);
+        for object in self.edges.iter().filter_map(|e| e.underlying_object) {
+            quadrant.update(&object.get_quadrant());
+        }
+        quadrant
+    }
+
+    fn svg_string(&self) -> String {
+        self.edges
+            .iter()
+            .map(|e| self.real_path_for(e.id).svg_string())
+//            .chain(
+//                self.vertices
+//                    .iter()
+//                    .map(|v| v.underlying_object.svg_string()),
+//            )
+            .collect()
     }
 }
 
@@ -543,7 +478,16 @@ mod tests {
             let hexagons_segments = hexagons.tile(&triangle.get_quadrant(), &mut rounder);
             let clipping_segments: Vec<_> = triangle.segments().collect();
             let (inside, outside) = clip(&clipping_segments, &hexagons_segments, &mut rounder);
-            let mut g = Graph::new(inside.iter().chain(outside.iter()));
+            let paths: Vec<_> = inside
+                .into_iter()
+                .map(|i| TaggedPath::Fill(ElementaryPath::Segment(i)))
+                .chain(
+                    outside
+                        .into_iter()
+                        .map(|o| TaggedPath::Shell(ElementaryPath::Segment(o))),
+                )
+                .collect();
+            let mut g = Graph::new(&paths);
             g.even_degrees();
         });
     }
@@ -565,7 +509,16 @@ mod tests {
             let hexagons_segments = hexagons.tile(&triangle.get_quadrant(), &mut rounder);
             let clipping_segments: Vec<_> = triangle.segments().collect();
             let (inside, outside) = clip(&clipping_segments, &hexagons_segments, &mut rounder);
-            let mut g = Graph::new(inside.iter().chain(outside.iter()));
+            let paths: Vec<_> = inside
+                .into_iter()
+                .map(|i| TaggedPath::Fill(ElementaryPath::Segment(i)))
+                .chain(
+                    outside
+                        .into_iter()
+                        .map(|o| TaggedPath::Shell(ElementaryPath::Segment(o))),
+                )
+                .collect();
+            let mut g = Graph::new(&paths);
             let nearby_vertices = g.nearby_vertices();
             g.fast_even_degrees(&nearby_vertices);
         });

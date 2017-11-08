@@ -35,13 +35,13 @@ impl Pocket {
         let tiling_segments = tile.tile(&self.get_quadrant(), rounder);
         let tiling_paths: Vec<ElementaryPath> = tiling_segments
             .into_iter()
-            .map(|s| ElementaryPath::Segment(s))
+            .map(ElementaryPath::Segment)
             .collect();
         let (inside, edge) = clip(&self.edge, &tiling_paths, rounder);
         inside
             .into_iter()
-            .map(|p| TaggedPath::Fill(p))
-            .chain(edge.into_iter().map(|p| TaggedPath::Shell(p)))
+            .map(TaggedPath::Fill)
+            .chain(edge.into_iter().map(TaggedPath::Shell))
             .collect()
     }
 

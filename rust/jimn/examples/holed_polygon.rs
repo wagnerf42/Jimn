@@ -20,7 +20,7 @@ fn main() {
         square(3.0, 3.0, 1.0),
         square(7.5, 3.0, 2.0),
     ];
-    display!(multicolor!(polygons.iter()));
+    display!(multicolor!(&polygons));
     let holed_polygons = build_holed_polygons(polygons);
-    display!(multicolor!(holed_polygons.iter()));
+    display!(multicolor!(&holed_polygons));
 }

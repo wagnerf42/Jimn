@@ -6,10 +6,14 @@ use pocket::Pocket;
 
 type PathIndex = usize;
 type Angle = f64;
+// for each point we associate to each of its path (identified by its index in paths vector)
+// the outgoing angles (tangent and towards destination) and a +1/-1 to identify if leaving or not.
+struct PathData(PathIndex, (Angle, Angle), i8);
 
 /// Return couple of angles estimating where we go / come from.
 /// Allows for ordering of connected paths.
 fn angles(path: &ElementaryPath, point: &Point) -> (Angle, Angle) {
+    // TODO: factorize with somewhere else ?
     let final_angle = point.angle_with(path.other_endpoint(point));
     match *path {
         ElementaryPath::Segment(_) => (final_angle, final_angle),
@@ -32,16 +36,16 @@ pub fn build_pockets(paths: &[ElementaryPath]) -> Vec<Pocket> {
         points
             .entry(path.start())
             .or_insert_with(Vec::new)
-            .push((path_index, angles(path, path.start()), 1));
+            .push(PathData(path_index, angles(path, path.start()), 1));
         points
             .entry(path.end())
             .or_insert_with(Vec::new)
-            .push((path_index, angles(path, path.end()), -1));
+            .push(PathData(path_index, angles(path, path.end()), -1));
         remaining_paths.insert(path_index);
     }
 
     for neighbours in points.values_mut() {
-        neighbours.sort_by(|&(_, b, _), &(_, a, _)| {
+        neighbours.sort_by(|&PathData(_, ref b, _), &PathData(_, ref a, _)| {
             a.0
                 .partial_cmp(&b.0)
                 .unwrap()
@@ -66,7 +70,7 @@ pub fn build_pockets(paths: &[ElementaryPath]) -> Vec<Pocket> {
 fn build_pocket(
     start_path_index: PathIndex,
     paths: &[ElementaryPath],
-    points: &HashMap<&Point, Vec<(PathIndex, (Angle, Angle), i8)>>,
+    points: &HashMap<&Point, Vec<PathData>>,
     remaining_paths: &mut HashSet<PathIndex>,
 ) -> Option<Pocket> {
     let mut current_path_index = start_path_index;
@@ -82,14 +86,11 @@ fn build_pocket(
 }
 
 /// Return where to go next when arriving from given path.
-fn find_next_path(
-    neighbours: &[(PathIndex, (Angle, Angle), i8)],
-    current_path: &ElementaryPath,
-) -> PathIndex {
+fn find_next_path(neighbours: &[PathData], current_path: &ElementaryPath) -> PathIndex {
     let incoming_angles = angles(current_path, current_path.end());
     // first figure out where we arrive
     let incoming_index = neighbours
-        .binary_search_by(|&(_, a, _)| {
+        .binary_search_by(|&PathData(_, ref a, _)| {
             incoming_angles
                 .0
                 .partial_cmp(&a.0)
@@ -100,7 +101,7 @@ fn find_next_path(
     // now, rotate through neighbours until we find a leaving neighbouring path which is not
     // compensated by an incoming one.
     let mut count = 0;
-    for &(index, _, path_type) in neighbours[(incoming_index + 1)..]
+    for &PathData(index, _, path_type) in neighbours[(incoming_index + 1)..]
         .iter()
         .chain(neighbours[..incoming_index].iter())
     {

@@ -92,7 +92,7 @@ macro_rules! unicolor {
             use $crate::tycat::UniColor;
             let mut quadrant = Quadrant::new(2);
             let mut string = String::new();
-            for shape in $x.into_iter() {
+            for shape in $x {
                 quadrant.add(shape);
                 string += &shape.svg_string();
             }
@@ -112,7 +112,7 @@ macro_rules! multicolor {
             use $crate::tycat::MultiColor;
             let mut quadrant = Quadrant::new(2);
             let mut strings = Vec::new();
-            for shape in $x.into_iter() {
+            for shape in $x {
                 quadrant.add(shape);
                 strings.push(shape.svg_string());
             }
@@ -124,7 +124,7 @@ macro_rules! multicolor {
 static FILE_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
 
 /// Common colors
-pub const SVG_COLORS: [&'static str; 35] = [
+pub const SVG_COLORS: [&str; 35] = [
     "red",
     "green",
     "blue",
@@ -165,7 +165,7 @@ pub const SVG_COLORS: [&'static str; 35] = [
 /// tycat given svg strings bounded by given quadrant.
 pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
     let file_number = FILE_COUNT.fetch_add(1, Ordering::SeqCst);
-    let filename = format!("/tmp/test-{}.svg", file_number);
+    let filename = format!("/tmp/test-{:04}.svg", file_number);
     println!("[{}]", file_number);
     let mut svg_file = File::create(&filename)?;
 

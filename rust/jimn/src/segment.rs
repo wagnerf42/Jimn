@@ -35,6 +35,11 @@ impl Segment {
         }
     }
 
+    /// Returns the segment's length.
+    pub fn length(&self) -> f64 {
+        self.start.distance_to(&self.end)
+    }
+
     /// Returns reversed self.
     pub fn reverse(&self) -> Segment {
         Segment {
@@ -76,12 +81,10 @@ impl Segment {
         let raw_angle = self.start.angle_with(&self.end);
         if raw_angle < 0.0 {
             raw_angle + PI
+        } else if raw_angle == PI {
+            0.0
         } else {
-            if raw_angle == PI {
-                0.0
-            } else {
-                raw_angle
-            }
+            raw_angle
         }
     }
 

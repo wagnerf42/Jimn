@@ -1,5 +1,6 @@
 //! Holed Pockets.
-use {Pocket, Quadrant};
+use std::iter::once;
+use {ElementaryPath, Pocket, Quadrant};
 use quadrant::Shape;
 
 #[derive(Debug)]
@@ -19,6 +20,12 @@ impl HoledPocket {
     /// Add given hole to pocket.
     pub fn add_hole(&mut self, hole: Pocket) {
         self.holes.push(hole);
+    }
+    /// Iterate on all paths (including holes)
+    pub fn paths<'a>(&'a self) -> impl Iterator<Item = &ElementaryPath> + 'a {
+        once(&self.pocket)
+            .chain(self.holes.iter())
+            .flat_map(|h| h.edge.iter())
     }
 }
 

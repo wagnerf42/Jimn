@@ -19,7 +19,6 @@ pub fn inner_paths(
     paths: &mut Vec<ElementaryPath>,
     rounder: &mut PointsHash,
 ) {
-    let radius = radius.into();
     let mut segments = polygon.segments();
     let first_segment = segments.next().unwrap();
     let first_inner_segment =
@@ -47,14 +46,11 @@ pub fn inner_paths(
     paths.extend(last_arc.split_for_unique_y(rounder));
 }
 
-/// Offset given `HoledPolygon` at given distance.
-/// Return a vector of `HoledPocket`.
-pub fn offset_holed_polygon(
+fn build_offsetted_paths(
     holed_polygon: &HoledPolygon,
     radius: f64,
     rounder: &mut PointsHash,
-) -> Vec<HoledPocket> {
-    //TODO: take as input a vec of polygons to do all classify in one sweep
+) -> Vec<ElementaryPath> {
     let mut raw_paths = Vec::new();
     // take some segments parallel to holed poly, on the inside (joined with arcs)
     module_debug!({
@@ -80,6 +76,18 @@ pub fn offset_holed_polygon(
         println!("after computing all intersections:");
         display!(holed_polygon, unicolor!(&small_paths));
     });
+    small_paths
+}
+
+/// Offset given `HoledPolygon` at given distance.
+/// Return a vector of `HoledPocket`.
+pub fn offset_holed_polygon(
+    holed_polygon: &HoledPolygon,
+    radius: f64,
+    rounder: &mut PointsHash,
+) -> Vec<HoledPocket> {
+    //TODO: take as input a vec of polygons to do all classify in one sweep
+    let small_paths = build_offsetted_paths(holed_polygon, radius, rounder);
 
     // build a set of small pockets
     let pockets = build_pockets(&small_paths);

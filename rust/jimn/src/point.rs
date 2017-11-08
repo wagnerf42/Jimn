@@ -24,6 +24,7 @@ pub struct Point {
     pub y: f64,
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(derive_hash_xor_eq))]
 impl Hash for Point {
     fn hash<H: Hasher>(&self, state: &mut H) {
         hash_float(&self.x, state);

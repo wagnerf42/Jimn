@@ -19,6 +19,7 @@
 #![feature(specialization, core_intrinsics)]
 // allow easy returning of iterators
 #![deny(missing_docs)]
+#![cfg_attr(feature = "cargo-clippy", allow(float_cmp))]
 
 extern crate byteorder;
 extern crate disjoint_sets;

@@ -29,7 +29,7 @@ pub fn classify_clip_paths<
     let (events, horizontal_paths) = create_events(paths);
     run_events(
         &events,
-        generator,
+        &generator,
         &mut crossed_clip_paths,
         &horizontal_paths,
     )
@@ -37,21 +37,16 @@ pub fn classify_clip_paths<
 
 fn run_events<K: Ord + HasX + Copy, P: Copy + BentleyOttmannPath<BentleyOttmannKey = K>>(
     events: &[ClassifyEvent],
-    generator: Generator<K, P>,
+    generator: &Generator<K, P>,
     crossed_clip_paths: &mut CTreap<K, PathIndex>,
     horizontal_paths: &HashMap<YCoordinate, Vec<PathIndex>>,
 ) -> (Vec<P>, Vec<P>) {
     let mut clipped_paths = Vec::new();
     let mut clipping_paths = Vec::new();
     for event in events {
-        end_paths(
-            &event.2,
-            &generator,
-            crossed_clip_paths,
-            &mut clipping_paths,
-        );
+        end_paths(&event.2, generator, crossed_clip_paths, &mut clipping_paths);
         generator.borrow_mut().current_y = event.0;
-        start_paths(&event.1, &generator, crossed_clip_paths, &mut clipped_paths);
+        start_paths(&event.1, generator, crossed_clip_paths, &mut clipped_paths);
         // handle horizontal segments
         if let Some(paths) = horizontal_paths.get(&event.0) {
             for path_index in paths {

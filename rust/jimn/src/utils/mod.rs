@@ -15,7 +15,7 @@ pub trait Identifiable {
 }
 
 /// We can now map on arrays (of small sizes)
-/// see: https://llogiq.github.io/2016/04/28/arraymap.html
+/// see: <https://llogiq.github.io/2016/04/28/arraymap.html>
 pub trait ArrayMap<X, Y, T> {
     /// Apply given function to all elements of array self to get a results array.
     fn map<F: FnMut(&X) -> Y>(&self, f: F) -> T;
