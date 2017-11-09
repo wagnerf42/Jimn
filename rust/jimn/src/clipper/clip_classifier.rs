@@ -50,16 +50,21 @@ fn run_events<K: Ord + HasX + Copy, P: Copy + BentleyOttmannPath<BentleyOttmannK
         // handle horizontal segments
         if let Some(paths) = horizontal_paths.get(&event.0) {
             for path_index in paths {
-                let big_point = generator.borrow().paths[*path_index]
-                    .as_ref()
-                    .ordered_points()
-                    .0;
-                let big_key = K::min_key(big_point.x); // min because excluded from bound
-                if crossed_clip_paths
-                    .ordered_nodes((Excluded(big_key), Unbounded))
-                    .count() % 2 == 1
-                {
-                    clipped_paths.push(generator.borrow().paths[*path_index].path);
+                if generator.borrow().paths[*path_index].clipping {
+                    // we automatically keep clipping paths
+                    clipping_paths.push(generator.borrow().paths[*path_index].path);
+                } else {
+                    let big_point = generator.borrow().paths[*path_index]
+                        .as_ref()
+                        .ordered_points()
+                        .0;
+                    let big_key = K::min_key(big_point.x); // min because excluded from bound
+                    if crossed_clip_paths
+                        .ordered_nodes((Excluded(big_key), Unbounded))
+                        .count() % 2 == 1
+                    {
+                        clipped_paths.push(generator.borrow().paths[*path_index].path);
+                    }
                 }
             }
         }

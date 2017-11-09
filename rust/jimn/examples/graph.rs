@@ -20,22 +20,19 @@ fn main() {
             rounder.hash_point(&Point::new(0.0, 0.0)),
         ],
         vec![
-            rounder.hash_point(&Point::new(1.0, 2.0)),
-            //rounder.hash_point(&Point::new(1.0, 1.0)),
+            rounder.hash_point(&Point::new(1.0, 1.0)),
             rounder.hash_point(&Point::new(3.0, 1.0)),
             rounder.hash_point(&Point::new(5.0, 5.0)),
         ],
         vec![
-            //rounder.hash_point(&Point::new(-1.0, 3.0)),
-            rounder.hash_point(&Point::new(-1.0, 4.0)),
+            rounder.hash_point(&Point::new(-1.0, 3.0)),
             rounder.hash_point(&Point::new(2.0, 3.0)),
             rounder.hash_point(&Point::new(1.0, 8.0)),
         ],
         vec![
             rounder.hash_point(&Point::new(5.0, 2.0)),
             rounder.hash_point(&Point::new(5.0, 1.0)),
-            //rounder.hash_point(&Point::new(7.0, 2.0)),
-            rounder.hash_point(&Point::new(7.0, 1.5)),
+            rounder.hash_point(&Point::new(7.0, 2.0)),
         ],
 // This creates a rounding bug in angles in BO
 //        vec![

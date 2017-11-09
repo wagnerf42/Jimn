@@ -408,7 +408,7 @@ impl<'a, K: Ord + HasX + Copy, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: 
 }
 
 /// A path is `Cuttable` if you can cut it into subpaths at given points.
-pub trait Cuttable {
+pub trait Cuttable: Sized {
     /// Cut path at all given points.
     fn cut<'a, I: 'a + IntoIterator<Item = &'a Point>>(&self, points: I) -> Vec<Self>
     where
@@ -417,6 +417,10 @@ pub trait Cuttable {
     /// Does not change points order.
     /// Prerequisite: p1 > p2
     fn new_from(&self, p1: &Point, p2: &Point) -> Self;
+    /// keep it or not ?
+    fn keep(&self) -> bool {
+        false
+    }
 }
 
 impl Cuttable for Segment {

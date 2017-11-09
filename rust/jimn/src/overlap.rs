@@ -6,20 +6,22 @@ use utils::coordinates_hash::PointsHash;
 use bentley_ottmann::{BentleyOttmannPath, Cuttable, PathIndex};
 
 trait OverlapBehavior {
-    fn do_something() -> bool;
+    fn limit() -> usize;
 }
 
 struct KeepOverlap();
 impl OverlapBehavior for KeepOverlap {
-    fn do_something() -> bool {
-        true
+    fn limit() -> usize {
+        // we keep all even when 2 overlap
+        2
     }
 }
 
 struct DiscardOverlap();
 impl OverlapBehavior for DiscardOverlap {
-    fn do_something() -> bool {
-        false
+    fn limit() -> usize {
+        // we keep only when no more than one overlap
+        1
     }
 }
 
@@ -82,38 +84,28 @@ fn play_line_events<O: OverlapBehavior, P: BentleyOttmannPath, T: AsRef<P> + Cut
 ) {
     let mut sorted_points: Vec<&Point> = events.keys().collect();
     sorted_points.sort();
-    let mut entry_point: Option<&Point> = None; // start of segment being built
-    let mut alive_paths: Vec<PathIndex> = Vec::with_capacity(2);
+    let mut points = sorted_points.into_iter();
+    let mut previous_point = points.next().unwrap();
+    let mut alive_paths = events[&previous_point].0.clone();
 
-    for point in sorted_points {
-        let ending_points = &events[point].1;
-        for ending_path in ending_points {
-            if alive_paths.len() - ending_points.len() != 1 || O::do_something() {
-                if let Some(previous_point) = entry_point {
-                    results.push(paths[*ending_path].new_from(point, previous_point));
-                }
-            }
-            let index = alive_paths.iter().position(|p| p.eq(ending_path)).unwrap();
-            alive_paths.remove(index);
-        }
-        entry_point = if alive_paths.len() == 1 {
-            Some(point)
-        } else {
-            None
-        };
-        let starting_paths = &events[point].0;
-        if !starting_paths.is_empty() {
-            if let Some(previous_point) = entry_point {
-                for alive_path in &alive_paths {
+    for point in points {
+        if alive_paths.len() <= O::limit() {
+            for alive_path in &alive_paths {
+                if alive_paths.len() < 2 || paths[*alive_path].keep() {
                     results.push(paths[*alive_path].new_from(point, previous_point));
                 }
             }
         }
+
+        let ending_paths = &events[point].1;
+        for ending_path in ending_paths {
+            let index = alive_paths.iter().position(|p| p.eq(ending_path)).unwrap();
+            alive_paths.remove(index);
+        }
+        previous_point = point;
+        let starting_paths = &events[point].0;
         for starting_path in starting_paths {
             alive_paths.push(*starting_path);
-        }
-        if alive_paths.len() == 1 || (alive_paths.len() == 2 && O::do_something()) {
-            entry_point = Some(point);
         }
     }
 }

@@ -392,6 +392,9 @@ impl<'a> Graph<'a> {
                 remaining_parts -= 1;
             }
         }
+        if remaining_parts == 1 {
+            return total_added_weight;
+        }
         for group in nearby_vertices.iter().rev() {
             let map: HashMap<_, _> = group
                 .iter()

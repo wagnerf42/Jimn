@@ -38,6 +38,9 @@ impl<P: Copy + BentleyOttmannPath + Cuttable> Cuttable for ClippingPath<P> {
             clipping: self.clipping,
         }
     }
+    fn keep(&self) -> bool {
+        self.clipping
+    }
 }
 
 /// Clip *clipped* paths inside *clipper* paths.
@@ -77,7 +80,6 @@ pub fn clip<
         );
     });
     let no_overlap_paths = cut_overlaps(&paths);
-    println!("WARNING: clipper does not work with horizontal segments");
     module_debug!({
         println!("after discarding overlapping inside:");
         display!(
@@ -96,5 +98,22 @@ pub fn clip<
         );
     });
     let small_paths = bentley_ottmann(&no_overlap_paths, rounder);
+    module_debug!({
+        println!("after cutting into small paths:");
+        display!(
+            unicolor!(
+                small_paths
+                    .iter()
+                    .filter(|p| p.clipping)
+                    .map(|p| p.as_ref())
+            ),
+            unicolor!(
+                small_paths
+                    .iter()
+                    .filter(|p| !p.clipping)
+                    .map(|p| p.as_ref())
+            )
+        );
+    });
     classify_clip_paths(&small_paths)
 }
