@@ -38,13 +38,10 @@ impl<P: Copy + BentleyOttmannPath + Cuttable> Cuttable for ClippingPath<P> {
             clipping: self.clipping,
         }
     }
-    fn keep(&self) -> bool {
-        self.clipping
-    }
 }
 
 /// Clip *clipped* paths inside *clipper* paths.
-/// Return remaining paths from clipper and all smaller paths from clipped.
+/// Return all paths from clipper and smaller non overlapping paths from clipped.
 /// pre-condition: all endpoints are already hashed in the rounder.
 pub fn clip<
     'a,
@@ -57,6 +54,7 @@ pub fn clip<
     clipped: J,
     rounder: &mut PointsHash,
 ) -> (Vec<P>, Vec<P>) {
+    // it is very important to add clipped paths first since they stay in case of overlap
     let paths: Vec<_> = clipper
         .into_iter()
         .map(|p| {

@@ -5,47 +5,67 @@ use point::Point;
 use utils::coordinates_hash::PointsHash;
 use bentley_ottmann::{BentleyOttmannPath, Cuttable, PathIndex};
 
-trait OverlapBehavior {
-    fn limit() -> usize;
-}
-
-struct KeepOverlap();
-impl OverlapBehavior for KeepOverlap {
-    fn limit() -> usize {
-        // we keep all even when 2 overlap
-        2
+fn keep_first_overlapping_path<P: BentleyOttmannPath, T: AsRef<P> + Cuttable + Copy>(
+    paths: &[T],
+    alive_paths: &[PathIndex],
+    results: &mut Vec<T>,
+    point: &Point,
+    previous_point: &Point,
+) {
+    for alive_path in alive_paths.iter().take(1) {
+        results.push(paths[*alive_path].new_from(point, previous_point));
     }
 }
 
-struct DiscardOverlap();
-impl OverlapBehavior for DiscardOverlap {
-    fn limit() -> usize {
-        // we keep only when no more than one overlap
-        1
+fn keep_overlapping_paths<P: BentleyOttmannPath, T: AsRef<P> + Cuttable + Copy>(
+    paths: &[T],
+    alive_paths: &[PathIndex],
+    results: &mut Vec<T>,
+    point: &Point,
+    previous_point: &Point,
+) {
+    for alive_path in alive_paths {
+        results.push(paths[*alive_path].new_from(point, previous_point));
     }
 }
+
+fn discard_overlapping_paths<P: BentleyOttmannPath, T: AsRef<P> + Cuttable + Copy>(
+    paths: &[T],
+    alive_paths: &[PathIndex],
+    results: &mut Vec<T>,
+    point: &Point,
+    previous_point: &Point,
+) {
+    if alive_paths.len() < 2 {
+        for alive_path in alive_paths {
+            results.push(paths[*alive_path].new_from(point, previous_point));
+        }
+    }
+}
+
 
 /// Remove overlap in all segments.
 /// pre-condition : no more than 2 segments can overlap.
 pub fn remove_overlaps<P: BentleyOttmannPath, T: AsRef<P> + Cuttable + Copy>(
     paths: &[T],
 ) -> Vec<T> {
-    handle_overlaps::<DiscardOverlap, P, T>(paths)
+    handle_overlaps(paths, &discard_overlapping_paths)
 }
 
 /// Cut overlapping parts in all segments.
 /// pre-condition : no more than 2 segments can overlap.
 pub fn cut_overlaps<P: BentleyOttmannPath, T: AsRef<P> + Cuttable + Copy>(paths: &[T]) -> Vec<T> {
-    handle_overlaps::<KeepOverlap, P, T>(paths)
+    handle_overlaps(paths, &keep_first_overlapping_path)
 }
 
 /// Take some paths segments and remove all overlapping parts on segments.
-fn handle_overlaps<O: OverlapBehavior, P: BentleyOttmannPath, T: AsRef<P> + Cuttable + Copy>(
+fn handle_overlaps<P: BentleyOttmannPath, T: AsRef<P> + Cuttable + Copy>(
     paths: &[T],
+    cut_paths: &Fn(&[T], &[PathIndex], &mut Vec<T>, &Point, &Point),
 ) -> Vec<T> {
     // Hash each point as starting or ending point on the line going through the segment.
     // We use line keys that we need to round to decrease the chance of precision problems.
-    let mut key_hash = PointsHash::new(6);
+    let mut key_hash = PointsHash::new(5);
     let mut events = HashMap::new();
     let mut remaining_paths: Vec<T> = Vec::with_capacity(paths.len());
 
@@ -72,15 +92,16 @@ fn handle_overlaps<O: OverlapBehavior, P: BentleyOttmannPath, T: AsRef<P> + Cutt
     }
 
     for line_events in events.values() {
-        play_line_events::<O, P, T>(line_events, paths, &mut remaining_paths);
+        play_line_events(line_events, paths, &mut remaining_paths, cut_paths);
     }
     remaining_paths
 }
 
-fn play_line_events<O: OverlapBehavior, P: BentleyOttmannPath, T: AsRef<P> + Cuttable>(
+fn play_line_events<P: BentleyOttmannPath, T: AsRef<P> + Cuttable>(
     events: &HashMap<Point, (Vec<PathIndex>, Vec<PathIndex>)>,
     paths: &[T],
     results: &mut Vec<T>,
+    cut_paths: &Fn(&[T], &[PathIndex], &mut Vec<T>, &Point, &Point),
 ) {
     let mut sorted_points: Vec<&Point> = events.keys().collect();
     sorted_points.sort();
@@ -89,13 +110,7 @@ fn play_line_events<O: OverlapBehavior, P: BentleyOttmannPath, T: AsRef<P> + Cut
     let mut alive_paths = events[&previous_point].0.clone();
 
     for point in points {
-        if alive_paths.len() <= O::limit() {
-            for alive_path in &alive_paths {
-                if alive_paths.len() < 2 || paths[*alive_path].keep() {
-                    results.push(paths[*alive_path].new_from(point, previous_point));
-                }
-            }
-        }
+        cut_paths(paths, &alive_paths, results, &point, &previous_point);
 
         let ending_paths = &events[point].1;
         for ending_path in ending_paths {

@@ -417,10 +417,6 @@ pub trait Cuttable: Sized {
     /// Does not change points order.
     /// Prerequisite: p1 > p2
     fn new_from(&self, p1: &Point, p2: &Point) -> Self;
-    /// keep it or not ?
-    fn keep(&self) -> bool {
-        false
-    }
 }
 
 impl Cuttable for Segment {

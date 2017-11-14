@@ -207,6 +207,7 @@ pub fn display(quadrant: &Quadrant, svg_strings: &[String]) -> io::Result<()> {
     )?;
     write!(
         svg_file,
+        //"<symbol id=\"a\"></symbol>\n", // this removes segments orientation
         "<symbol id=\"a\"><line x1=\"{}\" y1=\"{}\" x2=\"0.0\" y2=\"0.0\"/>\
          <line x1=\"{}\" y1=\"{}\" x2=\"0.0\" y2=\"0.0\"/></symbol>\n",
         -3.0 * stroke,
