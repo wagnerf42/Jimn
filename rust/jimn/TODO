@@ -1,3 +1,5 @@
+TODO: keys_cache in clipper
+TODO: factorize keys_cache filling in keygenerator's constructor
 bentley ottmann:
 
     offsetter:

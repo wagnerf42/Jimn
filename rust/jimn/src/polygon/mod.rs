@@ -1,12 +1,14 @@
 //! Polygons.
 //! Provides `Polygon` structure.
 
+use std::iter::once;
+use std::f64;
+
 use quadrant::{Quadrant, Shape};
 use point::Point;
 use Segment;
 use utils::Identifiable;
 use utils::precision::is_almost;
-use std::iter::once;
 
 pub use self::polygon_builder::build_polygons;
 mod polygon_builder;
@@ -56,6 +58,54 @@ impl<'a> Polygon {
         let area = self.area();
         assert!(!is_almost(area, 0.0)); // flat or crossing polygon
         area > 0.0
+    }
+
+    /// Return a point strictly inside us (not on edge) in O(n) time.
+    pub fn inner_point(&self) -> Point {
+        // Take a y we intersect with.
+        let mut ymin: f64 = f64::INFINITY;
+        let mut ymax: f64 = f64::NEG_INFINITY;
+        for point in &self.points {
+            if point.y < ymin {
+                ymin = point.y;
+            }
+            if point.y > ymax {
+                ymax = point.y;
+            }
+        }
+        let y = (ymin + ymax) / 2.0;
+        // now look at all segments intersecting with this y and take the two leftmost.
+        let (x1, x2) = self.segments()
+            .filter_map(|segment| {
+                let (p1, p2) = if segment.start.y > segment.end.y {
+                    (segment.end, segment.start)
+                } else {
+                    (segment.start, segment.end)
+                };
+                if p1.y == p2.y {
+                    if p1.y == y {
+                        Some(p1.x)
+                    } else {
+                        None
+                    }
+                } else {
+                    if p1.y <= y && p2.y >= y {
+                        Some(segment.horizontal_line_intersection(y))
+                    } else {
+                        None
+                    }
+                }
+            })
+            .fold((f64::INFINITY, f64::INFINITY), |(x1, x2), x| {
+                if x < x1 {
+                    (x, x1)
+                } else if x < x2 {
+                    (x1, x)
+                } else {
+                    (x1, x2)
+                }
+            });
+        Point::new((x1 + x2) / 2.0, y)
     }
 
     /// Simplifies polygon by removing points
@@ -149,10 +199,12 @@ impl<'a> Polygon {
             .iter()
             .zip(self.points.iter().cycle().skip(1))
             .zip(self.points.iter().cycle().skip(2))
-            .filter_map(|((p1, p2), p3)| if area(p1, p2, p3) < 0.000001 {
-                None
-            } else {
-                Some(*p2)
+            .filter_map(|((p1, p2), p3)| {
+                if area(p1, p2, p3) < 0.000001 {
+                    None
+                } else {
+                    Some(*p2)
+                }
             })
             .collect();
         //now remove aligned points
@@ -160,10 +212,12 @@ impl<'a> Polygon {
             .iter()
             .zip(new_points.iter().cycle().skip(1))
             .zip(new_points.iter().cycle().skip(2))
-            .filter_map(|((p1, p2), p3)| if p1.is_aligned_with(p2, p3) {
-                None
-            } else {
-                Some(*p2)
+            .filter_map(|((p1, p2), p3)| {
+                if p1.is_aligned_with(p2, p3) {
+                    None
+                } else {
+                    Some(*p2)
+                }
             })
             .collect();
         assert!(final_points.len() > 2);
