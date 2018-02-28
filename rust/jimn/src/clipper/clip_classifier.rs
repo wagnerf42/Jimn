@@ -9,7 +9,6 @@ use bentley_ottmann::{BentleyOttmannPath, HasX, KeyGenerator, PathIndex, YCoordi
 use dyntreap::CTreap;
 use super::ClippingPath;
 
-
 type ClassifyEvent = (YCoordinate, Vec<PathIndex>, Vec<PathIndex>);
 type Generator<'a, K, P> = Rc<RefCell<KeyGenerator<'a, K, P, ClippingPath<P>>>>;
 

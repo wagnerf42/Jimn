@@ -136,7 +136,6 @@ impl PointsHash {
     }
 }
 
-
 /// The `SquareHash` is a structure allowing identification of nearby points in O(1).
 /// Consider a square grid of a given side length.
 /// We hash a point into the square containing him. Points hashed in the same square are nearby.

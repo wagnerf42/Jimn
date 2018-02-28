@@ -10,7 +10,6 @@ use classifier::complete_inclusion_tree;
 use tree::Tree;
 use overlap::remove_overlaps;
 
-
 /// Add to given vector all paths obtained when taking inner parallel segments in a polygon
 /// (displaced by radius) and looping around endpoints.
 pub fn inner_paths(

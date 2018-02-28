@@ -80,9 +80,8 @@ impl Stl {
         let height = max_height - min_height;
         let slices_number = (height / thickness).ceil() as usize;
         let extra_height = (thickness * (slices_number as f64) - height) / 2.0;
-        let cut_heights = (0..slices_number).map(|z| {
-            min_height - extra_height + thickness / 2.0 + thickness * (z as f64)
-        });
+        let cut_heights = (0..slices_number)
+            .map(|z| min_height - extra_height + thickness / 2.0 + thickness * (z as f64));
         let mut events: Vec<CuttingEvent> =
             Vec::with_capacity(slices_number + 2 * self.facets.len());
         for (index, facet) in self.facets.iter().enumerate() {
@@ -145,5 +144,27 @@ impl Stl {
             }
         }
         slices
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use test::Bencher;
+    #[bench]
+    fn slicer_small_object(b: &mut Bencher) {
+        let stl = Stl::new("../../test_files/cordoba.stl").expect("failed loading stl file");
+        b.iter(|| {
+            let mut hasher = PointsHash::new(5);
+            stl.compute_slices(0.1, &mut hasher);
+        })
+    }
+    #[bench]
+    fn slicer_large_object(b: &mut Bencher) {
+        let stl = Stl::new("../../test_files/cordoba-large.stl").expect("failed loading stl file");
+        b.iter(|| {
+            let mut hasher = PointsHash::new(5);
+            stl.compute_slices(0.1, &mut hasher);
+        })
     }
 }

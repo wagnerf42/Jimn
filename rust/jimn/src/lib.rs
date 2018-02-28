@@ -29,6 +29,7 @@ extern crate fnv;
 #[macro_use]
 extern crate itertools;
 extern crate num_traits;
+extern crate rayon;
 #[cfg(test)]
 extern crate test;
 
@@ -67,28 +68,42 @@ pub mod graph;
 pub mod tagged_path;
 pub use tagged_path::TaggedPath;
 
+use itertools::Itertools;
 use stl::Stl;
 use utils::coordinates_hash::PointsHash;
-use holed_polygon::build_holed_polygons_tree;
 use overlap::remove_overlaps;
+use polygon::build_polygons;
+use holed_polygon::build_holed_polygons;
 
 /// Computes the milling path for given slices thickness, milling radius and stl file.
-pub fn compute_milling_path(thickness: f64, milling_radius: f64, stl_file: &str) {
-    //TODO: use asref or borrow
-    let mut model = Stl::new(stl_file).expect("unable to load stl file");
+pub fn compute_milling_path(thickness: f64, _milling_radius: f64, stl_file: &str) {
+    let model = Stl::new(stl_file).expect("unable to load stl file");
     let mut rounder = PointsHash::new(6);
-    let mut slices = model.compute_slices(thickness, &mut rounder);
-    // add the border around each slice
-    // and remove overlapping parts
-    model.dimensions.inflate(milling_radius * 3.0); // 3 for now
-    for slice in &mut slices {
-        let mut non_overlapping_segments = remove_overlaps(&slice.1);
-        non_overlapping_segments.extend(model.dimensions.segments(&mut rounder));
-        slice.1 = non_overlapping_segments;
+    let slices = model.compute_slices(thickness, &mut rounder);
+    for slice in &slices {
+        display!(unicolor!(&slice.1));
     }
-    let holed_polygons = build_holed_polygons_tree(&slices);
-    holed_polygons
-        .tycat()
-        .expect("failed displaying holed polygons tree");
-    holed_polygons.level_tycat().expect("failed display");
+    let ceilings_slices: Vec<(f64, Vec<Segment>)> = slices
+        .iter()
+        .tuple_windows()
+        .map(|(s1, s2)| {
+            (
+                s1.0,
+                s1.1.iter().cloned().chain(s2.1.iter().cloned()).collect(),
+            )
+        })
+        .collect();
+
+    let segments: Vec<_> = slices
+        .iter()
+        .skip(1)
+        .zip(ceilings_slices.iter())
+        .map(|(slice, ceiling)| (remove_overlaps(&slice.1), remove_overlaps(&ceiling.1)))
+        .collect();
+
+    for &(ref to_fill, ref to_ceil) in &segments {
+        println!("new slice");
+        display!(unicolor!(to_fill));
+        display!(unicolor!(to_ceil));
+    }
 }

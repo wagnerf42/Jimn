@@ -8,10 +8,8 @@ use jimn::utils::coordinates_hash::PointsHash;
 use jimn::overlap::cut_overlaps;
 use jimn::bentley_ottmann::bentley_ottmann;
 use jimn::polygon::build_polygons;
-use jimn::classifier::find_included_polygons;
+//use jimn::classifier::find_included_polygons;
 use jimn::tree::Tree;
-
-
 
 fn main() {
     let mut earth: Vec<_> = [
@@ -68,15 +66,11 @@ fn main() {
     let mut rounder = PointsHash::new(2);
     let earth: Vec<_> = earth
         .iter()
-        .map(|s| {
-            Segment::new(rounder.hash_point(&s.start), rounder.hash_point(&s.end))
-        })
+        .map(|s| Segment::new(rounder.hash_point(&s.start), rounder.hash_point(&s.end)))
         .collect();
     let heaven: Vec<_> = heaven
         .iter()
-        .map(|s| {
-            Segment::new(rounder.hash_point(&s.start), rounder.hash_point(&s.end))
-        })
+        .map(|s| Segment::new(rounder.hash_point(&s.start), rounder.hash_point(&s.end)))
         .collect();
     println!("heaven");
     display!(unicolor!(&heaven));
@@ -100,15 +94,15 @@ fn main() {
 
     // classify elementary polygons in heaven and figure out which one is heavenly
     // classify elementary polygons in earth and figure out which one is earthly
-    let heavenly_ids = find_included_polygons(&heaven, &elementary_polygons);
-    println!("heavenly polygons");
-    display!(multicolor!(
-        elementary_polygons
-            .iter()
-            .zip(heavenly_ids.iter())
-            .filter(|&(_, b)| *b)
-            .map(|(p, _)| p)
-    ));
+    //let heavenly_ids = find_included_polygons(&heaven, &elementary_polygons);
+    //println!("heavenly polygons");
+    //display!(multicolor!(
+    //    elementary_polygons
+    //        .iter()
+    //        .zip(heavenly_ids.iter())
+    //        .filter(|&(_, b)| *b)
+    //        .map(|(p, _)| p)
+    //));
 
     // now generate graphs by tiling and clipping each polygon
     // an earth polygon is completely filled

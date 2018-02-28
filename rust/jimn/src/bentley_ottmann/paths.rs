@@ -247,7 +247,6 @@ fn segments_overlap_points(segment1: &Segment, segment2: &Segment) -> Option<[Po
     }
 }
 
-
 impl BentleyOttmannPath for Segment {
     type BentleyOttmannKey = Key;
     fn compute_key(&self, current_y: YCoordinate) -> Key {
@@ -368,7 +367,8 @@ pub struct KeyGenerator<
 }
 
 impl<'a, K: Ord + HasX, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: AsRef<P>>
-    KeyGenerator<'a, K, P, T> {
+    KeyGenerator<'a, K, P, T>
+{
     /// Create a key generator from paths.
     pub fn new(paths: &'a [T]) -> Rc<RefCell<KeyGenerator<'a, K, P, T>>> {
         Rc::new(RefCell::new(KeyGenerator {
@@ -384,15 +384,14 @@ impl<'a, K: Ord + HasX, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: AsRef<P
 }
 
 impl<'a, K: Ord + HasX + Copy, P: BentleyOttmannPath<BentleyOttmannKey = K>, T: AsRef<P>>
-    KeyGenerator<'a, K, P, T> {
+    KeyGenerator<'a, K, P, T>
+{
     /// Return comparison key for given paths at current position.
     pub fn compute_key(&self, path_index: &PathIndex) -> K {
         self.keys_cache
             .get(&(*path_index, self.current_y))
             .cloned()
-            .unwrap_or_else(|| {
-                self.paths[*path_index].as_ref().compute_key(self.current_y)
-            })
+            .unwrap_or_else(|| self.paths[*path_index].as_ref().compute_key(self.current_y))
     }
 
     /// Return the point for given path at given y.

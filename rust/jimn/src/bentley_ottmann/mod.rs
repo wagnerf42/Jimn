@@ -45,14 +45,14 @@ struct Cutter<'a, 'b, K: Ord + HasX, P: BentleyOttmannPath<BentleyOttmannKey = K
     rounder: &'b mut PointsHash,
 }
 
-
 impl<
     'a,
     'b,
     K: 'a + Ord + Copy + HasX,
     P: 'a + BentleyOttmannPath<BentleyOttmannKey = K>,
     T: 'a + AsRef<P> + Cuttable,
-> Cutter<'a, 'b, K, P, T> {
+> Cutter<'a, 'b, K, P, T>
+{
     fn new(
         paths: &'a [T],
         rounder: &'b mut PointsHash,
@@ -352,7 +352,6 @@ pub fn debug_display<
         );
     }
 }
-
 
 #[cfg(test)]
 mod tests {

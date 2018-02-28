@@ -41,7 +41,6 @@ impl Contains<ElementaryPath> for Pocket {
     }
 }
 
-
 type ClassifyEvent = (YCoordinate, Vec<PathIndex>, Vec<PathIndex>);
 type ContainerIndex = usize;
 
@@ -57,7 +56,6 @@ impl<P> AsRef<P> for OwnedPath<P> {
         &self.path
     }
 }
-
 
 /// The `Classifier` structure holds all data needed for building inclusion tree.
 struct Classifier<
@@ -92,7 +90,8 @@ impl<
     K: 'k + Ord + Copy + Eq + HasX,
     P: 'p + BentleyOttmannPath<BentleyOttmannKey = K> + Shape,
     C: Contains<P> + Shape + Default,
-> Classifier<'s, 'k, 'p, 't, K, P, C> {
+> Classifier<'s, 'k, 'p, 't, K, P, C>
+{
     /// Create all owned paths and events.
     fn new(
         tree: &'t mut Tree<C>,
@@ -117,11 +116,9 @@ impl<
                 node.value
                     .edge()
                     .filter(|p| !p.is_horizontal())
-                    .map(move |p| {
-                        OwnedPath {
-                            path: p,
-                            owner: index,
-                        }
+                    .map(move |p| OwnedPath {
+                        path: p,
+                        owner: index,
                     })
             })
             .collect();
@@ -203,7 +200,6 @@ impl<
         }
     }
 
-
     /// Add given paths in treap, classify new containers.
     fn start_paths(&mut self, paths: &[PathIndex]) {
         // add everyone and classify new containers on the fly
@@ -247,7 +243,6 @@ impl<
         }
         self.inclusion_tree.set_child(father_id, owner);
     }
-
 
     /// Is path with given key included in given container ?
     fn inclusion_test(&self, key: K, container: ContainerIndex) -> bool {

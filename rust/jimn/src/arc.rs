@@ -195,9 +195,8 @@ impl Arc {
         &'a self,
         other: &'a Self,
     ) -> impl Iterator<Item = Point> + 'a {
-        circles_intersections(&self.center, &other.center, self.radius, other.radius).filter(
-            move |p| self.contains_circle_point(p) && other.contains_circle_point(p),
-        )
+        circles_intersections(&self.center, &other.center, self.radius, other.radius)
+            .filter(move |p| self.contains_circle_point(p) && other.contains_circle_point(p))
     }
 
     /// Iterate on all points obtained when intersecting with given Segment.
@@ -265,7 +264,6 @@ impl Shape for Arc {
     }
 }
 
-
 fn line_circle_intersections<'a>(
     segment: &'a Segment,
     center: &'a Point,
@@ -306,7 +304,6 @@ fn solve_quadratic_equation(a: f64, b: f64, c: f64) -> Vec<f64> {
     }
 }
 
-
 fn circles_intersections(c1: &Point, c2: &Point, r1: f64, r2: f64) -> Box<Iterator<Item = Point>> {
     // TODO: should we unbox everything
     // I just solved all equations to end up with this.
@@ -324,9 +321,10 @@ fn circles_intersections(c1: &Point, c2: &Point, r1: f64, r2: f64) -> Box<Iterat
 
         if is_almost(r1, l) {
             // only one intersection
-            Box::new(once(
-                Point::new(l / d * (x2 - x1) + x1, l / d * (y2 - y1) + y1),
-            ))
+            Box::new(once(Point::new(
+                l / d * (x2 - x1) + x1,
+                l / d * (y2 - y1) + y1,
+            )))
         } else if (r1 < l) || (r1.abs() < l.abs()) {
             Box::new(empty()) // too far away
         } else {

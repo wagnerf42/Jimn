@@ -1,0 +1,68 @@
+this document describes the main algorithm for 3d printer paths.
+it means to clarify what exactly are the pre and post conditions of each step.
+
+it relies on three sub-algorithms :
+
+* paths intersections :
+    - take a set of paths a get back elementary paths
+        + pre-condition : none
+        ///////////////TODO: pas clair si une propriete sur le nombre d'overlaps
+        + post-condition :
+            * no two paths share points except endpoints and overlapping paths.
+            * overlapping paths are still cut on endpoints (only inner paths content are shared)
+    - implemented with Bentley Ottmann or brute force.
+
+* inclusion detection algorithm:
+    - take a set of shapes (paths), a set of inner points to classify
+    - return for each inner point what is the closest shape containing it as a tree
+        + pre-condition :
+        /////////////TODO: pas clair si on a vraiment besoin d'un arbre
+            * outer shapes are included in one another (can be equal)
+            * paths can overlap but in this case the order is important to determine who is outer and who is inner
+
+* edge following algorithm :
+    - take a set of paths and returns polygons or pockets by following edges
+        + pre-condition: no overlap
+        ////////////TODO: can we be overlap resistant if there is only one ?
+
+
+now, here is the main algorithm :
+
+1) load stl file
+2) cut into planes (requires points rounder or facets elementarizing)
+3) build polygons (EDGE FOLLOWING)
+4) build holed polygons (INCLUSION DETECTION)
+5) offset each
+    a) parallel segments
+    b) reconnect with arcs
+    c) INTERSECTIONS
+    d) EDGE FOLLOWING
+    e) INCLUSION DETECTION
+    f) trim
+6) detect fill types
+    a) zip slices two by two
+    b) union of all paths
+    c) INTERSECTIONS
+    d) EDGE FOLLOWING
+    e) INCLUSION DETECTION (in heaven (top) and earth (bottom))
+    f) classify :
+        - none : discard
+        - earth : fill completely
+        - heaven : add support
+        - earth + heaven : fill with pattern
+
+7) fill
+    a) tile
+    b) INTERSECTIONS
+    c) INCLUSION DETECTION
+    d) add outer paths
+
+8) build pockets graphs
+9) fuse to get slice graph
+10) reconnect with low cost tree
+11) get even degrees with low cost edge adding
+12) euler
+13) we finaly obtain one euleurian cycle for each slice, we now just need to reconnect : start from low, do cycle, find nearest point above
+14) remove / fuse useless moves
+
+DONE !

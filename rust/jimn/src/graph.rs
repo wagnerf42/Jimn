@@ -7,7 +7,6 @@ use std::collections::BinaryHeap;
 use std::iter::repeat;
 use disjoint_sets::UnionFind;
 
-
 use {ElementaryPath, Point, Segment, TaggedPath};
 use utils::ArrayMap;
 use utils::coordinates_hash::SquareHash;
@@ -60,7 +59,6 @@ pub struct Graph<'a> {
     vertices: Vec<Vertex<'a>>,
     edges: Vec<Edge<'a>>,
 }
-
 
 impl<'a> Graph<'a> {
     /// Create a new graph out of given paths.
@@ -171,13 +169,14 @@ impl<'a> Graph<'a> {
                 // store path and update all structs
                 for vertex in &self.edges[current_edge].vertices {
                     let remove = {
-                        let remaining_degree = possible_starts.entry(*vertex).or_insert_with(|| {
-                            self.vertices[*vertex]
-                                .neighbours
-                                .iter()
-                                .filter(|n| remaining_edges.contains(n))
-                                .count() // this loop inccurs the extra "degree" cost
-                        });
+                        let remaining_degree =
+                            possible_starts.entry(*vertex).or_insert_with(|| {
+                                self.vertices[*vertex]
+                                    .neighbours
+                                    .iter()
+                                    .filter(|n| remaining_edges.contains(n))
+                                    .count() // this loop inccurs the extra "degree" cost
+                            });
                         *remaining_degree -= 1;
                         *remaining_degree == 0
                     };
@@ -327,7 +326,7 @@ impl<'a> Graph<'a> {
                 hash.hashes
                     .iter()
                     .flat_map(|h| h.values().filter(|p| p.len() > 1).cloned()),
-                    //TODO: drain
+                //TODO: drain
             );
             let new_size = colliding_vertices.len();
             if new_size == old_size {
@@ -429,8 +428,6 @@ impl<'a> Graph<'a> {
         panic!("cannot reconnect graph");
     }
 }
-
-
 
 impl<'a> Shape for Graph<'a> {
     fn get_quadrant(&self) -> Quadrant {

@@ -64,7 +64,7 @@ impl Segment {
     pub fn horizontal_line_intersection(&self, y: f64) -> f64 {
         assert!(!is_almost(self.start.y, self.end.y));
         let alpha = (y - self.start.y) / (self.end.y - self.start.y);
-        self.start.x + alpha * (self.end.x - self.start.x)
+        alpha.mul_add((self.end.x - self.start.x), self.start.x)
     }
 
     /// Return if we are horizontal.

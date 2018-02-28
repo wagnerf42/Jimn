@@ -12,7 +12,6 @@ use utils::precision::is_almost;
 use utils::float::hash_float;
 use std::hash::{Hash, Hasher};
 
-
 #[derive(Copy, Clone, Debug, PartialEq)]
 /// 2D point structure.
 /// Note that Y is defined first so that lexicographical comparisons will
@@ -31,7 +30,6 @@ impl Hash for Point {
         hash_float(&self.y, state);
     }
 }
-
 
 impl Eq for Point {}
 impl Ord for Point {

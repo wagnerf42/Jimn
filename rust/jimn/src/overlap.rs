@@ -43,7 +43,6 @@ fn discard_overlapping_paths<P: BentleyOttmannPath, T: AsRef<P> + Cuttable + Cop
     }
 }
 
-
 /// Remove overlap in all segments.
 /// pre-condition : no more than 2 segments can overlap.
 pub fn remove_overlaps<P: BentleyOttmannPath, T: AsRef<P> + Cuttable + Copy>(

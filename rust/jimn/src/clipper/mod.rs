@@ -24,11 +24,9 @@ impl<P: Copy + BentleyOttmannPath + Cuttable> Cuttable for ClippingPath<P> {
         self.path
             .cut(points)
             .iter()
-            .map(|s| {
-                ClippingPath {
-                    path: *s,
-                    clipping: self.clipping,
-                }
+            .map(|s| ClippingPath {
+                path: *s,
+                clipping: self.clipping,
             })
             .collect()
     }
@@ -57,17 +55,13 @@ pub fn clip<
     // it is very important to add clipped paths first since they stay in case of overlap
     let paths: Vec<_> = clipper
         .into_iter()
-        .map(|p| {
-            ClippingPath {
-                path: *p,
-                clipping: true,
-            }
+        .map(|p| ClippingPath {
+            path: *p,
+            clipping: true,
         })
-        .chain(clipped.into_iter().map(|p| {
-            ClippingPath {
-                path: *p,
-                clipping: false,
-            }
+        .chain(clipped.into_iter().map(|p| ClippingPath {
+            path: *p,
+            clipping: false,
         }))
         .collect();
     module_debug!({
