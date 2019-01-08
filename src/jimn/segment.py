@@ -38,6 +38,12 @@ class Segment(ElementaryPath):
         """
         super().__init__(points)
 
+    def rotate(self, angle):
+        """
+        rotate around origin
+        """
+        return Segment([p.rotate(angle) for p in self.endpoints])
+
     def copy(self):
         """
         return duplicate of given segment (no shared points with original,
@@ -353,12 +359,12 @@ class Segment(ElementaryPath):
     def __hash__(self):
         return hash(tuple(self.endpoints))
 
-#    def __lt__(self, other):
-#        """
-#        return if self < other.
-#        order has no real meaning. it is just an arbitrary order.
-#        """
-#        return self.endpoints < other.endpoints
+    def __lt__(self, other):
+        """
+        return if self < other.
+        order has no real meaning. it is just an arbitrary order.
+        """
+        return self.endpoints < other.endpoints
 
 
 def __tour():
